@@ -135,7 +135,11 @@ export function generateExtendedQuoteReportSources(
     );
 
     // MultiHop
-    sourcesConsidered.push(...quotes.twoHopQuotes.map((quote) => multiHopSampleToReportSource(quote, marketOperation)));
+    sourcesConsidered.push(
+        ..._.flatMap(quotes.twoHopQuotes, (samples) => {
+            return samples.map((sample) => multiHopSampleToReportSource(sample, marketOperation));
+        }),
+    );
 
     // Dex Quotes
     sourcesConsidered.push(

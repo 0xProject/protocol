@@ -41,7 +41,13 @@ import { Path } from './path';
 import { PathOptimizer } from './path_optimizer';
 import { DexOrderSampler, getSampleAmounts } from './sampler';
 import { SourceFilters } from './source_filters';
-import { AggregationError, GenerateOptimizedOrdersOpts, MarketSideLiquidity } from './types';
+import {
+    AggregationError,
+    DexSample,
+    GenerateOptimizedOrdersOpts,
+    MarketSideLiquidity,
+    MultiHopFillData,
+} from './types';
 
 const NO_CONVERSION_TO_NATIVE_FOUND = new Counter({
     name: 'no_conversion_to_native_found',
@@ -210,11 +216,6 @@ export class MarketOperationUtils {
         SAMPLER_METRICS.logGasDetails({ side: 'sell', gasBefore, gasAfter });
         SAMPLER_METRICS.logBlockNumber(blockNumber);
 
-        // Filter out any invalid two hop quotes where we couldn't find a route
-        const twoHopQuotes = rawTwoHopQuotes.filter(
-            (q) => q && q.fillData && q.fillData.firstHopSource && q.fillData.secondHopSource,
-        );
-
         const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
 
         const isRfqSupported = !!(_opts.rfqt && !isTxOriginContract);
@@ -236,7 +237,7 @@ export class MarketOperationUtils {
             quotes: {
                 nativeOrders: limitOrdersWithFillableAmounts,
                 rfqtIndicativeQuotes: [],
-                twoHopQuotes,
+                twoHopQuotes: MarketOperationUtils.filterInvalidTwoHopQuotes(rawTwoHopQuotes),
                 dexQuotes,
             },
             isRfqSupported,
@@ -340,11 +341,6 @@ export class MarketOperationUtils {
         SAMPLER_METRICS.logGasDetails({ side: 'buy', gasBefore, gasAfter });
         SAMPLER_METRICS.logBlockNumber(blockNumber);
 
-        // Filter out any invalid two hop quotes where we couldn't find a route
-        const twoHopQuotes = rawTwoHopQuotes.filter(
-            (q) => q && q.fillData && q.fillData.firstHopSource && q.fillData.secondHopSource,
-        );
-
         const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
         const isRfqSupported = !isTxOriginContract;
 
@@ -366,7 +362,7 @@ export class MarketOperationUtils {
             quotes: {
                 nativeOrders: limitOrdersWithFillableAmounts,
                 rfqtIndicativeQuotes: [],
-                twoHopQuotes,
+                twoHopQuotes: MarketOperationUtils.filterInvalidTwoHopQuotes(rawTwoHopQuotes),
                 dexQuotes,
             },
             isRfqSupported,
@@ -764,5 +760,15 @@ export class MarketOperationUtils {
         _.values(this._sampler.poolsCaches)
             .filter((cache) => cache !== undefined && !cache.isFresh(takerToken, makerToken))
             .forEach((cache) => cache?.getFreshPoolsForPairAsync(takerToken, makerToken));
+    }
+
+    private static filterInvalidTwoHopQuotes(
+        twoHopQuotesList: DexSample<MultiHopFillData>[][],
+    ): DexSample<MultiHopFillData>[][] {
+        return twoHopQuotesList
+            .map((twoHopQuotes) =>
+                twoHopQuotes.filter((q) => q && q.fillData && q.fillData.firstHopSource && q.fillData.secondHopSource),
+            )
+            .filter((quotes) => quotes.length > 0);
     }
 }

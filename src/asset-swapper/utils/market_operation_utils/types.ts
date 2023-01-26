@@ -333,7 +333,7 @@ export interface PathContext {
 export interface RawQuotes {
     nativeOrders: NativeOrderWithFillableAmounts[];
     rfqtIndicativeQuotes: V4RFQIndicativeQuoteMM[];
-    twoHopQuotes: DexSample<MultiHopFillData>[];
+    twoHopQuotes: DexSample<MultiHopFillData>[][];
     dexQuotes: DexSample<FillData>[][];
 }
 
