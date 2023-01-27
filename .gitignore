@@ -82,6 +82,9 @@ generated-artifacts/
 # generated contract wrappers
 generated-wrappers/
 
+# forge std-lib
+contracts/zero-ex/contracts/deps/forge-std
+
 # foundry artifacts
 foundry-artifacts/
 

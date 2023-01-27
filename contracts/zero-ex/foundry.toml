@@ -3,5 +3,23 @@ src = 'contracts/src'
 out = 'foundry-artifacts'
 test = 'tests'
 libs = ["contracts/deps/", "../utils/contracts/src/"]
-remappings = ['@0x/contracts-utils/=../utils/', '@0x/contracts-erc20/=../erc20/', 'src/=./contracts/src']
+remappings = [
+    'forge-std/=contracts/deps/forge-std/src/',
+    'ds-test/=contracts/deps/forge-std/lib/ds-test/src/',
+    '@0x/contracts-utils/=../utils/',
+    '@0x/contracts-erc20/=../erc20/',
+    'src/=./contracts/src',
+    'samplers/=contracts/test/samplers',
+    'utils/=./tests/utils',
+]
 optimizer_runs = 1000000
+fs_permissions = [{ access = "read", path = "./" }]
+
+[rpc_endpoints]
+arbitrum = "${ARBITRUM_RPC_URL}"
+avalanche = "${AVALANCHE_RPC_URL}"
+bsc = "${BSC_RPC_URL}"
+fantom = "${FANTOM_RPC_URL}"
+mainnet = "${MAINNET_RPC_URL}"
+optimism = "${OPTIMISM_RPC_URL}"
+polygon = "${POLYGON_RPC_URL}"

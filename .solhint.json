@@ -7,7 +7,7 @@
         "avoid-tx-origin": "warn",
         "code-complexity": "off",
         "const-name-snakecase": "error",
-        "function-max-lines": "off",
+        "function-max-lines": ["error", 350],
         "max-line-length": ["error", 120],
         "no-inline-assembly": "off",
         "quotes": ["error", "double"],

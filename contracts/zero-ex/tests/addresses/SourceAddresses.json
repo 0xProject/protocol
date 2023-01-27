@@ -1,0 +1,30 @@
+{
+    "1": {
+        "UniswapV2Router": "0xf164fc0ec4e93095b804a4795bbe1e041497b92a",
+        "UniswapV3Router": "0x0000000000000000000000000000000000000000"
+    },
+    "56": {
+        "UniswapV2Router": "0x10ed43c718714eb63d5aa57b78b54704e256024e",
+        "UniswapV3Router": "0x0000000000000000000000000000000000000000"
+    },
+    "137": {
+        "UniswapV2Router": "0x1b02da8cb0d097eb8d57a175b88c7d8b47997506",
+        "UniswapV3Router": "0x0000000000000000000000000000000000000000"
+    },
+    "43114": {
+        "UniswapV2Router": "0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10",
+        "UniswapV3Router": "0x0000000000000000000000000000000000000000"
+    },
+    "250": {
+        "UniswapV2Router": "0x1b02da8cb0d097eb8d57a175b88c7d8b47997506",
+        "UniswapV3Router": "0x0000000000000000000000000000000000000000"
+    },
+    "10": {
+        "UniswapV2Router": "0x0000000000000000000000000000000000000000",
+        "UniswapV3Router": "0x61ffe014ba17989e743c5f6cb21bf9697530b21e"
+    },
+    "42161": {
+        "UniswapV2Router": "0x1b02da8cb0d097eb8d57a175b88c7d8b47997506",
+        "UniswapV3Router": "0x0000000000000000000000000000000000000000"
+    }
+}

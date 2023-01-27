@@ -15,6 +15,7 @@
         "build:ts": "tsc -b",
         "pre_build": "run-s compile contracts:gen generate_contract_wrappers contracts:copy",
         "test": "yarn run_mocha",
+        "test:integration": "forge test -vvv",
         "rebuild_and_test": "run-s build test",
         "test:profiler": "SOLIDITY_PROFILER=true run-s build run_mocha profiler:report:html",
         "test:trace": "SOLIDITY_REVERT_TRACE=true run-s build run_mocha",

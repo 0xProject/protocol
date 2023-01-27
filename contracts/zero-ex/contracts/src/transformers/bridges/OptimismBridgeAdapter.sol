@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 /*
-  Copyright 2022 ZeroEx Intl.
+  Copyright 2023 ZeroEx Intl.
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
   You may obtain a copy of the License at
@@ -41,6 +41,7 @@ contract OptimismBridgeAdapter is
 {
     constructor(IEtherTokenV06 weth) public MixinCurve(weth) MixinAaveV3(true) {}
 
+    /* solhint-disable function-max-lines */
     function _trade(
         BridgeOrder memory order,
         IERC20TokenV06 sellToken,
@@ -98,4 +99,5 @@ contract OptimismBridgeAdapter is
 
         emit BridgeFill(order.source, sellToken, buyToken, sellAmount, boughtAmount);
     }
+    /* solhint-enable function-max-lines */
 }

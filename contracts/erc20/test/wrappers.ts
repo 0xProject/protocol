@@ -22,4 +22,5 @@ export * from '../test/generated-wrappers/test_lib_erc20_token_target';
 export * from '../test/generated-wrappers/unlimited_allowance_erc20_token';
 export * from '../test/generated-wrappers/untransferrable_dummy_erc20_token';
 export * from '../test/generated-wrappers/weth9';
+export * from '../test/generated-wrappers/weth9v06';
 export * from '../test/generated-wrappers/zrx_token';
