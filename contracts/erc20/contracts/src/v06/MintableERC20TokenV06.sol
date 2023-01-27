@@ -21,7 +21,7 @@ pragma solidity ^0.6.5;
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "./IERC20TokenV06.sol";
 
-contract MintableERC20Token is IERC20TokenV06 {
+contract MintableERC20TokenV06 is IERC20TokenV06 {
     using LibSafeMathV06 for uint256;
 
     uint8 public override decimals = 18;
