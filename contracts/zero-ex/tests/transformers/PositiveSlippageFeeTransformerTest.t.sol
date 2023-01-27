@@ -56,9 +56,30 @@ contract PositiveSlippageFeeTransformerTest is BaseTest {
         assertEq(result, LibERC20Transformer.TRANSFORMER_SUCCESS);
     }
 
-    function test_positiveSlippage_zeroPositiveSlippage() public {
+    function test_positiveSlippage_bestCaseEqualsAmount() public {
         uint256 takerAmount = 10;
         weth.transfer(address(target), 10);
+
+        bytes4 result = target.transform(
+            IERC20Transformer.TransformContext({
+                sender: payable(address(this)),
+                recipient: payable(address(this)),
+                data: abi.encode(
+                    PositiveSlippageFeeTransformer.TokenFee({
+                        token: IERC20TokenV06(token1),
+                        bestCaseAmount: takerAmount,
+                        recipient: payable(feeRecipient)
+                    })
+                )
+            })
+        );
+        assertEq(token1.balanceOf(feeRecipient), 0);
+        assertEq(result, LibERC20Transformer.TRANSFORMER_SUCCESS);
+    }
+
+    function test_positiveSlippage_bestCaseGreaterThanAmount() public {
+        uint256 takerAmount = 10;
+        weth.transfer(address(target), 1);
 
         bytes4 result = target.transform(
             IERC20Transformer.TransformContext({
