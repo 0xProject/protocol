@@ -20,7 +20,7 @@ import { RfqMakerBalanceCacheService } from '../../src/services/rfq_maker_balanc
 import { ApprovalResponse, FetchIndicativeQuoteResponse, OtcOrderRfqmQuoteResponse } from '../../src/services/types';
 import { BalanceChecker } from '../../src/utils/balance_checker';
 import { CacheClient } from '../../src/utils/cache_client';
-import { getQuoteAsync } from '../../src/utils/MetaTransactionClient';
+import { getV1QuoteAsync } from '../../src/utils/MetaTransactionClient';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
 import { RfqmDbUtils } from '../../src/utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
@@ -42,7 +42,7 @@ jest.mock('../../src/services/rfqm_service', () => {
 
 jest.mock('../../src/utils/MetaTransactionClient', () => {
     return {
-        getQuoteAsync: jest.fn(),
+        getV1QuoteAsync: jest.fn(),
     };
 });
 
@@ -91,9 +91,9 @@ jest.mock('sqs-producer', () => {
 });
 
 // tslint:disable: no-object-literal-type-assertion
-const getMetaTransactionQuoteAsyncMock = getQuoteAsync as jest.Mock<
-    ReturnType<typeof getQuoteAsync>,
-    Parameters<typeof getQuoteAsync>
+const getMetaTransactionQuoteAsyncMock = getV1QuoteAsync as jest.Mock<
+    ReturnType<typeof getV1QuoteAsync>,
+    Parameters<typeof getV1QuoteAsync>
 >;
 const mockSqsProducer = jest.mocked(new Producer({}));
 const mockDbUtils = jest.mocked(new RfqmDbUtils({} as Connection));

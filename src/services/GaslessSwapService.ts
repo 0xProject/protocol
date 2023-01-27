@@ -13,7 +13,7 @@ import { MetaTransactionJobConstructorOpts } from '../entities/MetaTransactionJo
 import { RfqmJobStatus } from '../entities/types';
 import { logger } from '../logger';
 import { ExecuteMetaTransactionEip712Context, GaslessTypes, PermitEip712Context } from '../core/types';
-import { getQuoteAsync } from '../utils/MetaTransactionClient';
+import { getV1QuoteAsync } from '../utils/MetaTransactionClient';
 import { RfqmDbUtils } from '../utils/rfqm_db_utils';
 import { HealthCheckResult } from '../utils/rfqm_health_check';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
@@ -157,7 +157,7 @@ export class GaslessSwapService {
         }
 
         try {
-            const ammPrice = await getQuoteAsync(
+            const ammPrice = await getV1QuoteAsync(
                 this._axiosInstance,
                 new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
                 {
@@ -238,7 +238,7 @@ export class GaslessSwapService {
         }
 
         try {
-            const ammQuote = await getQuoteAsync(
+            const ammQuote = await getV1QuoteAsync(
                 this._axiosInstance,
                 new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
                 {

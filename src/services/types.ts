@@ -77,6 +77,16 @@ export interface MetaTransactionQuoteResponse extends BaseRfqmQuoteResponse {
     approval?: ApprovalResponse;
 }
 
+// TODO: This needs to be updated to the new meta-transaction type when smart contract changes are finished and corresponding types are published in packages
+export class MetaTransactionV2 extends MetaTransaction {}
+
+export interface LiquiditySource {
+    name: string;
+    proportion: BigNumber;
+    intermediateToken?: string;
+    hops?: string[];
+}
+
 export interface ApprovalResponse {
     isRequired: boolean;
     isGaslessAvailable?: boolean;
