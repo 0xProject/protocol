@@ -34,10 +34,10 @@ contract PositiveSlippageFeeTransformerTest is BaseTest {
         weth.deposit{value: 10}();
     }
 
-    function test_positiveSlippage() public {
+    function test_positiveSlippageFee() public {
         // Send positive slippage to contract which executes PositiveSlippageFeeTransformer
         weth.transfer(address(target), 10);
-        uint256 takerAmount = 1;
+        uint256 bestCaseAmount = 1;
 
         bytes4 result = target.transform(
             IERC20Transformer.TransformContext({
@@ -46,7 +46,7 @@ contract PositiveSlippageFeeTransformerTest is BaseTest {
                 data: abi.encode(
                     PositiveSlippageFeeTransformer.TokenFee({
                         token: IERC20TokenV06(token1),
-                        bestCaseAmount: takerAmount,
+                        bestCaseAmount: bestCaseAmount,
                         recipient: payable(feeRecipient)
                     })
                 )
@@ -56,8 +56,8 @@ contract PositiveSlippageFeeTransformerTest is BaseTest {
         assertEq(result, LibERC20Transformer.TRANSFORMER_SUCCESS);
     }
 
-    function test_positiveSlippage_bestCaseEqualsAmount() public {
-        uint256 takerAmount = 10;
+    function test_positiveSlippageFee_bestCaseEqualsAmount() public {
+        uint256 bestCaseAmount = 10;
         weth.transfer(address(target), 10);
 
         bytes4 result = target.transform(
@@ -67,7 +67,7 @@ contract PositiveSlippageFeeTransformerTest is BaseTest {
                 data: abi.encode(
                     PositiveSlippageFeeTransformer.TokenFee({
                         token: IERC20TokenV06(token1),
-                        bestCaseAmount: takerAmount,
+                        bestCaseAmount: bestCaseAmount,
                         recipient: payable(feeRecipient)
                     })
                 )
@@ -77,8 +77,8 @@ contract PositiveSlippageFeeTransformerTest is BaseTest {
         assertEq(result, LibERC20Transformer.TRANSFORMER_SUCCESS);
     }
 
-    function test_positiveSlippage_bestCaseGreaterThanAmount() public {
-        uint256 takerAmount = 10;
+    function test_positiveSlippageFee_bestCaseGreaterThanAmount() public {
+        uint256 bestCaseAmount = 10;
         weth.transfer(address(target), 1);
 
         bytes4 result = target.transform(
@@ -88,7 +88,7 @@ contract PositiveSlippageFeeTransformerTest is BaseTest {
                 data: abi.encode(
                     PositiveSlippageFeeTransformer.TokenFee({
                         token: IERC20TokenV06(token1),
-                        bestCaseAmount: takerAmount,
+                        bestCaseAmount: bestCaseAmount,
                         recipient: payable(feeRecipient)
                     })
                 )
