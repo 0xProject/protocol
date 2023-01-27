@@ -21,6 +21,7 @@ pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 import "forge-std/Test.sol";
+import "src/external/IFlashWallet.sol";
 import "src/features/libs/LibSignature.sol";
 import "src/features/libs/LibNativeOrder.sol";
 import "src/features/interfaces/IMultiplexFeature.sol";
@@ -80,12 +81,34 @@ contract Multiplex is Test, ForkUtils, TestUtils {
             ")"
         );
 
+    bytes32 private constant EXPIRED_OTC_ORDER_SIG =
+        keccak256(
+            "ExpiredOtcOrder("
+            "bytes32,"
+            "address,"
+            "uint64"
+            ")"
+        );
+
     bytes32 private constant TRANSFER_SIG =
         keccak256(
             "Transfer("
             "address,"
             "address,"
             "address,"
+            "uint256"
+            ")"
+        );
+
+    bytes32 private constant MINT_TRANSFORM_SIG =
+        keccak256(
+            "MintTransform("
+            "address,"
+            "address,"
+            "address,"
+            "address,"
+            "bytes,"
+            "uint256,"
             "uint256"
             ")"
         );
@@ -97,6 +120,7 @@ contract Multiplex is Test, ForkUtils, TestUtils {
     }
 
     DeployZeroEx.ZeroExDeployed private zeroExDeployed;
+    IFlashWallet private flashWallet;
     IERC20TokenV06 private shib;
     IERC20TokenV06 private dai;
     IERC20TokenV06 private zrx;
@@ -142,6 +166,8 @@ contract Multiplex is Test, ForkUtils, TestUtils {
         transformerNonce = zeroExDeployed.transformerDeployer.nonce();
         vm.prank(zeroExDeployed.transformerDeployer.authorities(0));
         zeroExDeployed.transformerDeployer.deploy(type(TestMintTokenERC20Transformer).creationCode);
+
+        flashWallet = zeroExDeployed.zeroEx.getTransformWallet();
 
         shib = IERC20TokenV06(address(new TestMintableERC20Token()));
         dai = IERC20TokenV06(address(new TestMintableERC20Token()));
@@ -412,6 +438,34 @@ contract Multiplex is Test, ForkUtils, TestUtils {
         entries[0] = first;
         entries[1] = second;
         entries[2] = third;
+    }
+
+    function makeArray(
+        LogDescription memory first,
+        LogDescription memory second,
+        LogDescription memory third,
+        LogDescription memory fourth
+    ) private pure returns (LogDescription[] memory entries) {
+        entries = new LogDescription[](4);
+        entries[0] = first;
+        entries[1] = second;
+        entries[2] = third;
+        entries[3] = fourth;
+    }
+
+    function makeArray(
+        LogDescription memory first,
+        LogDescription memory second,
+        LogDescription memory third,
+        LogDescription memory fourth,
+        LogDescription memory fifth
+    ) private pure returns (LogDescription[] memory entries) {
+        entries = new LogDescription[](5);
+        entries[0] = first;
+        entries[1] = second;
+        entries[2] = third;
+        entries[3] = fourth;
+        entries[4] = fifth;
     }
 
     function makeArray(bytes32 first) private pure returns (bytes32[] memory data) {
@@ -771,7 +825,7 @@ contract Multiplex is Test, ForkUtils, TestUtils {
             it("expired OTC, fallback(UniswapV2)");
 
             LibNativeOrder.OtcOrder memory otcOrder = makeTestOtcOrder();
-            createUniswapV2Pool(uniV2Factory, dai, zrx, 10e18, 10e18);
+            TestUniswapV2Pool uniV2Pool = createUniswapV2Pool(uniV2Factory, dai, zrx, 10e18, 10e18);
             mintTo(address(otcOrder.takerToken), otcOrder.taker, otcOrder.takerAmount);
             otcOrder.expiryAndNonce = 1;
 
@@ -787,7 +841,27 @@ contract Multiplex is Test, ForkUtils, TestUtils {
                     0
                 )
             {
-                // TODO verify otcOrder expired, verify fallback to uniswapV2 transferred correctly
+                assertLogs(
+                    makeArray(
+                        describeLog({
+                            topics: makeArray(EXPIRED_OTC_ORDER_SIG),
+                            data: abi.encode(
+                                zeroExDeployed.features.otcOrdersFeature.getOtcOrderHash(otcOrder),
+                                otcOrder.maker,
+                                uint64(otcOrder.expiryAndNonce >> 192)
+                            )
+                        }),
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(dai, otcOrder.taker, uniV2Pool, otcOrder.takerAmount)
+                        }),
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(zrx, uniV2Pool, otcOrder.taker, 0),
+                            dataMask: abi.encode(MAX_UINT256, MAX_UINT256, MAX_UINT256, 0)
+                        })
+                    )
+                );
             } catch Error(string memory reason) {
                 fail("reverted");
                 fail(reason);
@@ -816,7 +890,53 @@ contract Multiplex is Test, ForkUtils, TestUtils {
                     0
                 )
             {
-                // TODO verify rfqOrder expired, verify fallback to transformERC20 transferred correctly
+                assertLogs(
+                    makeArray(
+                        describeLog({
+                            topics: makeArray(EXPIRED_RFQ_ORDER_SIG),
+                            data: abi.encode(
+                                zeroExDeployed.features.nativeOrdersFeature.getRfqOrderHash(rfqOrder),
+                                rfqOrder.maker,
+                                rfqOrder.expiry
+                            )
+                        }),
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(dai, rfqOrder.taker, flashWallet, rfqOrder.takerAmount)
+                        }),
+                        describeLog({
+                            topics: makeArray(MINT_TRANSFORM_SIG),
+                            data: abi.encode(
+                                0,
+                                zeroExDeployed.zeroEx,
+                                zeroExDeployed.zeroEx,
+                                rfqOrder.taker,
+                                new bytes(32 * 5),
+                                rfqOrder.takerAmount,
+                                0
+                            ),
+                            dataMask: abi.encode(
+                                0,
+                                MAX_UINT256,
+                                MAX_UINT256,
+                                MAX_UINT256,
+                                new bytes(32 * 5),
+                                MAX_UINT256,
+                                0
+                            )
+                        }),
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(dai, flashWallet, 0, 0),
+                            dataMask: abi.encode(MAX_UINT256, MAX_UINT256, MAX_UINT256, 0)
+                        }),
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(zrx, flashWallet, rfqOrder.taker, 0),
+                            dataMask: abi.encode(MAX_UINT256, MAX_UINT256, MAX_UINT256, 0)
+                        })
+                    )
+                );
             } catch Error(string memory reason) {
                 fail("reverted");
                 fail(reason);
@@ -829,14 +949,14 @@ contract Multiplex is Test, ForkUtils, TestUtils {
         {
             it("LiquidityProvider, UniV3, Sushiswap");
 
-            createUniswapV2Pool(sushiFactory, dai, zrx, 10e18, 10e18);
-            createUniswapV3Pool(uniV3Factory, dai, zrx, 10e18, 10e18);
+            TestUniswapV2Pool sushiswapPool = createUniswapV2Pool(sushiFactory, dai, zrx, 10e18, 10e18);
+            TestUniswapV3Pool uniV3Pool = createUniswapV3Pool(uniV3Factory, dai, zrx, 10e18, 10e18);
 
             address[] memory tokens = makeArray(address(dai), address(zrx));
             IMultiplexFeature.BatchSellSubcall memory lpSubcall = makeLiquidityProviderBatchSubcall(4e17);
             IMultiplexFeature.BatchSellSubcall memory uniV3Subcall = makeUniswapV3BatchSubcall(tokens, 5e17);
             IMultiplexFeature.BatchSellSubcall memory sushiswapSubcall = makeUniswapV2BatchSubcall(tokens, 6e17, true);
-            uint256 sellAmount = lpSubcall.sellAmount + uniV3Subcall.sellAmount + sushiswapSubcall.sellAmount;
+            uint256 sellAmount = lpSubcall.sellAmount + uniV3Subcall.sellAmount + sushiswapSubcall.sellAmount - 1;
 
             mintTo(address(dai), address(this), sellAmount);
 
@@ -849,7 +969,36 @@ contract Multiplex is Test, ForkUtils, TestUtils {
                     0
                 )
             {
-                // TODO verify all the tokens were transferred to/from the correct places
+                // kind of ugly here to avoid stack too deep error
+                LogDescription[] memory descriptions = new LogDescription[](6);
+                descriptions[0] = describeLog({
+                    topics: makeArray(TRANSFER_SIG),
+                    data: abi.encode(dai, this, liquidityProvider, lpSubcall.sellAmount)
+                });
+                descriptions[1] = describeLog({
+                    topics: makeArray(TRANSFER_SIG),
+                    data: abi.encode(zrx, liquidityProvider, this, 0),
+                    dataMask: abi.encode(MAX_UINT256, MAX_UINT256, MAX_UINT256, 0)
+                });
+                descriptions[2] = describeLog({
+                    topics: makeArray(TRANSFER_SIG),
+                    data: abi.encode(zrx, uniV3Pool, this, 0),
+                    dataMask: abi.encode(MAX_UINT256, MAX_UINT256, MAX_UINT256, 0)
+                });
+                descriptions[3] = describeLog({
+                    topics: makeArray(TRANSFER_SIG),
+                    data: abi.encode(dai, this, uniV3Pool, uniV3Subcall.sellAmount)
+                });
+                descriptions[4] = describeLog({
+                    topics: makeArray(TRANSFER_SIG),
+                    data: abi.encode(dai, this, sushiswapPool, sushiswapSubcall.sellAmount - 1)
+                });
+                descriptions[5] = describeLog({
+                    topics: makeArray(TRANSFER_SIG),
+                    data: abi.encode(zrx, sushiswapPool, this, 0),
+                    dataMask: abi.encode(MAX_UINT256, MAX_UINT256, MAX_UINT256, 0)
+                });
+                assertLogs(descriptions);
             } catch Error(string memory reason) {
                 fail("reverted");
                 fail(reason);
@@ -862,7 +1011,8 @@ contract Multiplex is Test, ForkUtils, TestUtils {
         {
             it("proportional fill amounts");
 
-            createUniswapV2Pool(uniV2Factory, dai, zrx, 10e18, 10e18);
+            LibNativeOrder.RfqOrder memory rfqOrder = makeTestRfqOrder();
+            TestUniswapV2Pool uniV2Pool = createUniswapV2Pool(uniV2Factory, dai, zrx, 10e18, 10e18);
 
             uint256 sellAmount = 1e18;
             mintTo(address(dai), address(this), sellAmount);
@@ -872,7 +1022,7 @@ contract Multiplex is Test, ForkUtils, TestUtils {
                     dai,
                     zrx,
                     makeArray(
-                        makeRfqSubcall(makeTestRfqOrder(), encodeFractionalFillAmount(42)),
+                        makeRfqSubcall(rfqOrder, encodeFractionalFillAmount(42)),
                         makeUniswapV2BatchSubcall(
                             makeArray(address(dai), address(zrx)),
                             encodeFractionalFillAmount(100),
@@ -883,7 +1033,28 @@ contract Multiplex is Test, ForkUtils, TestUtils {
                     0
                 )
             {
-                // TODO verify correct proportions were transferred
+                assertLogs(
+                    makeArray(
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(dai, rfqOrder.taker, rfqOrder.maker, 42e16)
+                        }),
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(zrx, rfqOrder.maker, rfqOrder.taker, 0),
+                            dataMask: abi.encode(MAX_UINT256, MAX_UINT256, MAX_UINT256, 0)
+                        }),
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(dai, rfqOrder.taker, uniV2Pool, 58e16)
+                        }),
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(zrx, uniV2Pool, rfqOrder.taker, 0),
+                            dataMask: abi.encode(MAX_UINT256, MAX_UINT256, MAX_UINT256, 0)
+                        })
+                    )
+                );
             } catch Error(string memory reason) {
                 fail("reverted");
                 fail(reason);
@@ -896,11 +1067,12 @@ contract Multiplex is Test, ForkUtils, TestUtils {
         {
             it("RFQ, MultiHop(UniV3, UniV2)", true);
 
-            createUniswapV2Pool(uniV2Factory, shib, zrx, 10e18, 10e18);
-            createUniswapV3Pool(uniV3Factory, dai, shib, 10e18, 10e18);
+            TestUniswapV2Pool uniV2Pool = createUniswapV2Pool(uniV2Factory, shib, zrx, 10e18, 10e18);
+            TestUniswapV3Pool uniV3Pool = createUniswapV3Pool(uniV3Factory, dai, shib, 10e18, 10e18);
 
-            IMultiplexFeature.BatchSellSubcall memory rfqSubcall = makeRfqSubcall(makeTestRfqOrder());
-            IMultiplexFeature.BatchSellSubcall memory multiHopSubcall = makeNestedMultiHopSubcall(
+            LibNativeOrder.RfqOrder memory rfqOrder = makeTestRfqOrder();
+            IMultiplexFeature.BatchSellSubcall memory rfqSubcall = makeRfqSubcall(rfqOrder);
+            IMultiplexFeature.BatchSellSubcall memory nestedMultiHopSubcall = makeNestedMultiHopSubcall(
                 makeArray(address(dai), address(shib), address(zrx)),
                 makeArray(
                     makeUniswapV3MultiHopSubcall(makeArray(address(dai), address(shib))),
@@ -909,19 +1081,44 @@ contract Multiplex is Test, ForkUtils, TestUtils {
                 5e17
             );
 
-            uint256 sellAmount = rfqSubcall.sellAmount + multiHopSubcall.sellAmount;
+            uint256 sellAmount = rfqSubcall.sellAmount + nestedMultiHopSubcall.sellAmount;
             mintTo(address(dai), address(this), sellAmount);
 
             try
                 zeroExDeployed.zeroEx.multiplexBatchSellTokenForToken(
                     dai,
                     zrx,
-                    makeArray(rfqSubcall, multiHopSubcall),
+                    makeArray(rfqSubcall, nestedMultiHopSubcall),
                     sellAmount,
                     0
                 )
             {
-                // TODO verify all the tokens were transferred to/from the correct places
+                assertLogs(
+                    makeArray(
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(dai, rfqOrder.taker, rfqOrder.maker, rfqOrder.takerAmount)
+                        }),
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(zrx, rfqOrder.maker, rfqOrder.taker, rfqOrder.makerAmount)
+                        }),
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(shib, uniV3Pool, uniV2Pool, 0),
+                            dataMask: abi.encode(MAX_UINT256, MAX_UINT256, MAX_UINT256, 0)
+                        }),
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(dai, rfqOrder.taker, uniV3Pool, nestedMultiHopSubcall.sellAmount)
+                        }),
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(zrx, uniV2Pool, rfqOrder.taker, 0),
+                            dataMask: abi.encode(MAX_UINT256, MAX_UINT256, MAX_UINT256, 0)
+                        })
+                    )
+                );
             } catch Error(string memory reason) {
                 fail("reverted");
                 fail(reason);
