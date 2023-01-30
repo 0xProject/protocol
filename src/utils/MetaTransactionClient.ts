@@ -11,6 +11,7 @@ import { META_TRANSACTION_SERVICE_RPC_URL } from '../config';
 import { ZERO } from '../core/constants';
 import { APIErrorCodes } from '../core/errors';
 import { rawFeesToFees } from '../core/meta_transaction_fee_utils';
+import { GaslessTypes } from '../core/types';
 import { FeeConfigs, Fees, RawFees } from '../core/types/meta_transaction_fees';
 import { GetQuote, GetQuoteResponse } from '../proto-ts/meta_transaction.pb';
 
@@ -64,7 +65,7 @@ export interface BasePriceResponse extends QuoteBase {
     gas: BigNumber;
 }
 
-interface GetMetaTransactionQuoteResponse extends BasePriceResponse {
+interface GetMetaTransactionV1QuoteResponse extends BasePriceResponse {
     metaTransactionHash: string;
     metaTransaction: ExchangeProxyMetaTransaction;
 }
@@ -111,6 +112,12 @@ interface GetMetaTransactionV2QuoteResponse extends RawBasePriceResponse {
     fees?: RawFees;
 }
 
+export interface MetaTransactionClientV1QuoteResponse {
+    type: GaslessTypes.MetaTransaction;
+    metaTransaction: MetaTransaction;
+    price: FetchIndicativeQuoteResponse;
+}
+
 /**
  * Queries the MetaTransaction v1 service for an AMM quote wrapped in a
  * MetaTransaction.
@@ -128,12 +135,12 @@ export async function getV1QuoteAsync(
     params: QuoteParams,
     meter?: { requestDurationSummary: Summary<'chainId' | 'success'>; chainId: number },
     noLiquidityLogger?: pino.LogFn,
-): Promise<{ metaTransaction: MetaTransaction; price: FetchIndicativeQuoteResponse } | null> {
+): Promise<MetaTransactionClientV1QuoteResponse | null> {
     const stopTimer = meter?.requestDurationSummary.startTimer({ chainId: meter.chainId });
 
-    let response: AxiosResponse<GetMetaTransactionQuoteResponse>;
+    let response: AxiosResponse<GetMetaTransactionV1QuoteResponse>;
     try {
-        response = await axiosInstance.get<GetMetaTransactionQuoteResponse>(url.toString(), {
+        response = await axiosInstance.get<GetMetaTransactionV1QuoteResponse>(url.toString(), {
             params,
             // TODO (rhinodavid): Formalize this value once we have a good idea of the
             // actual numbers
@@ -176,6 +183,7 @@ export async function getV1QuoteAsync(
     // does not match @0x/protocol-utils:MetaTransaction. So, we pull the domain information out
     // and put it at the top level of the constructor parameters
     return {
+        type: GaslessTypes.MetaTransaction,
         metaTransaction: new MetaTransaction({
             ...response.data.metaTransaction,
             chainId: response.data.metaTransaction.domain.chainId,
@@ -183,6 +191,14 @@ export async function getV1QuoteAsync(
         }),
         price: { buyAmount, buyTokenAddress, gas, price, sellAmount, sellTokenAddress },
     };
+}
+
+export interface MetaTransactionClientV2QuoteResponse {
+    type: GaslessTypes.MetaTransactionV2;
+    metaTransaction: MetaTransactionV2;
+    price: FetchIndicativeQuoteResponse;
+    sources: LiquiditySource[];
+    fees?: Fees;
 }
 
 /**
@@ -203,12 +219,7 @@ export async function getV2QuoteAsync(
     params: QuoteParams,
     meter?: { requestDurationSummary: Summary<'chainId' | 'success'>; chainId: number },
     noLiquidityLogger?: pino.LogFn,
-): Promise<{
-    metaTransaction: MetaTransactionV2;
-    price: FetchIndicativeQuoteResponse;
-    sources: LiquiditySource[];
-    fees?: Fees;
-} | null> {
+): Promise<MetaTransactionClientV2QuoteResponse | null> {
     const stopTimer = meter?.requestDurationSummary.startTimer({ chainId: meter.chainId });
 
     let response: AxiosResponse<GetMetaTransactionV2QuoteResponse>;
@@ -224,6 +235,7 @@ export async function getV2QuoteAsync(
     const { buyAmount, buyTokenAddress, gas, price, sellAmount, sellTokenAddress } = response.data;
 
     return {
+        type: GaslessTypes.MetaTransactionV2,
         // TODO: This needs to be updated to the new meta-transaction type when smart contract changes are finished and corresponding types are published in packages
         metaTransaction: new MetaTransactionV2(
             stringsToMetaTransactionFields({

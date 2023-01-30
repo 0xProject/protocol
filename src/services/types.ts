@@ -10,6 +10,7 @@ import {
     GaslessTypes,
     PermitEip712Context,
 } from '../core/types';
+import { Fees } from '../core/types/meta_transaction_fees';
 
 export interface FetchIndicativeQuoteParams extends FetchQuoteParamsBase {
     takerAddress?: string;
@@ -70,7 +71,7 @@ export interface OtcOrderRfqmQuoteResponse extends BaseRfqmQuoteResponse {
  * in the parameters, the token supports gasless approval,
  * and no allowance already exists.
  */
-export interface MetaTransactionQuoteResponse extends BaseRfqmQuoteResponse {
+export interface MetaTransactionV1QuoteResponse extends BaseRfqmQuoteResponse {
     type: GaslessTypes.MetaTransaction;
     metaTransaction: MetaTransaction;
     metaTransactionHash: string;
@@ -85,6 +86,16 @@ export interface LiquiditySource {
     proportion: BigNumber;
     intermediateToken?: string;
     hops?: string[];
+}
+
+export interface MetaTransactionV2QuoteResponse extends BaseRfqmQuoteResponse {
+    type: GaslessTypes.MetaTransactionV2;
+    // TODO: This needs to be updated to the new meta-transaction type when smart contract changes are finished and corresponding types are published in packages
+    metaTransaction: MetaTransactionV2;
+    metaTransactionHash: string;
+    approval?: ApprovalResponse;
+    sources: LiquiditySource[];
+    fees?: Fees;
 }
 
 export interface ApprovalResponse {
@@ -113,6 +124,18 @@ export interface SubmitMetaTransactionSignedQuoteParams<
     // on nested values.
     kind: GaslessTypes.MetaTransaction;
     trade: { metaTransaction: MetaTransaction; signature: Signature; type: GaslessTypes.MetaTransaction };
+}
+
+export interface SubmitMetaTransactionV2SignedQuoteParams<
+    T extends ExecuteMetaTransactionEip712Context | PermitEip712Context,
+> {
+    approval?: SubmitApprovalParams<T>;
+    // Used to distinguish between `SubmitRfqmSignedQuoteWithApprovalParams` and `SubmitMetaTransactionSignedQuoteParams` during type check.
+    // Note that this information is in `trade`, but TypeScript does not narrow types based
+    // on nested values.
+    kind: GaslessTypes.MetaTransactionV2;
+    // TODO: This needs to be updated to the new meta-transaction type when smart contract changes are finished and corresponding types are published in packages
+    trade: { metaTransaction: MetaTransactionV2; signature: Signature; type: GaslessTypes.MetaTransactionV2 };
 }
 
 export interface OtcOrderSubmitRfqmSignedQuoteResponse {
@@ -146,6 +169,11 @@ export interface SubmitRfqmSignedQuoteWithApprovalResponse {
 
 export interface SubmitMetaTransactionSignedQuoteResponse {
     type: GaslessTypes.MetaTransaction;
+    metaTransactionHash: string;
+}
+
+export interface SubmitMetaTransactionV2SignedQuoteResponse {
+    type: GaslessTypes.MetaTransactionV2;
     metaTransactionHash: string;
 }
 

@@ -20,7 +20,9 @@ import {
     FetchFirmQuoteParams,
     FetchIndicativeQuoteParams,
     FetchQuoteParamsBase,
+    MetaTransactionV2,
     SubmitMetaTransactionSignedQuoteParams,
+    SubmitMetaTransactionV2SignedQuoteParams,
     SubmitRfqmSignedQuoteWithApprovalParams,
 } from '../services/types';
 import {
@@ -88,7 +90,7 @@ export class GaslessSwapHandlers {
 
         let price;
         try {
-            price = await this._getServiceForChain(chainId).fetchPriceAsync(params);
+            price = await this._getServiceForChain(chainId).fetchPriceAsync(params, metaTransactionType);
         } catch (err) {
             ZEROG_GASLESS_SWAP_REQUEST_ERROR.inc({
                 chainId,
@@ -121,7 +123,7 @@ export class GaslessSwapHandlers {
 
         let quote;
         try {
-            quote = await this._getServiceForChain(chainId).fetchQuoteAsync(params);
+            quote = await this._getServiceForChain(chainId).fetchQuoteAsync(params, metaTransactionType);
         } catch (err) {
             ZEROG_GASLESS_SWAP_REQUEST_ERROR.inc({
                 chainId,
@@ -441,7 +443,10 @@ export class GaslessSwapHandlers {
     ): {
         chainId: number;
         integrator: Integrator;
-        params: SubmitRfqmSignedQuoteWithApprovalParams<T> | SubmitMetaTransactionSignedQuoteParams<T>;
+        params:
+            | SubmitRfqmSignedQuoteWithApprovalParams<T>
+            | SubmitMetaTransactionSignedQuoteParams<T>
+            | SubmitMetaTransactionV2SignedQuoteParams<T>;
     } {
         const chainId = extractChainId(req, this._gaslessSwapServices);
         const { integrator } = this._validateApiKey(req.header('0x-api-key'), chainId);
@@ -495,6 +500,17 @@ export class GaslessSwapHandlers {
                 metaTransaction,
                 signature,
             };
+        } else if (trade.type === GaslessTypes.MetaTransactionV2) {
+            // TODO: This needs to be changed
+            const metaTransaction = new MetaTransactionV2(
+                stringsToMetaTransactionFields(trade.metaTransaction as RawMetaTransactionFields),
+            );
+            const signature = stringsToSignature(trade.signature as StringSignatureFields);
+            parsedParams.trade = {
+                type: trade.type,
+                metaTransaction,
+                signature,
+            };
         } else {
             throw new ValidationError([
                 {
@@ -512,7 +528,8 @@ export class GaslessSwapHandlers {
             integrator,
             params: parsedParams as
                 | SubmitRfqmSignedQuoteWithApprovalParams<T>
-                | SubmitMetaTransactionSignedQuoteParams<T>,
+                | SubmitMetaTransactionSignedQuoteParams<T>
+                | SubmitMetaTransactionV2SignedQuoteParams<T>,
         };
     }
 }

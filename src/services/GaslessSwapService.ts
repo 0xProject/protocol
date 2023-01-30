@@ -12,8 +12,14 @@ import { ONE_MINUTE_S, ONE_SECOND_MS } from '../core/constants';
 import { MetaTransactionJobConstructorOpts } from '../entities/MetaTransactionJobEntity';
 import { RfqmJobStatus } from '../entities/types';
 import { logger } from '../logger';
-import { ExecuteMetaTransactionEip712Context, GaslessTypes, PermitEip712Context } from '../core/types';
-import { getV1QuoteAsync } from '../utils/MetaTransactionClient';
+import { ExecuteMetaTransactionEip712Context, PermitEip712Context, GaslessTypes } from '../core/types';
+import { FeeConfigs, VolumeBasedFeeConfig, Fees } from '../core/types/meta_transaction_fees';
+import {
+    getV1QuoteAsync,
+    getV2QuoteAsync,
+    MetaTransactionClientV1QuoteResponse,
+    MetaTransactionClientV2QuoteResponse,
+} from '../utils/MetaTransactionClient';
 import { RfqmDbUtils } from '../utils/rfqm_db_utils';
 import { HealthCheckResult } from '../utils/rfqm_health_check';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
@@ -24,13 +30,18 @@ import {
     FetchFirmQuoteParams,
     FetchIndicativeQuoteParams,
     FetchIndicativeQuoteResponse,
-    MetaTransactionQuoteResponse,
+    MetaTransactionV1QuoteResponse,
+    MetaTransactionV2QuoteResponse,
     OtcOrderRfqmQuoteResponse,
-    StatusResponse,
     SubmitMetaTransactionSignedQuoteParams,
     SubmitMetaTransactionSignedQuoteResponse,
     SubmitRfqmSignedQuoteWithApprovalParams,
     SubmitRfqmSignedQuoteWithApprovalResponse,
+    LiquiditySource,
+    SubmitMetaTransactionV2SignedQuoteParams,
+    SubmitMetaTransactionV2SignedQuoteResponse,
+    StatusResponse,
+    FetchQuoteParamsBase,
 } from './types';
 
 /**
@@ -138,50 +149,104 @@ export class GaslessSwapService {
      */
     public async fetchPriceAsync(
         params: FetchIndicativeQuoteParams,
-    ): Promise<(FetchIndicativeQuoteResponse & { liquiditySource: 'rfq' | 'amm' }) | null> {
-        try {
-            const rfqPrice = await this._rfqmService.fetchIndicativeQuoteAsync(params, 'gaslessSwapRfq');
+        kind: GaslessTypes,
+    ): Promise<
+        | (FetchIndicativeQuoteResponse &
+              ({ liquiditySource: 'rfq' | 'amm' } | { sources: LiquiditySource[]; fees?: Fees }))
+        | null
+    > {
+        if (kind === GaslessTypes.MetaTransaction) {
+            try {
+                const rfqPrice = await this._rfqmService.fetchIndicativeQuoteAsync(params, 'gaslessSwapRfq');
 
-            if (rfqPrice) {
-                return { ...rfqPrice, liquiditySource: 'rfq' };
+                if (rfqPrice) {
+                    return { ...rfqPrice, liquiditySource: 'rfq' };
+                }
+            } catch (e) {
+                ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
+                    this._chainId.toString(),
+                    GaslessSwapServiceErrorReason.RfqPriceError,
+                ).inc();
+                logger.error(
+                    { params, errorMessage: e.message, stack: e.stack },
+                    'Encountered error when fetching RFQ price in `GaslessSwapService`',
+                );
             }
-        } catch (e) {
-            ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
-                this._chainId.toString(),
-                GaslessSwapServiceErrorReason.RfqPriceError,
-            ).inc();
-            logger.error(
-                { params, errorMessage: e.message, stack: e.stack },
-                'Encountered error when fetching RFQ price in `GaslessSwapService`',
-            );
         }
 
         try {
-            const ammPrice = await getV1QuoteAsync(
-                this._axiosInstance,
-                new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
-                {
-                    ...params,
-                    chainId: this._chainId,
-                    integratorId: params.integrator.integratorId,
-                    // Can use the null address here since we won't be returning
-                    // the actual metatransaction
-                    takerAddress: params.takerAddress ?? NULL_ADDRESS,
-                },
-                {
-                    requestDurationSummary: ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS,
-                    chainId: this._chainId,
-                },
-                logger.warn.bind(logger),
-            ).then((r) => r?.price);
-
-            if (ammPrice) {
-                return {
-                    ...ammPrice,
-                    allowanceTarget: this._blockchainUtils.getExchangeProxyAddress(),
-                    liquiditySource: 'amm',
-                };
+            let feeConfigs: FeeConfigs | undefined;
+            if (kind === GaslessTypes.MetaTransactionV2) {
+                feeConfigs = this._createFeeConfigs(params);
             }
+
+            const metaTransactionRequestParams = {
+                ...params,
+                chainId: this._chainId,
+                integratorId: params.integrator.integratorId,
+                // Can use the null address here since we won't be returning
+                // the actual metatransaction
+                takerAddress: params.takerAddress ?? NULL_ADDRESS,
+                feeConfigs,
+            };
+
+            let metaTransactionQuote:
+                | MetaTransactionClientV1QuoteResponse
+                | MetaTransactionClientV2QuoteResponse
+                | null;
+
+            switch (kind) {
+                case GaslessTypes.MetaTransaction:
+                    metaTransactionQuote = await getV1QuoteAsync(
+                        this._axiosInstance,
+                        new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
+                        metaTransactionRequestParams,
+                        {
+                            requestDurationSummary: ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS,
+                            chainId: this._chainId,
+                        },
+                        logger.warn.bind(logger),
+                    );
+                    break;
+                case GaslessTypes.MetaTransactionV2:
+                    metaTransactionQuote = await getV2QuoteAsync(
+                        this._axiosInstance,
+                        new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
+                        metaTransactionRequestParams,
+                        {
+                            requestDurationSummary: ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS,
+                            chainId: this._chainId,
+                        },
+                        logger.warn.bind(logger),
+                    );
+                    break;
+                case GaslessTypes.OtcOrder:
+                    // This should never happen
+                    throw new Error('GaslessTypes.OtcOrder should not be reached');
+                default:
+                    ((_x: never) => {
+                        throw new Error('unreachable');
+                    })(kind);
+            }
+
+            if (metaTransactionQuote) {
+                if (metaTransactionQuote.type === GaslessTypes.MetaTransaction) {
+                    return {
+                        ...metaTransactionQuote.price,
+                        allowanceTarget: this._blockchainUtils.getExchangeProxyAddress(),
+                        liquiditySource: 'amm',
+                    };
+                } else {
+                    return {
+                        ...metaTransactionQuote.price,
+                        sources: metaTransactionQuote.sources,
+                        fees: metaTransactionQuote.fees,
+                        allowanceTarget: this._blockchainUtils.getExchangeProxyAddress(),
+                    };
+                }
+            }
+
+            return null;
         } catch (e) {
             if (e instanceof ValidationError) {
                 throw e;
@@ -198,8 +263,6 @@ export class GaslessSwapService {
             // Throw here as it means RFQ throws / does not liquidity and AMM throws
             throw new Error(`Error fetching price for ${params}`);
         }
-
-        return null;
     }
 
     /**
@@ -213,67 +276,125 @@ export class GaslessSwapService {
      */
     public async fetchQuoteAsync(
         params: FetchFirmQuoteParams,
+        kind: GaslessTypes,
     ): Promise<
-        ((OtcOrderRfqmQuoteResponse | MetaTransactionQuoteResponse) & { liquiditySource: 'rfq' | 'amm' }) | null
+        | ((OtcOrderRfqmQuoteResponse | MetaTransactionV1QuoteResponse) & { liquiditySource: 'rfq' | 'amm' })
+        | MetaTransactionV2QuoteResponse
+        | null
     > {
         let rfqQuoteReportId: string | null = null;
-        try {
-            const { quote: rfqQuote, quoteReportId } = await this._rfqmService.fetchFirmQuoteAsync(
-                params,
-                'gaslessSwapRfq',
-            );
-            rfqQuoteReportId = quoteReportId;
-            if (rfqQuote) {
-                return { ...rfqQuote, liquiditySource: 'rfq' };
+        if (kind === GaslessTypes.MetaTransaction) {
+            try {
+                const { quote: rfqQuote, quoteReportId } = await this._rfqmService.fetchFirmQuoteAsync(
+                    params,
+                    'gaslessSwapRfq',
+                );
+                rfqQuoteReportId = quoteReportId;
+                if (rfqQuote) {
+                    return { ...rfqQuote, liquiditySource: 'rfq' };
+                }
+            } catch (e) {
+                ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
+                    this._chainId.toString(),
+                    GaslessSwapServiceErrorReason.RfqQuoteError,
+                ).inc();
+                logger.error(
+                    { params, errorMessage: e.message, stack: e.stack },
+                    'Encountered error when fetching RFQ quote in `GaslessSwapService`',
+                );
             }
-        } catch (e) {
-            ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
-                this._chainId.toString(),
-                GaslessSwapServiceErrorReason.RfqQuoteError,
-            ).inc();
-            logger.error(
-                { params, errorMessage: e.message, stack: e.stack },
-                'Encountered error when fetching RFQ quote in `GaslessSwapService`',
-            );
         }
 
         try {
-            const ammQuote = await getV1QuoteAsync(
-                this._axiosInstance,
-                new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
-                {
-                    ...params,
-                    chainId: this._chainId,
-                    affiliateAddress: params.affiliateAddress ?? params.integrator.affiliateAddress,
-                    integratorId: params.integrator.integratorId,
-                    quoteUniqueId: rfqQuoteReportId ?? undefined,
-                },
-                {
-                    requestDurationSummary: ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS,
-                    chainId: this._chainId,
-                },
-                logger.warn.bind(logger),
-            );
+            let feeConfigs: FeeConfigs | undefined;
+            if (kind === GaslessTypes.MetaTransactionV2) {
+                feeConfigs = this._createFeeConfigs(params);
+            }
 
-            if (ammQuote) {
+            const metaTransactionRequestParams = {
+                ...params,
+                chainId: this._chainId,
+                affiliateAddress: params.affiliateAddress ?? params.integrator.affiliateAddress,
+                integratorId: params.integrator.integratorId,
+                quoteUniqueId: kind === GaslessTypes.MetaTransaction ? rfqQuoteReportId ?? undefined : undefined,
+                feeConfigs,
+            };
+
+            let metaTransactionQuote:
+                | MetaTransactionClientV1QuoteResponse
+                | MetaTransactionClientV2QuoteResponse
+                | null;
+
+            switch (kind) {
+                case GaslessTypes.MetaTransaction:
+                    metaTransactionQuote = await getV1QuoteAsync(
+                        this._axiosInstance,
+                        new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
+                        metaTransactionRequestParams,
+                        {
+                            requestDurationSummary: ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS,
+                            chainId: this._chainId,
+                        },
+                        logger.warn.bind(logger),
+                    );
+                    break;
+                case GaslessTypes.MetaTransactionV2:
+                    metaTransactionQuote = await getV2QuoteAsync(
+                        this._axiosInstance,
+                        new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
+                        metaTransactionRequestParams,
+                        {
+                            requestDurationSummary: ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS,
+                            chainId: this._chainId,
+                        },
+                        logger.warn.bind(logger),
+                    );
+                    break;
+                case GaslessTypes.OtcOrder:
+                    // This should never happen
+                    throw new Error('GaslessTypes.OtcOrder should not be reached');
+                default:
+                    ((_x: never) => {
+                        throw new Error('unreachable');
+                    })(kind);
+            }
+
+            if (metaTransactionQuote) {
                 const approval = params.checkApproval
                     ? await this._rfqmService.getGaslessApprovalResponseAsync(
                           params.takerAddress,
                           params.sellToken,
-                          ammQuote.price.sellAmount,
+                          metaTransactionQuote.price.sellAmount,
                       )
                     : null;
-                await this._storeMetaTransactionHashAsync(ammQuote.metaTransaction.getHash());
-                return {
-                    ...ammQuote.price,
-                    approval: approval ?? undefined,
-                    metaTransaction: ammQuote.metaTransaction,
-                    metaTransactionHash: ammQuote.metaTransaction.getHash(),
-                    type: GaslessTypes.MetaTransaction,
-                    allowanceTarget: this._blockchainUtils.getExchangeProxyAddress(),
-                    liquiditySource: 'amm',
-                };
+                // TODO: Publish fee event for meta-transaction v2
+                await this._storeMetaTransactionHashAsync(metaTransactionQuote.metaTransaction.getHash());
+
+                if (metaTransactionQuote.type === GaslessTypes.MetaTransaction) {
+                    return {
+                        ...metaTransactionQuote.price,
+                        approval: approval ?? undefined,
+                        metaTransaction: metaTransactionQuote.metaTransaction,
+                        metaTransactionHash: metaTransactionQuote.metaTransaction.getHash(),
+                        type: GaslessTypes.MetaTransaction,
+                        allowanceTarget: this._blockchainUtils.getExchangeProxyAddress(),
+                        liquiditySource: 'amm',
+                    };
+                } else {
+                    return {
+                        ...metaTransactionQuote.price,
+                        approval: approval ?? undefined,
+                        metaTransaction: metaTransactionQuote.metaTransaction,
+                        metaTransactionHash: metaTransactionQuote.metaTransaction.getHash(),
+                        type: GaslessTypes.MetaTransactionV2,
+                        sources: metaTransactionQuote.sources,
+                        fees: metaTransactionQuote.fees,
+                        allowanceTarget: this._blockchainUtils.getExchangeProxyAddress(),
+                    };
+                }
             }
+
+            return null;
         } catch (e) {
             if (e instanceof ValidationError) {
                 throw e;
@@ -291,8 +412,6 @@ export class GaslessSwapService {
             // Throw here as it means RFQ throws / does not liquidity and AMM throws
             throw new Error(`Error fetching quote for ${params}`);
         }
-
-        return null;
     }
 
     /**
@@ -306,14 +425,19 @@ export class GaslessSwapService {
     public async processSubmitAsync<
         T extends
             | SubmitRfqmSignedQuoteWithApprovalParams<ExecuteMetaTransactionEip712Context | PermitEip712Context>
-            | SubmitMetaTransactionSignedQuoteParams<ExecuteMetaTransactionEip712Context | PermitEip712Context>,
+            | SubmitMetaTransactionSignedQuoteParams<ExecuteMetaTransactionEip712Context | PermitEip712Context>
+            | SubmitMetaTransactionV2SignedQuoteParams<ExecuteMetaTransactionEip712Context | PermitEip712Context>,
     >(
         params: T,
         integratorId: string,
     ): Promise<
         T extends SubmitRfqmSignedQuoteWithApprovalParams<ExecuteMetaTransactionEip712Context | PermitEip712Context>
             ? SubmitRfqmSignedQuoteWithApprovalResponse
-            : SubmitMetaTransactionSignedQuoteResponse
+            : T extends SubmitMetaTransactionSignedQuoteParams<
+                  ExecuteMetaTransactionEip712Context | PermitEip712Context
+              >
+            ? SubmitMetaTransactionSignedQuoteResponse
+            : SubmitMetaTransactionV2SignedQuoteResponse
     > {
         // OtcOrder
         if (params.kind === GaslessTypes.OtcOrder) {
@@ -322,9 +446,14 @@ export class GaslessSwapService {
                 ExecuteMetaTransactionEip712Context | PermitEip712Context
             >
                 ? SubmitRfqmSignedQuoteWithApprovalResponse
-                : SubmitMetaTransactionSignedQuoteResponse;
+                : T extends SubmitMetaTransactionSignedQuoteParams<
+                      ExecuteMetaTransactionEip712Context | PermitEip712Context
+                  >
+                ? SubmitMetaTransactionSignedQuoteResponse
+                : SubmitMetaTransactionV2SignedQuoteResponse;
         }
 
+        // TODO: Add the logic to handle meta-transaction v2 when the type is ready
         // MetaTransaction
         const {
             trade: { metaTransaction },
@@ -502,7 +631,11 @@ export class GaslessSwapService {
             ExecuteMetaTransactionEip712Context | PermitEip712Context
         >
             ? SubmitRfqmSignedQuoteWithApprovalResponse
-            : SubmitMetaTransactionSignedQuoteResponse;
+            : T extends SubmitMetaTransactionSignedQuoteParams<
+                  ExecuteMetaTransactionEip712Context | PermitEip712Context
+              >
+            ? SubmitMetaTransactionSignedQuoteResponse
+            : SubmitMetaTransactionV2SignedQuoteResponse;
     }
 
     public async getStatusAsync(hash: string): Promise<StatusResponse | null> {
@@ -538,5 +671,21 @@ export class GaslessSwapService {
 
     private async _storeMetaTransactionHashAsync(hash: string): Promise<void> {
         await this._redis.set(metaTransactionHashRedisKey(hash), /* value */ 0, 'EX', META_TRANSACTION_HASH_TTL_S);
+    }
+
+    private _createFeeConfigs(params: FetchQuoteParamsBase): FeeConfigs {
+        let integratorFee: VolumeBasedFeeConfig | undefined;
+
+        if (params.feeType && params.feeRecipient && params.feeSellTokenPercentage) {
+            integratorFee = {
+                type: params.feeType,
+                feeRecipient: params.feeRecipient,
+                volumePercentage: params.feeSellTokenPercentage,
+            };
+        }
+        // TODO: Parse 0x fee and gas fee config after implementing the new fee config schema
+        return {
+            integratorFee,
+        };
     }
 }
