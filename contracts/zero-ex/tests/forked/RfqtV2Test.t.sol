@@ -65,10 +65,6 @@ contract RfqtV2Test is Test, ForkUtils, TestUtils {
         // Create our list of transformations, let's do WethTransformer and FillQuoteTransformer
         ITransformERC20Feature.Transformation[] memory transformations = new ITransformERC20Feature.Transformation[](2);
 
-        /*//////////////////////////////////////////////////////////////
-                                WethTransformer
-        //////////////////////////////////////////////////////////////*/
-
         // Use our cheeky search helper to find the nonce rather than hardcode it
         transformations[0].deploymentNonce = _findTransformerNonce(
             address(addresses.transformers.wethTransformer),
@@ -78,10 +74,6 @@ contract RfqtV2Test is Test, ForkUtils, TestUtils {
         createNewFQT(tokens.WrappedNativeToken, addresses.exchangeProxy, addresses.exchangeProxyTransformerDeployer);
         // Set the first transformation to transform ETH into WETH
         transformations[0].data = abi.encode(LibERC20Transformer.ETH_TOKEN_ADDRESS, 1e18);
-
-        /*//////////////////////////////////////////////////////////////
-                                FillQuoteTransformer
-        //////////////////////////////////////////////////////////////*/
 
         transformations[1].deploymentNonce = _findTransformerNonce(
             address(fillQuoteTransformer),

@@ -15,7 +15,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "./BaseTest.sol";
+import "./utils/BaseTest.sol";
 import "../contracts/src/external/FlashWallet.sol";
 import "./mocks/TestCallTarget.sol";
 
