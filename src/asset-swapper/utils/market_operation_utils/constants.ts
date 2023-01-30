@@ -903,18 +903,18 @@ const PLATYPUS_AVALANCHE_POOLS = {
     sAVAX: '0x4658ea7e9960d6158a261104aaa160cc953bb6ba',
 };
 
-export const WOOFI_POOL_BY_CHAIN_ID = valueByChainId<string>(
+export const WOOFI_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
-        [ChainId.BSC]: '0xbf365ce9cfcb2d5855521985e351ba3bcf77fd3f',
-        [ChainId.Fantom]: '0x9503e7517d3c5bc4f9e4a1c6ae4f8b33ac2546f2',
-        [ChainId.Avalanche]: '0x1df3009c57a8b143c6246149f00b090bce3b8f88',
-        [ChainId.Polygon]: '0x7400b665c8f4f3a951a99f1ee9872efb8778723d',
+        [ChainId.BSC]: '0xc90bfe9951a4efbf20aca5ecd9966b2bf8a01294',
+        [ChainId.Fantom]: '0x382a9b0bc5d29e96c3a0b81ce9c64d6c8f150efb',
+        [ChainId.Avalanche]: '0xc22fbb3133df781e6c25ea6acebe2d2bb8cea2f9',
+        [ChainId.Polygon]: '0x817eb46d60762442da3d931ff51a30334ca39b74',
     },
     NULL_ADDRESS,
 );
 
 export const WOOFI_SUPPORTED_TOKENS = Set.of(
-    BSC_TOKENS.USDT,
+    BSC_TOKENS.BUSD,
     BSC_TOKENS.WBNB,
     BSC_TOKENS.WOO,
     BSC_TOKENS.WETH,
@@ -2828,7 +2828,7 @@ export const DEFAULT_GAS_SCHEDULE: GasSchedule = {
     [ERC20BridgeSource.ACryptos]: (fillData) => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.WOOFi]: (fillData?: FillData) => {
         const woofiFillData = fillData as WOOFiFillData;
-        const quoteTokenAddresses = [BSC_TOKENS.USDT, AVALANCHE_TOKENS.nUSDC, FANTOM_TOKENS.USDC, POLYGON_TOKENS.USDC];
+        const quoteTokenAddresses = [BSC_TOKENS.BUSD, AVALANCHE_TOKENS.nUSDC, FANTOM_TOKENS.USDC, POLYGON_TOKENS.USDC];
         const hasQuoteToken =
             quoteTokenAddresses.includes(woofiFillData.takerToken) ||
             quoteTokenAddresses.includes(woofiFillData.makerToken);
