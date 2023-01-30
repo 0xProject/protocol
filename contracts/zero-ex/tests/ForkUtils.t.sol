@@ -35,14 +35,11 @@ import "src/transformers/bridges/CeloBridgeAdapter.sol";
 import "src/features/OtcOrdersFeature.sol";
 
 contract ForkUtilsTest is Test, ForkUtils, TestUtils {
-    /*//////////////////////////////////////////////////////////////
-                                 Rpc Setup
-    //////////////////////////////////////////////////////////////*/
     function setUp() public {
         _setup();
     }
 
-    function test_transformERC20Forked() public {}
+    function test_addressesExist() public {}
 
     function logAddresses(string memory chainName, string memory chainId) public {
         bytes memory details = json.parseRaw(chainId);
