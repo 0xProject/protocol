@@ -185,10 +185,13 @@ contract Multiplex is Test, ForkUtils, TestUtils {
 
     // TODO refactor some of these utility functions out into helper contract
 
-    function makeTestRfqOrder() private returns (LibNativeOrder.RfqOrder memory order) {
+    function makeTestRfqOrder(
+        IERC20TokenV06 makerToken,
+        IERC20TokenV06 takerToken
+    ) private returns (LibNativeOrder.RfqOrder memory order) {
         order = LibNativeOrder.RfqOrder({
-            makerToken: zrx,
-            takerToken: dai,
+            makerToken: makerToken,
+            takerToken: takerToken,
             makerAmount: 1e18,
             takerAmount: 1e18,
             maker: signerAddress,
@@ -199,6 +202,10 @@ contract Multiplex is Test, ForkUtils, TestUtils {
             salt: 123
         });
         mintTo(address(order.makerToken), order.maker, order.makerAmount);
+    }
+
+    function makeTestRfqOrder() private returns (LibNativeOrder.RfqOrder memory order) {
+        return makeTestRfqOrder(zrx, dai);
     }
 
     function makeTestOtcOrder() private returns (LibNativeOrder.OtcOrder memory order) {
@@ -317,6 +324,18 @@ contract Multiplex is Test, ForkUtils, TestUtils {
             });
     }
 
+    function makeLiquidityProviderMultiHopSubcall()
+        private
+        view
+        returns (IMultiplexFeature.MultiHopSellSubcall memory)
+    {
+        return
+            IMultiplexFeature.MultiHopSellSubcall({
+                id: IMultiplexFeature.MultiplexSubcall.LiquidityProvider,
+                data: abi.encode(address(liquidityProvider), hex"")
+            });
+    }
+
     function makeLiquidityProviderBatchSubcall(
         uint256 sellAmount
     ) private view returns (IMultiplexFeature.BatchSellSubcall memory) {
@@ -348,7 +367,17 @@ contract Multiplex is Test, ForkUtils, TestUtils {
             });
     }
 
-    function makeNestedMultiHopSubcall(
+    function makeNestedBatchSellSubcall(
+        IMultiplexFeature.BatchSellSubcall[] memory calls
+    ) private pure returns (IMultiplexFeature.MultiHopSellSubcall memory) {
+        return
+            IMultiplexFeature.MultiHopSellSubcall({
+                id: IMultiplexFeature.MultiplexSubcall.BatchSell,
+                data: abi.encode(calls)
+            });
+    }
+
+    function makeNestedMultiHopSellSubcall(
         address[] memory tokens,
         IMultiplexFeature.MultiHopSellSubcall[] memory calls,
         uint256 sellAmount
@@ -359,6 +388,13 @@ contract Multiplex is Test, ForkUtils, TestUtils {
                 sellAmount: sellAmount,
                 data: abi.encode(tokens, calls)
             });
+    }
+
+    function makeArray(
+        IMultiplexFeature.MultiHopSellSubcall memory first
+    ) private pure returns (IMultiplexFeature.MultiHopSellSubcall[] memory subcalls) {
+        subcalls = new IMultiplexFeature.MultiHopSellSubcall[](1);
+        subcalls[0] = first;
     }
 
     function makeArray(
@@ -466,6 +502,23 @@ contract Multiplex is Test, ForkUtils, TestUtils {
         entries[2] = third;
         entries[3] = fourth;
         entries[4] = fifth;
+    }
+
+    function makeArray(
+        LogDescription memory first,
+        LogDescription memory second,
+        LogDescription memory third,
+        LogDescription memory fourth,
+        LogDescription memory fifth,
+        LogDescription memory sixth
+    ) private pure returns (LogDescription[] memory entries) {
+        entries = new LogDescription[](6);
+        entries[0] = first;
+        entries[1] = second;
+        entries[2] = third;
+        entries[3] = fourth;
+        entries[4] = fifth;
+        entries[5] = sixth;
     }
 
     function makeArray(bytes32 first) private pure returns (bytes32[] memory data) {
@@ -632,7 +685,7 @@ contract Multiplex is Test, ForkUtils, TestUtils {
         {
             it("reverts if given an invalid subcall type");
 
-            uint256 sellAmount = 1;
+            uint256 sellAmount = 1e18;
 
             try
                 zeroExDeployed.zeroEx.multiplexBatchSellTokenForToken(
@@ -1072,7 +1125,7 @@ contract Multiplex is Test, ForkUtils, TestUtils {
 
             LibNativeOrder.RfqOrder memory rfqOrder = makeTestRfqOrder();
             IMultiplexFeature.BatchSellSubcall memory rfqSubcall = makeRfqSubcall(rfqOrder);
-            IMultiplexFeature.BatchSellSubcall memory nestedMultiHopSubcall = makeNestedMultiHopSubcall(
+            IMultiplexFeature.BatchSellSubcall memory nestedMultiHopSubcall = makeNestedMultiHopSellSubcall(
                 makeArray(address(dai), address(shib), address(zrx)),
                 makeArray(
                     makeUniswapV3MultiHopSubcall(makeArray(address(dai), address(shib))),
@@ -1150,14 +1203,336 @@ contract Multiplex is Test, ForkUtils, TestUtils {
 
     //// multihop sells
 
-    function testMultiplexMultihopSellTokenForToken() public {
-        // reverts if given an invalid subcall type
-        // reverts if minBuyAmount is not satisfied
-        // reverts if array lengths are mismatched
-        // UniswapV2 -> LiquidityProvider
-        // LiquidityProvider -> Sushiswap
-        // UniswapV3 -> BatchSell(RFQ, UniswapV2)
-        // BatchSell(RFQ, UniswapV2) -> UniswapV3
+    function test_MultiplexMultiHopSellTokenForToken() public {
+        describe("MultiplexMultiHopSellTokenForToken");
+
+        ////
+        {
+            it("reverts if given an invalid subcall type");
+
+            try
+                zeroExDeployed.zeroEx.multiplexMultiHopSellTokenForToken(
+                    makeArray(address(dai), address(zrx)),
+                    makeArray(
+                        IMultiplexFeature.MultiHopSellSubcall({
+                            id: IMultiplexFeature.MultiplexSubcall.Invalid,
+                            data: hex""
+                        })
+                    ),
+                    1e18,
+                    0
+                )
+            {
+                fail("did not revert");
+            } catch Error(string memory reason) {
+                assertEq(reason, "MultiplexFeature::_computeHopTarget/INVALID_SUBCALL", "wrong revert reason");
+            } catch {
+                fail("low-level revert");
+            }
+        }
+
+        ////
+        {
+            it("reverts if minBuyAmount is not satisfied");
+
+            createUniswapV2Pool(uniV2Factory, dai, zrx, 10e18, 10e18);
+
+            uint256 sellAmount = 5e17;
+            mintTo(address(dai), address(this), sellAmount);
+
+            try
+                zeroExDeployed.zeroEx.multiplexMultiHopSellTokenForToken(
+                    makeArray(address(dai), address(zrx)),
+                    makeArray(makeUniswapV2MultiHopSubcall(makeArray(address(dai), address(zrx)), false)),
+                    sellAmount,
+                    MAX_UINT256
+                )
+            {
+                fail("did not revert");
+            } catch Error(string memory reason) {
+                assertEq(reason, "MultiplexFeature::_multiplexMultiHopSell/UNDERBOUGHT", "wrong revert reason");
+            } catch {
+                fail("low-level revert");
+            }
+        }
+
+        ////
+        {
+            it("reverts if array lengths are mismatched");
+
+            createUniswapV2Pool(uniV2Factory, dai, zrx, 10e18, 10e18);
+            IMultiplexFeature.MultiHopSellSubcall memory uniswapV2Subcall = makeUniswapV2MultiHopSubcall(
+                makeArray(address(dai), address(zrx)),
+                false
+            );
+
+            uint256 sellAmount = 5e17;
+            mintTo(address(dai), address(this), sellAmount);
+
+            try
+                zeroExDeployed.zeroEx.multiplexMultiHopSellTokenForToken(
+                    makeArray(address(dai), address(zrx)),
+                    makeArray(uniswapV2Subcall, uniswapV2Subcall),
+                    sellAmount,
+                    0
+                )
+            {
+                fail("did not revert");
+            } catch Error(string memory reason) {
+                assertEq(
+                    reason,
+                    "MultiplexFeature::_multiplexMultiHopSell/MISMATCHED_ARRAY_LENGTHS",
+                    "wrong revert reason"
+                );
+            } catch {
+                fail("low-level revert");
+            }
+        }
+
+        ////
+        {
+            it("UniswapV2 -> LiquidityProvider");
+
+            TestUniswapV2Pool uniV2Pool = createUniswapV2Pool(uniV2Factory, dai, shib, 10e18, 10e18);
+            IMultiplexFeature.MultiHopSellSubcall memory lpSubcall = makeLiquidityProviderMultiHopSubcall();
+            IMultiplexFeature.MultiHopSellSubcall memory uniswapV2Subcall = makeUniswapV2MultiHopSubcall(
+                makeArray(address(dai), address(shib)),
+                false
+            );
+
+            uint256 sellAmount = 5e17;
+            uint256 buyAmount = 6e17;
+            mintTo(address(dai), address(this), sellAmount);
+            mintTo(address(zrx), address(liquidityProvider), buyAmount);
+
+            try
+                zeroExDeployed.zeroEx.multiplexMultiHopSellTokenForToken(
+                    makeArray(address(dai), address(shib), address(zrx)),
+                    makeArray(uniswapV2Subcall, lpSubcall),
+                    sellAmount,
+                    buyAmount
+                )
+            {
+                assertLogs(
+                    makeArray(
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(dai, this, uniV2Pool, sellAmount)
+                        }),
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(shib, uniV2Pool, liquidityProvider, 0),
+                            dataMask: abi.encode(MAX_UINT256, MAX_UINT256, MAX_UINT256, 0)
+                        }),
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(zrx, liquidityProvider, this, buyAmount)
+                        })
+                    )
+                );
+            } catch Error(string memory reason) {
+                fail("reverted");
+                fail(reason);
+            } catch {
+                fail("low-level revert");
+            }
+        }
+
+        ////
+        {
+            it("LiquidityProvider -> Sushiswap");
+
+            TestUniswapV2Pool sushiPool = createUniswapV2Pool(sushiFactory, shib, zrx, 10e18, 10e18);
+            IMultiplexFeature.MultiHopSellSubcall memory lpSubcall = makeLiquidityProviderMultiHopSubcall();
+            IMultiplexFeature.MultiHopSellSubcall memory sushiswapSubcall = makeUniswapV2MultiHopSubcall(
+                makeArray(address(shib), address(zrx)),
+                true
+            );
+
+            uint256 sellAmount = 5e17;
+            uint256 shibAmount = 6e17;
+            mintTo(address(dai), address(this), sellAmount);
+            mintTo(address(shib), address(liquidityProvider), shibAmount);
+
+            try
+                zeroExDeployed.zeroEx.multiplexMultiHopSellTokenForToken(
+                    makeArray(address(dai), address(shib), address(zrx)),
+                    makeArray(lpSubcall, sushiswapSubcall),
+                    sellAmount,
+                    0
+                )
+            {
+                assertLogs(
+                    makeArray(
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(dai, this, liquidityProvider, sellAmount)
+                        }),
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(shib, liquidityProvider, sushiPool, shibAmount)
+                        }),
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(zrx, sushiPool, this, 0),
+                            dataMask: abi.encode(MAX_UINT256, MAX_UINT256, MAX_UINT256, 0)
+                        })
+                    )
+                );
+            } catch Error(string memory reason) {
+                fail("reverted");
+                fail(reason);
+            } catch {
+                fail("low-level revert");
+            }
+        }
+
+        ////
+        {
+            it("UniswapV3 -> BatchSell(RFQ, UniswapV2)");
+
+            TestUniswapV2Pool uniV2Pool = createUniswapV2Pool(uniV2Factory, shib, zrx, 10e18, 10e18);
+            TestUniswapV3Pool uniV3Pool = createUniswapV3Pool(uniV3Factory, dai, shib, 10e18, 10e18);
+
+            LibNativeOrder.RfqOrder memory rfqOrder = makeTestRfqOrder();
+            rfqOrder.takerToken = shib;
+            rfqOrder.makerToken = zrx;
+
+            IMultiplexFeature.BatchSellSubcall memory rfqSubcall = makeRfqSubcall(rfqOrder);
+            rfqSubcall.sellAmount = encodeFractionalFillAmount(42);
+
+            uint256 sellAmount = 5e17;
+            mintTo(address(dai), address(this), sellAmount);
+
+            try
+                zeroExDeployed.zeroEx.multiplexMultiHopSellTokenForToken(
+                    makeArray(address(dai), address(shib), address(zrx)),
+                    makeArray(
+                        makeUniswapV3MultiHopSubcall(makeArray(address(dai), address(shib))),
+                        makeNestedBatchSellSubcall(
+                            makeArray(
+                                rfqSubcall,
+                                makeUniswapV2BatchSubcall(
+                                    makeArray(address(shib), address(zrx)),
+                                    encodeFractionalFillAmount(100),
+                                    false
+                                )
+                            )
+                        )
+                    ),
+                    sellAmount,
+                    0
+                )
+            {
+                assertLogs(
+                    makeArray(
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(shib, uniV3Pool, zeroExDeployed.zeroEx, 0),
+                            dataMask: abi.encode(MAX_UINT256, MAX_UINT256, MAX_UINT256, 0)
+                        }),
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(dai, this, uniV3Pool, sellAmount)
+                        }),
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(shib, zeroExDeployed.zeroEx, rfqOrder.maker, 0),
+                            dataMask: abi.encode(MAX_UINT256, MAX_UINT256, MAX_UINT256, 0)
+                        }),
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(zrx, rfqOrder.maker, this, 0),
+                            dataMask: abi.encode(MAX_UINT256, MAX_UINT256, MAX_UINT256, 0)
+                        }),
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(shib, zeroExDeployed.zeroEx, uniV2Pool, 0),
+                            dataMask: abi.encode(MAX_UINT256, MAX_UINT256, MAX_UINT256, 0)
+                        }),
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(zrx, uniV2Pool, this, 0),
+                            dataMask: abi.encode(MAX_UINT256, MAX_UINT256, MAX_UINT256, 0)
+                        })
+                    )
+                );
+            } catch Error(string memory reason) {
+                fail("reverted");
+                fail(reason);
+            } catch {
+                fail("low-level revert");
+            }
+        }
+
+        ////
+        {
+            it("BatchSell(RFQ, UniswapV2) -> UniswapV3", true);
+
+            TestUniswapV2Pool uniV2Pool = createUniswapV2Pool(uniV2Factory, dai, shib, 10e18, 10e18);
+            TestUniswapV3Pool uniV3Pool = createUniswapV3Pool(uniV3Factory, shib, zrx, 10e18, 10e18);
+
+            LibNativeOrder.RfqOrder memory rfqOrder = makeTestRfqOrder({makerToken: shib, takerToken: dai});
+
+            IMultiplexFeature.BatchSellSubcall memory rfqSubcall = makeRfqSubcall(rfqOrder);
+            IMultiplexFeature.BatchSellSubcall memory uniswapV2Subcall = makeUniswapV2BatchSubcall(
+                makeArray(address(dai), address(shib)),
+                5e17,
+                false
+            );
+
+            uint256 sellAmount = rfqSubcall.sellAmount + uniswapV2Subcall.sellAmount;
+            mintTo(address(dai), address(this), sellAmount);
+
+            try
+                zeroExDeployed.zeroEx.multiplexMultiHopSellTokenForToken(
+                    makeArray(address(dai), address(shib), address(zrx)),
+                    makeArray(
+                        makeNestedBatchSellSubcall(makeArray(rfqSubcall, uniswapV2Subcall)),
+                        makeUniswapV3MultiHopSubcall(makeArray(address(shib), address(zrx)))
+                    ),
+                    sellAmount,
+                    0
+                )
+            {
+                assertLogs(
+                    makeArray(
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(dai, this, rfqOrder.maker, rfqOrder.takerAmount)
+                        }),
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(shib, rfqOrder.maker, zeroExDeployed.zeroEx, rfqOrder.makerAmount)
+                        }),
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(dai, this, uniV2Pool, uniswapV2Subcall.sellAmount)
+                        }),
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(shib, uniV2Pool, zeroExDeployed.zeroEx, 0),
+                            dataMask: abi.encode(MAX_UINT256, MAX_UINT256, MAX_UINT256, 0)
+                        }),
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(zrx, uniV3Pool, this, 0),
+                            dataMask: abi.encode(MAX_UINT256, MAX_UINT256, MAX_UINT256, 0)
+                        }),
+                        describeLog({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(shib, zeroExDeployed.zeroEx, uniV3Pool, 0),
+                            dataMask: abi.encode(MAX_UINT256, MAX_UINT256, MAX_UINT256, 0)
+                        })
+                    )
+                );
+            } catch Error(string memory reason) {
+                fail("reverted");
+                fail(reason);
+            } catch {
+                fail("low-level revert");
+            }
+        }
     }
 
     function testMultiplexMultiHopSellEthForToken() public {
