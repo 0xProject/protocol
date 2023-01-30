@@ -166,15 +166,12 @@ contract SwapEthForERC20Test is Test, ForkUtils, TestUtils {
             );
             assert(IERC20TokenV06(tokens.USDT).balanceOf(address(this)) > 0);
         } else {
-            emit log_string("Liquidity Source Not available on this chain");
+            emit log_string("Liquidity Source not available on this chain");
         }
     }
 
     /* solhint-enable function-max-lines */
 
-    /*//////////////////////////////////////////////////////////////
-                            Sampler Dispatch
-    //////////////////////////////////////////////////////////////*/
     // get a real quote from uniswap
     function sampleLiquiditySource(
         uint256 amount,

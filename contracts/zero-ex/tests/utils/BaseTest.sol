@@ -16,8 +16,8 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "forge-std/Test.sol";
-import "../contracts/src/ZeroEx.sol";
-import "../contracts/src/migrations/InitialMigration.sol";
+import "../../contracts/src/ZeroEx.sol";
+import "../../contracts/src/migrations/InitialMigration.sol";
 
 contract BaseTest is Test {
     address payable internal account1 = payable(vm.addr(1));
