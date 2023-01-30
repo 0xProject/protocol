@@ -23,16 +23,15 @@ import "../src/ZRXWrappedToken.sol";
 import "@openzeppelin/token/ERC20/ERC20.sol";
 
 contract ZRXWrappedTokenTest is BaseTest {
-    IERC20 public token;
-    ZRXWrappedToken public wToken;
+    IERC20 private token;
+    ZRXWrappedToken private wToken;
+    ZeroExVotes private votes;
 
     function setUp() public {
         vm.startPrank(account1);
-        token = IERC20(createZRXToken());
+        (token, wToken, votes, , ) = setupGovernance();
         token.transfer(account2, 100e18);
         token.transfer(account3, 100e18);
-
-        wToken = new ZRXWrappedToken(token);
         vm.stopPrank();
     }
 
@@ -106,7 +105,7 @@ contract ZRXWrappedTokenTest is BaseTest {
 
     function testShouldBeAbleToSelfDelegateVotingPower() public {
         // Check voting power initially is 0
-        uint256 votingPowerAccount2 = wToken.getVotes(account2);
+        uint256 votingPowerAccount2 = votes.getVotes(account2);
         assertEq(votingPowerAccount2, 0);
 
         // Wrap ZRX and delegate voting power to themselves
@@ -116,13 +115,13 @@ contract ZRXWrappedTokenTest is BaseTest {
         wToken.delegate(account2);
 
         // Check voting power is now = token balance
-        votingPowerAccount2 = wToken.getVotes(account2);
+        votingPowerAccount2 = votes.getVotes(account2);
         assertEq(votingPowerAccount2, 100e18);
     }
 
     function testShouldBeAbleToDelegateVotingPowerToAnotherAccount() public {
         // Check voting power initially is 0
-        uint256 votingPowerAccount3 = wToken.getVotes(account3);
+        uint256 votingPowerAccount3 = votes.getVotes(account3);
         assertEq(votingPowerAccount3, 0);
 
         // Account 2 wraps ZRX and delegates voting power to account3
@@ -132,7 +131,7 @@ contract ZRXWrappedTokenTest is BaseTest {
         wToken.delegate(account3);
 
         // Check voting power is now = token balance
-        votingPowerAccount3 = wToken.getVotes(account3);
+        votingPowerAccount3 = votes.getVotes(account3);
         assertEq(votingPowerAccount3, 10e18);
     }
 }

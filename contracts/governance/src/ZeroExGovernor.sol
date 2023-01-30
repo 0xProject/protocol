@@ -35,7 +35,7 @@ contract ZeroExGovernor is
     GovernorTimelockControl
 {
     constructor(
-        IVotes _token,
+        IVotes _tokenVotes,
         TimelockController _timelock
     )
         Governor("ZeroExGovernor")
@@ -44,7 +44,7 @@ contract ZeroExGovernor is
             50400 /* voting period: 1 week */,
             0 /* proposal threshold */
         )
-        GovernorVotes(_token)
+        GovernorVotes(_tokenVotes)
         GovernorVotesQuorumFraction(10)
         GovernorTimelockControl(_timelock)
     {}

@@ -23,6 +23,10 @@ import "forge-std/Test.sol";
 import "forge-std/console.sol";
 import "@openzeppelin/token/ERC20/ERC20.sol";
 import "./ZRXMock.sol";
+import "../src/ZRXWrappedToken.sol";
+import "../src/ZeroExVotes.sol";
+import "../src/ZeroExTimelock.sol";
+import "../src/ZeroExGovernor.sol";
 
 contract BaseTest is Test {
     address payable internal account1 = payable(vm.addr(1));
@@ -37,7 +41,7 @@ contract BaseTest is Test {
         vm.deal(account4, 1e20);
     }
 
-    function createZRXToken() internal returns (address) {
+    function setupGovernance() internal returns (IERC20, ZRXWrappedToken, ZeroExVotes, ZeroExTimelock, ZeroExGovernor) {
         // Use this once https://linear.app/0xproject/issue/PRO-44/zrx-artifact-is-incompatible-with-foundry is resolved
         // bytes memory _bytecode = abi.encodePacked(vm.getCode("./ZRXToken.json"));
         // address _address;
@@ -46,6 +50,20 @@ contract BaseTest is Test {
         // }
         // return address(_address);
 
-        return address(new ZRXMock());
+        ZRXMock mockZRX = new ZRXMock();
+        ZeroExVotes votes = new ZeroExVotes();
+        ZRXWrappedToken token = new ZRXWrappedToken(mockZRX, votes);
+        votes.initialize(address(token));
+
+        address[] memory proposers = new address[](0);
+        address[] memory executors = new address[](0);
+
+        ZeroExTimelock timelock = new ZeroExTimelock(7 days, proposers, executors, account1);
+        ZeroExGovernor governor = new ZeroExGovernor(IVotes(address(votes)), timelock);
+
+        timelock.grantRole(timelock.PROPOSER_ROLE(), address(governor));
+        timelock.grantRole(timelock.EXECUTOR_ROLE(), address(governor));
+
+        return (mockZRX, token, votes, timelock, governor);
     }
 }

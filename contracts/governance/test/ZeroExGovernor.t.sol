@@ -28,18 +28,17 @@ import "@openzeppelin/mocks/CallReceiverMock.sol";
 contract ZeroExGovernorTest is BaseTest {
     IERC20 public token;
     ZRXWrappedToken internal wToken;
+    ZeroExVotes internal votes;
     ZeroExTimelock internal timelock;
     ZeroExGovernor internal governor;
     CallReceiverMock internal callReceiverMock;
 
     function setUp() public {
         vm.startPrank(account1);
-        token = IERC20(createZRXToken());
+        (token, wToken, votes, timelock, governor) = setupGovernance();
         token.transfer(account2, 100e18);
         token.transfer(account3, 200e18);
         token.transfer(account4, 50e18);
-
-        wToken = new ZRXWrappedToken(token);
         vm.stopPrank();
 
         // Setup accounts 2,3 and 4 to vote
@@ -59,17 +58,6 @@ contract ZeroExGovernorTest is BaseTest {
         token.approve(address(wToken), 50e18);
         wToken.depositFor(account4, 50e18);
         wToken.delegate(account4);
-        vm.stopPrank();
-
-        address[] memory proposers = new address[](0);
-        address[] memory executors = new address[](0);
-
-        timelock = new ZeroExTimelock(7 days, proposers, executors, account1);
-        governor = new ZeroExGovernor(wToken, timelock);
-
-        vm.startPrank(account1);
-        timelock.grantRole(timelock.PROPOSER_ROLE(), address(governor));
-        timelock.grantRole(timelock.EXECUTOR_ROLE(), address(governor));
         vm.stopPrank();
 
         callReceiverMock = new CallReceiverMock();
@@ -96,7 +84,7 @@ contract ZeroExGovernorTest is BaseTest {
     }
 
     function testShouldReturnCorrectToken() public {
-        assertEq(address(governor.token()), address(wToken));
+        assertEq(address(governor.token()), address(votes));
     }
 
     function testShouldReturnCorrectTimelock() public {
