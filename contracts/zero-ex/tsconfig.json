@@ -44,6 +44,7 @@
         "generated-artifacts/ZeroEx.json",
         "test/generated-artifacts/AbstractBridgeAdapter.json",
         "test/generated-artifacts/AffiliateFeeTransformer.json",
+        "test/generated-artifacts/ArbitrumBridgeAdapter.json",
         "test/generated-artifacts/AvalancheBridgeAdapter.json",
         "test/generated-artifacts/BSCBridgeAdapter.json",
         "test/generated-artifacts/BatchFillNativeOrdersFeature.json",

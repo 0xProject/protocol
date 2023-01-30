@@ -7,6 +7,7 @@ import { ContractArtifact } from 'ethereum-types';
 
 import * as AbstractBridgeAdapter from '../test/generated-artifacts/AbstractBridgeAdapter.json';
 import * as AffiliateFeeTransformer from '../test/generated-artifacts/AffiliateFeeTransformer.json';
+import * as ArbitrumBridgeAdapter from '../test/generated-artifacts/ArbitrumBridgeAdapter.json';
 import * as AvalancheBridgeAdapter from '../test/generated-artifacts/AvalancheBridgeAdapter.json';
 import * as BatchFillNativeOrdersFeature from '../test/generated-artifacts/BatchFillNativeOrdersFeature.json';
 import * as BootstrapFeature from '../test/generated-artifacts/BootstrapFeature.json';
@@ -314,6 +315,7 @@ export const artifacts = {
     Transformer: Transformer as ContractArtifact,
     WethTransformer: WethTransformer as ContractArtifact,
     AbstractBridgeAdapter: AbstractBridgeAdapter as ContractArtifact,
+    ArbitrumBridgeAdapter: ArbitrumBridgeAdapter as ContractArtifact,
     AvalancheBridgeAdapter: AvalancheBridgeAdapter as ContractArtifact,
     BSCBridgeAdapter: BSCBridgeAdapter as ContractArtifact,
     BridgeProtocols: BridgeProtocols as ContractArtifact,
