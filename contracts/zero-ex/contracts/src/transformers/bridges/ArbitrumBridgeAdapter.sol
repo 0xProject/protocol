@@ -27,6 +27,7 @@ import "./mixins/MixinGMX.sol";
 import "./mixins/MixinNerve.sol";
 import "./mixins/MixinUniswapV3.sol";
 import "./mixins/MixinUniswapV2.sol";
+import "./mixins/MixinWOOFi.sol";
 import "./mixins/MixinZeroExBridge.sol";
 
 contract ArbitrumBridgeAdapter is
@@ -41,6 +42,7 @@ contract ArbitrumBridgeAdapter is
     MixinNerve,
     MixinUniswapV3,
     MixinUniswapV2,
+    MixinWOOFi,
     MixinZeroExBridge
 {
     constructor(IEtherTokenV06 weth) public MixinCurve(weth) MixinAaveV3(true) {}
@@ -108,6 +110,11 @@ contract ArbitrumBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeAaveV3(sellToken, buyToken, sellAmount, order.bridgeData);
+        } else if (protocolId == BridgeProtocols.WOOFI) {
+            if (dryRun) {
+                return (0, true);
+            }
+            boughtAmount = _tradeWOOFi(sellToken, buyToken, sellAmount, order.bridgeData);
         }
 
         emit BridgeFill(order.source, sellToken, buyToken, sellAmount, boughtAmount);
