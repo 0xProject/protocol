@@ -1,5 +1,15 @@
 [
 	{
+		"version": "8.0.3",
+		"changes": [
+			{
+				"note": "Upgrade Arbitrum FillQuoteTransformer to support Woofi",
+				"pr": 616
+			}
+		],
+		"timestamp": 1668477029
+	},
+	{
 		"timestamp": 1675105183,
 		"version": "8.0.2",
 		"changes": [
