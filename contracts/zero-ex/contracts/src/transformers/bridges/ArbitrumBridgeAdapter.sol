@@ -110,8 +110,7 @@ contract ArbitrumBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeAaveV3(sellToken, buyToken, sellAmount, order.bridgeData);
-        }
-        else if (protocolId == BridgeProtocols.WOOFI) {
+        } else if (protocolId == BridgeProtocols.WOOFI) {
             if (dryRun) {
                 return (0, true);
             }
