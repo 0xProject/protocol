@@ -31,6 +31,8 @@ import "./interfaces/INativeOrdersFeature.sol";
 import "./interfaces/ITransformERC20Feature.sol";
 import "./libs/LibSignature.sol";
 
+import "forge-std/console.sol";
+
 /// @dev MetaTransactions feature.
 contract MetaTransactionsFeature is
     IFeature,
@@ -253,24 +255,28 @@ contract MetaTransactionsFeature is
 
     /// @dev Validate that a meta-transaction is executable.
     function _validateMetaTransaction(ExecuteState memory state) private view {
+        console.log("Must be from required sender, if set");
         // Must be from the required sender, if set.
         if (state.mtx.sender != address(0) && state.mtx.sender != state.sender) {
             LibMetaTransactionsRichErrors
                 .MetaTransactionWrongSenderError(state.hash, state.sender, state.mtx.sender)
                 .rrevert();
         }
+        console.log("Must not be expired");
         // Must not be expired.
         if (state.mtx.expirationTimeSeconds <= block.timestamp) {
             LibMetaTransactionsRichErrors
                 .MetaTransactionExpiredError(state.hash, block.timestamp, state.mtx.expirationTimeSeconds)
                 .rrevert();
         }
+        console.log("Must have a valid gas price");
         // Must have a valid gas price.
         if (state.mtx.minGasPrice > tx.gasprice || state.mtx.maxGasPrice < tx.gasprice) {
             LibMetaTransactionsRichErrors
                 .MetaTransactionGasPriceError(state.hash, tx.gasprice, state.mtx.minGasPrice, state.mtx.maxGasPrice)
                 .rrevert();
         }
+        console.log("Must have enough ETH");
         // Must have enough ETH.
         state.selfBalance = address(this).balance;
         if (state.mtx.value > state.selfBalance) {
@@ -291,6 +297,7 @@ contract MetaTransactionsFeature is
                 )
                 .rrevert();
         }
+        console.log("Must not have already been executed");
         // Transaction must not have been already executed.
         state.executedBlockNumber = LibMetaTransactionsStorage.getStorage().mtxHashToExecutedBlockNumber[state.hash];
         if (state.executedBlockNumber != 0) {
