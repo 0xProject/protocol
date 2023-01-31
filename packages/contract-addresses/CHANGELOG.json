@@ -4,10 +4,9 @@
 		"changes": [
 			{
 				"note": "Upgrade Arbitrum FillQuoteTransformer to support Woofi",
-				"pr": 616
+				"pr": 653
 			}
-		],
-		"timestamp": 1668477029
+		]
 	},
 	{
 		"timestamp": 1675105183,
