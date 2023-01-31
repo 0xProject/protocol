@@ -13,7 +13,7 @@ import { MetaTransactionJobConstructorOpts } from '../entities/MetaTransactionJo
 import { RfqmJobStatus } from '../entities/types';
 import { logger } from '../logger';
 import { ExecuteMetaTransactionEip712Context, PermitEip712Context, GaslessTypes } from '../core/types';
-import { FeeConfigs, VolumeBasedFeeConfig, Fees } from '../core/types/meta_transaction_fees';
+import { FeeConfigs, Fees } from '../core/types/meta_transaction_fees';
 import {
     getV1QuoteAsync,
     getV2QuoteAsync,
@@ -43,6 +43,7 @@ import {
     StatusResponse,
     FetchQuoteParamsBase,
 } from './types';
+import { getFeeConfigsFromParams } from '../core/meta_transaction_fee_utils';
 
 /**
  * When a metatransaction quote is issued, the hash
@@ -177,7 +178,7 @@ export class GaslessSwapService {
         try {
             let feeConfigs: FeeConfigs | undefined;
             if (kind === GaslessTypes.MetaTransactionV2) {
-                feeConfigs = this._createFeeConfigs(params);
+                feeConfigs = this._getFeeConfigs(params);
             }
 
             const metaTransactionRequestParams = {
@@ -308,7 +309,7 @@ export class GaslessSwapService {
         try {
             let feeConfigs: FeeConfigs | undefined;
             if (kind === GaslessTypes.MetaTransactionV2) {
-                feeConfigs = this._createFeeConfigs(params);
+                feeConfigs = this._getFeeConfigs(params);
             }
 
             const metaTransactionRequestParams = {
@@ -673,19 +674,23 @@ export class GaslessSwapService {
         await this._redis.set(metaTransactionHashRedisKey(hash), /* value */ 0, 'EX', META_TRANSACTION_HASH_TTL_S);
     }
 
-    private _createFeeConfigs(params: FetchQuoteParamsBase): FeeConfigs {
-        let integratorFee: VolumeBasedFeeConfig | undefined;
+    private _getFeeConfigs(params: FetchQuoteParamsBase): FeeConfigs {
+        let integratorFeeConfig;
 
         if (params.feeType && params.feeRecipient && params.feeSellTokenPercentage) {
-            integratorFee = {
+            integratorFeeConfig = {
                 type: params.feeType,
-                feeRecipient: params.feeRecipient,
-                volumePercentage: params.feeSellTokenPercentage,
+                recipient: params.feeRecipient,
+                sellTokenPercentage: params.feeSellTokenPercentage,
             };
         }
-        // TODO: Parse 0x fee and gas fee config after implementing the new fee config schema
-        return {
-            integratorFee,
-        };
+
+        return getFeeConfigsFromParams({
+            integratorId: params.integrator.integratorId,
+            chainId: this._chainId,
+            sellToken: params.sellToken,
+            buyToken: params.buyToken,
+            integratorFeeConfig,
+        });
     }
 }

@@ -10,6 +10,9 @@ import * as integratorAclSchema from './integrator_acl_schema.json';
 import * as rfqMakerConfigSchema from './rfq_maker_config.json';
 import * as rfqMakerConfigListSchema from './rfq_maker_config_list.json';
 import * as signResponseSchema from './sign_response_schema.json';
+import * as zeroExFeeConfigurationsSchema from './zero_ex_fee_configurations_schema.json';
+import * as zeroExFeeConfigurationSchema from './zero_ex_fee_configuration_schema.json';
+import * as zeroExFeeConfigurationEntrySchema from './zero_ex_fee_configuration_entry.json';
 
 export const schemas = {
     chainConfigurationSchema,
@@ -24,4 +27,7 @@ export const schemas = {
     rfqMakerConfigListSchema,
     rfqMakerConfigSchema,
     signResponseSchema,
+    zeroExFeeConfigurationsSchema,
+    zeroExFeeConfigurationSchema,
+    zeroExFeeConfigurationEntrySchema,
 };

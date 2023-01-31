@@ -6,8 +6,10 @@ import { ObjectMap } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { LogWithDecodedArgs } from 'ethereum-types';
 import { providers } from 'ethers';
+import { ZeroExFeeConfiguration } from '../src/config';
 
 import { EXECUTE_META_TRANSACTION_EIP_712_TYPES, PERMIT_EIP_712_TYPES } from '../src/core/constants';
+import { toPairString } from '../src/core/pair_utils';
 import { ExecuteMetaTransactionApproval, Fee, GaslessApprovalTypes, PermitApproval } from '../src/core/types';
 
 export const CHAIN_ID = 1337;
@@ -182,3 +184,61 @@ export const MOCK_STORED_FEE = {
     amount: '0',
     details: undefined,
 };
+
+export const MAINET_TOKEN_ADDRESSES = {
+    USDC: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    WETH: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+    USDT: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+    DAI: '0x6b175474e89094c44da98b954eedeac495271d0f',
+    WBTC: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+    SHIB: '0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce',
+    AAVE: '0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9',
+};
+
+export const ZERO_EX_FEE_CONFIGURATIONS = (() => {
+    const zeroExFeeConfigurations: Map<string, Map<number, ZeroExFeeConfiguration>> = new Map();
+    const coinbaseMainnetConfiguration: ZeroExFeeConfiguration = {
+        name: 'Coinbase',
+        feeOn: 'volume',
+        zeroExFeeRecipient: '0x4ea754349ace5303c82f0d1d491041e042f2ad22',
+        gasFeeRecipient: null,
+        pairsFeeEntries: new Map([
+            [toPairString(MAINET_TOKEN_ADDRESSES.USDC, MAINET_TOKEN_ADDRESSES.WETH), new BigNumber(0.5)],
+            [toPairString(MAINET_TOKEN_ADDRESSES.USDT, MAINET_TOKEN_ADDRESSES.WETH), new BigNumber(0.5)],
+        ]),
+        cartesianProductFeeEntries: [
+            {
+                setA: new Set([MAINET_TOKEN_ADDRESSES.USDC, MAINET_TOKEN_ADDRESSES.USDT, MAINET_TOKEN_ADDRESSES.DAI]),
+                setB: new Set([MAINET_TOKEN_ADDRESSES.WETH, MAINET_TOKEN_ADDRESSES.WBTC]),
+                parameter: new BigNumber(0.7),
+            },
+            {
+                setA: new Set([MAINET_TOKEN_ADDRESSES.USDC, MAINET_TOKEN_ADDRESSES.USDT, MAINET_TOKEN_ADDRESSES.DAI]),
+                setB: new Set([MAINET_TOKEN_ADDRESSES.USDC, MAINET_TOKEN_ADDRESSES.USDT, MAINET_TOKEN_ADDRESSES.DAI]),
+                parameter: new BigNumber(0.1),
+            },
+        ],
+        tokensEntries: new Map([
+            [MAINET_TOKEN_ADDRESSES.WBTC, new BigNumber(1.5)],
+            ['*', new BigNumber(0.05)],
+        ]),
+    };
+    const defaultMainnetConfiguration: ZeroExFeeConfiguration = {
+        name: 'All',
+        feeOn: 'integrator_share',
+        zeroExFeeRecipient: '0x4ea754349ace5303c82f0d1d491041e042f2ad22',
+        gasFeeRecipient: null,
+        pairsFeeEntries: new Map(),
+        cartesianProductFeeEntries: [],
+        tokensEntries: new Map([
+            [MAINET_TOKEN_ADDRESSES.WBTC, new BigNumber(1.2)],
+            ['*', new BigNumber(0.03)],
+        ]),
+    };
+    zeroExFeeConfigurations.set('5062340f-87bb-4e1b-8029-eb8c03a9989c', new Map());
+    zeroExFeeConfigurations.get('5062340f-87bb-4e1b-8029-eb8c03a9989c')?.set(1, coinbaseMainnetConfiguration);
+    zeroExFeeConfigurations.set('*', new Map());
+    zeroExFeeConfigurations.get('*')?.set(1, defaultMainnetConfiguration);
+
+    return zeroExFeeConfigurations;
+})();

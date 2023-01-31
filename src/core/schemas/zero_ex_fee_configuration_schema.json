@@ -1,0 +1,32 @@
+{
+    "id": "/zeroExFeeConfigurationSchema",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string"
+        },
+        "integratorId": {
+            "type": "string"
+        },
+        "chainId": {
+            "type": "number"
+        },
+        "feeOn": {
+            "type": "string",
+            "enum": ["volume", "integrator_share"]
+        },
+        "zeroExFeeRecipient": {
+            "type": ["string", "null"]
+        },
+        "gasFeeRecipient": {
+            "type": ["string", "null"]
+        },
+        "fees": {
+            "type": "array",
+            "items": {
+                "$ref": "/zeroExFeeConfigurationEntry"
+            }
+        }
+    },
+    "required": ["name", "integratorId", "chainId", "feeOn", "zeroExFeeRecipient", "gasFeeRecipient", "fees"]
+}

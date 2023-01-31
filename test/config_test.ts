@@ -5,7 +5,9 @@ import {
     getApiKeyWhitelistFromIntegratorsAcl,
     getIntegratorByIdOrThrow,
     getIntegratorIdForApiKey,
+    ZERO_EX_FEE_CONFIGURATION_MAP,
 } from '../src/config';
+import { ZERO_EX_FEE_CONFIGURATIONS } from './constants';
 
 /**
  * Configuration tests which run against the config in `test_env` file.
@@ -59,6 +61,12 @@ describe('Config', () => {
         it("doesn't add disallowed liquidity sources to allowed API keys", () => {
             const plpKeys = getApiKeyWhitelistFromIntegratorsAcl('plp');
             expect(plpKeys.length).to.equal(0);
+        });
+    });
+
+    describe('ZERO_EX_FEE_CONFIGURATION_MAP', () => {
+        it('correctly processes raw 0x fee config', () => {
+            expect(ZERO_EX_FEE_CONFIGURATION_MAP).to.be.eql(ZERO_EX_FEE_CONFIGURATIONS);
         });
     });
 });

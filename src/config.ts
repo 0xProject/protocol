@@ -118,6 +118,230 @@ export const CHAIN_CONFIGURATIONS: ChainConfigurations = (() => {
     return result;
 })();
 
+export interface ZeroExFeeConfigEntryBase {
+    volumePercentage?: number;
+    integratorSharePercentage?: number;
+    // marginRakePercentage?: number; // for RFQ liqiduity
+}
+
+/**
+ * 0x fee config entry for pairs.
+ *
+ * For example, this means the following pair take 10% volume fee.
+ *  {
+ *      kind: 'pair',
+ *      pairs: [
+ *          {
+ *              tokenA: '0x123456...',
+ *              tokenB: '0x654321...',
+ *              label: 'token1-token2',
+ *          },
+ *          {
+ *              tokenA: '0x13579...',
+ *              tokenB: '0x24681...',
+ *              label: 'token3-token4',
+ *          }
+ *      ],
+ *      volumePercentage: 10
+ *  }
+ */
+export interface Pairs extends ZeroExFeeConfigEntryBase {
+    kind: 'pairs';
+    pairs: {
+        tokenA: string;
+        tokenB: string;
+        label: string;
+    }[];
+}
+
+/**
+ * 0x fee config entry for cartesian_product.
+ *
+ * For example, this means for any of the 4 combination between `setA` and `setB`, the pair takes 5% volume fee
+ * {
+ *      kind: 'cartesian_product',
+ *      setA: [
+ *          {
+ *              token: '0x123455...',
+ *              label: 'token5',
+ *          },
+ *          {
+ *              token: '0x123457...',
+ *              label: 'token6',
+ *          }
+ *      ],
+ *      setB: [
+ *          {
+ *              token: '0x123458...',
+ *              label: 'token7',
+ *          },
+ *          {
+ *              token: '0x123459...',
+ *              label: 'token8',
+ *          }
+ *      ],
+ *      volumePercentage: 5
+ * }
+ */
+export interface CartesianProduct extends ZeroExFeeConfigEntryBase {
+    kind: 'cartesian_product';
+    setA: {
+        token: string;
+        label: string;
+    }[];
+    setB: {
+        token: string;
+        label: string;
+    }[];
+}
+
+/**
+ * 0x fee config entry for tokens.
+ *
+ * For example, this means if token9 or token10 is either sell / buy token, there is a 2% volume fee
+ * {
+ *      kind: 'tokens',
+ *      tokens: [
+ *          {
+ *              token: '0x1234510...',
+ *              label: 'token9',
+ *          },
+ *          {
+ *              token: '0x12345711...',
+ *              label: 'token10',
+ *          }
+ *      ]
+ *      volumePercentage: 2
+ * }
+ */
+export interface Tokens extends ZeroExFeeConfigEntryBase {
+    kind: 'tokens';
+    tokens: {
+        token: string;
+        label: string;
+    }[];
+}
+
+export type ZeroExFeeConigurationEntry = Pairs | CartesianProduct | Tokens;
+
+// Raw 0x fee configuration read directly from config file
+interface ZeroExFeeRawConfiguration {
+    name: string; // human readable integrator name
+    integratorId: string;
+    chainId: number;
+    feeOn: 'volume' | 'integrator_share' /* | 'price_improvement' */; // 'price_improvement' is for RFQ liquidity
+    zeroExFeeRecipient: string | null; // null if off-chain payment
+    gasFeeRecipient: string | null; // null if off-chain payment
+    fees: ZeroExFeeConigurationEntry[];
+}
+
+type ZeroExFeeRawConfigurations = ZeroExFeeRawConfiguration[];
+
+// Processed raw 0x fee configuration
+export interface ZeroExFeeConfiguration {
+    name: string;
+    feeOn: 'volume' | 'integrator_share' /* | 'price_improvement' */; // 'price_improvement' is for RFQ liquidity
+    zeroExFeeRecipient: string | null;
+    gasFeeRecipient: string | null;
+    pairsFeeEntries: Map<string, BigNumber>; // tokenA-tokenB: <fee_parameter>; tokenA <= tokenB
+    cartesianProductFeeEntries: {
+        setA: Set<string>;
+        setB: Set<string>;
+        parameter: BigNumber;
+    }[];
+    tokensEntries: Map<string, BigNumber>; // tokenA-tokenB: <fee_parameter>; tokenA <= tokenB
+}
+
+export const ZERO_EX_FEE_CONFIGURATION_MAP: Map<string, Map<number, ZeroExFeeConfiguration>> = (() => {
+    try {
+        const zeroExFeeRawConfigurations = resolveEnvVar<ZeroExFeeRawConfigurations>(
+            'ZERO_EX_FEE_CONFIGURATIONS',
+            EnvVarType.JsonStringList,
+            [],
+        );
+        schemaUtils.validateSchema(zeroExFeeRawConfigurations, schemas.zeroExFeeConfigurationsSchema);
+
+        return zeroExFeeRawConfigurations.reduce((acc, curr) => {
+            const { integratorId, chainId } = curr;
+            if (!acc.get(integratorId)) {
+                acc.set(integratorId, new Map<number, ZeroExFeeConfiguration>());
+            }
+
+            const pairsFeeEntries = new Map<string, BigNumber>();
+            const cartesianProductFeeEntries: {
+                setA: Set<string>;
+                setB: Set<string>;
+                parameter: BigNumber;
+            }[] = [];
+            const tokensEntries = new Map<string, BigNumber>();
+
+            curr.fees.forEach((feeConfig) => {
+                let feeParameter: BigNumber;
+                switch (curr.feeOn) {
+                    case 'volume':
+                        if (feeConfig.volumePercentage === undefined) {
+                            throw new Error(`volumePercentage not defined for ${curr.integratorId} for fee on volume`);
+                        }
+                        feeParameter = new BigNumber(feeConfig.volumePercentage);
+                        break;
+                    case 'integrator_share':
+                        if (feeConfig.integratorSharePercentage === undefined) {
+                            throw new Error(
+                                `integratorSharePercentage not defined for ${curr.integratorId} for fee on volume`,
+                            );
+                        }
+                        feeParameter = new BigNumber(feeConfig.integratorSharePercentage);
+                        break;
+                    default:
+                        ((_x: never) => {
+                            throw new Error('unreachable');
+                        })(curr.feeOn);
+                }
+
+                if (feeConfig.kind === 'pairs') {
+                    // parse config entries that are of kind `pairs`
+                    feeConfig.pairs.forEach(({ tokenA, tokenB }) => {
+                        pairsFeeEntries.set(toPairString(tokenA, tokenB), feeParameter);
+                    });
+                } else if (feeConfig.kind === 'cartesian_product') {
+                    // parse config entries that are of kind `cartesian_product`
+                    cartesianProductFeeEntries.push({
+                        setA: new Set(feeConfig.setA.map((tokenAndLabel) => tokenAndLabel.token.toLocaleLowerCase())),
+                        setB: new Set(feeConfig.setB.map((tokenAndLabel) => tokenAndLabel.token.toLocaleLowerCase())),
+                        parameter: feeParameter,
+                    });
+                } else if (feeConfig.kind === 'tokens') {
+                    // parse config entries that are of kind `tokens`
+                    feeConfig.tokens.forEach((tokenAndLabel) => {
+                        tokensEntries.set(tokenAndLabel.token.toLocaleLowerCase(), feeParameter);
+                    });
+                }
+            });
+
+            // Compiler can't track the state of TypeScript map. We need to perform a undefined check even if
+            // the value has been set for the integratorId previously. More discussion: https://stackoverflow.com/a/70726571
+            const feeConfigByChainId = acc.get(integratorId);
+            if (!feeConfigByChainId) {
+                // This should never happen
+                throw new Error(`${integratorId} is not set`);
+            }
+
+            feeConfigByChainId.set(chainId, {
+                name: curr.name,
+                feeOn: curr.feeOn,
+                zeroExFeeRecipient: curr.zeroExFeeRecipient,
+                gasFeeRecipient: curr.gasFeeRecipient,
+                pairsFeeEntries,
+                cartesianProductFeeEntries,
+                tokensEntries,
+            });
+            return acc;
+        }, new Map</* integratorId */ string, Map</* chainId */ number, ZeroExFeeConfiguration>>());
+    } catch (e) {
+        throw new Error(`ZERO_EX_FEE_CONFIGURATIONS was defined but is not valid JSON per the schema: ${e}`);
+    }
+})();
+
 /**
  * Values read from configuration files which provide
  * per pair fee model constants.
