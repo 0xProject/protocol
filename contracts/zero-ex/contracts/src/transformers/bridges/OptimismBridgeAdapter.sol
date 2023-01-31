@@ -25,7 +25,7 @@ import "./mixins/MixinNerve.sol";
 import "./mixins/MixinSolidly.sol";
 import "./mixins/MixinSynthetix.sol";
 import "./mixins/MixinUniswapV3.sol";
-import "./mixins/MixinWOOFi.sol"
+import "./mixins/MixinWOOFi.sol";
 import "./mixins/MixinZeroExBridge.sol";
 
 contract OptimismBridgeAdapter is
@@ -97,7 +97,7 @@ contract OptimismBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeAaveV3(sellToken, buyToken, sellAmount, order.bridgeData);
-        } else if (protocolId == BridgeProtocols.WooFI) {
+        } else if (protocolId == BridgeProtocols.WOOFI) {
             if (dryRun) {
                 return (0, true);
             }

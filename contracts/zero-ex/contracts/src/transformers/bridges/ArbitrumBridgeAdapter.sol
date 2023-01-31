@@ -27,7 +27,6 @@ import "./mixins/MixinGMX.sol";
 import "./mixins/MixinNerve.sol";
 import "./mixins/MixinUniswapV3.sol";
 import "./mixins/MixinUniswapV2.sol";
-
 import "./mixins/MixinWOOFi.sol";
 import "./mixins/MixinZeroExBridge.sol";
 
@@ -112,7 +111,7 @@ contract ArbitrumBridgeAdapter is
             }
             boughtAmount = _tradeAaveV3(sellToken, buyToken, sellAmount, order.bridgeData);
         }
-        else if (protocolId == BridgeProtocols.WooFI) {
+        else if (protocolId == BridgeProtocols.WOOFI) {
             if (dryRun) {
                 return (0, true);
             }
