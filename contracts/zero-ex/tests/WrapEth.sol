@@ -15,7 +15,7 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "utils/ForkUtils.sol";
+import {ForkUtils} from "utils/ForkUtils.sol";
 import "utils/TestUtils.sol";
 import "utils/DeployZeroEx.sol";
 import "forge-std/Test.sol";
@@ -33,7 +33,9 @@ contract WrapEth is Test, ForkUtils, TestUtils {
     DeployZeroEx.ZeroExDeployed zeroExDeployed;
 
     function setUp() public {
-        zeroExDeployed = new DeployZeroEx().deployZeroEx();
+        zeroExDeployed = new DeployZeroEx(
+            DeployZeroEx.ZeroExDeployConfiguration(address(0), address(0), address(0), 0, 0, 0, true)
+        ).deployZeroEx();
         vm.deal(address(this), 1e19);
     }
 
