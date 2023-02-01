@@ -205,9 +205,9 @@ describe('WorkerService', () => {
                     takerAddress: '0xtakerAddress',
                     takerSignature: {
                         signatureType: SignatureType.EthSign,
-                        v: 1,
-                        r: '',
-                        s: '',
+                        v: 27,
+                        r: '0x01',
+                        s: '0x02',
                     },
                     status: RfqmJobStatus.PendingEnqueued,
                     workerAddress: '0xworkeraddress',
@@ -251,9 +251,9 @@ describe('WorkerService', () => {
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 updatedAt: new Date(),
                 workerAddress,
@@ -291,11 +291,11 @@ describe('WorkerService', () => {
         it('fails if no rfqm v2 job is found', async () => {
             // Return `undefined` for v1 and v2 job for orderhash
             const dbUtilsMock = mock(RfqmDbUtils);
-            when(dbUtilsMock.findV2JobByOrderHashAsync('0xorderhash')).thenResolve(null);
+            when(dbUtilsMock.findV2JobByOrderHashAsync('0x01234567')).thenResolve(null);
 
             const rfqmService = buildWorkerServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
-            await rfqmService.processJobAsync('0xorderhash', '0xworkeraddress');
+            await rfqmService.processJobAsync('0x01234567', '0xworkeraddress');
             expect(capture(loggerSpy.error).last()[0]).to.include({
                 errorMessage: 'No job found for identifier',
             });
@@ -303,7 +303,7 @@ describe('WorkerService', () => {
 
         it('fails if a worker ends up with a job assigned to a different worker for a rfqm v2 job', async () => {
             const dbUtilsMock = mock(RfqmDbUtils);
-            when(dbUtilsMock.findV2JobByOrderHashAsync('0xorderhash')).thenResolve(
+            when(dbUtilsMock.findV2JobByOrderHashAsync('0x01234567')).thenResolve(
                 new RfqmV2JobEntity({
                     affiliateAddress: '',
                     chainId: 1,
@@ -336,7 +336,7 @@ describe('WorkerService', () => {
                         },
                         type: RfqmOrderTypes.Otc,
                     },
-                    orderHash: '0xorderhash',
+                    orderHash: '0x01234567',
                     status: RfqmJobStatus.PendingEnqueued,
                     updatedAt: new Date(),
                     workerAddress: '0xwrongworkeraddress',
@@ -345,7 +345,7 @@ describe('WorkerService', () => {
 
             const rfqmService = buildWorkerServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
-            await rfqmService.processJobAsync('0xorderhash', '0xworkeraddress');
+            await rfqmService.processJobAsync('0x01234567', '0xworkeraddress');
             expect(capture(loggerSpy.error).last()[0]).to.include({
                 errorMessage: 'Worker was sent a job claimed by a different worker',
             });
@@ -386,18 +386,18 @@ describe('WorkerService', () => {
                     takerAddress: '0xtakerAddress',
                     takerSignature: {
                         signatureType: SignatureType.EthSign,
-                        v: 1,
-                        r: '',
-                        s: '',
+                        v: 27,
+                        r: '0x01',
+                        s: '0x02',
                     },
                     status: RfqmJobStatus.PendingEnqueued,
                     workerAddress: '0xwrongworkeraddress',
                     approval: MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
                     approvalSignature: {
                         signatureType: SignatureType.EthSign,
-                        v: 1,
-                        r: '',
-                        s: '',
+                        v: 27,
+                        r: '0x01',
+                        s: '0x02',
                     },
                 },
                 jobId,
@@ -450,13 +450,13 @@ describe('WorkerService', () => {
                     },
                     type: RfqmOrderTypes.Otc,
                 },
-                orderHash: '0xorderhash',
+                orderHash: '0x01234567',
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
@@ -513,18 +513,18 @@ describe('WorkerService', () => {
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
                 approval: MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
                 approvalSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
             });
             const mockPresubmitTransaction = new RfqmV2TransactionSubmissionEntity({
@@ -533,7 +533,7 @@ describe('WorkerService', () => {
                 maxFeePerGas: new BigNumber(100000),
                 maxPriorityFeePerGas: new BigNumber(100),
                 nonce: 0,
-                orderHash: '0xorderhash',
+                orderHash: '0x01234567',
                 status: RfqmTransactionSubmissionStatus.Submitted,
                 to: '0xexchangeproxyaddress',
                 transactionHash: '0xpresubmittransactionhash',
@@ -691,18 +691,18 @@ describe('WorkerService', () => {
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
                 approval: MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
                 approvalSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
             });
             const mockPresubmitApprovalTransaction = new RfqmV2TransactionSubmissionEntity({
@@ -711,7 +711,7 @@ describe('WorkerService', () => {
                 maxFeePerGas: new BigNumber(100000),
                 maxPriorityFeePerGas: new BigNumber(100),
                 nonce: 0,
-                orderHash: '0xorderhash',
+                orderHash: '0x01234567',
                 status: RfqmTransactionSubmissionStatus.Submitted,
                 to: '0xexchangeproxyaddress',
                 transactionHash: '0xpresubmittransactionhash',
@@ -723,7 +723,7 @@ describe('WorkerService', () => {
                 maxFeePerGas: new BigNumber(100000),
                 maxPriorityFeePerGas: new BigNumber(100),
                 nonce: 0,
-                orderHash: '0xorderhash',
+                orderHash: '0x01234567',
                 status: RfqmTransactionSubmissionStatus.Submitted,
                 to: '0xexchangeproxyaddress',
                 transactionHash: '0xpresubmittransactionhash',
@@ -893,9 +893,9 @@ describe('WorkerService', () => {
                     takerAddress: '0xtakerAddress',
                     takerSignature: {
                         signatureType: SignatureType.EthSign,
-                        v: 1,
-                        r: '',
-                        s: '',
+                        v: 27,
+                        r: '0x01',
+                        s: '0x02',
                     },
                     status: RfqmJobStatus.PendingEnqueued,
                     workerAddress: '0xworkeraddress',
@@ -941,18 +941,18 @@ describe('WorkerService', () => {
                     takerAddress: '0xtakerAddress',
                     takerSignature: {
                         signatureType: SignatureType.EthSign,
-                        v: 1,
-                        r: '',
-                        s: '',
+                        v: 27,
+                        r: '0x01',
+                        s: '0x02',
                     },
                     status: RfqmJobStatus.PendingEnqueued,
                     workerAddress: '0xworkeraddress',
                     approval: MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
                     approvalSignature: {
                         signatureType: SignatureType.EthSign,
-                        v: 1,
-                        r: '',
-                        s: '',
+                        v: 27,
+                        r: '0x01',
+                        s: '0x02',
                     },
                 },
                 jobId,
@@ -1075,18 +1075,18 @@ describe('WorkerService', () => {
                     takerAddress: '0xtakerAddress',
                     takerSignature: {
                         signatureType: SignatureType.EthSign,
-                        v: 1,
-                        r: '',
-                        s: '',
+                        v: 27,
+                        r: '0x01',
+                        s: '0x02',
                     },
                     status: RfqmJobStatus.PendingEnqueued,
                     workerAddress: '0xworkeraddress',
                     approval: MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
                     approvalSignature: {
                         signatureType: SignatureType.EthSign,
-                        v: 1,
-                        r: '',
-                        s: '',
+                        v: 27,
+                        r: '0x01',
+                        s: '0x02',
                     },
                 },
                 jobId,
@@ -1267,9 +1267,9 @@ describe('WorkerService', () => {
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 updatedAt: new Date(),
                 workerAddress: '0xworkeraddress',
@@ -1281,7 +1281,7 @@ describe('WorkerService', () => {
                 maxFeePerGas: new BigNumber(100000),
                 maxPriorityFeePerGas: new BigNumber(100),
                 nonce: 0,
-                orderHash: '0xorderhash',
+                orderHash: '0x01234567',
                 to: '0xexchangeproxyaddress',
                 transactionHash: '0xsignedtransactionhash',
                 type: RfqmTransactionSubmissionType.Trade,
@@ -1428,9 +1428,9 @@ describe('WorkerService', () => {
                     takerAddress: '0xtakerAddress',
                     takerSignature: {
                         signatureType: SignatureType.EthSign,
-                        v: 1,
-                        r: '',
-                        s: '',
+                        v: 27,
+                        r: '0x01',
+                        s: '0x02',
                     },
                     status: RfqmJobStatus.PendingEnqueued,
                     workerAddress: '0xworkeraddress',
@@ -1583,9 +1583,9 @@ describe('WorkerService', () => {
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
@@ -1664,9 +1664,9 @@ describe('WorkerService', () => {
                     takerAddress: '0xtakerAddress',
                     takerSignature: {
                         signatureType: SignatureType.EthSign,
-                        v: 1,
-                        r: '',
-                        s: '',
+                        v: 27,
+                        r: '0x01',
+                        s: '0x02',
                     },
                     status: RfqmJobStatus.PendingEnqueued,
                     workerAddress: '0xworkeraddress',
@@ -1699,9 +1699,9 @@ describe('WorkerService', () => {
                     takerAddress: '0xtakerAddress',
                     takerSignature: {
                         signatureType: SignatureType.EthSign,
-                        v: 1,
-                        r: '',
-                        s: '',
+                        v: 27,
+                        r: '0x01',
+                        s: '0x02',
                     },
                     status: RfqmJobStatus.PendingEnqueued,
                     workerAddress: '0xworkeraddress',
@@ -1774,9 +1774,9 @@ describe('WorkerService', () => {
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
@@ -1889,9 +1889,9 @@ describe('WorkerService', () => {
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
@@ -1927,9 +1927,9 @@ describe('WorkerService', () => {
                     takerAddress: '0xtakerAddress',
                     takerSignature: {
                         signatureType: SignatureType.EthSign,
-                        v: 1,
-                        r: '',
-                        s: '',
+                        v: 27,
+                        r: '0x01',
+                        s: '0x02',
                     },
                     status: RfqmJobStatus.PendingEnqueued,
                     workerAddress: '0xworkeraddress',
@@ -1972,9 +1972,9 @@ describe('WorkerService', () => {
                     takerAddress: '0xtakerAddress',
                     takerSignature: {
                         signatureType: SignatureType.EthSign,
-                        v: 1,
-                        r: '',
-                        s: '',
+                        v: 27,
+                        r: '0x01',
+                        s: '0x02',
                     },
                     status: RfqmJobStatus.PendingEnqueued,
                     workerAddress: '0xworkeraddress',
@@ -2027,13 +2027,13 @@ describe('WorkerService', () => {
                     },
                     type: RfqmOrderTypes.Otc,
                 },
-                orderHash: '0xorderhash',
+                orderHash: '0x01234567',
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
@@ -2044,7 +2044,7 @@ describe('WorkerService', () => {
                 maxFeePerGas: new BigNumber(100000),
                 maxPriorityFeePerGas: new BigNumber(100),
                 nonce: 0,
-                orderHash: '0xorderhash',
+                orderHash: '0x01234567',
                 status: RfqmTransactionSubmissionStatus.Submitted,
                 to: '0xexchangeproxyaddress',
                 transactionHash: '0xpresubmittransactionhash',
@@ -2054,7 +2054,7 @@ describe('WorkerService', () => {
             const mockDbUtils = mock(RfqmDbUtils);
             when(
                 mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(
-                    '0xorderhash',
+                    '0x01234567',
                     RfqmTransactionSubmissionType.Approval,
                 ),
             ).thenResolve([mockTransaction]);
@@ -2070,9 +2070,9 @@ describe('WorkerService', () => {
             try {
                 await rfqmService.prepareApprovalAsync(job, '0xtoken', MOCK_EXECUTE_META_TRANSACTION_APPROVAL, {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 });
                 expect.fail();
             } catch (e) {
@@ -2096,9 +2096,9 @@ describe('WorkerService', () => {
                 makerUri: 'http://foo.bar',
                 makerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 order: {
                     order: {
@@ -2119,13 +2119,13 @@ describe('WorkerService', () => {
                     },
                     type: RfqmOrderTypes.Otc,
                 },
-                orderHash: '0xorderhash',
+                orderHash: '0x01234567',
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
@@ -2136,7 +2136,7 @@ describe('WorkerService', () => {
                 maxFeePerGas: new BigNumber(100000),
                 maxPriorityFeePerGas: new BigNumber(100),
                 nonce: 0,
-                orderHash: '0xorderhash',
+                orderHash: '0x01234567',
                 status: RfqmTransactionSubmissionStatus.Submitted,
                 to: '0xexchangeproxyaddress',
                 transactionHash: '0xpresubmittransactionhash',
@@ -2146,7 +2146,7 @@ describe('WorkerService', () => {
             const mockDbUtils = mock(RfqmDbUtils);
             when(
                 mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(
-                    '0xorderhash',
+                    '0x01234567',
                     RfqmTransactionSubmissionType.Approval,
                 ),
             ).thenResolve([mockTransaction]);
@@ -2165,9 +2165,9 @@ describe('WorkerService', () => {
                 MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
                 {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
             );
             expect(calldata).to.deep.equal(MOCK_EXECUTE_META_TRANSACTION_CALLDATA);
@@ -2189,9 +2189,9 @@ describe('WorkerService', () => {
                 makerUri: 'http://foo.bar',
                 makerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 order: {
                     order: {
@@ -2212,13 +2212,13 @@ describe('WorkerService', () => {
                     },
                     type: RfqmOrderTypes.Otc,
                 },
-                orderHash: '0xorderhash',
+                orderHash: '0x01234567',
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
@@ -2227,7 +2227,7 @@ describe('WorkerService', () => {
             const mockDbUtils = mock(RfqmDbUtils);
             when(
                 mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(
-                    '0xorderhash',
+                    '0x01234567',
                     RfqmTransactionSubmissionType.Approval,
                 ),
             ).thenResolve([]);
@@ -2244,9 +2244,9 @@ describe('WorkerService', () => {
             try {
                 await rfqmService.prepareApprovalAsync(job, '0xtoken', MOCK_EXECUTE_META_TRANSACTION_APPROVAL, {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 });
                 expect.fail();
             } catch (e) {
@@ -2271,9 +2271,9 @@ describe('WorkerService', () => {
                 makerUri: 'http://foo.bar',
                 makerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 order: {
                     order: {
@@ -2294,13 +2294,13 @@ describe('WorkerService', () => {
                     },
                     type: RfqmOrderTypes.Otc,
                 },
-                orderHash: '0xorderhash',
+                orderHash: '0x01234567',
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
@@ -2309,7 +2309,7 @@ describe('WorkerService', () => {
             const mockDbUtils = mock(RfqmDbUtils);
             when(
                 mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(
-                    '0xorderhash',
+                    '0x01234567',
                     RfqmTransactionSubmissionType.Approval,
                 ),
             ).thenResolve([]);
@@ -2329,9 +2329,9 @@ describe('WorkerService', () => {
                 MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
                 {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
             );
             expect(calldata).to.deep.equal(MOCK_EXECUTE_META_TRANSACTION_CALLDATA);
@@ -2361,9 +2361,9 @@ describe('WorkerService', () => {
                     takerAddress: '0xtakerAddress',
                     takerSignature: {
                         signatureType: SignatureType.EthSign,
-                        v: 1,
-                        r: '',
-                        s: '',
+                        v: 27,
+                        r: '0x01',
+                        s: '0x02',
                     },
                     status: RfqmJobStatus.PendingEnqueued,
                     workerAddress: '0xworkeraddress',
@@ -2404,9 +2404,9 @@ describe('WorkerService', () => {
                 MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
                 {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
             );
             expect(calldata).to.deep.equal(MOCK_EXECUTE_META_TRANSACTION_CALLDATA);
@@ -2436,9 +2436,9 @@ describe('WorkerService', () => {
                     takerAddress: '0xtakerAddress',
                     takerSignature: {
                         signatureType: SignatureType.EthSign,
-                        v: 1,
-                        r: '',
-                        s: '',
+                        v: 27,
+                        r: '0x01',
+                        s: '0x02',
                     },
                     status: RfqmJobStatus.PendingEnqueued,
                     workerAddress: '0xworkeraddress',
@@ -2463,9 +2463,9 @@ describe('WorkerService', () => {
             try {
                 await rfqmService.prepareApprovalAsync(job, '0xtoken', MOCK_EXECUTE_META_TRANSACTION_APPROVAL, {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 });
                 expect.fail();
             } catch (e) {
@@ -2497,9 +2497,9 @@ describe('WorkerService', () => {
                     takerAddress: '0xtakerAddress',
                     takerSignature: {
                         signatureType: SignatureType.EthSign,
-                        v: 1,
-                        r: '',
-                        s: '',
+                        v: 27,
+                        r: '0x01',
+                        s: '0x02',
                     },
                     status: RfqmJobStatus.PendingEnqueued,
                     workerAddress: '0xworkeraddress',
@@ -2527,9 +2527,9 @@ describe('WorkerService', () => {
                 MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
                 {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
             );
             expect(calldata).to.deep.equal(MOCK_EXECUTE_META_TRANSACTION_CALLDATA);
@@ -2570,13 +2570,13 @@ describe('WorkerService', () => {
                     },
                     type: RfqmOrderTypes.Otc,
                 },
-                orderHash: '0xorderhash',
+                orderHash: '0x01234567',
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
@@ -2584,7 +2584,7 @@ describe('WorkerService', () => {
             const _job = _.cloneDeep(expiredJob);
 
             const mockDbUtils = mock(RfqmDbUtils);
-            when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0xorderhash')).thenResolve([]);
+            when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0x01234567')).thenResolve([]);
             const rfqmService = buildWorkerServiceForUnitTest({ dbUtils: instance(mockDbUtils) });
 
             try {
@@ -2630,13 +2630,13 @@ describe('WorkerService', () => {
                     },
                     type: RfqmOrderTypes.Otc,
                 },
-                orderHash: '0xorderhash',
+                orderHash: '0x01234567',
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
@@ -2644,7 +2644,7 @@ describe('WorkerService', () => {
             const _job = _.cloneDeep(job);
 
             const mockDbUtils = mock(RfqmDbUtils);
-            when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0xorderhash')).thenResolve([]);
+            when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0x01234567')).thenResolve([]);
             const updateRfqmJobCalledArgs: RfqmJobEntity[] = [];
             when(mockDbUtils.updateRfqmJobAsync(anything())).thenCall(async (jobArg) => {
                 updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
@@ -2716,13 +2716,13 @@ describe('WorkerService', () => {
                     },
                     type: RfqmOrderTypes.Otc,
                 },
-                orderHash: '0xorderhash',
+                orderHash: '0x01234567',
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
@@ -2730,7 +2730,7 @@ describe('WorkerService', () => {
             const _job = _.cloneDeep(job);
 
             const mockDbUtils = mock(RfqmDbUtils);
-            when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0xorderhash')).thenResolve([]);
+            when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0x01234567')).thenResolve([]);
             const updateRfqmJobCalledArgs: RfqmJobEntity[] = [];
             when(mockDbUtils.updateRfqmJobAsync(anything())).thenCall(async (jobArg) => {
                 updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
@@ -2800,13 +2800,13 @@ describe('WorkerService', () => {
                     },
                     type: RfqmOrderTypes.Otc,
                 },
-                orderHash: '0xorderhash',
+                orderHash: '0x01234567',
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
@@ -2814,7 +2814,7 @@ describe('WorkerService', () => {
             const _job = _.cloneDeep(job);
 
             const mockDbUtils = mock(RfqmDbUtils);
-            when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0xorderhash')).thenResolve([]);
+            when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0x01234567')).thenResolve([]);
             const mockQuoteServerClient = mock(QuoteServerClient);
             when(mockQuoteServerClient.signV2Async(anything(), anything(), anything())).thenReject(
                 new Error('fake timeout'),
@@ -2885,9 +2885,9 @@ describe('WorkerService', () => {
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
@@ -2966,9 +2966,9 @@ describe('WorkerService', () => {
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
@@ -3056,9 +3056,9 @@ describe('WorkerService', () => {
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
@@ -3147,13 +3147,13 @@ describe('WorkerService', () => {
                     },
                     type: RfqmOrderTypes.Otc,
                 },
-                orderHash: '0xorderhash',
+                orderHash: '0x01234567',
                 status: RfqmJobStatus.PendingLastLookAccepted,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
@@ -3172,7 +3172,7 @@ describe('WorkerService', () => {
 
             const mockDbUtils = mock(RfqmDbUtils);
             const updateRfqmJobCalledArgs: RfqmJobEntity[] = [];
-            when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0xorderhash')).thenResolve([transaction]);
+            when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0x01234567')).thenResolve([transaction]);
             when(mockDbUtils.updateRfqmJobAsync(anything())).thenCall(async (jobArg) => {
                 updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
             });
@@ -3245,10 +3245,10 @@ describe('WorkerService', () => {
                 lastLookResult: true,
                 makerUri: 'http://foo.bar',
                 makerSignature: {
-                    r: '',
-                    s: '',
+                    r: '0x01',
+                    s: '0x02',
                     signatureType: SignatureType.EthSign,
-                    v: 1,
+                    v: 27,
                 },
                 order: {
                     order: {
@@ -3269,20 +3269,20 @@ describe('WorkerService', () => {
                     },
                     type: RfqmOrderTypes.Otc,
                 },
-                orderHash: '0xorderhash',
+                orderHash: '0x01234567',
                 status: RfqmJobStatus.PendingSubmitted,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
             });
 
             const transaction = new RfqmV2TransactionSubmissionEntity({
-                orderHash: '0xorderhash',
+                orderHash: '0x01234567',
                 to: '0xexchangeproxyaddress',
                 from: '0xworkeraddress',
                 transactionHash: '0xsignedtransactionhash',
@@ -3293,7 +3293,7 @@ describe('WorkerService', () => {
             });
 
             const mockDbUtils = mock(RfqmDbUtils);
-            when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0xorderhash')).thenResolve([transaction]);
+            when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0x01234567')).thenResolve([transaction]);
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
             when(
                 mockBlockchainUtils.generateTakerSignedOtcOrderCallData(
@@ -3352,9 +3352,9 @@ describe('WorkerService', () => {
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 updatedAt: new Date(),
                 workerAddress: '0xworkeraddress',
@@ -3466,9 +3466,9 @@ describe('WorkerService', () => {
                 status: RfqmJobStatus.PendingLastLookAccepted,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 updatedAt: new Date(),
                 workerAddress: '0xworkeraddress',
@@ -3547,9 +3547,9 @@ describe('WorkerService', () => {
                     takerAddress: '0xtakerAddress',
                     takerSignature: {
                         signatureType: SignatureType.EthSign,
-                        v: 1,
-                        r: '',
-                        s: '',
+                        v: 27,
+                        r: '0x01',
+                        s: '0x02',
                     },
                     status: RfqmJobStatus.PendingEnqueued,
                     workerAddress: '0xworkeraddress',
@@ -3606,9 +3606,9 @@ describe('WorkerService', () => {
                     takerAddress: '0xtakerAddress',
                     takerSignature: {
                         signatureType: SignatureType.EthSign,
-                        v: 1,
-                        r: '',
-                        s: '',
+                        v: 27,
+                        r: '0x01',
+                        s: '0x02',
                     },
                     status: RfqmJobStatus.PendingEnqueued,
                     workerAddress: '0xworkeraddress',
@@ -3670,9 +3670,9 @@ describe('WorkerService', () => {
                     takerAddress: '0xtakerAddress',
                     takerSignature: {
                         signatureType: SignatureType.EthSign,
-                        v: 1,
-                        r: '',
-                        s: '',
+                        v: 27,
+                        r: '0x01',
+                        s: '0x02',
                     },
                     status: RfqmJobStatus.PendingProcessing,
                     workerAddress: '0xworkeraddress',
@@ -3745,9 +3745,9 @@ describe('WorkerService', () => {
                     takerAddress: '0xtakerAddress',
                     takerSignature: {
                         signatureType: SignatureType.EthSign,
-                        v: 1,
-                        r: '',
-                        s: '',
+                        v: 27,
+                        r: '0x01',
+                        s: '0x02',
                     },
                     status: RfqmJobStatus.PendingEnqueued,
                     workerAddress: '0xworkeraddress',
@@ -3831,13 +3831,13 @@ describe('WorkerService', () => {
                     },
                     type: RfqmOrderTypes.Otc,
                 },
-                orderHash: '0xorderhash',
+                orderHash: '0x01234567',
                 status: RfqmJobStatus.PendingProcessing,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
@@ -3914,13 +3914,13 @@ describe('WorkerService', () => {
                     },
                     type: RfqmOrderTypes.Otc,
                 },
-                orderHash: '0xorderhash',
+                orderHash: '0x01234567',
                 status: RfqmJobStatus.PendingProcessing,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
@@ -3998,7 +3998,7 @@ describe('WorkerService', () => {
                     },
                     type: RfqmOrderTypes.Otc,
                 },
-                orderHash: '0xorderhash',
+                orderHash: '0x01234567',
                 status: RfqmJobStatus.PendingProcessing,
                 takerSignature: null,
                 updatedAt: new Date(),
@@ -4076,13 +4076,13 @@ describe('WorkerService', () => {
                     },
                     type: RfqmOrderTypes.Otc,
                 },
-                orderHash: '0xorderhash',
+                orderHash: '0x01234567',
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
@@ -4090,8 +4090,8 @@ describe('WorkerService', () => {
             const _job = _.cloneDeep(job);
 
             const mockDbUtils = mock(RfqmDbUtils);
-            when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0xorderhash')).thenResolve([]);
-            when(mockDbUtils.findV2QuoteByOrderHashAsync('0xorderhash')).thenResolve(
+            when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0x01234567')).thenResolve([]);
+            when(mockDbUtils.findV2QuoteByOrderHashAsync('0x01234567')).thenResolve(
                 new RfqmV2QuoteEntity({
                     createdAt: new Date(),
                     chainId: job.chainId,
@@ -4200,13 +4200,13 @@ describe('WorkerService', () => {
                     },
                     type: RfqmOrderTypes.Otc,
                 },
-                orderHash: '0xorderhash',
+                orderHash: '0x01234567',
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
@@ -4214,7 +4214,7 @@ describe('WorkerService', () => {
             const _job = _.cloneDeep(job);
 
             const mockDbUtils = mock(RfqmDbUtils);
-            when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0xorderhash')).thenResolve([]);
+            when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0x01234567')).thenResolve([]);
             const mockQuoteServerClient = mock(QuoteServerClient);
             when(mockQuoteServerClient.signV2Async(anything(), anything(), anything())).thenReject(
                 new Error('fake timeout'),
@@ -4285,9 +4285,9 @@ describe('WorkerService', () => {
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
@@ -4366,9 +4366,9 @@ describe('WorkerService', () => {
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
+                    v: 27,
+                    r: '0x01',
+                    s: '0x02',
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
@@ -4460,7 +4460,7 @@ describe('WorkerService', () => {
                         },
                         type: RfqmOrderTypes.Otc,
                     },
-                    orderHash: '0xorderhash',
+                    orderHash: '0x01234567',
                     status: RfqmJobStatus.PendingLastLookAccepted,
                     updatedAt: new Date(),
                     workerAddress: '',
@@ -4472,7 +4472,7 @@ describe('WorkerService', () => {
                     maxFeePerGas: new BigNumber(100000),
                     maxPriorityFeePerGas: new BigNumber(100),
                     nonce: 0,
-                    orderHash: '0xorderhash',
+                    orderHash: '0x01234567',
                     to: '0xexchangeproxyaddress',
                     transactionHash: '0xsignedtransactionhash',
                     type: RfqmTransactionSubmissionType.Trade,
@@ -4504,7 +4504,7 @@ describe('WorkerService', () => {
                 const mockDbUtils = mock(RfqmDbUtils);
                 when(
                     mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(
-                        '0xorderhash',
+                        '0x01234567',
                         RfqmTransactionSubmissionType.Trade,
                     ),
                 ).thenResolve([]);
@@ -4641,7 +4641,7 @@ describe('WorkerService', () => {
                         },
                         type: RfqmOrderTypes.Otc,
                     },
-                    orderHash: '0xorderhash',
+                    orderHash: '0x01234567',
                     status: RfqmJobStatus.PendingLastLookAccepted,
                     updatedAt: new Date(),
                     workerAddress: '',
@@ -4653,7 +4653,7 @@ describe('WorkerService', () => {
                     maxFeePerGas: new BigNumber(100000),
                     maxPriorityFeePerGas: new BigNumber(100),
                     nonce: 0,
-                    orderHash: '0xorderhash',
+                    orderHash: '0x01234567',
                     status: RfqmTransactionSubmissionStatus.Presubmit,
                     to: '0xexchangeproxyaddress',
                     transactionHash: '0xpresubmittransactionhash',
@@ -4666,7 +4666,7 @@ describe('WorkerService', () => {
                     maxFeePerGas: new BigNumber(100000),
                     maxPriorityFeePerGas: new BigNumber(100),
                     nonce: 0,
-                    orderHash: '0xorderhash',
+                    orderHash: '0x01234567',
                     to: '0xexchangeproxyaddress',
                     transactionHash: '0xsignedtransactionhash',
                     type: RfqmTransactionSubmissionType.Trade,
@@ -4698,7 +4698,7 @@ describe('WorkerService', () => {
                 const mockDbUtils = mock(RfqmDbUtils);
                 when(
                     mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(
-                        '0xorderhash',
+                        '0x01234567',
                         RfqmTransactionSubmissionType.Trade,
                     ),
                 ).thenResolve([mockPresubmitTransaction]);
@@ -4840,7 +4840,7 @@ describe('WorkerService', () => {
                         },
                         type: RfqmOrderTypes.Otc,
                     },
-                    orderHash: '0xorderhash',
+                    orderHash: '0x01234567',
                     status: RfqmJobStatus.PendingLastLookAccepted,
                     updatedAt: new Date(),
                     workerAddress: '',
@@ -4852,7 +4852,7 @@ describe('WorkerService', () => {
                     maxFeePerGas: new BigNumber(100000),
                     maxPriorityFeePerGas: new BigNumber(100),
                     nonce: 0,
-                    orderHash: '0xorderhash',
+                    orderHash: '0x01234567',
                     status: RfqmTransactionSubmissionStatus.Presubmit,
                     to: '0xexchangeproxyaddress',
                     transactionHash: '0xpresubmittransactionhash',
@@ -4865,7 +4865,7 @@ describe('WorkerService', () => {
                     maxFeePerGas: new BigNumber(100000),
                     maxPriorityFeePerGas: new BigNumber(100),
                     nonce: 0,
-                    orderHash: '0xorderhash',
+                    orderHash: '0x01234567',
                     to: '0xexchangeproxyaddress',
                     transactionHash: '0xsignedtransactionhash',
                     type: RfqmTransactionSubmissionType.Trade,
@@ -4897,7 +4897,7 @@ describe('WorkerService', () => {
                 const mockDbUtils = mock(RfqmDbUtils);
                 when(
                     mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(
-                        '0xorderhash',
+                        '0x01234567',
                         RfqmTransactionSubmissionType.Trade,
                     ),
                 ).thenResolve([mockPresubmitTransaction]);
@@ -5032,7 +5032,7 @@ describe('WorkerService', () => {
                         },
                         type: RfqmOrderTypes.Otc,
                     },
-                    orderHash: '0xorderhash',
+                    orderHash: '0x01234567',
                     status: RfqmJobStatus.PendingLastLookAccepted,
                     updatedAt: new Date(),
                     workerAddress: '',
@@ -5044,7 +5044,7 @@ describe('WorkerService', () => {
                     maxFeePerGas: new BigNumber(100000),
                     maxPriorityFeePerGas: new BigNumber(100),
                     nonce: 0,
-                    orderHash: '0xorderhash',
+                    orderHash: '0x01234567',
                     status: RfqmTransactionSubmissionStatus.Presubmit,
                     to: '0xexchangeproxyaddress',
                     transactionHash: '0xpresubmittransactionhash',
@@ -5103,7 +5103,7 @@ describe('WorkerService', () => {
                 const mockDbUtils = mock(RfqmDbUtils);
                 when(
                     mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(
-                        '0xorderhash',
+                        '0x01234567',
                         RfqmTransactionSubmissionType.Trade,
                     ),
                 ).thenResolve([mockPresubmitTransaction]);
@@ -5225,7 +5225,7 @@ describe('WorkerService', () => {
                         },
                         type: RfqmOrderTypes.Otc,
                     },
-                    orderHash: '0xorderhash',
+                    orderHash: '0x01234567',
                     status: RfqmJobStatus.PendingSubmitted,
                     updatedAt: new Date(),
                     workerAddress: '',
@@ -5237,7 +5237,7 @@ describe('WorkerService', () => {
                     maxFeePerGas: new BigNumber(100000),
                     maxPriorityFeePerGas: new BigNumber(100),
                     nonce: 0,
-                    orderHash: '0xorderhash',
+                    orderHash: '0x01234567',
                     status: RfqmTransactionSubmissionStatus.Submitted,
                     to: '0xexchangeproxyaddress',
                     transactionHash: '0xpresubmittransactionhash',
@@ -5251,7 +5251,7 @@ describe('WorkerService', () => {
                 const mockDbUtils = mock(RfqmDbUtils);
                 when(
                     mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(
-                        '0xorderhash',
+                        '0x01234567',
                         RfqmTransactionSubmissionType.Trade,
                     ),
                 ).thenResolve([mockTransaction]);
@@ -5328,7 +5328,7 @@ describe('WorkerService', () => {
                         },
                         type: RfqmOrderTypes.Otc,
                     },
-                    orderHash: '0xorderhash',
+                    orderHash: '0x01234567',
                     status: RfqmJobStatus.PendingLastLookAccepted,
                     updatedAt: new Date(),
                     workerAddress: '',
@@ -5340,7 +5340,7 @@ describe('WorkerService', () => {
                     maxFeePerGas: new BigNumber(100000),
                     maxPriorityFeePerGas: new BigNumber(100),
                     nonce: 0,
-                    orderHash: '0xorderhash',
+                    orderHash: '0x01234567',
                     to: '0xexchangeproxyaddress',
                     transactionHash: '0xsignedtransactionhash',
                     type: RfqmTransactionSubmissionType.Trade,
@@ -5372,7 +5372,7 @@ describe('WorkerService', () => {
                 const mockDbUtils = mock(RfqmDbUtils);
                 when(
                     mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(
-                        '0xorderhash',
+                        '0x01234567',
                         RfqmTransactionSubmissionType.Trade,
                     ),
                 ).thenResolve([]);
@@ -5516,7 +5516,7 @@ describe('WorkerService', () => {
                         },
                         type: RfqmOrderTypes.Otc,
                     },
-                    orderHash: '0xorderhash',
+                    orderHash: '0x01234567',
                     status: RfqmJobStatus.PendingLastLookAccepted,
                     updatedAt: new Date(),
                     workerAddress: '',
@@ -5528,7 +5528,7 @@ describe('WorkerService', () => {
                     maxFeePerGas: new BigNumber(100000),
                     maxPriorityFeePerGas: new BigNumber(100),
                     nonce: 0,
-                    orderHash: '0xorderhash',
+                    orderHash: '0x01234567',
                     to: '0xexchangeproxyaddress',
                     transactionHash: '0xsignedtransactionhash',
                     type: RfqmTransactionSubmissionType.Trade,
@@ -5560,7 +5560,7 @@ describe('WorkerService', () => {
                 const mockDbUtils = mock(RfqmDbUtils);
                 when(
                     mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(
-                        '0xorderhash',
+                        '0x01234567',
                         RfqmTransactionSubmissionType.Trade,
                     ),
                 ).thenResolve([]);
@@ -5692,9 +5692,9 @@ describe('WorkerService', () => {
                         takerAddress: '0xtakerAddress',
                         takerSignature: {
                             signatureType: SignatureType.EthSign,
-                            v: 1,
-                            r: '',
-                            s: '',
+                            v: 27,
+                            r: '0x01',
+                            s: '0x02',
                         },
                         status: RfqmJobStatus.PendingLastLookAccepted,
                         workerAddress: '0xworkeraddress',
@@ -5847,9 +5847,9 @@ describe('WorkerService', () => {
                         takerAddress: '0xtakerAddress',
                         takerSignature: {
                             signatureType: SignatureType.EthSign,
-                            v: 1,
-                            r: '',
-                            s: '',
+                            v: 27,
+                            r: '0x01',
+                            s: '0x02',
                         },
                         status: RfqmJobStatus.PendingLastLookAccepted,
                         workerAddress: '0xworkeraddress',
@@ -6011,9 +6011,9 @@ describe('WorkerService', () => {
                         takerAddress: '0xtakerAddress',
                         takerSignature: {
                             signatureType: SignatureType.EthSign,
-                            v: 1,
-                            r: '',
-                            s: '',
+                            v: 27,
+                            r: '0x01',
+                            s: '0x02',
                         },
                         status: RfqmJobStatus.PendingLastLookAccepted,
                         workerAddress: '0xworkeraddress',

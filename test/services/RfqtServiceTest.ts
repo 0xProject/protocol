@@ -83,6 +83,7 @@ const mockContractAddresses = getContractAddressesForChainOrThrow(1337);
 const mockRfqMakerBalanceCacheService = jest.mocked(
     new RfqMakerBalanceCacheService({} as CacheClient, {} as RfqBalanceCheckUtils),
 );
+const mockCacheClient = jest.mocked({} as CacheClient);
 
 describe('Rfqt Service', () => {
     beforeEach(() => {
@@ -107,6 +108,7 @@ describe('Rfqt Service', () => {
                     mockFeeService,
                     1,
                     mockRfqMakerBalanceCacheService,
+                    mockCacheClient,
                 );
 
                 await rfqtService.getV1PricesAsync({
@@ -195,6 +197,7 @@ describe('Rfqt Service', () => {
                     mockFeeService,
                     1,
                     mockRfqMakerBalanceCacheService,
+                    mockCacheClient,
                 );
 
                 await rfqtService.getV1QuotesAsync({
@@ -328,6 +331,7 @@ describe('Rfqt Service', () => {
                     mockFeeService,
                     1,
                     mockRfqMakerBalanceCacheService,
+                    mockCacheClient,
                 );
 
                 await rfqtService.getV2PricesAsync(quoteContext);
@@ -354,12 +358,90 @@ describe('Rfqt Service', () => {
                       "chainId": "1337",
                       "feeAmount": "100",
                       "feeToken": "0x0b1ba0af832d7c05fd64161e0db78e85978e8082",
-                      "gasless": "false",
                       "integratorId": "integrator-id",
                       "protocolVersion": "4",
                       "sellTokenAddress": "0x2",
                       "takerAddress": "0x0",
                       "txOrigin": "0xtakeraddress",
+                      "workflow": "rfqt",
+                    },
+                    [Function],
+                  ]
+                `);
+            });
+            it('[workflow: gasless-rfqt] transforms the API request into a quote server client request for buys', async () => {
+                const quoteContext: QuoteContext = {
+                    isFirm: false,
+                    workflow: 'gasless-rfqt',
+                    isUnwrap: false,
+                    originalMakerToken: '0x1',
+                    takerTokenDecimals: 18,
+                    makerTokenDecimals: 18,
+                    feeModelVersion: 1,
+                    assetFillAmount: new BigNumber(1000),
+                    chainId: 1337,
+                    integrator,
+                    makerToken: '0x1',
+                    isSelling: false,
+                    takerAddress: '0x0',
+                    takerToken: '0x2',
+                    txOrigin: '0xtakeraddress',
+                };
+
+                mockRfqMakerManager.getRfqtV2MakersForPair = jest.fn().mockReturnValue([maker]);
+                mockFeeService.calculateFeeAsync = jest.fn().mockResolvedValue({
+                    feeWithDetails: {
+                        token: '0x0b1ba0af832d7c05fd64161e0db78e85978e8082',
+                        amount: new BigNumber(100),
+                        type: 'fixed',
+                    },
+                });
+
+                const rfqtService = new RfqtService(
+                    1337, // tslint:disable-line: custom-no-magic-numbers
+                    mockRfqMakerManager,
+                    mockQuoteRequestor,
+                    mockQuoteServerClient,
+                    DEFAULT_MIN_EXPIRY_DURATION_MS,
+                    mockRfqBlockchainUtils,
+                    mockTokenMetadataManager,
+                    mockContractAddresses,
+                    mockFeeService,
+                    1,
+                    mockRfqMakerBalanceCacheService,
+                    mockCacheClient,
+                );
+
+                await rfqtService.getV2PricesAsync(quoteContext);
+
+                expect(mockQuoteServerClient.batchGetPriceV2Async.mock.calls[0]).toMatchInlineSnapshot(`
+                  Array [
+                    Array [
+                      "maker.uri",
+                    ],
+                    Object {
+                      "allowedChainIds": Array [
+                        1337,
+                      ],
+                      "apiKeys": Array [],
+                      "integratorId": "integrator-id",
+                      "label": "test integrator",
+                      "plp": false,
+                      "rfqm": false,
+                      "rfqt": true,
+                    },
+                    Object {
+                      "buyAmountBaseUnits": "1000",
+                      "buyTokenAddress": "0x1",
+                      "chainId": "1337",
+                      "feeAmount": "100",
+                      "feeToken": "0x0b1ba0af832d7c05fd64161e0db78e85978e8082",
+                      "integratorId": "integrator-id",
+                      "protocolVersion": "4",
+                      "sellTokenAddress": "0x2",
+                      "takerAddress": "0x0",
+                      "txOrigin": "0xtakeraddress",
+                      "workflow": "gasless-rfqt",
                     },
                     [Function],
                   ]
@@ -404,6 +486,7 @@ describe('Rfqt Service', () => {
                     mockFeeService,
                     1,
                     mockRfqMakerBalanceCacheService,
+                    mockCacheClient,
                 );
 
                 await rfqtService.getV2PricesAsync(quoteContext);
@@ -429,13 +512,13 @@ describe('Rfqt Service', () => {
                       "chainId": "1337",
                       "feeAmount": "100",
                       "feeToken": "0x0b1ba0af832d7c05fd64161e0db78e85978e8082",
-                      "gasless": "false",
                       "integratorId": "integrator-id",
                       "protocolVersion": "4",
                       "sellAmountBaseUnits": "1000",
                       "sellTokenAddress": "0x2",
                       "takerAddress": "0x0",
                       "txOrigin": "0xtakeraddress",
+                      "workflow": "rfqt",
                     },
                     [Function],
                   ]
@@ -494,6 +577,7 @@ describe('Rfqt Service', () => {
                     mockFeeService,
                     1,
                     mockRfqMakerBalanceCacheService,
+                    mockCacheClient,
                 );
 
                 const result = await rfqtService.getV2PricesAsync(quoteContext);
@@ -577,6 +661,7 @@ describe('Rfqt Service', () => {
                     mockFeeService,
                     1,
                     mockRfqMakerBalanceCacheService,
+                    mockCacheClient,
                 );
 
                 const result = await rfqtService.getV2PricesAsync(quoteContext);
@@ -658,6 +743,7 @@ describe('Rfqt Service', () => {
                     mockFeeService,
                     1,
                     mockRfqMakerBalanceCacheService,
+                    mockCacheClient,
                 );
 
                 const result = await rfqtService.getV2QuotesAsync(quoteContext);
@@ -718,6 +804,7 @@ describe('Rfqt Service', () => {
                     mockFeeService,
                     1,
                     mockRfqMakerBalanceCacheService,
+                    mockCacheClient,
                 );
 
                 const result = await rfqtService.getV2QuotesAsync(quoteContext);
@@ -725,7 +812,7 @@ describe('Rfqt Service', () => {
                 expect(result.length).toEqual(0);
             });
 
-            it('gets creates orders with unique nonces', async () => {
+            it('[workflow: rfqt] creates orders with unique nonces', async () => {
                 const quoteContext: FirmQuoteContext = {
                     isFirm: true,
                     workflow: 'rfqt',
@@ -792,6 +879,7 @@ describe('Rfqt Service', () => {
                     mockFeeService,
                     1,
                     mockRfqMakerBalanceCacheService,
+                    mockCacheClient,
                 );
 
                 const result = await rfqtService.getV2QuotesAsync(quoteContext, fakeNow);
@@ -802,6 +890,93 @@ describe('Rfqt Service', () => {
                 ];
 
                 expect(nonce1.toString()).not.toEqual(nonce2.toString());
+            });
+
+            it('[workflow: gasless-rfqt] creates orders with unique buckets', async () => {
+                const quoteContext: FirmQuoteContext = {
+                    isFirm: true,
+                    workflow: 'gasless-rfqt',
+                    isUnwrap: false,
+                    originalMakerToken: '0x1',
+                    takerTokenDecimals: 18,
+                    makerTokenDecimals: 18,
+                    feeModelVersion: 1,
+                    assetFillAmount: new BigNumber(1000),
+                    chainId: 1337,
+                    integrator,
+                    makerToken,
+                    isSelling: false,
+                    takerAddress,
+                    trader: takerAddress,
+                    takerToken,
+                    txOrigin: takerAddress,
+                };
+
+                mockRfqMakerManager.getRfqtV2MakersForPair = jest.fn().mockReturnValue([maker]);
+                mockQuoteServerClient.batchGetPriceV2Async = jest.fn().mockResolvedValue([
+                    {
+                        maker: makerAddress,
+                        makerUri: maker.rfqtUri,
+                        makerToken,
+                        takerToken,
+                        makerAmount: new BigNumber(999),
+                        takerAmount: new BigNumber(1000),
+                        expiry,
+                    },
+                    {
+                        maker: makerAddress,
+                        makerUri: maker.rfqtUri,
+                        makerToken,
+                        takerToken,
+                        makerAmount: new BigNumber(900),
+                        takerAmount: new BigNumber(1000),
+                        expiry,
+                    },
+                ]);
+                mockFeeService.calculateFeeAsync = jest.fn().mockResolvedValue({
+                    feeWithDetails: {
+                        token: '0x0b1ba0af832d7c05fd64161e0db78e85978e8082',
+                        amount: new BigNumber(100),
+                        type: 'fixed',
+                    },
+                });
+                mockRfqMakerBalanceCacheService.getERC20OwnerBalancesAsync = jest
+                    .fn()
+                    .mockResolvedValue([new BigNumber(10000), new BigNumber(10000)]);
+
+                const signature: Signature = { r: 'r', v: 21, s: 's', signatureType: SignatureType.EIP712 };
+                mockQuoteServerClient.signV2Async = jest.fn().mockResolvedValue(signature);
+
+                // 0 is a special return value since this will trigger a wrap around
+                mockCacheClient.getNextNOtcOrderBucketsAsync = jest.fn().mockResolvedValue(0);
+
+                const rfqtService = new RfqtService(
+                    1337, // tslint:disable-line: custom-no-magic-numbers
+                    mockRfqMakerManager,
+                    mockQuoteRequestor,
+                    mockQuoteServerClient,
+                    DEFAULT_MIN_EXPIRY_DURATION_MS,
+                    mockRfqBlockchainUtils,
+                    mockTokenMetadataManager,
+                    mockContractAddresses,
+                    mockFeeService,
+                    1,
+                    mockRfqMakerBalanceCacheService,
+                    mockCacheClient,
+                );
+
+                const result = await rfqtService.getV2QuotesAsync(quoteContext, fakeNow);
+                console.log('result', result);
+
+                const [{ nonceBucket: bucket1 }, { nonceBucket: bucket2 }] = [
+                    OtcOrder.parseExpiryAndNonce(result[0].order.expiryAndNonce),
+                    OtcOrder.parseExpiryAndNonce(result[1].order.expiryAndNonce),
+                ];
+
+                expect(bucket1.toString()).not.toEqual(bucket2.toString());
+                // check that buckets are greater than zero (successfully wrapped around for negative numbers)
+                expect(bucket1.toNumber()).toBeGreaterThanOrEqual(0);
+                expect(bucket2.toNumber()).toBeGreaterThanOrEqual(0);
             });
 
             it('gets a signed quote', async () => {
@@ -861,6 +1036,7 @@ describe('Rfqt Service', () => {
                     mockFeeService,
                     1,
                     mockRfqMakerBalanceCacheService,
+                    mockCacheClient,
                 );
 
                 const result = await rfqtService.getV2QuotesAsync(quoteContext, fakeNow);

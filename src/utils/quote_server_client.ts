@@ -318,8 +318,10 @@ export class QuoteServerClient {
                 orderHash: payload.orderHash,
                 expiry: payload.expiry,
                 takerSignature: payload.takerSignature,
+                trader: payload.trader,
                 feeToken: payload.fee.token,
                 feeAmount: payload.fee.amount,
+                workflow: payload.workflow,
                 ...(TAKER_SPECIFIED_SIDE_ENABLED &&
                     payload.takerSpecifiedSide && { takerSpecifiedSide: payload.takerSpecifiedSide }),
             },

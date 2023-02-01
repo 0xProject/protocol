@@ -21,10 +21,12 @@ export const PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS = 6000;
 // Constant to convert number of bps to ratio. E.g. 5 bps = 5 * 0.0001
 export const BPS_TO_RATIO = 0.0001;
 
+// Gasless OtcOrder constants
+export const GASLESS_OTC_ORDER_NUM_BUCKETS = 1000;
+
 // RFQM Service
 export const KEEP_ALIVE_TTL = ONE_MINUTE_MS * 5;
 export const DEFAULT_WORKER_TRANSACTION_WATCHER_SLEEP_TIME_MS = ONE_SECOND_MS * 15;
-export const RFQM_NUM_BUCKETS = 1000;
 
 // API namespaces
 export const METRICS_PATH = '/metrics';

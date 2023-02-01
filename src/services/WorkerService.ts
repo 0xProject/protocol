@@ -1072,12 +1072,16 @@ export class WorkerService {
                 throw new Error('Order failed pre-sign validation due to empty takerSignature');
             }
 
+            const trader = getSignerFromHash(orderHash, takerSignature);
+
             const signRequest: SignRequest = {
                 expiry: job.expiry,
                 fee: storedFeeToFee(job.fee),
                 order: otcOrder,
                 orderHash,
                 takerSignature,
+                workflow: 'rfqm',
+                trader: trader,
                 ...(job.takerSpecifiedSide &&
                     TAKER_SPECIFIED_SIDE_ENABLED && { takerSpecifiedSide: job.takerSpecifiedSide }),
             };

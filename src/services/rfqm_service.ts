@@ -17,7 +17,7 @@ import { Counter } from 'prom-client';
 import { Producer } from 'sqs-producer';
 
 import { ENABLE_LLR_COOLDOWN, RFQM_MAINTENANCE_MODE } from '../config';
-import { NULL_ADDRESS, ONE_SECOND_MS, RFQM_NUM_BUCKETS } from '../core/constants';
+import { GASLESS_OTC_ORDER_NUM_BUCKETS, NULL_ADDRESS, ONE_SECOND_MS } from '../core/constants';
 import { MetaTransactionSubmissionEntity, RfqmV2TransactionSubmissionEntity } from '../entities';
 import { RfqmV2JobApprovalOpts, RfqmV2JobConstructorOpts } from '../entities/RfqmV2JobEntity';
 import {
@@ -1148,7 +1148,8 @@ export class RfqmService {
         quoteContext: QuoteContext,
     ): Promise<FirmOtcQuote[]> {
         const { takerAddress } = quoteContext;
-        const currentBucket = (await this._cacheClient.getNextOtcOrderBucketAsync(this._chainId)) % RFQM_NUM_BUCKETS;
+        const currentBucket =
+            (await this._cacheClient.getNextOtcOrderBucketAsync(this._chainId)) % GASLESS_OTC_ORDER_NUM_BUCKETS;
         const nowSeconds = Math.floor(Date.now() / ONE_SECOND_MS);
         const otcQuotes = quotes.map((q) =>
             this._mapIndicativeQuoteToFirmOtcQuote(

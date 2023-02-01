@@ -133,6 +133,7 @@ export async function buildRfqtServicesAsync(
                 feeService,
                 rfqtConfiguration.feeModelVersion || 0,
                 rfqMakerBalanceCacheService,
+                cacheClient,
                 kafkaProducer,
                 rfqtConfiguration.feeEventTopic,
             );

@@ -173,7 +173,9 @@ export type QuoteServerPriceParams = RequireOnlyOne<
         sellAmountBaseUnits?: string;
         sellTokenAddress: string;
         takerAddress: string;
+        trader?: string;
         txOrigin?: string;
+        worflow?: string;
     },
     'sellAmountBaseUnits' | 'buyAmountBaseUnits'
 >;

@@ -388,7 +388,7 @@ export class RfqtHandlers {
             takerToken,
             makerToken,
             originalMakerToken: makerToken,
-            trader,
+            trader: trader || takerAddress, // TODO: remove the takerAddress fallback once we've rolled out completely
             takerAddress,
             txOrigin,
             takerAmount,

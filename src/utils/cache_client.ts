@@ -32,6 +32,13 @@ export class CacheClient {
         return this._redis.incr(OTC_ORDER_NONCE_BUCKET_COUNTER_KEY(chainId));
     }
 
+    // Advance the current OtcOrder bucket by N buckets
+    // NOTE: unliklely to ever hit this, but the node library we use tries to cast the response from Redis as a number.
+    // However, MAX_INT for js is lower than MAX_INT for Redis. We also need to be aware of if Redis' MAX_INT ever gets hit (error)
+    public async getNextNOtcOrderBucketsAsync(chainId: number, n: number): Promise<number> {
+        return this._redis.incrby(OTC_ORDER_NONCE_BUCKET_COUNTER_KEY(chainId), n);
+    }
+
     /**
      * Fetches all maker token addresses to be updated.
      * Token addresses set stores unique erc20Owners as balance cache keys.

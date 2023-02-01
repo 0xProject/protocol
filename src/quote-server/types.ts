@@ -166,6 +166,8 @@ export interface SignRequest {
     expiry: BigNumber;
     takerSignature: V4Signature;
     takerSpecifiedSide?: string;
+    trader: string;
+    workflow: 'rfqm' | 'rfqt' | 'gasless-rfqt';
 }
 
 export interface ZeroExTransactionWithoutDomain {

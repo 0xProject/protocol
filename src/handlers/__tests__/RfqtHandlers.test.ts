@@ -24,6 +24,7 @@ import { TokenMetadataManager } from '../../utils/TokenMetadataManager';
 import { RfqtHandlers } from '../RfqtHandlers';
 import { RfqBlockchainUtils } from '../../utils/rfq_blockchain_utils';
 import { DEFAULT_MIN_EXPIRY_DURATION_MS } from '../../core/constants';
+import { CacheClient } from '../../utils/cache_client';
 
 jest.mock('../../services/RfqtService', () => {
     return {
@@ -62,6 +63,7 @@ const mockRfqtService = jest.mocked(
         {} as FeeService,
         1,
         {} as RfqMakerBalanceCacheService,
+        {} as CacheClient,
     ),
 );
 // Jest workaround for getter
@@ -784,7 +786,7 @@ describe('RfqtHandlers', () => {
                     "takerAmount": undefined,
                     "takerToken": "0xtakertoken",
                     "takerTokenDecimals": 18,
-                    "trader": undefined,
+                    "trader": "0xtakeraddress",
                     "txOrigin": "0xtxorigin",
                     "workflow": "rfqt",
                   },
@@ -950,7 +952,7 @@ describe('RfqtHandlers', () => {
                     "takerAmount": undefined,
                     "takerToken": "0xtakertoken",
                     "takerTokenDecimals": 18,
-                    "trader": undefined,
+                    "trader": "0xtakeraddress",
                     "txOrigin": "0xtxorigin",
                     "workflow": "rfqt",
                   },

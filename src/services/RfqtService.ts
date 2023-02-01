@@ -12,7 +12,7 @@ import { BigNumber } from '@0x/utils';
 import { Producer as KafkaProducer } from 'kafkajs';
 
 import { Integrator } from '../config';
-import { NULL_ADDRESS, ONE_SECOND_MS } from '../core/constants';
+import { GASLESS_OTC_ORDER_NUM_BUCKETS, NULL_ADDRESS, ONE_SECOND_MS } from '../core/constants';
 import { feeToStoredFee } from '../core/fee_utils';
 import {
     Fee,
@@ -25,6 +25,8 @@ import {
 } from '../core/types';
 import { logger } from '../logger';
 import { QuoteRequestor, SignedNativeOrderMM, V4RFQIndicativeQuoteMM } from '../quoteRequestor/QuoteRequestor';
+import { CacheClient } from '../utils/cache_client';
+import { modulo } from '../utils/number_utils';
 import { quoteReportUtils } from '../utils/quote_report_utils';
 import { QuoteServerClient } from '../utils/quote_server_client';
 import { getRfqtV2FillableAmounts, validateV2Prices } from '../utils/RfqtQuoteValidator';
@@ -81,7 +83,7 @@ function transformRfqtV2PricesParameters(p: QuoteContext, fee: Fee, chainId: num
         takerAddress: p.takerAddress,
         txOrigin: p.txOrigin,
         trader: p.trader,
-        gasless: p.workflow === 'gasless-rfqt',
+        workflow: p.workflow,
         protocolVersion: '4', //hardcode - will break some MMs if missing!
     };
 
@@ -138,6 +140,7 @@ export class RfqtService {
         private readonly _feeService: FeeService,
         private readonly _feeModelVersion: FeeModelVersion,
         private readonly _rfqMakerBalanceCacheService: RfqMakerBalanceCacheService,
+        private readonly _cacheClient: CacheClient,
         private readonly _kafkaProducer?: KafkaProducer,
         private readonly _feeEventTopic?: string,
     ) {
@@ -285,13 +288,41 @@ export class RfqtService {
         // TODO (rhinodavid): put a meter on this response time
         const prices = await this._getV2PricesInternalAsync(quoteContext, fee, now);
 
-        // If multiple quotes are aggregated into the final order, they must
-        // all have unique nonces. Otherwise they'll be rejected by the smart contract.
-        const baseNonce = new BigNumber(Math.floor(now.getTime() / ONE_SECOND_MS));
-        const pricesAndOrders = prices.map((price, i) => ({
-            order: this._v2priceToOrder(price, quoteContext.txOrigin, baseNonce.plus(i)),
-            price,
-        }));
+        // Handle nonce
+        let pricesAndOrders: { price: RfqtV2Price; order: OtcOrder }[] = [];
+
+        if (quoteContext.workflow === 'gasless-rfqt') {
+            // For gasless RFQt, each order needs a different bucket
+            // "Reserve" the next N buckets and get the last one
+            const lastReservedBucket =
+                (await this._cacheClient.getNextNOtcOrderBucketsAsync(quoteContext.chainId, prices.length)) %
+                GASLESS_OTC_ORDER_NUM_BUCKETS;
+
+            // Starting with the last bucket, we give each request its own bucket by decrementing
+            // and wrapping around if negative (via modulo)
+            const baseNonce = new BigNumber(Math.floor(now.getTime() / ONE_SECOND_MS));
+            pricesAndOrders = prices.map((price, i) => ({
+                order: this._v2priceToOrder(
+                    price,
+                    quoteContext.txOrigin,
+                    baseNonce,
+                    new BigNumber(modulo(lastReservedBucket - i, GASLESS_OTC_ORDER_NUM_BUCKETS)), // decrement from last bucket and wrap around if negative
+                ),
+                price,
+            }));
+        } else if (quoteContext.workflow === 'rfqt') {
+            // For RFQt, all orders share the same bucket, but must have different nonces
+            const baseNonce = new BigNumber(Math.floor(now.getTime() / ONE_SECOND_MS));
+            pricesAndOrders = prices.map((price, i) => ({
+                order: this._v2priceToOrder(
+                    price,
+                    quoteContext.txOrigin,
+                    baseNonce.plus(i),
+                    new BigNumber(0), // bucket
+                ),
+                price,
+            }));
+        }
 
         const pricesAndOrdersAndSignatures = await Promise.all(
             pricesAndOrders.map(async ({ price, order }) => {
@@ -301,7 +332,14 @@ export class RfqtService {
                     signature = await this._quoteServerClient.signV2Async(
                         price.makerUri,
                         quoteContext.integrator.integratorId,
-                        { order, orderHash, expiry: price.expiry, fee },
+                        {
+                            order,
+                            orderHash,
+                            expiry: price.expiry,
+                            fee,
+                            trader: quoteContext.trader,
+                            workflow: quoteContext.workflow,
+                        },
                         (u: string) => `${u}/rfqt/v2/sign`,
                         /* requireProceedWithFill */ false,
                     );
