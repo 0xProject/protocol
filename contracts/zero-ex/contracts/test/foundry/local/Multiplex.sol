@@ -626,37 +626,6 @@ contract Multiplex is Test, ForkUtils, TestUtils {
         }
     }
 
-    // TODO refactor these out into some test utility contract
-
-    uint256 private snapshot;
-
-    function snap() private {
-        bool failed = failed();
-        if (snapshot != 0) vm.revertTo(snapshot);
-        snapshot = vm.snapshot();
-        if (failed) fail();
-    }
-
-    function describe(string memory message) private {
-        log_string(message);
-        vm.recordLogs();
-        snap();
-    }
-
-    function it(string memory message) private {
-        log_string(string(abi.encodePacked("  ├─ ", message)));
-        vm.getRecordedLogs();
-        snap();
-    }
-
-    function it(string memory message, bool last) private {
-        if (last) {
-            log_string(string(abi.encodePacked("  └─ ", message)));
-            vm.getRecordedLogs();
-            snap();
-        } else it(message);
-    }
-
     //// batch sells
 
     function test_multiplexBatchSellTokenForToken_1() public name("reverts if minBuyAmount is not satisfied") {
