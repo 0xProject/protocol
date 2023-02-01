@@ -51,7 +51,7 @@
         "abis": "./test/generated-artifacts/@(AaveV2Sampler|AaveV3Sampler|ApproximateBuys|BalanceChecker|BalancerSampler|BalancerV2BatchSampler|BalancerV2Common|BalancerV2Sampler|BancorSampler|BancorV3Sampler|CompoundSampler|CurveSampler|DODOSampler|DODOV2Sampler|ERC20BridgeSampler|FakeTaker|GMXSampler|IBalancer|IBalancerV2Vault|IBancor|IBancorV3|ICurve|IGMX|IMStable|IMooniswap|IPlatypus|IShell|IUniswapExchangeQuotes|IUniswapV2Router01|KyberDmmSampler|LidoSampler|MStableSampler|MakerPSMSampler|MooniswapSampler|NativeOrderSampler|PlatypusSampler|SamplerUtils|ShellSampler|SynthetixSampler|TestNativeOrderSampler|TwoHopSampler|UniswapSampler|UniswapV2Sampler|UniswapV3Sampler|UtilitySampler|VelodromeSampler|WooPPSampler).json"
     },
     "devDependencies": {
-        "@0x/abi-gen": "^5.8.1",
+        "@0x/abi-gen": "^5.8.3",
         "@0x/contracts-erc20": "^3.3.56",
         "@0x/contracts-gen": "^2.0.48",
         "@0x/contracts-test-utils": "^5.4.46",
