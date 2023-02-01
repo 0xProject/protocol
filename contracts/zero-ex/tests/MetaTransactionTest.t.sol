@@ -100,6 +100,40 @@ contract MetaTransactionTest is BaseTest {
         );
     }
 
+    function makeTestLimitOrder() private returns (bytes memory callData) {
+        LibNativeOrder.LimitOrder memory order = LibNativeOrder.LimitOrder({
+            makerToken: wethToken,
+            takerToken: usdcToken,
+            makerAmount: 1e18,
+            takerAmount: 1e18,
+            maker: signerAddress,
+            taker: ZERO_ADDRESS,
+            sender: ZERO_ADDRESS,
+            takerTokenFeeAmount: 0,
+            feeRecipient: address(this),
+            pool: 0x0000000000000000000000000000000000000000000000000000000000000000,
+            expiry: uint64(block.timestamp + 60),
+            salt: 123
+        });
+        mintTo(address(order.makerToken), order.maker, order.makerAmount);
+        vm.prank(order.maker);
+        order.makerToken.approve(address(zeroExDeployed.zeroEx), order.makerAmount);
+        mintTo(address(order.takerToken), USER_ADDRESS, order.takerAmount);
+        vm.prank(USER_ADDRESS);
+        order.takerToken.approve(address(zeroExDeployed.zeroEx), order.takerAmount);
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerKey, zeroExDeployed.features.nativeOrdersFeature.getLimitOrderHash(order));
+        LibSignature.Signature memory sig = LibSignature.Signature(LibSignature.SignatureType.EIP712, v, r, s);
+
+
+        return abi.encodeWithSelector(
+            INativeOrdersFeature.fillLimitOrder.selector, // ??
+            order,  // LimitOrder
+            sig,    // Order Signature
+            1e18   // Fill Amount
+        );
+    }
+
     function mintTo(address token, address recipient, uint256 amount) private {
         if (token == address(wethToken)) {
             //vm.prank(recipient);
@@ -141,6 +175,33 @@ contract MetaTransactionTest is BaseTest {
             zeroExDeployed.zeroEx.transformERC20.selector, // 0x415565b0
             usdcToken,
             zrxToken,
+            oneEth,
+            oneEth,
+            transformations
+        );
+    }
+
+    function badSelectorTransformERC20Call() private returns (bytes memory) {
+        return abi.encodeWithSelector(
+            ITransformERC20Feature.createTransformWallet.selector
+        );
+    }
+
+    function badTokenTransformERC20Call() private returns (bytes memory) {
+        ITransformERC20Feature.Transformation[] memory transformations = new ITransformERC20Feature.Transformation[](1);
+        transformations[0] = ITransformERC20Feature.Transformation(
+            uint32(transformerNonce),
+            abi.encode(address(usdcToken), address(wethToken), 0, oneEth, 0)
+        );
+
+        mintTo(address(usdcToken), USER_ADDRESS, oneEth);
+        vm.prank(USER_ADDRESS);
+        usdcToken.approve(address(zeroExDeployed.zeroEx), oneEth);
+
+        return abi.encodeWithSelector(
+            zeroExDeployed.zeroEx.transformERC20.selector, // 0x415565b0
+            usdcToken,
+            wethToken,
             oneEth,
             oneEth,
             transformations
@@ -209,7 +270,18 @@ contract MetaTransactionTest is BaseTest {
     }
 
     function test_fillLimitOrder() public {
+        bytes memory callData = makeTestLimitOrder();
+        IMetaTransactionsFeature.MetaTransactionData memory mtxData = getRandomMetaTransaction(callData);
 
+        bytes memory limitCallData = mtxCall(mtxData);
+
+        (bool success, ) = address(zeroExDeployed.zeroEx).call{ value: 0 }(limitCallData);
+        
+        assertTrue(success);
+        assertEq(wethToken.balanceOf(signerAddress), 0);
+        assertEq(wethToken.balanceOf(USER_ADDRESS), 1e18);
+        assertEq(usdcToken.balanceOf(USER_ADDRESS), 0);
+        assertEq(usdcToken.balanceOf(signerAddress), 1e18);
     }
 
     function test_transformERC20WithAnySender() public {
@@ -247,15 +319,41 @@ contract MetaTransactionTest is BaseTest {
     }
 
     function test_transformERC20TranslatedCallFail() public {
+        bytes memory transformCallData = badTokenTransformERC20Call();
 
+        IMetaTransactionsFeature.MetaTransactionData memory mtxData = getRandomMetaTransaction(transformCallData);
+
+        bytes memory theCallData = mtxCall(mtxData);
+
+        (bool success, ) = address(zeroExDeployed.zeroEx).call{ value: 0}(theCallData);
+        assertFalse(success);
     }
 
     function test_transformERC20UnsupportedFunction() public {
+        bytes memory transformCallData = badSelectorTransformERC20Call();
 
+        IMetaTransactionsFeature.MetaTransactionData memory mtxData = getRandomMetaTransaction(transformCallData);
+
+        bytes memory theCallData = mtxCall(mtxData);
+
+        (bool success, ) = address(zeroExDeployed.zeroEx).call{ value: 0}(theCallData);
+        assertFalse(success);
     }
 
     function test_transformERC20CantExecuteTwice() public {
+        bytes memory callData = makeTestRfqOrder();
 
+        IMetaTransactionsFeature.MetaTransactionData memory mtxData = getRandomMetaTransaction(callData);
+
+        bytes memory theCallData1 = mtxCall(mtxData);
+
+        (bool success, ) = address(zeroExDeployed.zeroEx).call{ value: 0}(theCallData1);
+        assertTrue(success);
+
+        bytes memory theCallData2 = mtxCall(mtxData);
+
+        (success, ) = address(zeroExDeployed.zeroEx).call{ value: 0}(theCallData2);
+        assertFalse(success);
     }
 
     function test_metaTxnFailsNotEnoughEth() public {
@@ -269,20 +367,23 @@ contract MetaTransactionTest is BaseTest {
         (bool success, ) = address(zeroExDeployed.zeroEx).call{ value: 0}(theCallData);
         assertFalse(success);
     }
-/*
+/*******
+ *  Unclear whether we need to port these, as MetaTransactionDataV2 might deprecate these fields
+ *******
     function test_metaTxnFailsGasPriceTooLow() public {
         
     }
 
     function test_metaTxnFailsGasPriceTooHigh() public {
         
-    }*/
+    }
+*******/
 
     function test_metaTxnFailsIfExpired() public {
         bytes memory callData = makeTestRfqOrder();
 
         IMetaTransactionsFeature.MetaTransactionData memory mtxData = getRandomMetaTransaction(callData);
-        mtxData.expirationTimeSeconds = block.timestamp;
+        mtxData.expirationTimeSeconds = block.timestamp - 1;
 
         bytes memory theCallData = mtxCall(mtxData);
 
@@ -306,6 +407,9 @@ contract MetaTransactionTest is BaseTest {
     function test_metaTxnFailsWrongSignature() public {
         
     }
+/*********** 
+ * These functions require TestMetaTransactionsTransformERC20Feature.sol
+ ***********
 
     function test_metaTxnCantReenterExecuteMetaTransaction() public {
         
@@ -318,4 +422,5 @@ contract MetaTransactionTest is BaseTest {
     function test_metaTxnCantReduceInitialEthBalance() public {
         
     }
+*********/
 }
