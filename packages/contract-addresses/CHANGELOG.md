@@ -6,6 +6,9 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v8.0.3 - _February 1, 2023_
+
+    * Upgrade Arbitrum FillQuoteTransformer to support Woofi (#653)
 ## v8.0.2 - _January 30, 2023_
 
     * Dependencies updated
