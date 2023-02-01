@@ -120,7 +120,6 @@ export interface OrderConfigResponse {
 /** END SRA TYPES */
 
 export enum FeeParamTypes {
-    POSITIVE_SLIPPAGE = 'POSITIVE_SLIPPAGE',
     FIXED = 'FIXED',
     GASLESS_FEE = 'GASLESS_FEE',
 }

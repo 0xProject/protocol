@@ -498,29 +498,6 @@ describe(SUITE_NAME, () => {
                 );
             });
 
-            it('validation error if both percentage and positive slippage fee enabled', async () => {
-                const response = await requestSwap(app, 'quote', {
-                    ...sellQuoteParams,
-                    feeType: 'POSITIVE_SLIPPAGE',
-                    buyTokenPercentageFee: '0.9',
-                });
-
-                expectSwapError(response, {
-                    validationErrors: [
-                        {
-                            code: ValidationErrorCodes.UnsupportedOption,
-                            field: 'buyTokenPercentageFee',
-                            reason: ValidationErrorReasons.MultipleFeeTypesUsed,
-                        },
-                        {
-                            code: ValidationErrorCodes.UnsupportedOption,
-                            field: 'feeType',
-                            reason: ValidationErrorReasons.MultipleFeeTypesUsed,
-                        },
-                    ],
-                });
-            });
-
             it('validation error if given a non-zero sell token fee', async () => {
                 const feeRecipient = randomAddress();
                 const response = await requestSwap(app, 'quote', {

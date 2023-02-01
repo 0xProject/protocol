@@ -157,30 +157,10 @@ export const parseUtils = {
             ]);
         }
         let feeType = AffiliateFeeType.None;
-        if (req.query.feeType === FeeParamTypes.POSITIVE_SLIPPAGE) {
-            feeType = AffiliateFeeType.PositiveSlippageFee;
-        } else if (buyTokenPercentageFee > 0) {
+        if (buyTokenPercentageFee > 0) {
             feeType = AffiliateFeeType.PercentageFee;
         } else if (req.query.feeType === FeeParamTypes.GASLESS_FEE) {
             feeType = AffiliateFeeType.GaslessFee;
-        }
-
-        if (feeType === AffiliateFeeType.PositiveSlippageFee) {
-            // can't have percentage fee and positive slippage fee at the same time
-            if (buyTokenPercentageFee) {
-                throw new ValidationError([
-                    {
-                        field: 'buyTokenPercentageFee',
-                        code: ValidationErrorCodes.UnsupportedOption,
-                        reason: ValidationErrorReasons.MultipleFeeTypesUsed,
-                    },
-                    {
-                        field: 'feeType',
-                        code: ValidationErrorCodes.UnsupportedOption,
-                        reason: ValidationErrorReasons.MultipleFeeTypesUsed,
-                    },
-                ]);
-            }
         }
 
         if (feeType !== AffiliateFeeType.None && feeRecipient === undefined) {
