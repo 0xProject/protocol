@@ -311,17 +311,33 @@ export class RfqtService {
                 price,
             }));
         } else if (quoteContext.workflow === 'rfqt') {
-            // For RFQt, all orders share the same bucket, but must have different nonces
-            const baseNonce = new BigNumber(Math.floor(now.getTime() / ONE_SECOND_MS));
-            pricesAndOrders = prices.map((price, i) => ({
-                order: this._v2priceToOrder(
+            if(quoteContext.bucket !== undefined){
+                const baseNonce = new BigNumber(Math.floor(now.getTime() / ONE_SECOND_MS));
+                pricesAndOrders = prices.map((price, i) => ({
+                    order: this._v2priceToOrder(
+                        price,
+                        quoteContext.txOrigin,
+                        baseNonce.plus(i),
+                        new BigNumber(quoteContext.bucket! + i), // bucket
+                    ),
                     price,
-                    quoteContext.txOrigin,
-                    baseNonce.plus(i),
-                    new BigNumber(0), // bucket
-                ),
-                price,
-            }));
+                }));
+            }
+            else {
+                // For RFQt, all orders share the same bucket, but must have different nonces
+                const baseNonce = new BigNumber(Math.floor(now.getTime() / ONE_SECOND_MS));
+                pricesAndOrders = prices.map((price, i) => ({
+                    order: this._v2priceToOrder(
+                        price,
+                        quoteContext.txOrigin,
+                        baseNonce.plus(i),
+                        new BigNumber(0), // bucket
+                    ),
+                    price,
+                }));
+            }
+            
+            
         }
 
         const pricesAndOrdersAndSignatures = await Promise.all(
@@ -537,7 +553,7 @@ export class RfqtService {
         price: RfqtV2Price,
         txOrigin: string,
         nonce: BigNumber,
-        nonceBucket: BigNumber = new BigNumber(0),
+        nonceBucket: BigNumber,
     ): OtcOrder {
         return new OtcOrder({
             chainId: this._chainId,

@@ -125,6 +125,7 @@ export interface RfqtV2Request {
     takerToken: string;
     trader?: string; // this is the actual trader. Optional only during Gasless RFQt rollout. Intent is to be required in the long term
     txOrigin?: string; // expect this to be the taker address, except for gasless RFQt where it will be the registry, can be missing for /price but not /quote
+    bucket?: number;
 }
 
 /**

@@ -241,6 +241,7 @@ export interface FirmQuoteContext extends QuoteContextBase {
     trader: string;
     takerAddress: string;
     txOrigin: string;
+    bucket?: number;
 }
 
 export type QuoteContext = IndicativeQuoteContext | FirmQuoteContext;
