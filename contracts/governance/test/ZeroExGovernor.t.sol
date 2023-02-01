@@ -18,7 +18,7 @@
 */
 pragma solidity ^0.8.17;
 
-import "./BaseTest.sol";
+import "./BaseTest.t.sol";
 import "../src/ZeroExTimelock.sol";
 import "../src/ZeroExGovernor.sol";
 import "../src/ZRXWrappedToken.sol";

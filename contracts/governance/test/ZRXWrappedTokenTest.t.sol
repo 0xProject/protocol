@@ -18,7 +18,7 @@
 */
 pragma solidity ^0.8.17;
 
-import "./BaseTest.sol";
+import "./BaseTest.t.sol";
 import "../src/ZRXWrappedToken.sol";
 import "@openzeppelin/token/ERC20/ERC20.sol";
 
