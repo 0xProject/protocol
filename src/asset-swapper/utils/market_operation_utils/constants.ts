@@ -197,6 +197,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID: Record<ChainId, SourceFilters> = {
         ERC20BridgeSource.Synthetix,
         ERC20BridgeSource.Beethovenx,
         ERC20BridgeSource.AaveV3,
+        ERC20BridgeSource.WOOFi,
     ]),
     [ChainId.Arbitrum]: new SourceFilters([
         ERC20BridgeSource.UniswapV3,
@@ -209,6 +210,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID: Record<ChainId, SourceFilters> = {
         //ERC20BridgeSource.Dodo,
         ERC20BridgeSource.Saddle,
         ERC20BridgeSource.AaveV3,
+        ERC20BridgeSource.WOOFi,
     ]),
 };
 
@@ -347,6 +349,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID: Record<ChainId, SourceFilters> = {
         ERC20BridgeSource.Synthetix,
         ERC20BridgeSource.Beethovenx,
         ERC20BridgeSource.AaveV3,
+        ERC20BridgeSource.WOOFi,
     ]),
     [ChainId.Arbitrum]: new SourceFilters([
         ERC20BridgeSource.UniswapV3,
@@ -359,6 +362,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID: Record<ChainId, SourceFilters> = {
         //ERC20BridgeSource.Dodo,
         ERC20BridgeSource.Saddle,
         ERC20BridgeSource.AaveV3,
+        ERC20BridgeSource.WOOFi,
     ]),
 };
 
@@ -649,6 +653,7 @@ const FANTOM_TOKENS = {
 };
 
 const OPTIMISM_TOKENS = {
+    ETH: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
     WETH: '0x4200000000000000000000000000000000000006',
     USDC: '0x7f5c764cbc14f9669b88837ca1490cca17c31607',
     USDT: '0x94b008aa00579c1307b0ef2c499ad98a8ce58e58',
@@ -668,9 +673,11 @@ const OPTIMISM_TOKENS = {
     sSOL: '0x8b2f7ae8ca8ee8428b6d76de88326bb413db2766',
     sUNI: '0xf5a6115aa582fd1beea22bc93b7dc7a785f60d03',
     sUSD: '0x8c6f28f2f1a3c87f0f938b96d27520d9751ec8d9',
+    OP: '0x4200000000000000000000000000000000000042',
 };
 
 const ARBITRUM_TOKENS = {
+    ETH: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
     USDT: '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9',
     USDC: '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8',
     FRAX: '0x17fc002b466eec40dae837fc4be5c67993ddbd6f',
@@ -680,6 +687,7 @@ const ARBITRUM_TOKENS = {
     MIM: '0xfea7a6a0b346362bf88a9e4a88416b77a57d6c2a',
     WBTC: '0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f',
     VST: '0x64343594ab9b56e99087bfa6f2335db24c2d1f17',
+    WOO: '0xcafcd85d8ca7ad1e1c6f82f651fa15e33aefd07b',
 };
 
 export const REBASING_TOKENS = Set.of(MAINNET_TOKENS.stETH);
@@ -909,6 +917,8 @@ export const WOOFI_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
         [ChainId.Fantom]: '0x382a9b0bc5d29e96c3a0b81ce9c64d6c8f150efb',
         [ChainId.Avalanche]: '0xc22fbb3133df781e6c25ea6acebe2d2bb8cea2f9',
         [ChainId.Polygon]: '0x817eb46d60762442da3d931ff51a30334ca39b74',
+        [ChainId.Arbitrum]: '0x9aed3a8896a85fe9a8cac52c9b402d092b629a30',
+        [ChainId.Optimism]: '0xeaf1ac8e89ea0ae13e0f03634a4ff23502527024',
     },
     NULL_ADDRESS,
 );
@@ -934,6 +944,16 @@ export const WOOFI_SUPPORTED_TOKENS = Set.of(
     POLYGON_TOKENS.WBTC,
     POLYGON_TOKENS.WETH,
     POLYGON_TOKENS.WOO,
+    ARBITRUM_TOKENS.ETH,
+    ARBITRUM_TOKENS.USDC,
+    ARBITRUM_TOKENS.WETH,
+    ARBITRUM_TOKENS.WBTC,
+    ARBITRUM_TOKENS.WOO,
+    OPTIMISM_TOKENS.ETH,
+    OPTIMISM_TOKENS.USDC,
+    OPTIMISM_TOKENS.WETH,
+    OPTIMISM_TOKENS.WBTC,
+    OPTIMISM_TOKENS.OP,
 );
 
 export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID: Record<ChainId, string[]> = {
@@ -2828,7 +2848,14 @@ export const DEFAULT_GAS_SCHEDULE: GasSchedule = {
     [ERC20BridgeSource.ACryptos]: (fillData) => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.WOOFi]: (fillData?: FillData) => {
         const woofiFillData = fillData as WOOFiFillData;
-        const quoteTokenAddresses = [BSC_TOKENS.BUSD, AVALANCHE_TOKENS.nUSDC, FANTOM_TOKENS.USDC, POLYGON_TOKENS.USDC];
+        const quoteTokenAddresses = [
+            BSC_TOKENS.BUSD,
+            AVALANCHE_TOKENS.nUSDC,
+            FANTOM_TOKENS.USDC,
+            POLYGON_TOKENS.USDC,
+            ARBITRUM_TOKENS.USDC,
+            OPTIMISM_TOKENS.USDC,
+        ];
         const hasQuoteToken =
             quoteTokenAddresses.includes(woofiFillData.takerToken) ||
             quoteTokenAddresses.includes(woofiFillData.makerToken);
