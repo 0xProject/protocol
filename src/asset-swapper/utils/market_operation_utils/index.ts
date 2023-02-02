@@ -1,3 +1,4 @@
+import { ChainId } from '@0x/contract-addresses';
 import { FillQuoteTransformerOrderType, RfqOrder } from '@0x/protocol-utils';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as _ from 'lodash';
@@ -17,6 +18,7 @@ import {
     SignedLimitOrder,
     FeeEstimate,
     ExchangeProxyOverhead,
+    FillData,
 } from '../../types';
 import { getAltMarketInfo } from '../alt_mm_implementation_utils';
 import { QuoteRequestor, V4RFQIndicativeQuoteMM } from '../quote_requestor';
@@ -204,6 +206,7 @@ export class MarketOperationUtils {
             gasBefore,
             tokenDecimals,
             orderFillableTakerAmounts,
+            // TODO: rename inputAmountPerEth, outputAmountPerEth (the unit is wei and also it's per native token)
             outputAmountPerEth,
             inputAmountPerEth,
             dexQuotes,
@@ -234,7 +237,7 @@ export class MarketOperationUtils {
         SAMPLER_METRICS.logBlockNumber(blockNumber);
 
         const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
-
+        const isMicroSwap = this.isMicroSwap(takerAmount, inputAmountPerEth);
         const isRfqSupported = !!(_opts.rfqt && !isTxOriginContract);
         const limitOrdersWithFillableAmounts = limitOrders.map((order, i) => ({
             ...order,
@@ -254,8 +257,8 @@ export class MarketOperationUtils {
             quotes: {
                 nativeOrders: limitOrdersWithFillableAmounts,
                 rfqtIndicativeQuotes: [],
-                twoHopQuotes: MarketOperationUtils.filterInvalidTwoHopQuotes(rawTwoHopQuotes),
-                dexQuotes,
+                twoHopQuotes: MarketOperationUtils.filterTwoHopQuotes(rawTwoHopQuotes, isMicroSwap),
+                dexQuotes: this.filterOutDexQuotes(dexQuotes, isMicroSwap),
             },
             isRfqSupported,
             blockNumber: blockNumber.toNumber(),
@@ -359,6 +362,7 @@ export class MarketOperationUtils {
         SAMPLER_METRICS.logBlockNumber(blockNumber);
 
         const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
+        const isMicroSwap = this.isMicroSwap(makerAmount, ethToMakerAssetRate);
         const isRfqSupported = !isTxOriginContract;
 
         const limitOrdersWithFillableAmounts = limitOrders.map((order, i) => ({
@@ -379,8 +383,8 @@ export class MarketOperationUtils {
             quotes: {
                 nativeOrders: limitOrdersWithFillableAmounts,
                 rfqtIndicativeQuotes: [],
-                twoHopQuotes: MarketOperationUtils.filterInvalidTwoHopQuotes(rawTwoHopQuotes),
-                dexQuotes,
+                twoHopQuotes: MarketOperationUtils.filterTwoHopQuotes(rawTwoHopQuotes, isMicroSwap),
+                dexQuotes: this.filterOutDexQuotes(dexQuotes, isMicroSwap),
             },
             isRfqSupported,
             blockNumber: blockNumber.toNumber(),
@@ -778,19 +782,57 @@ export class MarketOperationUtils {
         return { optimizerResult, wholeOrderPrice };
     }
 
+    /**
+     * Returns whether a swap is considered extremely small (for simpler routing to avoid over optimization which causes high revert rate)
+     *
+     * @param inputAmount : taker amount for sell, maker amount for buy
+     * @param inputAmountPerNativeWei : taker amount per native token in (wei) for sell, maker amount per native token in (wei) for buy
+     */
+    private isMicroSwap(inputAmount: BigNumber, inputAmountPerNativeWei: BigNumber): boolean {
+        // Only enable it on Optimism as it's experimental.
+        if (this.sampler.chainId !== ChainId.Optimism) {
+            return false;
+        }
+        const inputTokenValueInNativeWei = inputAmount.div(inputAmountPerNativeWei);
+
+        // If the value of input token amount is less than 1/100 of `this._nativeFeeTokenAmount`
+        // then it is considered as a micro swap.
+        // NOTE: gt is used because `inputTokenValueInNativeWei` can be 0 when it's not available.
+        return this._nativeFeeTokenAmount.times(0.01).gt(inputTokenValueInNativeWei);
+    }
+
     private async _refreshPoolCacheIfRequiredAsync(takerToken: string, makerToken: string): Promise<void> {
         _.values(this.sampler.poolsCaches)
             .filter((cache) => cache !== undefined && !cache.isFresh(takerToken, makerToken))
             .forEach((cache) => cache?.getFreshPoolsForPairAsync(takerToken, makerToken));
     }
 
-    private static filterInvalidTwoHopQuotes(
+    private static filterTwoHopQuotes(
         twoHopQuotesList: DexSample<MultiHopFillData>[][],
+        isMicroSwap: boolean,
     ): DexSample<MultiHopFillData>[][] {
+        if (isMicroSwap) {
+            return [];
+        }
+
         return twoHopQuotesList
             .map((twoHopQuotes) =>
                 twoHopQuotes.filter((q) => q && q.fillData && q.fillData.firstHopSource && q.fillData.secondHopSource),
             )
             .filter((quotes) => quotes.length > 0);
+    }
+
+    private filterOutDexQuotes(dexQuotes: DexSample<FillData>[][], isMicroSwap: boolean): DexSample<FillData>[][] {
+        return dexQuotes.filter((samples) => {
+            if (samples.length == 0) {
+                return false;
+            }
+            if (!isMicroSwap) {
+                return true;
+            }
+
+            // Only use fee sources if it's a micro swap.
+            return this._feeSources.includes(samples[0].source);
+        });
     }
 }
