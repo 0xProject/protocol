@@ -350,7 +350,7 @@ export class RfqtHandlers {
             assetFillAmount: assetFillAmountStr,
             marketOperation,
             integratorId,
-            bucket
+            bucket,
         } = request.body;
 
         if (
@@ -401,7 +401,7 @@ export class RfqtHandlers {
             isSelling,
             assetFillAmount,
             feeModelVersion: service.feeModelVersion,
-            bucket
+            bucket,
         } as QuoteContext;
     }
 
