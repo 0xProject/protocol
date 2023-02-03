@@ -762,6 +762,7 @@ describe('RfqtHandlers', () => {
                 Array [
                   Object {
                     "assetFillAmount": "100",
+                    "bucket": undefined,
                     "chainId": 1337,
                     "feeModelVersion": 1,
                     "integrator": Object {
@@ -928,6 +929,7 @@ describe('RfqtHandlers', () => {
                 Array [
                   Object {
                     "assetFillAmount": "100",
+                    "bucket": undefined,
                     "chainId": 1337,
                     "feeModelVersion": 1,
                     "integrator": Object {
