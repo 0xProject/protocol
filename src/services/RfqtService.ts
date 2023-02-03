@@ -311,33 +311,19 @@ export class RfqtService {
                 price,
             }));
         } else if (quoteContext.workflow === 'rfqt') {
-            if(quoteContext.bucket !== undefined){
-                const baseNonce = new BigNumber(Math.floor(now.getTime() / ONE_SECOND_MS));
-                pricesAndOrders = prices.map((price, i) => ({
-                    order: this._v2priceToOrder(
-                        price,
-                        quoteContext.txOrigin,
-                        baseNonce.plus(i),
-                        new BigNumber(quoteContext.bucket! + i), // bucket
-                    ),
+            // For RFQt, all orders share the same bucket, but must have different nonces
+            // For RFQtMultiHop all orders have different buckets and nonces
+            const baseNonce = new BigNumber(Math.floor(now.getTime() / ONE_SECOND_MS));
+            pricesAndOrders = prices.map((price, i) => ({
+                order: this._v2priceToOrder(
                     price,
-                }));
-            }
-            else {
-                // For RFQt, all orders share the same bucket, but must have different nonces
-                const baseNonce = new BigNumber(Math.floor(now.getTime() / ONE_SECOND_MS));
-                pricesAndOrders = prices.map((price, i) => ({
-                    order: this._v2priceToOrder(
-                        price,
-                        quoteContext.txOrigin,
-                        baseNonce.plus(i),
-                        new BigNumber(0), // bucket
-                    ),
-                    price,
-                }));
-            }
-            
-            
+                    quoteContext.txOrigin,
+                    baseNonce.plus(i),
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    quoteContext.bucket !== undefined ? new BigNumber(quoteContext.bucket! + i) : new BigNumber(0), // bucket
+                ),
+                price,
+            }));
         }
 
         const pricesAndOrdersAndSignatures = await Promise.all(
@@ -549,12 +535,7 @@ export class RfqtService {
      * Converts a price returned from the market maker's `price` endpoint
      * into an v2 order
      */
-    private _v2priceToOrder(
-        price: RfqtV2Price,
-        txOrigin: string,
-        nonce: BigNumber,
-        nonceBucket: BigNumber,
-    ): OtcOrder {
+    private _v2priceToOrder(price: RfqtV2Price, txOrigin: string, nonce: BigNumber, nonceBucket: BigNumber): OtcOrder {
         return new OtcOrder({
             chainId: this._chainId,
             expiryAndNonce: OtcOrder.encodeExpiryAndNonce(price.expiry, nonceBucket, nonce),
