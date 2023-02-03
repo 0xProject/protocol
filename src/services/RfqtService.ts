@@ -320,7 +320,7 @@ export class RfqtService {
                     quoteContext.txOrigin,
                     baseNonce.plus(i),
                     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                    quoteContext.bucket !== undefined ? new BigNumber(quoteContext.bucket! + i) : new BigNumber(0), // bucket
+                    quoteContext.bucket !== undefined ? new BigNumber(quoteContext.bucket + i) : new BigNumber(0), // bucket
                 ),
                 price,
             }));
