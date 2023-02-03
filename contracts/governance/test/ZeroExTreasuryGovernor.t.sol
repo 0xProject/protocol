@@ -20,22 +20,22 @@ pragma solidity ^0.8.17;
 
 import "./BaseTest.t.sol";
 import "../src/ZeroExTimelock.sol";
-import "../src/ZeroExProtocolGovernor.sol";
+import "../src/ZeroExTreasuryGovernor.sol";
 import "../src/ZRXWrappedToken.sol";
 import "@openzeppelin/token/ERC20/ERC20.sol";
 import "@openzeppelin/mocks/CallReceiverMock.sol";
 
-contract ZeroExProtocolGovernorTest is BaseTest {
+contract ZeroExTreasuryGovernorTest is BaseTest {
     IERC20 public token;
     ZRXWrappedToken internal wToken;
     ZeroExVotes internal votes;
     ZeroExTimelock internal timelock;
-    ZeroExProtocolGovernor internal governor;
+    ZeroExTreasuryGovernor internal governor;
     CallReceiverMock internal callReceiverMock;
 
     function setUp() public {
         vm.startPrank(account1);
-        (token, wToken, votes, timelock, governor, ) = setupGovernance();
+        (token, wToken, votes, timelock, , governor) = setupGovernance();
         token.transfer(account2, 10000000e18);
         token.transfer(account3, 2000000e18);
         token.transfer(account4, 3000000e18);
@@ -64,7 +64,7 @@ contract ZeroExProtocolGovernorTest is BaseTest {
     }
 
     function testShouldReturnCorrectName() public {
-        assertEq(governor.name(), "ZeroExProtocolGovernor");
+        assertEq(governor.name(), "ZeroExTreasuryGovernor");
     }
 
     function testShouldReturnCorrectVotingDelay() public {
@@ -76,11 +76,11 @@ contract ZeroExProtocolGovernorTest is BaseTest {
     }
 
     function testShouldReturnCorrectProposalThreshold() public {
-        assertEq(governor.proposalThreshold(), 1000000e18);
+        assertEq(governor.proposalThreshold(), 100000e18);
     }
 
     function testShouldReturnCorrectQuorum() public {
-        assertEq(governor.quorum(block.number), 10000000e18);
+        assertEq(governor.quorum(block.number), 5000000e18);
     }
 
     function testShouldReturnCorrectToken() public {

@@ -27,6 +27,7 @@ import "../src/ZRXWrappedToken.sol";
 import "../src/ZeroExVotes.sol";
 import "../src/ZeroExTimelock.sol";
 import "../src/ZeroExProtocolGovernor.sol";
+import "../src/ZeroExTreasuryGovernor.sol";
 
 contract BaseTest is Test {
     address payable internal account1 = payable(vm.addr(1));
@@ -43,7 +44,7 @@ contract BaseTest is Test {
 
     function setupGovernance()
         internal
-        returns (IERC20, ZRXWrappedToken, ZeroExVotes, ZeroExTimelock, ZeroExProtocolGovernor)
+        returns (IERC20, ZRXWrappedToken, ZeroExVotes, ZeroExTimelock, ZeroExProtocolGovernor, ZeroExTreasuryGovernor)
     {
         // Use this once https://linear.app/0xproject/issue/PRO-44/zrx-artifact-is-incompatible-with-foundry is resolved
         // bytes memory _bytecode = abi.encodePacked(vm.getCode("./ZRXToken.json"));
@@ -62,11 +63,18 @@ contract BaseTest is Test {
         address[] memory executors = new address[](0);
 
         ZeroExTimelock timelock = new ZeroExTimelock(7 days, proposers, executors, account1);
-        ZeroExProtocolGovernor governor = new ZeroExProtocolGovernor(IVotes(address(votes)), timelock);
+        ZeroExProtocolGovernor protocolGovernor = new ZeroExProtocolGovernor(IVotes(address(votes)), timelock);
 
-        timelock.grantRole(timelock.PROPOSER_ROLE(), address(governor));
-        timelock.grantRole(timelock.EXECUTOR_ROLE(), address(governor));
+        timelock.grantRole(timelock.PROPOSER_ROLE(), address(protocolGovernor));
+        timelock.grantRole(timelock.EXECUTOR_ROLE(), address(protocolGovernor));
 
-        return (mockZRX, token, votes, timelock, governor);
+        // TODO use a separate timelock instance
+        // ZeroExTimelock timelock = new ZeroExTimelock(7 days, proposers, executors, account1);
+        ZeroExTreasuryGovernor treasuryGovernor = new ZeroExTreasuryGovernor(IVotes(address(votes)), timelock);
+
+        timelock.grantRole(timelock.PROPOSER_ROLE(), address(treasuryGovernor));
+        timelock.grantRole(timelock.EXECUTOR_ROLE(), address(treasuryGovernor));
+
+        return (mockZRX, token, votes, timelock, protocolGovernor, treasuryGovernor);
     }
 }
