@@ -22,32 +22,28 @@ import "@openzeppelin/governance/Governor.sol";
 import "@openzeppelin/governance/extensions/GovernorSettings.sol";
 import "@openzeppelin/governance/extensions/GovernorCountingSimple.sol";
 import "@openzeppelin/governance/extensions/GovernorVotes.sol";
-import "@openzeppelin/governance/extensions/GovernorVotesQuorumFraction.sol";
 import "@openzeppelin/governance/extensions/GovernorTimelockControl.sol";
 
-/// @custom:security-contact security@0xproject.com
-contract ZeroExGovernor is
+contract ZeroExProtocolGovernor is
     Governor,
     GovernorSettings,
     GovernorCountingSimple,
     GovernorVotes,
-    GovernorVotesQuorumFraction,
     GovernorTimelockControl
 {
     constructor(
-        IVotes _tokenVotes,
+        IVotes _token,
         TimelockController _timelock
     )
-        Governor("ZeroExGovernor")
-        GovernorSettings(
-            21600 /* voting delay: 3 days */,
-            50400 /* voting period: 1 week */,
-            0 /* proposal threshold */
-        )
-        GovernorVotes(_tokenVotes)
-        GovernorVotesQuorumFraction(10)
+        Governor("ZeroExProtocolGovernor")
+        GovernorSettings(14400 /* 2 days */, 50400 /* 7 days */, 1000000e18)
+        GovernorVotes(_token)
         GovernorTimelockControl(_timelock)
     {}
+
+    function quorum(uint256 blockNumber) public pure override returns (uint256) {
+        return 10000000e18;
+    }
 
     // The following functions are overrides required by Solidity.
 
@@ -57,12 +53,6 @@ contract ZeroExGovernor is
 
     function votingPeriod() public view override(IGovernor, GovernorSettings) returns (uint256) {
         return super.votingPeriod();
-    }
-
-    function quorum(
-        uint256 blockNumber
-    ) public view override(IGovernor, GovernorVotesQuorumFraction) returns (uint256) {
-        return super.quorum(blockNumber);
     }
 
     function state(uint256 proposalId) public view override(Governor, GovernorTimelockControl) returns (ProposalState) {

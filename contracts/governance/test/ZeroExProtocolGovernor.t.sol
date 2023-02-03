@@ -20,43 +20,43 @@ pragma solidity ^0.8.17;
 
 import "./BaseTest.t.sol";
 import "../src/ZeroExTimelock.sol";
-import "../src/ZeroExGovernor.sol";
+import "../src/ZeroExProtocolGovernor.sol";
 import "../src/ZRXWrappedToken.sol";
 import "@openzeppelin/token/ERC20/ERC20.sol";
 import "@openzeppelin/mocks/CallReceiverMock.sol";
 
-contract ZeroExGovernorTest is BaseTest {
+contract ZeroExProtocolGovernorTest is BaseTest {
     IERC20 public token;
     ZRXWrappedToken internal wToken;
     ZeroExVotes internal votes;
     ZeroExTimelock internal timelock;
-    ZeroExGovernor internal governor;
+    ZeroExProtocolGovernor internal governor;
     CallReceiverMock internal callReceiverMock;
 
     function setUp() public {
         vm.startPrank(account1);
         (token, wToken, votes, timelock, governor) = setupGovernance();
-        token.transfer(account2, 100e18);
-        token.transfer(account3, 200e18);
-        token.transfer(account4, 50e18);
+        token.transfer(account2, 10000000e18);
+        token.transfer(account3, 2000000e18);
+        token.transfer(account4, 3000000e18);
         vm.stopPrank();
 
         // Setup accounts 2,3 and 4 to vote
         vm.startPrank(account2);
-        token.approve(address(wToken), 100e18);
-        wToken.depositFor(account2, 100e18);
+        token.approve(address(wToken), 10000000e18);
+        wToken.depositFor(account2, 10000000e18);
         wToken.delegate(account2);
         vm.stopPrank();
 
         vm.startPrank(account3);
-        token.approve(address(wToken), 200e18);
-        wToken.depositFor(account3, 200e18);
+        token.approve(address(wToken), 2000000e18);
+        wToken.depositFor(account3, 2000000e18);
         wToken.delegate(account3);
         vm.stopPrank();
 
         vm.startPrank(account4);
-        token.approve(address(wToken), 50e18);
-        wToken.depositFor(account4, 50e18);
+        token.approve(address(wToken), 3000000e18);
+        wToken.depositFor(account4, 3000000e18);
         wToken.delegate(account4);
         vm.stopPrank();
 
@@ -64,11 +64,11 @@ contract ZeroExGovernorTest is BaseTest {
     }
 
     function testShouldReturnCorrectName() public {
-        assertEq(governor.name(), "ZeroExGovernor");
+        assertEq(governor.name(), "ZeroExProtocolGovernor");
     }
 
     function testShouldReturnCorrectVotingDelay() public {
-        assertEq(governor.votingDelay(), 21600);
+        assertEq(governor.votingDelay(), 14400);
     }
 
     function testShouldReturnCorrectVotingPeriod() public {
@@ -76,11 +76,11 @@ contract ZeroExGovernorTest is BaseTest {
     }
 
     function testShouldReturnCorrectProposalThreshold() public {
-        assertEq(governor.proposalThreshold(), 0);
+        assertEq(governor.proposalThreshold(), 1000000e18);
     }
 
     function testShouldReturnCorrectQuorum() public {
-        assertEq(governor.quorumNumerator(), 10);
+        assertEq(governor.quorum(block.number), 10000000e18);
     }
 
     function testShouldReturnCorrectToken() public {
@@ -102,17 +102,20 @@ contract ZeroExGovernorTest is BaseTest {
         bytes[] memory calldatas = new bytes[](1);
         calldatas[0] = abi.encodeWithSignature("mockFunction()");
 
+        vm.roll(2);
+        vm.startPrank(account2);
         uint256 proposalId = governor.propose(targets, values, calldatas, "Proposal description");
+        vm.stopPrank();
 
         // Fast forward to after vote start
         vm.roll(governor.proposalSnapshot(proposalId) + 1);
 
         // Vote
         vm.prank(account2);
-        governor.castVote(proposalId, 0); // Vote "against"
+        governor.castVote(proposalId, 1); // Vote "for"
         vm.stopPrank();
         vm.prank(account3);
-        governor.castVote(proposalId, 1); // Vote "for"
+        governor.castVote(proposalId, 0); // Vote "against"
         vm.stopPrank();
         vm.prank(account4);
         governor.castVote(proposalId, 2); // Vote "abstain"
@@ -123,9 +126,9 @@ contract ZeroExGovernorTest is BaseTest {
 
         // Get vote results
         (uint256 votesAgainst, uint256 votesFor, uint256 votesAbstain) = governor.proposalVotes(proposalId);
-        assertEq(votesAgainst, 100e18);
-        assertEq(votesFor, 200e18);
-        assertEq(votesAbstain, 50e18);
+        assertEq(votesFor, 10000000e18);
+        assertEq(votesAgainst, 2000000e18);
+        assertEq(votesAbstain, 3000000e18);
 
         IGovernor.ProposalState state = governor.state(proposalId);
         assertEq(uint256(state), uint256(IGovernor.ProposalState.Succeeded));
