@@ -141,4 +141,115 @@ contract ZeroExProtocolGovernorTest is BaseTest {
         state = governor.state(proposalId);
         assertEq(uint256(state), uint256(IGovernor.ProposalState.Executed));
     }
+
+    function testCanUpdateVotingDelaySetting() public {
+        // Create a proposal
+        address[] memory targets = new address[](1);
+        targets[0] = address(governor);
+
+        uint256[] memory values = new uint256[](1);
+        values[0] = 0;
+
+        bytes[] memory calldatas = new bytes[](1);
+        calldatas[0] = abi.encodeWithSelector(governor.setVotingDelay.selector, 3 days);
+
+        vm.roll(2);
+        vm.startPrank(account2);
+        uint256 proposalId = governor.propose(targets, values, calldatas, "Increase voting delay to 3 days");
+        vm.stopPrank();
+
+        // Fast forward to after vote start
+        vm.roll(governor.proposalSnapshot(proposalId) + 1);
+
+        // Vote
+        vm.prank(account2);
+        governor.castVote(proposalId, 1); // Vote "for"
+        vm.stopPrank();
+
+        // Fast forward to vote end
+        vm.roll(governor.proposalDeadline(proposalId) + 1);
+
+        // Queue proposal
+        governor.queue(targets, values, calldatas, keccak256(bytes("Increase voting delay to 3 days")));
+        vm.warp(governor.proposalEta(proposalId) + 1);
+        // Execute proposal
+        governor.execute(targets, values, calldatas, keccak256("Increase voting delay to 3 days"));
+
+        uint256 votingDelay = governor.votingDelay();
+        assertEq(votingDelay, 3 days);
+    }
+
+    function testCanUpdateVotingPeriodSetting() public {
+        // Create a proposal
+        address[] memory targets = new address[](1);
+        targets[0] = address(governor);
+
+        uint256[] memory values = new uint256[](1);
+        values[0] = 0;
+
+        bytes[] memory calldatas = new bytes[](1);
+        calldatas[0] = abi.encodeWithSelector(governor.setVotingPeriod.selector, 14 days);
+
+        vm.roll(2);
+        vm.startPrank(account2);
+        uint256 proposalId = governor.propose(targets, values, calldatas, "Increase voting period to 14 days");
+        vm.stopPrank();
+
+        // Fast forward to after vote start
+        vm.roll(governor.proposalSnapshot(proposalId) + 1);
+
+        // Vote
+        vm.prank(account2);
+        governor.castVote(proposalId, 1); // Vote "for"
+        vm.stopPrank();
+
+        // Fast forward to vote end
+        vm.roll(governor.proposalDeadline(proposalId) + 1);
+
+        // Queue proposal
+        governor.queue(targets, values, calldatas, keccak256(bytes("Increase voting period to 14 days")));
+        vm.warp(governor.proposalEta(proposalId) + 1);
+        // Execute proposal
+        governor.execute(targets, values, calldatas, keccak256("Increase voting period to 14 days"));
+
+        uint256 votingPeriod = governor.votingPeriod();
+        assertEq(votingPeriod, 14 days);
+    }
+
+    function testCanUpdateProposalThresholdSetting() public {
+        // Create a proposal
+        address[] memory targets = new address[](1);
+        targets[0] = address(governor);
+
+        uint256[] memory values = new uint256[](1);
+        values[0] = 0;
+
+        bytes[] memory calldatas = new bytes[](1);
+        calldatas[0] = abi.encodeWithSelector(governor.setProposalThreshold.selector, 2000000e18);
+
+        vm.roll(2);
+        vm.startPrank(account2);
+        uint256 proposalId = governor.propose(targets, values, calldatas, "Increase proposal threshold to 2000000e18");
+        vm.stopPrank();
+
+        // Fast forward to after vote start
+        vm.roll(governor.proposalSnapshot(proposalId) + 1);
+
+        // Vote
+        vm.prank(account2);
+        governor.castVote(proposalId, 1); // Vote "for"
+        vm.stopPrank();
+
+        // Fast forward to vote end
+        vm.roll(governor.proposalDeadline(proposalId) + 1);
+
+        // Queue proposal
+        governor.queue(targets, values, calldatas, keccak256(bytes("Increase proposal threshold to 2000000e18")));
+        vm.warp(governor.proposalEta(proposalId) + 1);
+        // Execute proposal
+        governor.execute(targets, values, calldatas, keccak256("Increase proposal threshold to 2000000e18"));
+
+        uint256 proposalThreshold = governor.proposalThreshold();
+        assertEq(proposalThreshold, 2000000e18);
+    }
 }
