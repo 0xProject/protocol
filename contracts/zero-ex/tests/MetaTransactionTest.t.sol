@@ -333,7 +333,8 @@ contract MetaTransactionTest is BaseTest {
         assertEq(wethToken.balanceOf(address(this)), 0); // no fee paid out
     }
 
-    function test_transformERC20TranslatedCallFail() public {
+    function test_transformERC20TranslatedCallFail() external {
+
         bytes memory transformCallData = badTokenTransformERC20Call();
 
         IMetaTransactionsFeature.MetaTransactionData memory mtxData = getRandomMetaTransaction(transformCallData);
