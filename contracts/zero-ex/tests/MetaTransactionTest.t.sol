@@ -69,7 +69,8 @@ contract MetaTransactionTest is BaseTest {
         return (vm.addr(privateKey), privateKey);
     }
 
-    function makeTestRfqOrder() private returns (bytes memory callData) {
+    function _makeTestRfqOrder() private returns (bytes memory callData) {
+
         LibNativeOrder.RfqOrder memory order = LibNativeOrder.RfqOrder({
             makerToken: wethToken,
             takerToken: usdcToken,
