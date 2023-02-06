@@ -346,7 +346,8 @@ contract MetaTransactionTest is BaseTest {
         assertFalse(success);
     }
 
-    function test_transformERC20CantExecuteTwice() public {
+    function test_transformERC20CantExecuteTwice() external {
+
         bytes memory callData = makeTestRfqOrder();
 
         IMetaTransactionsFeature.MetaTransactionData memory mtxData = getRandomMetaTransaction(callData);
