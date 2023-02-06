@@ -345,7 +345,8 @@ contract MetaTransactionTest is BaseTest {
         assertFalse(success);
     }
 
-    function test_transformERC20UnsupportedFunction() public {
+    function test_transformERC20UnsupportedFunction() external {
+
         bytes memory transformCallData = badSelectorTransformERC20Call();
 
         IMetaTransactionsFeature.MetaTransactionData memory mtxData = getRandomMetaTransaction(transformCallData);
