@@ -252,4 +252,41 @@ contract ZeroExProtocolGovernorTest is BaseTest {
         uint256 proposalThreshold = governor.proposalThreshold();
         assertEq(proposalThreshold, 2000000e18);
     }
+
+    function testCanUpdateTimelockDelay() public {
+        // Create a proposal
+        address[] memory targets = new address[](1);
+        targets[0] = address(timelock);
+
+        uint256[] memory values = new uint256[](1);
+        values[0] = 0;
+
+        bytes[] memory calldatas = new bytes[](1);
+        calldatas[0] = abi.encodeWithSelector(timelock.updateDelay.selector, 10 days);
+
+        vm.roll(2);
+        vm.startPrank(account2);
+        uint256 proposalId = governor.propose(targets, values, calldatas, "Increase timelock delay to 10 days");
+        vm.stopPrank();
+
+        // Fast forward to after vote start
+        vm.roll(governor.proposalSnapshot(proposalId) + 1);
+
+        // Vote
+        vm.prank(account2);
+        governor.castVote(proposalId, 1); // Vote "for"
+        vm.stopPrank();
+
+        // Fast forward to vote end
+        vm.roll(governor.proposalDeadline(proposalId) + 1);
+
+        // Queue proposal
+        governor.queue(targets, values, calldatas, keccak256(bytes("Increase timelock delay to 10 days")));
+        vm.warp(governor.proposalEta(proposalId) + 1);
+        // Execute proposal
+        governor.execute(targets, values, calldatas, keccak256("Increase timelock delay to 10 days"));
+
+        uint256 timelockDelay = timelock.getMinDelay();
+        assertEq(timelockDelay, 10 days);
+    }
 }
