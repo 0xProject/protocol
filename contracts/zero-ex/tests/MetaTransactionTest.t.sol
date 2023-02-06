@@ -246,7 +246,8 @@ contract MetaTransactionTest is BaseTest {
         assertTrue(mtxHash != bytes32(0));
     }
 
-    function test_transformERC20() public {
+    function test_transformERC20() external {
+
         bytes memory transformCallData = transformERC20Call();
         IMetaTransactionsFeature.MetaTransactionData memory mtxData = getRandomMetaTransaction(transformCallData);
 
