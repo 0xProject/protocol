@@ -90,7 +90,6 @@ export enum ContractName {
     DummyERC721Token = 'DummyERC721Token',
     TestLibBytes = 'TestLibBytes',
     TestWallet = 'TestWallet',
-    Authorizable = 'Authorizable',
     Whitelist = 'Whitelist',
     Forwarder = 'Forwarder',
     BalanceThresholdFilter = 'BalanceThresholdFilter',
