@@ -102,7 +102,8 @@ contract MetaTransactionTest is BaseTest {
         );
     }
 
-    function makeTestLimitOrder() private returns (bytes memory callData) {
+    function _makeTestLimitOrder() private returns (bytes memory callData) {
+
         LibNativeOrder.LimitOrder memory order = LibNativeOrder.LimitOrder({
             makerToken: wethToken,
             takerToken: usdcToken,
