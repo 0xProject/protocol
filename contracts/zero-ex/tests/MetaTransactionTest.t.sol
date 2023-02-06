@@ -213,7 +213,8 @@ contract MetaTransactionTest is BaseTest {
         );
     }
 
-    function mtxCall(IMetaTransactionsFeature.MetaTransactionData memory mtx) private returns (bytes memory) {
+    function _mtxCall(IMetaTransactionsFeature.MetaTransactionData memory mtx) private returns (bytes memory) {
+
         // Mint fee to signer and approve
         if (mtx.feeAmount > 0) {
             mintTo(address(mtx.feeToken), mtx.signer, mtx.feeAmount);
