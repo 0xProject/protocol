@@ -297,7 +297,8 @@ contract MetaTransactionTest is BaseTest {
         assertEq(usdcToken.balanceOf(signerAddress), 1e18);
     }
 
-    function test_transformERC20WithAnySender() public {
+    function test_transformERC20WithAnySender() external {
+
         bytes memory transformCallData = transformERC20Call();
 
         IMetaTransactionsFeature.MetaTransactionData memory mtxData = getRandomMetaTransaction(transformCallData);
