@@ -44,15 +44,7 @@ contract BaseTest is Test {
 
     function setupGovernance()
         internal
-        returns (
-            IERC20,
-            ZRXWrappedToken,
-            ZeroExVotes,
-            ZeroExTimelock,
-            ZeroExTimelock,
-            ZeroExProtocolGovernor,
-            ZeroExTreasuryGovernor
-        )
+        returns (IERC20, ZRXWrappedToken, ZeroExVotes, ZeroExTimelock, ZeroExProtocolGovernor, ZeroExTreasuryGovernor)
     {
         // Use this once https://linear.app/0xproject/issue/PRO-44/zrx-artifact-is-incompatible-with-foundry is resolved
         // bytes memory _bytecode = abi.encodePacked(vm.getCode("./ZRXToken.json"));
@@ -76,12 +68,7 @@ contract BaseTest is Test {
         protocolTimelock.grantRole(protocolTimelock.PROPOSER_ROLE(), address(protocolGovernor));
         protocolTimelock.grantRole(protocolTimelock.EXECUTOR_ROLE(), address(protocolGovernor));
 
-        ZeroExTimelock treasuryTimelock = new ZeroExTimelock(1, proposers, executors, account1);
-        ZeroExTreasuryGovernor treasuryGovernor = new ZeroExTreasuryGovernor(IVotes(address(votes)), treasuryTimelock);
-
-        treasuryTimelock.grantRole(treasuryTimelock.PROPOSER_ROLE(), address(treasuryGovernor));
-        treasuryTimelock.grantRole(treasuryTimelock.EXECUTOR_ROLE(), address(treasuryGovernor));
-
-        return (mockZRX, token, votes, protocolTimelock, treasuryTimelock, protocolGovernor, treasuryGovernor);
+        ZeroExTreasuryGovernor treasuryGovernor = new ZeroExTreasuryGovernor(IVotes(address(votes)));
+        return (mockZRX, token, votes, protocolTimelock, protocolGovernor, treasuryGovernor);
     }
 }

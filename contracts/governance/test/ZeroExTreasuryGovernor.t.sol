@@ -35,7 +35,7 @@ contract ZeroExTreasuryGovernorTest is BaseTest {
 
     function setUp() public {
         vm.startPrank(account1);
-        (token, wToken, votes, , timelock, , governor) = setupGovernance();
+        (token, wToken, votes, timelock, , governor) = setupGovernance();
         token.transfer(account2, 10000000e18);
         token.transfer(account3, 2000000e18);
         token.transfer(account4, 3000000e18);
@@ -87,10 +87,6 @@ contract ZeroExTreasuryGovernorTest is BaseTest {
         assertEq(address(governor.token()), address(votes));
     }
 
-    function testShouldReturnCorrectTimelock() public {
-        assertEq(address(governor.timelock()), address(timelock));
-    }
-
     function testShouldBeAbleToExecuteASuccessfulProposal() public {
         // Create a proposal
         address[] memory targets = new address[](1);
@@ -133,10 +129,6 @@ contract ZeroExTreasuryGovernorTest is BaseTest {
         IGovernor.ProposalState state = governor.state(proposalId);
         assertEq(uint256(state), uint256(IGovernor.ProposalState.Succeeded));
 
-        // Queue proposal
-        governor.queue(targets, values, calldatas, keccak256(bytes("Proposal description")));
-        vm.warp(governor.proposalEta(proposalId) + 1);
-
         governor.execute(targets, values, calldatas, keccak256("Proposal description"));
         state = governor.state(proposalId);
         assertEq(uint256(state), uint256(IGovernor.ProposalState.Executed));
@@ -169,9 +161,6 @@ contract ZeroExTreasuryGovernorTest is BaseTest {
         // Fast forward to vote end
         vm.roll(governor.proposalDeadline(proposalId) + 1);
 
-        // Queue proposal
-        governor.queue(targets, values, calldatas, keccak256(bytes("Increase voting delay to 3 days")));
-        vm.warp(governor.proposalEta(proposalId) + 1);
         // Execute proposal
         governor.execute(targets, values, calldatas, keccak256("Increase voting delay to 3 days"));
 
@@ -206,9 +195,6 @@ contract ZeroExTreasuryGovernorTest is BaseTest {
         // Fast forward to vote end
         vm.roll(governor.proposalDeadline(proposalId) + 1);
 
-        // Queue proposal
-        governor.queue(targets, values, calldatas, keccak256(bytes("Increase voting period to 14 days")));
-        vm.warp(governor.proposalEta(proposalId) + 1);
         // Execute proposal
         governor.execute(targets, values, calldatas, keccak256("Increase voting period to 14 days"));
 
@@ -243,9 +229,6 @@ contract ZeroExTreasuryGovernorTest is BaseTest {
         // Fast forward to vote end
         vm.roll(governor.proposalDeadline(proposalId) + 1);
 
-        // Queue proposal
-        governor.queue(targets, values, calldatas, keccak256(bytes("Increase proposal threshold to 2000000e18")));
-        vm.warp(governor.proposalEta(proposalId) + 1);
         // Execute proposal
         governor.execute(targets, values, calldatas, keccak256("Increase proposal threshold to 2000000e18"));
 
