@@ -165,7 +165,8 @@ contract MetaTransactionTest is BaseTest {
         return mtx;
     }
 
-    function transformERC20Call() private returns (bytes memory) {
+    function _transformERC20Call() private returns (bytes memory) {
+
         ITransformERC20Feature.Transformation[] memory transformations = new ITransformERC20Feature.Transformation[](1);
         transformations[0] = ITransformERC20Feature.Transformation(
             uint32(transformerNonce),
