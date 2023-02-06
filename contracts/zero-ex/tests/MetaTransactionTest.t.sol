@@ -281,7 +281,8 @@ contract MetaTransactionTest is BaseTest {
         // TODO: check event log for TestMetaTransactionsNativeOrdersFeatureEvents.FillLimitOrderCalled?
     }
 
-    function test_fillLimitOrder() public {
+    function test_fillLimitOrder() external {
+
         bytes memory callData = makeTestLimitOrder();
         IMetaTransactionsFeature.MetaTransactionData memory mtxData = getRandomMetaTransaction(callData);
 
