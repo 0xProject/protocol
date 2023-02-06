@@ -395,7 +395,8 @@ contract MetaTransactionTest is BaseTest {
         assertFalse(success);
     }
 
-    function test_metaTxnFailsIfWrongSender() public {
+    function test_metaTxnFailsIfWrongSender() external {
+
         bytes memory transformCallData = transformERC20Call();
         IMetaTransactionsFeature.MetaTransactionData memory mtxData = getRandomMetaTransaction(transformCallData);
         mtxData.sender = USER_ADDRESS;
