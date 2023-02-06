@@ -362,7 +362,8 @@ contract MetaTransactionTest is BaseTest {
         assertFalse(success);
     }
 
-    function test_metaTxnFailsNotEnoughEth() public {
+    function test_metaTxnFailsNotEnoughEth() external {
+
         bytes memory callData = makeTestRfqOrder();
 
         IMetaTransactionsFeature.MetaTransactionData memory mtxData = getRandomMetaTransaction(callData);
