@@ -148,7 +148,8 @@ contract MetaTransactionTest is BaseTest {
         }
     }
 
-    function getRandomMetaTransaction(bytes memory callData) private view returns (IMetaTransactionsFeature.MetaTransactionData memory) {   
+    function _getMetaTransaction(bytes memory callData) private view returns (IMetaTransactionsFeature.MetaTransactionData memory) {   
+
         IMetaTransactionsFeature.MetaTransactionData memory mtx = IMetaTransactionsFeature.MetaTransactionData({
             signer: payable(USER_ADDRESS),
             sender: address(this),
