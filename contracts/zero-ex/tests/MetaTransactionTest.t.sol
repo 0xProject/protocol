@@ -61,7 +61,8 @@ contract MetaTransactionTest is BaseTest {
         vm.deal(signerAddress, 10e18);
     }
 
-    function getSigner() public returns (address, uint) {
+    function _getSigner() private returns (address, uint) {
+
         string memory mnemonic = "test test test test test test test test test test test junk";
         uint256 privateKey = vm.deriveKey(mnemonic, 0);
         vm.label(vm.addr(privateKey), "zeroEx/MarketMaker");
