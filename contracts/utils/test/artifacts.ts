@@ -7,7 +7,6 @@ import { ContractArtifact } from 'ethereum-types';
 
 import * as AuthorizableV06 from '../test/generated-artifacts/AuthorizableV06.json';
 import * as AuthorizableV08 from '../test/generated-artifacts/AuthorizableV08.json';
-import * as DeploymentConstants from '../test/generated-artifacts/DeploymentConstants.json';
 import * as IAuthorizableV06 from '../test/generated-artifacts/IAuthorizableV06.json';
 import * as IAuthorizableV08 from '../test/generated-artifacts/IAuthorizableV08.json';
 import * as IOwnable from '../test/generated-artifacts/IOwnable.json';
@@ -50,7 +49,6 @@ import * as TestLibSafeMath from '../test/generated-artifacts/TestLibSafeMath.js
 import * as TestOwnable from '../test/generated-artifacts/TestOwnable.json';
 import * as TestReentrancyGuard from '../test/generated-artifacts/TestReentrancyGuard.json';
 export const artifacts = {
-    DeploymentConstants: DeploymentConstants as ContractArtifact,
     LibBytes: LibBytes as ContractArtifact,
     LibBytesRichErrors: LibBytesRichErrors as ContractArtifact,
     LibOwnableRichErrors: LibOwnableRichErrors as ContractArtifact,

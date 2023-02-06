@@ -5,7 +5,6 @@
  */
 export * from '../test/generated-wrappers/authorizable_v06';
 export * from '../test/generated-wrappers/authorizable_v08';
-export * from '../test/generated-wrappers/deployment_constants';
 export * from '../test/generated-wrappers/i_authorizable_v06';
 export * from '../test/generated-wrappers/i_authorizable_v08';
 export * from '../test/generated-wrappers/i_ownable';
