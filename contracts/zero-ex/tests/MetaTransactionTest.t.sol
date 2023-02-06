@@ -385,7 +385,8 @@ contract MetaTransactionTest is BaseTest {
     }
 *******/
 
-    function test_metaTxnFailsIfExpired() public {
+    function test_metaTxnFailsIfExpired() external {
+
         bytes memory callData = makeTestRfqOrder();
 
         IMetaTransactionsFeature.MetaTransactionData memory mtxData = getRandomMetaTransaction(callData);
