@@ -137,7 +137,8 @@ contract MetaTransactionTest is BaseTest {
         );
     }
 
-    function mintTo(address token, address recipient, uint256 amount) private {
+    function _mintTo(address token, address recipient, uint256 amount) private {
+
         if (token == address(wethToken)) {
             //vm.prank(recipient);
             IEtherTokenV06(token).deposit{value: amount}();
