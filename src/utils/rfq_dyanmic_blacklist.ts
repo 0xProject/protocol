@@ -1,5 +1,5 @@
 import { Connection } from 'typeorm';
-import { RFQT_TX_ORIGIN_BLACKLIST } from '../config';
+import { ENABLE_RFQT_TX_ORIGIN_BLACKLIST, RFQT_TX_ORIGIN_BLACKLIST } from '../config';
 import { RFQ_DYNAMIC_BLACKLIST_TTL } from '../constants';
 
 import { RfqBlockedAddressUtils } from './rfq_blocked_address_utils';
@@ -13,7 +13,7 @@ export class RfqDynamicBlacklist implements Set<string> {
     private readonly _rfqBlockedAddressUtils: RfqBlockedAddressUtils;
 
     public static create(connection: Connection | undefined): RfqDynamicBlacklist | undefined {
-        if (connection === undefined) {
+        if (!ENABLE_RFQT_TX_ORIGIN_BLACKLIST || connection === undefined) {
             return undefined;
         }
 

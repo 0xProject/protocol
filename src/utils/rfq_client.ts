@@ -124,7 +124,7 @@ export class RfqClient {
     public async getV2PricesAsync(request: RfqtV2Request): Promise<RfqtV2Price[]> {
         try {
             const response = await this._axiosInstance.post(`${this._rfqApiUrl}/internal/rfqt/v2/prices`, request, {
-                timeout: RFQT_REQUEST_MAX_RESPONSE_MS * 2,
+                timeout: RFQT_REQUEST_MAX_RESPONSE_MS * 3,
                 headers: {
                     '0x-chain-id': request.chainId,
                 },
@@ -156,7 +156,7 @@ export class RfqClient {
     public async getV2QuotesAsync(request: RfqtV2Request): Promise<RfqtV2Quote[]> {
         try {
             const response = await this._axiosInstance.post(`${this._rfqApiUrl}/internal/rfqt/v2/quotes`, request, {
-                timeout: RFQT_REQUEST_MAX_RESPONSE_MS * 2,
+                timeout: RFQT_REQUEST_MAX_RESPONSE_MS * 3,
                 headers: {
                     '0x-chain-id': request.chainId,
                 },

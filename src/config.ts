@@ -288,6 +288,8 @@ export const RFQT_API_KEY_WHITELIST: string[] = getApiKeyWhitelistFromIntegrator
 export const MATCHA_INTEGRATOR_ID: string | undefined = getIntegratorIdFromLabel('Matcha');
 
 export const RFQ_API_URL: string = resolveEnvVar('RFQ_API_URL', EnvVarType.NonEmptyString, '');
+// TODO(byeongminp): migrate tx blacklist
+export const ENABLE_RFQT_TX_ORIGIN_BLACKLIST = !_.isEmpty(process.env.RFQT_TX_ORIGIN_BLACKLIST);
 export const RFQT_TX_ORIGIN_BLACKLIST: Set<string> = new Set(
     resolveEnvVar<string[]>('RFQT_TX_ORIGIN_BLACKLIST', EnvVarType.JsonStringList, []).map((addr) =>
         addr.toLowerCase(),
