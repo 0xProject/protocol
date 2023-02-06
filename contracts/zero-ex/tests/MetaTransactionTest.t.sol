@@ -262,7 +262,8 @@ contract MetaTransactionTest is BaseTest {
         assertEq(wethToken.balanceOf(address(this)), 1);
     }
 
-    function test_rfqOrder() public {
+    function test_rfqOrder() external {
+
         bytes memory callData = makeTestRfqOrder();
         IMetaTransactionsFeature.MetaTransactionData memory mtxData = getRandomMetaTransaction(callData);
 
