@@ -351,6 +351,8 @@ export interface Integrator {
     rfqm: boolean;
     rfqt: boolean;
     slippageModel?: boolean;
+    positiveSlippagePercent?: number; // units in percent, i.e. 1 = 1%
+    feeRecipient?: string;
 }
 
 export interface MetaTransactionV1QuoteResult extends QuoteBase {

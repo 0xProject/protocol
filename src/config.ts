@@ -234,10 +234,22 @@ export const WEBSOCKET_ORDER_UPDATES_PATH = _.isEmpty(process.env.WEBSOCKET_ORDE
           EnvVarType.NonEmptyString,
       );
 
-// The fee recipient for orders
+// LEGACY: This is now the fallback affiliate address for tagging (becomes "Unknown Affiliate")
 export const FEE_RECIPIENT_ADDRESS = _.isEmpty(process.env.FEE_RECIPIENT_ADDRESS)
     ? NULL_ADDRESS
     : assertEnvVarType('FEE_RECIPIENT_ADDRESS', process.env.FEE_RECIPIENT_ADDRESS, EnvVarType.ETHAddressHex);
+
+// The fee recipient for 0x
+export const ZERO_EX_FEE_RECIPIENT_ADDRESS: string = resolveEnvVar<string>(
+    'ZERO_EX_FEE_RECIPIENT_ADDRESS',
+    EnvVarType.ETHAddressHex,
+    NULL_ADDRESS,
+);
+
+// The set of fee tokens for 0x
+export const ZERO_EX_FEE_TOKENS: Set<string> = new Set(
+    resolveEnvVar<string[]>('ZERO_EX_FEE_TOKENS', EnvVarType.JsonStringList, []).map((addr) => addr.toLowerCase()),
+);
 
 // A flat fee that should be charged to the order taker
 export const TAKER_FEE_UNIT_AMOUNT = _.isEmpty(process.env.TAKER_FEE_UNIT_AMOUNT)

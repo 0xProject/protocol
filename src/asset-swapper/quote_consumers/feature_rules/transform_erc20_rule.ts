@@ -65,7 +65,7 @@ export class TransformERC20Rule extends AbstractFeatureRule {
 
     public createCalldata(quote: SwapQuote, opts: ExchangeProxyContractOpts): CalldataInfo {
         // TODO(kyu-c): further breakdown calldata creation logic.
-        const { affiliateFee, isFromETH, isToETH, shouldSellEntireBalance } = opts;
+        const { affiliateFees, positiveSlippageFee, isFromETH, isToETH, shouldSellEntireBalance } = opts;
 
         const swapContext = this.getSwapContext(quote, opts);
         const { sellToken, buyToken, sellAmount, ethAmount } = swapContext;
@@ -99,74 +99,89 @@ export class TransformERC20Rule extends AbstractFeatureRule {
             });
         }
 
-        const { feeType, buyTokenFeeAmount, sellTokenFeeAmount, recipient: feeRecipient } = affiliateFee;
         let gasOverhead = ZERO_AMOUNT;
-        if (feeType === AffiliateFeeType.PositiveSlippageFee && feeRecipient !== NULL_ADDRESS) {
-            // bestCaseAmountWithSurplus is used to cover gas cost of sending positive slipapge fee to fee recipient
-            // this helps avoid sending dust amounts which are not worth the gas cost to transfer
-            let bestCaseAmountWithSurplus = quote.bestCaseQuoteInfo.makerAmount
-                .plus(
-                    POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS.multipliedBy(quote.gasPrice).multipliedBy(
-                        quote.makerAmountPerEth,
-                    ),
-                )
-                .integerValue();
-            // In the event makerAmountPerEth is unknown, we only allow for positive slippage which is greater than
-            // the best case amount
-            bestCaseAmountWithSurplus = BigNumber.max(bestCaseAmountWithSurplus, quote.bestCaseQuoteInfo.makerAmount);
-            transformations.push({
-                deploymentNonce: this.transformerNonces.positiveSlippageFeeTransformer,
-                data: encodePositiveSlippageFeeTransformerData({
-                    token: isToETH ? ETH_TOKEN_ADDRESS : buyToken,
-                    bestCaseAmount: BigNumber.max(bestCaseAmountWithSurplus, quote.bestCaseQuoteInfo.makerAmount),
-                    recipient: feeRecipient,
-                }),
-            });
-            // This may not be visible at eth_estimateGas time, so we explicitly add overhead
-            gasOverhead = POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS;
-        } else if (feeType === AffiliateFeeType.PercentageFee && feeRecipient !== NULL_ADDRESS) {
-            // This transformer pays affiliate fees.
-            if (buyTokenFeeAmount.isGreaterThan(0)) {
+        const fees = [...affiliateFees];
+        positiveSlippageFee && fees.push(positiveSlippageFee); // Append positive slippage fee if present
+        fees.forEach((fee) => {
+            const { feeType, buyTokenFeeAmount, sellTokenFeeAmount, recipient: feeRecipient } = fee;
+            if (feeRecipient === NULL_ADDRESS) {
+                return;
+            } else if (feeType === AffiliateFeeType.None) {
+                return;
+            } else if (feeType === AffiliateFeeType.PositiveSlippageFee) {
+                // bestCaseAmountWithSurplus is used to cover gas cost of sending positive slipapge fee to fee recipient
+                // this helps avoid sending dust amounts which are not worth the gas cost to transfer
+                let bestCaseAmountWithSurplus = quote.bestCaseQuoteInfo.makerAmount
+                    .plus(
+                        POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS.multipliedBy(quote.gasPrice).multipliedBy(
+                            quote.makerAmountPerEth,
+                        ),
+                    )
+                    .integerValue();
+                // In the event makerAmountPerEth is unknown, we only allow for positive slippage which is greater than
+                // the best case amount
+                bestCaseAmountWithSurplus = BigNumber.max(
+                    bestCaseAmountWithSurplus,
+                    quote.bestCaseQuoteInfo.makerAmount,
+                );
                 transformations.push({
-                    deploymentNonce: this.transformerNonces.affiliateFeeTransformer,
-                    data: encodeAffiliateFeeTransformerData({
-                        fees: [
-                            {
-                                token: isToETH ? ETH_TOKEN_ADDRESS : buyToken,
-                                amount: buyTokenFeeAmount,
-                                recipient: feeRecipient,
-                            },
-                        ],
+                    deploymentNonce: this.transformerNonces.positiveSlippageFeeTransformer,
+                    data: encodePositiveSlippageFeeTransformerData({
+                        token: isToETH ? ETH_TOKEN_ADDRESS : buyToken,
+                        bestCaseAmount: bestCaseAmountWithSurplus,
+                        recipient: feeRecipient,
                     }),
                 });
-                // Adjust the minimum buy amount by the fee.
-                minBuyAmount = BigNumber.max(0, minBuyAmount.minus(buyTokenFeeAmount));
+                // This may not be visible at eth_estimateGas time, so we explicitly add overhead
+                gasOverhead = POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS.plus(gasOverhead);
+            } else if (feeType === AffiliateFeeType.PercentageFee) {
+                // This transformer pays affiliate fees.
+                if (buyTokenFeeAmount.isGreaterThan(0)) {
+                    transformations.push({
+                        deploymentNonce: this.transformerNonces.affiliateFeeTransformer,
+                        data: encodeAffiliateFeeTransformerData({
+                            fees: [
+                                {
+                                    token: isToETH ? ETH_TOKEN_ADDRESS : buyToken,
+                                    amount: buyTokenFeeAmount,
+                                    recipient: feeRecipient,
+                                },
+                            ],
+                        }),
+                    });
+                    // Adjust the minimum buy amount by the fee.
+                    minBuyAmount = BigNumber.max(0, minBuyAmount.minus(buyTokenFeeAmount));
+                }
+                if (sellTokenFeeAmount.isGreaterThan(0)) {
+                    throw new Error('Affiliate fees denominated in sell token are not yet supported');
+                }
+            } else if (feeType === AffiliateFeeType.GaslessFee) {
+                if (buyTokenFeeAmount.isGreaterThan(0)) {
+                    transformations.push({
+                        deploymentNonce: this.transformerNonces.affiliateFeeTransformer,
+                        data: encodeAffiliateFeeTransformerData({
+                            fees: [
+                                {
+                                    token: isToETH ? ETH_TOKEN_ADDRESS : buyToken,
+                                    amount: buyTokenFeeAmount,
+                                    recipient: feeRecipient,
+                                },
+                            ],
+                        }),
+                    });
+                    // Adjust the minimum buy amount by the fee.
+                    minBuyAmount = BigNumber.max(0, minBuyAmount.minus(buyTokenFeeAmount));
+                }
+                if (sellTokenFeeAmount.isGreaterThan(0)) {
+                    throw new Error('Affiliate fees denominated in sell token are not yet supported');
+                }
+            } else {
+                // A compile time check that we've handled all cases of feeType
+                ((_: never) => {
+                    throw new Error('unreachable');
+                })(feeType);
             }
-            if (sellTokenFeeAmount.isGreaterThan(0)) {
-                throw new Error('Affiliate fees denominated in sell token are not yet supported');
-            }
-        } else if (feeType === AffiliateFeeType.GaslessFee && feeRecipient !== NULL_ADDRESS) {
-            if (buyTokenFeeAmount.isGreaterThan(0)) {
-                transformations.push({
-                    deploymentNonce: this.transformerNonces.affiliateFeeTransformer,
-                    data: encodeAffiliateFeeTransformerData({
-                        fees: [
-                            {
-                                token: isToETH ? ETH_TOKEN_ADDRESS : buyToken,
-                                amount: buyTokenFeeAmount,
-                                recipient: feeRecipient,
-                            },
-                        ],
-                    }),
-                });
-                // Adjust the minimum buy amount by the fee.
-                minBuyAmount = BigNumber.max(0, minBuyAmount.minus(buyTokenFeeAmount));
-            }
-            if (sellTokenFeeAmount.isGreaterThan(0)) {
-                throw new Error('Affiliate fees denominated in sell token are not yet supported');
-            }
-        }
-
+        });
         transformations.push(this.createPayTakerTransformation(quote, opts));
 
         const TO_ETH_ADDRESS = this.chainId === ChainId.Celo ? this.contractAddresses.etherToken : ETH_TOKEN_ADDRESS;

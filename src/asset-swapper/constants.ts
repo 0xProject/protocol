@@ -58,12 +58,14 @@ const DEFAULT_SWAP_QUOTER_OPTS: SwapQuoterOpts = {
 const DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS: ExchangeProxyContractOpts = {
     isFromETH: false,
     isToETH: false,
-    affiliateFee: {
-        feeType: AffiliateFeeType.None,
-        recipient: NULL_ADDRESS,
-        buyTokenFeeAmount: ZERO_AMOUNT,
-        sellTokenFeeAmount: ZERO_AMOUNT,
-    },
+    affiliateFees: [
+        {
+            feeType: AffiliateFeeType.None,
+            recipient: NULL_ADDRESS,
+            buyTokenFeeAmount: ZERO_AMOUNT,
+            sellTokenFeeAmount: ZERO_AMOUNT,
+        },
+    ],
     refundReceiver: NULL_ADDRESS,
     isMetaTransaction: false,
     shouldSellEntireBalance: false,

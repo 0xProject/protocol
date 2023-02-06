@@ -27,6 +27,12 @@
         },
         "slippageModel": {
             "type": "boolean"
+        },
+        "positiveSlippagePercent": {
+            "type": "number"
+        },
+        "feeRecipient": {
+            "$ref": "/addressSchema"
         }
     },
     "required": ["label", "integratorId", "apiKeys", "rfqt", "rfqm"],

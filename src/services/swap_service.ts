@@ -44,6 +44,8 @@ import {
     SWAP_QUOTER_OPTS,
     UNWRAP_QUOTE_GAS,
     WRAP_QUOTE_GAS,
+    ZERO_EX_FEE_RECIPIENT_ADDRESS,
+    ZERO_EX_FEE_TOKENS,
 } from '../config';
 import {
     DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
@@ -367,6 +369,34 @@ export class SwapService implements ISwapService {
             sellTokenFeeAmount,
         } = serviceUtils.getAffiliateFeeAmounts(swapQuote, affiliateFee);
 
+        const affiliateFeeAmounts: AffiliateFeeAmount[] = [
+            {
+                recipient: affiliateFee.recipient,
+                feeType: affiliateFee.feeType,
+                buyTokenFeeAmount,
+                sellTokenFeeAmount,
+            },
+        ];
+
+        // By default, add a positive slippage fee for allowed pairs.
+        // Integrators may turn this off by setting positiveSlippagePercent to 0
+        // NOTE that we do not yet allow for a specified percent of the positive slippage to be taken, it's all or nothing.
+        // TODO: customize the positive slippage by the percent
+        const isPairAllowed =
+            ZERO_EX_FEE_TOKENS.has(buyToken.toLowerCase()) && ZERO_EX_FEE_TOKENS.has(sellToken.toLowerCase());
+        const isDefaultPositiveSlippageFee = integrator?.positiveSlippagePercent === undefined;
+        const isPostiveSlippageEnabled =
+            integrator?.positiveSlippagePercent !== undefined && integrator.positiveSlippagePercent > 0; // 0 is falsy, must check undefined explicitly
+        const positiveSlippageFee =
+            isPairAllowed && (isDefaultPositiveSlippageFee || isPostiveSlippageEnabled)
+                ? {
+                      recipient: integrator?.feeRecipient || ZERO_EX_FEE_RECIPIENT_ADDRESS,
+                      feeType: AffiliateFeeType.PositiveSlippageFee,
+                      buyTokenFeeAmount: ZERO, // we don't need this for positive slippage fee
+                      sellTokenFeeAmount: ZERO, // we don't need this for positive slippage fee
+                  }
+                : undefined;
+
         // Grab the encoded version of the swap quote
         const { to, value, data, decodedUniqueId, gasOverhead } = this.getSwapQuotePartialTransaction(
             swapQuote,
@@ -375,12 +405,8 @@ export class SwapService implements ISwapService {
             isMetaTransaction,
             shouldSellEntireBalance,
             affiliateAddress,
-            {
-                recipient: affiliateFee.recipient,
-                feeType: affiliateFee.feeType,
-                buyTokenFeeAmount,
-                sellTokenFeeAmount,
-            },
+            affiliateFeeAmounts,
+            positiveSlippageFee,
         );
 
         let conservativeBestCaseGasEstimate = new BigNumber(worstCaseGas).plus(affiliateFeeGasCost);
@@ -704,14 +730,16 @@ export class SwapService implements ISwapService {
         isMetaTransaction: boolean,
         shouldSellEntireBalance: boolean,
         affiliateAddress: string | undefined,
-        affiliateFee: AffiliateFeeAmount,
+        affiliateFees: AffiliateFeeAmount[],
+        positiveSlippageFee?: AffiliateFeeAmount,
     ): SwapQuoteResponsePartialTransaction & { gasOverhead: BigNumber } {
         const opts: Partial<ExchangeProxyContractOpts> = {
             isFromETH,
             isToETH,
             isMetaTransaction,
             shouldSellEntireBalance,
-            affiliateFee,
+            affiliateFees,
+            positiveSlippageFee,
         };
 
         const {
