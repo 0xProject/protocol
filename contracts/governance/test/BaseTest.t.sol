@@ -44,7 +44,15 @@ contract BaseTest is Test {
 
     function setupGovernance()
         internal
-        returns (IERC20, ZRXWrappedToken, ZeroExVotes, ZeroExTimelock, ZeroExProtocolGovernor, ZeroExTreasuryGovernor)
+        returns (
+            IERC20,
+            ZRXWrappedToken,
+            ZeroExVotes,
+            ZeroExTimelock,
+            ZeroExTimelock,
+            ZeroExProtocolGovernor,
+            ZeroExTreasuryGovernor
+        )
     {
         // Use this once https://linear.app/0xproject/issue/PRO-44/zrx-artifact-is-incompatible-with-foundry is resolved
         // bytes memory _bytecode = abi.encodePacked(vm.getCode("./ZRXToken.json"));
@@ -62,19 +70,18 @@ contract BaseTest is Test {
         address[] memory proposers = new address[](0);
         address[] memory executors = new address[](0);
 
-        ZeroExTimelock timelock = new ZeroExTimelock(7 days, proposers, executors, account1);
-        ZeroExProtocolGovernor protocolGovernor = new ZeroExProtocolGovernor(IVotes(address(votes)), timelock);
+        ZeroExTimelock protocolTimelock = new ZeroExTimelock(7 days, proposers, executors, account1);
+        ZeroExProtocolGovernor protocolGovernor = new ZeroExProtocolGovernor(IVotes(address(votes)), protocolTimelock);
 
-        timelock.grantRole(timelock.PROPOSER_ROLE(), address(protocolGovernor));
-        timelock.grantRole(timelock.EXECUTOR_ROLE(), address(protocolGovernor));
+        protocolTimelock.grantRole(protocolTimelock.PROPOSER_ROLE(), address(protocolGovernor));
+        protocolTimelock.grantRole(protocolTimelock.EXECUTOR_ROLE(), address(protocolGovernor));
 
-        // TODO use a separate timelock instance
-        // ZeroExTimelock timelock = new ZeroExTimelock(7 days, proposers, executors, account1);
-        ZeroExTreasuryGovernor treasuryGovernor = new ZeroExTreasuryGovernor(IVotes(address(votes)), timelock);
+        ZeroExTimelock treasuryTimelock = new ZeroExTimelock(7 days, proposers, executors, account1);
+        ZeroExTreasuryGovernor treasuryGovernor = new ZeroExTreasuryGovernor(IVotes(address(votes)), treasuryTimelock);
 
-        timelock.grantRole(timelock.PROPOSER_ROLE(), address(treasuryGovernor));
-        timelock.grantRole(timelock.EXECUTOR_ROLE(), address(treasuryGovernor));
+        treasuryTimelock.grantRole(treasuryTimelock.PROPOSER_ROLE(), address(treasuryGovernor));
+        treasuryTimelock.grantRole(treasuryTimelock.EXECUTOR_ROLE(), address(treasuryGovernor));
 
-        return (mockZRX, token, votes, timelock, protocolGovernor, treasuryGovernor);
+        return (mockZRX, token, votes, protocolTimelock, treasuryTimelock, protocolGovernor, treasuryGovernor);
     }
 }
