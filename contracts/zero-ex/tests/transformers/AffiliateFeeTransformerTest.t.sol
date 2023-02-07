@@ -18,7 +18,7 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-erc20/contracts/src/v06/WETH9V06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/MintableERC20TokenV06.sol";
 
-import "../BaseTest.sol";
+import "utils/BaseTest.sol";
 import "../../contracts/src/transformers/AffiliateFeeTransformer.sol";
 import "../../contracts/src/transformers/IERC20Transformer.sol";
 
