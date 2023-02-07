@@ -84,3 +84,17 @@ export interface RawFees {
     zeroExFee?: RawVolumeBasedFee | RawIntegratorShareFee;
     gasFee?: RawGasFee;
 }
+
+// Truncated version of fee returned to callers in handler as we don't want to reveal all the info
+export interface TruncatedFee {
+    feeType: 'volume' | 'integrator_share' | 'gas';
+    feeToken: string;
+    feeAmount: BigNumber;
+}
+
+// Truncated version of fees returned to callers in handler as we don't want to reveal all the info
+export interface TruncatedFees {
+    integratorFee?: TruncatedFee;
+    zeroExFee?: TruncatedFee;
+    gasFee?: TruncatedFee;
+}

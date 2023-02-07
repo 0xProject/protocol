@@ -13,14 +13,17 @@ import * as supertest from 'supertest';
 import { Integrator } from '../../config';
 import { GASLESS_V1_PATH, ZERO_G_ALIAS_PATH, ZERO_G_PATH } from '../../core/constants';
 import { GaslessTypes } from '../../core/types';
+import { TruncatedFees } from '../../core/types/meta_transaction_fees';
 import { errorHandler } from '../../middleware/error_handling';
 import { createGaslessV1Router, createZeroGRouter } from '../../routers/GaslessSwapRouter';
 import { GaslessSwapService } from '../../services/GaslessSwapService';
 import { RfqmService } from '../../services/rfqm_service';
 import {
     FetchIndicativeQuoteResponse,
+    LiquiditySource,
     MetaTransactionV1QuoteResponse,
     MetaTransactionV2,
+    MetaTransactionV2QuoteResponse,
     OtcOrderRfqmQuoteResponse,
     SubmitMetaTransactionSignedQuoteResponse,
     SubmitMetaTransactionV2SignedQuoteResponse,
@@ -551,6 +554,68 @@ describe('GaslessSwapHandlers', () => {
                     ]
                 `);
             });
+
+            it('returns returns a meta-transaction price', async () => {
+                const price: FetchIndicativeQuoteResponse & { sources: LiquiditySource[]; fees?: TruncatedFees } = {
+                    allowanceTarget: '0xdef1c0ded9bec7f1a1670819833240f027b25eff',
+                    buyAmount: new BigNumber(1000),
+                    sellAmount: new BigNumber(2000),
+                    buyTokenAddress: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
+                    sellTokenAddress: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+                    gas: new BigNumber(1043459),
+                    price: new BigNumber(2),
+                    sources: [
+                        {
+                            name: 'QuickSwap',
+                            proportion: new BigNumber(0.2308),
+                        },
+                        {
+                            name: 'DODO_V2',
+                            proportion: new BigNumber(0.07692),
+                        },
+                        {
+                            name: 'Uniswap_V3',
+                            proportion: new BigNumber(0.6923),
+                        },
+                    ],
+                    fees: {
+                        integratorFee: {
+                            feeType: 'volume',
+                            feeToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
+                            feeAmount: new BigNumber(100),
+                        },
+                        zeroExFee: {
+                            feeType: 'integrator_share',
+                            feeToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
+                            feeAmount: new BigNumber(10),
+                        },
+                        gasFee: {
+                            feeType: 'gas',
+                            feeToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
+                            feeAmount: new BigNumber(1),
+                        },
+                    },
+                };
+
+                mockGaslessSwapService.fetchPriceAsync.mockResolvedValue(price);
+
+                const response = await supertest(app)
+                    .get(`${ZERO_G_ALIAS_PATH}/price`)
+                    .set('Content-type', 'application/json')
+                    .set('0x-api-key', 'integrator-api-key')
+                    .set('0x-chain-id', '1337')
+                    .query({
+                        buyToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
+                        sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+                        buyAmount: 1000,
+                        takerAddress,
+                        intentOnFilling: 'false',
+                        skipValidation: 'true',
+                    });
+
+                expect(response.body).toStrictEqual({ ...convertBigNumbersToJson(price), liquidityAvailable: true });
+                expect(response.statusCode).toEqual(HttpStatus.OK);
+            });
         });
     });
 
@@ -761,6 +826,84 @@ describe('GaslessSwapHandlers', () => {
                     ]
                 `);
             });
+
+            it('returns a meta-transaction quote', async () => {
+                const quote: MetaTransactionV2QuoteResponse = {
+                    buyAmount: new BigNumber('1800054805473'),
+                    buyTokenAddress: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+                    gas: new BigNumber('1043459'),
+                    metaTransaction: new MetaTransaction({
+                        callData:
+                            '0x415565b00000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f6190000000000000000000000002791bca1f2de4661ed88a30c99a7a9449aa8417400000000000000000000000000000000000000000000003635c9adc5dea000000000000000000000000000000000000000000000000000000000017b9e2a304f00000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000940000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000008a0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f6190000000000000000000000002791bca1f2de4661ed88a30c99a7a9449aa8417400000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000000000000860000000000000000000000000000000000000000000000000000000000000086000000000000000000000000000000000000000000000000000000000000007c000000000000000000000000000000000000000000000003635c9adc5dea000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000500000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000001e000000000000000000000000000000000000000000000000000000000000003400000000000000000000000000000000000000000000000000000000000000420000000000000000000000000000000000000000000000000000000000000052000000000000000000000000000000002517569636b5377617000000000000000000000000000000000000000000000000000000000000008570b55cfac18858000000000000000000000000000000000000000000000000000000039d0b9efd1000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000a5e0829caced8ffdd4de3c43696c57f7d7a678ff000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000020000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f6190000000000000000000000002791bca1f2de4661ed88a30c99a7a9449aa8417400000000000000000000000000000002517569636b53776170000000000000000000000000000000000000000000000000000000000000042b85aae7d60c42c00000000000000000000000000000000000000000000000000000001c94ebec37000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000a5e0829caced8ffdd4de3c43696c57f7d7a678ff000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000030000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f6190000000000000000000000000d500b1d8e8ef31e21c99d1db9a6444d3adf12700000000000000000000000002791bca1f2de4661ed88a30c99a7a9449aa841740000000000000000000000000000000b446f646f5632000000000000000000000000000000000000000000000000000000000000000000042b85aae7d60c42c00000000000000000000000000000000000000000000000000000001db5156c13000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000400000000000000000000000005333eb1e32522f1893b7c9fea3c263807a02d561000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000012556e69737761705633000000000000000000000000000000000000000000000000000000000000190522016f044a05b0000000000000000000000000000000000000000000000000000000b08217af9400000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000060000000000000000000000000e592427a0aece92de3edee1f18e0157c058615640000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000012556e697377617056330000000000000000000000000000000000000000000000000000000000000c829100b78224ef50000000000000000000000000000000000000000000000000000000570157389f000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000e592427a0aece92de3edee1f18e0157c05861564000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000427ceb23fd6bc0add59e62ac25578270cff1b9f6190001f41bfd67037b42cf73acf2047067bd4f2c47d9bfd6000bb82791bca1f2de4661ed88a30c99a7a9449aa841740000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000e00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000020000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f619000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee0000000000000000000000000000000000000000000000000000000000000000869584cd0000000000000000000000008c611defbd838a13de3a5923693c58a7c1807c6300000000000000000000000000000000000000000000005b89d96b4863067a6b',
+                        chainId: 137,
+                        expirationTimeSeconds: new BigNumber('9990868679'),
+                        feeAmount: new BigNumber('0'),
+                        feeToken: '0x0000000000000000000000000000000000000000',
+                        maxGasPrice: new BigNumber('4294967296'),
+                        minGasPrice: new BigNumber('1'),
+                        salt: new BigNumber(
+                            '32606650794224190000000000000000000000000000000000000000000000000000000000000',
+                        ),
+                        sender: '0x0000000000000000000000000000000000000000',
+                        signer: '0x4c42a706410f1190f97d26fe3c999c90070aa40f',
+                        value: new BigNumber('0'),
+                        verifyingContract: '0xdef1c0ded9bec7f1a1670819833240f027b25eff',
+                    }),
+                    metaTransactionHash: '0xde5a11983edd012047dd3107532f007a73ae488bfb354f35b8a40580e2a775a1',
+                    price: new BigNumber('1800.054805'),
+                    sellAmount: new BigNumber('1000000000000000000000'),
+                    sellTokenAddress: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
+                    type: GaslessTypes.MetaTransactionV2,
+                    sources: [
+                        {
+                            name: 'QuickSwap',
+                            proportion: new BigNumber(0.2308),
+                        },
+                        {
+                            name: 'DODO_V2',
+                            proportion: new BigNumber(0.07692),
+                        },
+                        {
+                            name: 'Uniswap_V3',
+                            proportion: new BigNumber(0.6923),
+                        },
+                    ],
+                    fees: {
+                        integratorFee: {
+                            feeType: 'volume',
+                            feeToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
+                            feeAmount: new BigNumber(100),
+                        },
+                        zeroExFee: {
+                            feeType: 'integrator_share',
+                            feeToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
+                            feeAmount: new BigNumber(10),
+                        },
+                        gasFee: {
+                            feeType: 'gas',
+                            feeToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
+                            feeAmount: new BigNumber(1),
+                        },
+                    },
+                };
+                mockGaslessSwapService.fetchQuoteAsync.mockResolvedValue(quote);
+                const response = await supertest(app)
+                    .get(`${GASLESS_V1_PATH}/quote`)
+                    .set('Content-type', 'application/json')
+                    .set('0x-api-key', 'integrator-api-key')
+                    .set('0x-chain-id', '1337')
+                    .query({
+                        buyToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
+                        sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+                        buyAmount: 1800054805473,
+                        takerAddress,
+                        intentOnFilling: 'true',
+                        skipValidation: 'true',
+                    });
+
+                expect(response.body).toStrictEqual({ ...convertBigNumbersToJson(quote), liquidityAvailable: true });
+                expect(response.statusCode).toEqual(HttpStatus.OK);
+            });
         });
     });
 
@@ -928,6 +1071,13 @@ function convertBigNumbersToJson(x: Record<string, any>): Record<string, any> {
     return mapValues(x, (v) => {
         if (v instanceof BigNumber) {
             return v.toJSON();
+        }
+        if (v instanceof Array) {
+            const jsonArray = [];
+            for (const item of v) {
+                jsonArray.push(convertBigNumbersToJson(item));
+            }
+            return jsonArray;
         }
         if (v instanceof Object) {
             return convertBigNumbersToJson(v);

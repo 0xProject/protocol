@@ -13,7 +13,7 @@ import { MetaTransactionJobConstructorOpts } from '../entities/MetaTransactionJo
 import { RfqmJobStatus } from '../entities/types';
 import { logger } from '../logger';
 import { ExecuteMetaTransactionEip712Context, PermitEip712Context, GaslessTypes } from '../core/types';
-import { FeeConfigs, Fees } from '../core/types/meta_transaction_fees';
+import { FeeConfigs, TruncatedFees } from '../core/types/meta_transaction_fees';
 import {
     getV1QuoteAsync,
     getV2QuoteAsync,
@@ -43,7 +43,7 @@ import {
     StatusResponse,
     FetchQuoteParamsBase,
 } from './types';
-import { getFeeConfigsFromParams } from '../core/meta_transaction_fee_utils';
+import { feesToTruncatedFees, getFeeConfigsFromParams } from '../core/meta_transaction_fee_utils';
 
 /**
  * When a metatransaction quote is issued, the hash
@@ -153,7 +153,7 @@ export class GaslessSwapService {
         kind: GaslessTypes,
     ): Promise<
         | (FetchIndicativeQuoteResponse &
-              ({ liquiditySource: 'rfq' | 'amm' } | { sources: LiquiditySource[]; fees?: Fees }))
+              ({ liquiditySource: 'rfq' | 'amm' } | { sources: LiquiditySource[]; fees?: TruncatedFees }))
         | null
     > {
         if (kind === GaslessTypes.MetaTransaction) {
@@ -241,7 +241,7 @@ export class GaslessSwapService {
                     return {
                         ...metaTransactionQuote.price,
                         sources: metaTransactionQuote.sources,
-                        fees: metaTransactionQuote.fees,
+                        fees: feesToTruncatedFees(metaTransactionQuote.fees),
                         allowanceTarget: this._blockchainUtils.getExchangeProxyAddress(),
                     };
                 }
@@ -389,7 +389,7 @@ export class GaslessSwapService {
                         metaTransactionHash: metaTransactionQuote.metaTransaction.getHash(),
                         type: GaslessTypes.MetaTransactionV2,
                         sources: metaTransactionQuote.sources,
-                        fees: metaTransactionQuote.fees,
+                        fees: feesToTruncatedFees(metaTransactionQuote.fees),
                         allowanceTarget: this._blockchainUtils.getExchangeProxyAddress(),
                     };
                 }

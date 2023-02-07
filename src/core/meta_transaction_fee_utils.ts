@@ -9,6 +9,8 @@ import {
     IntegratorShareFee,
     IntegratorShareFeeConfig,
     RawFees,
+    TruncatedFee,
+    TruncatedFees,
     VolumeBasedFee,
     VolumeBasedFeeConfig,
 } from './types/meta_transaction_fees';
@@ -66,6 +68,50 @@ export function rawFeesToFees(rawFees: RawFees | undefined): Fees | undefined {
             gasPrice: new BigNumber(rawGasFee.gasPrice),
             estimatedGas: new BigNumber(rawGasFee.estimatedGas),
             feeTokenAmountPerBaseUnitNativeToken: new BigNumber(rawGasFee.feeTokenAmountPerBaseUnitNativeToken),
+        };
+    }
+
+    return {
+        integratorFee,
+        zeroExFee,
+        gasFee,
+    };
+}
+
+/**
+ * Convert `Fees` to `TruncatedFees` which is returned in the payload to callers.
+ */
+export function feesToTruncatedFees(fees: Fees | undefined): TruncatedFees | undefined {
+    if (!fees) {
+        return undefined;
+    }
+
+    let integratorFee: TruncatedFee | undefined;
+    let zeroExFee: TruncatedFee | undefined;
+    let gasFee: TruncatedFee | undefined;
+
+    if (fees.integratorFee) {
+        const { type, feeToken, feeAmount } = fees.integratorFee;
+        integratorFee = {
+            feeType: type,
+            feeToken,
+            feeAmount,
+        };
+    }
+    if (fees.zeroExFee) {
+        const { type, feeToken, feeAmount } = fees.zeroExFee;
+        zeroExFee = {
+            feeType: type,
+            feeToken,
+            feeAmount,
+        };
+    }
+    if (fees.gasFee) {
+        const { type, feeToken, feeAmount } = fees.gasFee;
+        gasFee = {
+            feeType: type,
+            feeToken,
+            feeAmount,
         };
     }
 

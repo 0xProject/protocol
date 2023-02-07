@@ -10,7 +10,7 @@ import {
     GaslessTypes,
     PermitEip712Context,
 } from '../core/types';
-import { Fees } from '../core/types/meta_transaction_fees';
+import { TruncatedFees } from '../core/types/meta_transaction_fees';
 
 export interface FetchIndicativeQuoteParams extends FetchQuoteParamsBase {
     takerAddress?: string;
@@ -95,7 +95,7 @@ export interface MetaTransactionV2QuoteResponse extends BaseRfqmQuoteResponse {
     metaTransactionHash: string;
     approval?: ApprovalResponse;
     sources: LiquiditySource[];
-    fees?: Fees;
+    fees?: TruncatedFees;
 }
 
 export interface ApprovalResponse {
