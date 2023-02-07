@@ -43,7 +43,7 @@ import {
     stringsToSignature,
 } from '../utils/rfqm_request_utils';
 import { schemaUtils } from '../core/schema_utils';
-import { GASLESS_V1_PATH, ZERO_G_PATH, ZERO_G_ALIAS_PATH } from '../core/constants';
+import { TX_RELAY_V1_PATH, ZERO_G_PATH, ZERO_G_ALIAS_PATH } from '../core/constants';
 
 // Minimum slippage allowed. This value should be kept consistent with the value set in 0x-api
 const MIN_ALLOWED_SLIPPAGE = 0.001; // 0.1%
@@ -363,7 +363,7 @@ export class GaslessSwapHandlers {
                 ]);
             }
         } else if (metaTransactionType === GaslessTypes.MetaTransactionV2) {
-            // slippage percentage of gasless v1 is on scale of 100 which is what percentage means (a fix from zero-g)
+            // slippage percentage of tx relay v1 is on scale of 100 which is what percentage means (a fix from zero-g)
             if (slippagePercentage?.lt(MIN_ALLOWED_SLIPPAGE * 100) || slippagePercentage?.gt(100)) {
                 throw new ValidationError([
                     {
@@ -609,7 +609,7 @@ function getMetaTransactionType(baseURL: string): GaslessTypes {
     if (ZERO_G_PATH.includes(baseURL) || ZERO_G_ALIAS_PATH.includes(baseURL)) {
         return GaslessTypes.MetaTransaction;
     }
-    if (GASLESS_V1_PATH.includes(baseURL)) {
+    if (TX_RELAY_V1_PATH.includes(baseURL)) {
         return GaslessTypes.MetaTransactionV2;
     }
 

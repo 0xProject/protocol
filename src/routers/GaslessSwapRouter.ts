@@ -26,9 +26,9 @@ export function createZeroGRouter(
 }
 
 /**
- * Creates an express router for gasless v1 related routes.
+ * Creates an express router for tx relay v1 related routes.
  */
-export function createGaslessV1Router(
+export function createTxRelayV1Router(
     gaslessSwapServices: Map<number, GaslessSwapService>,
     configManager: ConfigManager,
 ): express.Router {

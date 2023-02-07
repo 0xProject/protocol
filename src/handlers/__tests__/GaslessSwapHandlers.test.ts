@@ -11,11 +11,11 @@ import { Producer } from 'sqs-producer';
 import * as supertest from 'supertest';
 
 import { Integrator } from '../../config';
-import { GASLESS_V1_PATH, ZERO_G_ALIAS_PATH, ZERO_G_PATH } from '../../core/constants';
+import { TX_RELAY_V1_PATH, ZERO_G_ALIAS_PATH, ZERO_G_PATH } from '../../core/constants';
 import { GaslessTypes } from '../../core/types';
 import { TruncatedFees } from '../../core/types/meta_transaction_fees';
 import { errorHandler } from '../../middleware/error_handling';
-import { createGaslessV1Router, createZeroGRouter } from '../../routers/GaslessSwapRouter';
+import { createTxRelayV1Router, createZeroGRouter } from '../../routers/GaslessSwapRouter';
 import { GaslessSwapService } from '../../services/GaslessSwapService';
 import { RfqmService } from '../../services/rfqm_service';
 import {
@@ -105,8 +105,8 @@ describe('GaslessSwapHandlers', () => {
         .use(ZERO_G_PATH, createZeroGRouter(new Map([[testChainId, mockGaslessSwapService]]), mockConfigManager))
         .use(ZERO_G_ALIAS_PATH, createZeroGRouter(new Map([[testChainId, mockGaslessSwapService]]), mockConfigManager))
         .use(
-            GASLESS_V1_PATH,
-            createGaslessV1Router(new Map([[testChainId, mockGaslessSwapService]]), mockConfigManager),
+            TX_RELAY_V1_PATH,
+            createTxRelayV1Router(new Map([[testChainId, mockGaslessSwapService]]), mockConfigManager),
         )
         .use(errorHandler);
 
@@ -200,10 +200,10 @@ describe('GaslessSwapHandlers', () => {
             });
         });
 
-        describe('gasless v1', () => {
+        describe('tx relay v1', () => {
             it('throws if the `slippagePercentage` is out of range for /price', async () => {
                 const response = await supertest(app)
-                    .get(`${GASLESS_V1_PATH}/price`)
+                    .get(`${TX_RELAY_V1_PATH}/price`)
                     .set('Content-type', 'application/json')
                     .set('0x-api-key', 'integrator-api-key')
                     .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
@@ -221,7 +221,7 @@ describe('GaslessSwapHandlers', () => {
 
             it('throws if the `slippagePercentage` is out of range for /quote', async () => {
                 const response = await supertest(app)
-                    .get(`${GASLESS_V1_PATH}/quote`)
+                    .get(`${TX_RELAY_V1_PATH}/quote`)
                     .set('Content-type', 'application/json')
                     .set('0x-api-key', 'integrator-api-key')
                     .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
@@ -239,7 +239,7 @@ describe('GaslessSwapHandlers', () => {
 
             it('throws if the `slippagePercentage` is invalid for /quote', async () => {
                 const response = await supertest(app)
-                    .get(`${GASLESS_V1_PATH}/quote`)
+                    .get(`${TX_RELAY_V1_PATH}/quote`)
                     .set('Content-type', 'application/json')
                     .set('0x-api-key', 'integrator-api-key')
                     .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
@@ -257,7 +257,7 @@ describe('GaslessSwapHandlers', () => {
 
             it('throws if the `feeType` is invalid for /quote', async () => {
                 const response = await supertest(app)
-                    .get(`${GASLESS_V1_PATH}/quote`)
+                    .get(`${TX_RELAY_V1_PATH}/quote`)
                     .set('Content-type', 'application/json')
                     .set('0x-api-key', 'integrator-api-key')
                     .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
@@ -278,7 +278,7 @@ describe('GaslessSwapHandlers', () => {
 
             it('throws if the `feeSellTokenPercentage` is undefined when `feeType` is provided for /quote', async () => {
                 const response = await supertest(app)
-                    .get(`${GASLESS_V1_PATH}/quote`)
+                    .get(`${TX_RELAY_V1_PATH}/quote`)
                     .set('Content-type', 'application/json')
                     .set('0x-api-key', 'integrator-api-key')
                     .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
@@ -298,7 +298,7 @@ describe('GaslessSwapHandlers', () => {
 
             it('throws if the `feeSellTokenPercentage` is out of range for /quote', async () => {
                 const response = await supertest(app)
-                    .get(`${GASLESS_V1_PATH}/quote`)
+                    .get(`${TX_RELAY_V1_PATH}/quote`)
                     .set('Content-type', 'application/json')
                     .set('0x-api-key', 'integrator-api-key')
                     .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
@@ -319,7 +319,7 @@ describe('GaslessSwapHandlers', () => {
 
             it('throws if the `feeSellTokenPercentage` is out of range for /price', async () => {
                 const response = await supertest(app)
-                    .get(`${GASLESS_V1_PATH}/price`)
+                    .get(`${TX_RELAY_V1_PATH}/price`)
                     .set('Content-type', 'application/json')
                     .set('0x-api-key', 'integrator-api-key')
                     .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
@@ -340,7 +340,7 @@ describe('GaslessSwapHandlers', () => {
 
             it('throws if the `feeRecipient` is undefined when `feeType` is provided for /quote', async () => {
                 const response = await supertest(app)
-                    .get(`${GASLESS_V1_PATH}/quote`)
+                    .get(`${TX_RELAY_V1_PATH}/quote`)
                     .set('Content-type', 'application/json')
                     .set('0x-api-key', 'integrator-api-key')
                     .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
@@ -499,12 +499,12 @@ describe('GaslessSwapHandlers', () => {
             });
         });
 
-        describe('gasless v1', () => {
+        describe('tx relay v1', () => {
             it('passes calls on to Gasless Swap Service', async () => {
                 mockGaslessSwapService.fetchPriceAsync.mockResolvedValue(null);
 
                 await supertest(app)
-                    .get(`${GASLESS_V1_PATH}/price`)
+                    .get(`${TX_RELAY_V1_PATH}/price`)
                     .set('Content-type', 'application/json')
                     .set('0x-api-key', 'integrator-api-key')
                     .set('0x-chain-id', '1337')
@@ -600,7 +600,7 @@ describe('GaslessSwapHandlers', () => {
                 mockGaslessSwapService.fetchPriceAsync.mockResolvedValue(price);
 
                 const response = await supertest(app)
-                    .get(`${ZERO_G_ALIAS_PATH}/price`)
+                    .get(`${TX_RELAY_V1_PATH}/price`)
                     .set('Content-type', 'application/json')
                     .set('0x-api-key', 'integrator-api-key')
                     .set('0x-chain-id', '1337')
@@ -770,12 +770,12 @@ describe('GaslessSwapHandlers', () => {
             });
         });
 
-        describe('gasless v1', () => {
+        describe('tx relay v1', () => {
             it('passes calls on to Gasless Swap Service', async () => {
                 mockGaslessSwapService.fetchQuoteAsync.mockResolvedValue(null);
 
                 await supertest(app)
-                    .get(`${GASLESS_V1_PATH}/quote`)
+                    .get(`${TX_RELAY_V1_PATH}/quote`)
                     .set('Content-type', 'application/json')
                     .set('0x-api-key', 'integrator-api-key')
                     .set('0x-chain-id', '1337')
@@ -888,7 +888,7 @@ describe('GaslessSwapHandlers', () => {
                 };
                 mockGaslessSwapService.fetchQuoteAsync.mockResolvedValue(quote);
                 const response = await supertest(app)
-                    .get(`${GASLESS_V1_PATH}/quote`)
+                    .get(`${TX_RELAY_V1_PATH}/quote`)
                     .set('Content-type', 'application/json')
                     .set('0x-api-key', 'integrator-api-key')
                     .set('0x-chain-id', '1337')
@@ -984,7 +984,7 @@ describe('GaslessSwapHandlers', () => {
             });
         });
 
-        describe('gasless v1', () => {
+        describe('tx relay v1', () => {
             it('returns a metatransaction result', async () => {
                 const metaTransaction = new MetaTransactionV2({
                     callData:
@@ -1011,7 +1011,7 @@ describe('GaslessSwapHandlers', () => {
                 mockGaslessSwapService.processSubmitAsync.mockResolvedValue(submitResult);
 
                 const response = await supertest(app)
-                    .post(`${GASLESS_V1_PATH}/submit`)
+                    .post(`${TX_RELAY_V1_PATH}/submit`)
                     .set('Content-type', 'application/json')
                     .set('0x-api-key', 'integrator-api-key')
                     .set('0x-chain-id', '1337')

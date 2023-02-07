@@ -23,13 +23,13 @@ import {
     SENTRY_TRACES_SAMPLE_RATE,
     TOKEN_PRICE_ORACLE_TIMEOUT,
 } from '../config';
-import { GASLESS_V1_PATH, ZERO_G_ALIAS_PATH, ZERO_G_PATH } from '../core/constants';
+import { TX_RELAY_V1_PATH, ZERO_G_ALIAS_PATH, ZERO_G_PATH } from '../core/constants';
 import { getDbDataSourceAsync } from '../getDbDataSourceAsync';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
 import { addressNormalizer } from '../middleware/address_normalizer';
 import { errorHandler } from '../middleware/error_handling';
-import { createGaslessV1Router, createZeroGRouter } from '../routers/GaslessSwapRouter';
+import { createTxRelayV1Router, createZeroGRouter } from '../routers/GaslessSwapRouter';
 import { GaslessSwapService } from '../services/GaslessSwapService';
 import { BalanceChecker } from '../utils/balance_checker';
 import { ConfigManager } from '../utils/config_manager';
@@ -228,7 +228,7 @@ export async function runGaslessSwapServiceAsync(
 
     app.use(ZERO_G_ALIAS_PATH, createZeroGRouter(gaslessSwapServices, configManager));
     app.use(ZERO_G_PATH, createZeroGRouter(gaslessSwapServices, configManager));
-    app.use(GASLESS_V1_PATH, createGaslessV1Router(gaslessSwapServices, configManager));
+    app.use(TX_RELAY_V1_PATH, createTxRelayV1Router(gaslessSwapServices, configManager));
 
     if (SENTRY_DSN) {
         // The error handler must be before any other error middleware and after all controllers

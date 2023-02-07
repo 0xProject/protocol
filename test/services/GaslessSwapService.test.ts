@@ -439,7 +439,7 @@ describe('GaslessSwapService', () => {
             });
         });
 
-        describe('gasless v1', () => {
+        describe('tx relay v1', () => {
             it('gets a meta-transaction price', async () => {
                 getMetaTransactionV2QuoteAsyncMock.mockResolvedValueOnce({
                     metaTransaction: metaTransactionV2,
@@ -885,7 +885,7 @@ describe('GaslessSwapService', () => {
             });
         });
 
-        describe('gasless v1', () => {
+        describe('tx relay v1', () => {
             it('gets a meta-transaction quote', async () => {
                 getMetaTransactionV2QuoteAsyncMock.mockResolvedValueOnce({
                     metaTransaction: metaTransactionV1,
