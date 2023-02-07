@@ -975,7 +975,7 @@ describe('GaslessSwapService', () => {
                           "proportion": "0.6923",
                         },
                       ],
-                      "type": "metatransactionV2",
+                      "type": "metatransaction_v2",
                     }
                 `);
             });

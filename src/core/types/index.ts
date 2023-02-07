@@ -38,7 +38,7 @@ export interface ERC20Owner {
 
 export enum GaslessTypes {
     MetaTransaction = 'metatransaction',
-    MetaTransactionV2 = 'metatransactionV2',
+    MetaTransactionV2 = 'metatransaction_v2',
     OtcOrder = 'otc',
 }
 
