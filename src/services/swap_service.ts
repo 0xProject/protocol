@@ -397,6 +397,17 @@ export class SwapService implements ISwapService {
                   }
                 : undefined;
 
+        logger.info(
+            {
+                isPairAllowed,
+                isDefaultPositiveSlippageFee,
+                isPostiveSlippageEnabled,
+                positiveSlippageFee,
+                integratorPositiveSlippagePercent: integrator?.positiveSlippagePercent,
+            },
+            'Positive slippage values',
+        );
+
         // Grab the encoded version of the swap quote
         const { to, value, data, decodedUniqueId, gasOverhead } = this.getSwapQuotePartialTransaction(
             swapQuote,
