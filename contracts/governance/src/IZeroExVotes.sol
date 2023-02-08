@@ -85,7 +85,30 @@ interface IZeroExVotes {
      */
     function getPastTotalSupply(uint256 blockNumber) external view returns (uint256);
 
-    function moveVotingPower(address src, address dst, uint256 srcBalance, uint256 dstBalance, uint256 amount) external;
+    /**
+     * @dev Moves the voting power for an account with balance `delegateBalance` from `srcDelegatee` to `dstDelegatee`.
+     * Note that if the delegator isn't delegating to anyone before the function call `srcDelegatee` = address(0)
+     */
+    function moveEntireVotingPower(address srcDelegatee, address dstDelegatee, uint256 delegateBalance) external;
+
+    /**
+     * @dev Moves the voting power corresponding to `amount` number of tokens from `srcDelegatee` to `dstDelegatee`.
+     * Note that if the delegator isn't delegating to anyone before the function call `srcDelegatee` = address(0)
+     * @param srcDelegatee the delegatee we are moving voting power away from
+     * @param dstDelegatee the delegatee we are moving voting power to
+     * @param srcDelegateBalance balance of the delegate whose delegatee is `srcDelegatee`.
+     * This is value _after_ the transfer.
+     * @param dstDelegateBalance balance of the delegate whose delegatee is `dstDelegatee`.
+     * This is value _after_ the transfer.
+     * @param amount The amount of tokens transferred from the source delegate to destination delegate.
+     */
+    function movePartialVotingPower(
+        address srcDelegatee,
+        address dstDelegatee,
+        uint256 srcDelegateBalance,
+        uint256 dstDelegateBalance,
+        uint256 amount
+    ) external;
 
     function writeCheckpointTotalSupply(uint256 totalSupply) external;
 }

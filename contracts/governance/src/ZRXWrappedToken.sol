@@ -53,7 +53,7 @@ contract ZRXWrappedToken is ERC20, ERC20Permit, ERC20Wrapper {
         super._afterTokenTransfer(from, to, amount);
 
         // Move voting power when tokens are transferred.
-        zeroExVotes.moveVotingPower(delegates(from), delegates(to), balanceOf(from), balanceOf(to), amount);
+        zeroExVotes.movePartialVotingPower(delegates(from), delegates(to), balanceOf(from), balanceOf(to), amount);
     }
 
     /**
@@ -120,13 +120,6 @@ contract ZRXWrappedToken is ERC20, ERC20Permit, ERC20Wrapper {
 
         emit DelegateChanged(delegator, currentDelegate, delegatee);
 
-        // TODO this is a case where the entire delegatee's balance is being moved accross i.e. balanceOf(delegator) == delegatorBalance
-        zeroExVotes.moveVotingPower(
-            currentDelegate,
-            delegatee,
-            balanceOf(delegator),
-            balanceOf(delegatee),
-            delegatorBalance
-        );
+        zeroExVotes.moveEntireVotingPower(currentDelegate, delegatee, delegatorBalance);
     }
 }

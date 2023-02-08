@@ -23,17 +23,19 @@ import "@openzeppelin/governance/extensions/GovernorSettings.sol";
 import "@openzeppelin/governance/extensions/GovernorCountingSimple.sol";
 import "@openzeppelin/governance/extensions/GovernorVotes.sol";
 
+import "./IZeroExVotes.sol";
+
 contract ZeroExTreasuryGovernor is Governor, GovernorSettings, GovernorCountingSimple, GovernorVotes {
     constructor(
         IVotes _token
     )
         Governor("ZeroExTreasuryGovernor")
-        GovernorSettings(14400 /* 2 days */, 50400 /* 7 days */, 100000e18)
+        GovernorSettings(14400 /* 2 days */, 50400 /* 7 days */, 5e11)
         GovernorVotes(_token)
     {}
 
     function quorum(uint256 blockNumber) public pure override returns (uint256) {
-        return 5000000e18;
+        return 23e11;
     }
 
     // The following functions are overrides required by Solidity.
@@ -48,5 +50,17 @@ contract ZeroExTreasuryGovernor is Governor, GovernorSettings, GovernorCountingS
 
     function proposalThreshold() public view override(Governor, GovernorSettings) returns (uint256) {
         return super.proposalThreshold();
+    }
+
+    /**
+     * Overwritten GovernorVotes implementation
+     * Read the quadratic voting weight from the token's built in snapshot mechanism (see {Governor-_getVotes}).
+     */
+    function _getVotes(
+        address account,
+        uint256 blockNumber,
+        bytes memory /*params*/
+    ) internal view virtual override(Governor, GovernorVotes) returns (uint256) {
+        return IZeroExVotes(address(token)).getPastQuadraticVotes(account, blockNumber);
     }
 }

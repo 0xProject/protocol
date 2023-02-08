@@ -36,6 +36,8 @@ contract ZeroExTreasuryGovernorTest is BaseTest {
     function setUp() public {
         vm.startPrank(account1);
         (token, wToken, votes, timelock, , governor) = setupGovernance();
+        // quorum 5000000e18
+        // proposal threshold 250000e18 = sqrt(6.25e46) 5e11
         token.transfer(account2, 10000000e18);
         token.transfer(account3, 2000000e18);
         token.transfer(account4, 3000000e18);
@@ -76,11 +78,11 @@ contract ZeroExTreasuryGovernorTest is BaseTest {
     }
 
     function testShouldReturnCorrectProposalThreshold() public {
-        assertEq(governor.proposalThreshold(), 100000e18);
+        assertEq(governor.proposalThreshold(), 5e11);
     }
 
     function testShouldReturnCorrectQuorum() public {
-        assertEq(governor.quorum(block.number), 5000000e18);
+        assertEq(governor.quorum(block.number), 23e11);
     }
 
     function testShouldReturnCorrectToken() public {
@@ -122,9 +124,9 @@ contract ZeroExTreasuryGovernorTest is BaseTest {
 
         // Get vote results
         (uint256 votesAgainst, uint256 votesFor, uint256 votesAbstain) = governor.proposalVotes(proposalId);
-        assertEq(votesFor, 10000000e18);
-        assertEq(votesAgainst, 2000000e18);
-        assertEq(votesAbstain, 3000000e18);
+        assertEq(votesFor, Math.sqrt(10000000e18));
+        assertEq(votesAgainst, Math.sqrt(2000000e18));
+        assertEq(votesAbstain, Math.sqrt(3000000e18));
 
         IGovernor.ProposalState state = governor.state(proposalId);
         assertEq(uint256(state), uint256(IGovernor.ProposalState.Succeeded));
