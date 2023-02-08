@@ -24,7 +24,6 @@ import "@openzeppelin/token/ERC20/ERC20.sol";
 import "@openzeppelin/governance/utils/IVotes.sol";
 import "./IZeroExVotes.sol";
 
-/// @custom:security-contact security@0xproject.com
 contract ZeroExVotes is IZeroExVotes {
     address public token;
 
@@ -41,21 +40,21 @@ contract ZeroExVotes is IZeroExVotes {
     }
 
     /**
-     * @dev Get the `pos`-th checkpoint for `account`.
+     * @inheritdoc IZeroExVotes
      */
     function checkpoints(address account, uint32 pos) public view override returns (Checkpoint memory) {
         return _checkpoints[account][pos];
     }
 
     /**
-     * @dev Get number of checkpoints for `account`.
+     * @inheritdoc IZeroExVotes
      */
     function numCheckpoints(address account) public view override returns (uint32) {
         return SafeCast.toUint32(_checkpoints[account].length);
     }
 
     /**
-     * @dev Gets the current votes balance for `account`
+     * @inheritdoc IZeroExVotes
      */
     function getVotes(address account) public view override returns (uint256) {
         uint256 pos = _checkpoints[account].length;
@@ -65,64 +64,122 @@ contract ZeroExVotes is IZeroExVotes {
     /**
      * @inheritdoc IZeroExVotes
      */
-    function getPastVotes(address account, uint256 blockNumber) public view override returns (uint256) {
-        require(blockNumber < block.number, "ZeroExVotes: block not yet mined");
-        return _checkpointsLookup(_checkpoints[account], blockNumber);
+    function getQuadraticVotes(address account) public view override returns (uint256) {
+        uint256 pos = _checkpoints[account].length;
+        return pos == 0 ? 0 : _checkpoints[account][pos - 1].quadraticVotes;
     }
 
     /**
-     * @dev Retrieve the `totalSupply` at the end of `blockNumber`. Note, this value is the sum of all balances.
-     * It is but NOT the sum of all the delegated votes!
-     *
-     * Requirements:
-     *
-     * - `blockNumber` must have been already mined
+     * @inheritdoc IZeroExVotes
+     */
+    function getPastVotes(address account, uint256 blockNumber) public view override returns (uint256) {
+        require(blockNumber < block.number, "ZeroExVotes: block not yet mined");
+
+        Checkpoint memory checkpoint = _checkpointsLookup(_checkpoints[account], blockNumber);
+        return checkpoint.votes;
+    }
+
+    /**
+     * @inheritdoc IZeroExVotes
+     */
+    function getPastQuadraticVotes(address account, uint256 blockNumber) public view override returns (uint256) {
+        require(blockNumber < block.number, "ZeroExVotes: block not yet mined");
+
+        Checkpoint memory checkpoint = _checkpointsLookup(_checkpoints[account], blockNumber);
+        return checkpoint.quadraticVotes;
+    }
+
+    /**
+     * @inheritdoc IZeroExVotes
      */
     function getPastTotalSupply(uint256 blockNumber) public view override returns (uint256) {
         require(blockNumber < block.number, "ZeroExVotes: block not yet mined");
-        return _checkpointsLookup(_totalSupplyCheckpoints, blockNumber);
+
+        Checkpoint memory checkpoint = _checkpointsLookup(_totalSupplyCheckpoints, blockNumber);
+        return checkpoint.votes;
     }
 
-    function moveVotingPower(address src, address dst, uint256 amount) public override onlyToken {
-        return _moveVotingPower(src, dst, amount);
+    /**
+     * @inheritdoc IZeroExVotes
+     */
+    function moveVotingPower(
+        address src,
+        address dst,
+        uint256 srcDelegatorBalance,
+        uint256 dstDelegatorBalance,
+        uint256 amount
+    ) public override onlyToken {
+        if (src != dst && amount > 0) {
+            if (src != address(0)) {
+                // Linear vote weight update
+                (uint256 oldWeight, uint256 newWeight) = _writeCheckpoint(_checkpoints[src], _subtract, amount);
+
+                // Quadratic vote weight update
+                uint256 quadraticSrcDelegatorBalanceBeforeTransfer = Math.sqrt(srcDelegatorBalance + amount); // sqrt of balance of sender before transfer
+                //todo if (_checkpoints[src] > 0) _writeCheckpoint(_checkpoints[src], _subtract, quadraticSrcDelegatorBalanceBeforeTransfer);
+
+                uint256 quadraticSrcDelegatorBalanceAfterTransfer = Math.sqrt(srcDelegatorBalance); // sqrt of balance of sender before transfer
+                (uint256 oldQuadraticWeight, uint256 newQuadraticWeight) = _writeCheckpoint(
+                    _checkpoints[src],
+                    _add,
+                    quadraticSrcDelegatorBalanceAfterTransfer
+                );
+
+                emit DelegateVotesChanged(src, oldWeight, newWeight, oldQuadraticWeight, newQuadraticWeight);
+            }
+
+            if (dst != address(0)) {
+                // Linear vote weight update
+                (uint256 oldWeight, uint256 newWeight) = _writeCheckpoint(_checkpoints[dst], _add, amount);
+
+                // Quadratic vote weight update
+                uint256 quadraticDstDelegatorBalanceBeforeTransfer = Math.sqrt(dstDelegatorBalance - amount); // sqrt of balance of recipient before transfer
+                _writeCheckpoint(_checkpoints[dst], _subtract, quadraticDstDelegatorBalanceBeforeTransfer);
+
+                uint256 quadraticDstDelegatorBalanceAfterTransfer = Math.sqrt(dstDelegatorBalance);
+                (uint256 oldQuadraticWeight, uint256 newQuadraticWeight) = _writeCheckpoint(
+                    _checkpoints[dst],
+                    _add,
+                    quadraticDstDelegatorBalanceAfterTransfer
+                );
+
+                emit DelegateVotesChanged(dst, oldWeight, newWeight, oldQuadraticWeight, newQuadraticWeight);
+            }
+        }
     }
 
+    /**
+     * @inheritdoc IZeroExVotes
+     */
     function writeCheckpointAddTotalSupply(
         uint256 delta
     ) public override onlyToken returns (uint256 oldWeight, uint256 newWeight) {
         _writeCheckpoint(_totalSupplyCheckpoints, _add, delta);
     }
 
+    /**
+     * @inheritdoc IZeroExVotes
+     */
     function writeCheckpointSubTotalSupply(
         uint256 delta
     ) public override onlyToken returns (uint256 oldWeight, uint256 newWeight) {
         _writeCheckpoint(_totalSupplyCheckpoints, _subtract, delta);
     }
 
-    function _moveVotingPower(address src, address dst, uint256 amount) private {
-        if (src != dst && amount > 0) {
-            if (src != address(0)) {
-                (uint256 oldWeight, uint256 newWeight) = _writeCheckpoint(_checkpoints[src], _subtract, amount);
-                emit DelegateVotesChanged(src, oldWeight, newWeight);
-            }
-
-            if (dst != address(0)) {
-                (uint256 oldWeight, uint256 newWeight) = _writeCheckpoint(_checkpoints[dst], _add, amount);
-                emit DelegateVotesChanged(dst, oldWeight, newWeight);
-            }
-        }
-    }
-
     /**
      * @dev Lookup a value in a list of (sorted) checkpoints.
+     * Implementation as in openzeppelin/token/ERC20/extensions/ERC20Votes.sol except here we return the entire
+     * checkpoint rather than part of it
      */
-    function _checkpointsLookup(Checkpoint[] storage ckpts, uint256 blockNumber) private view returns (uint256) {
+    function _checkpointsLookup(
+        Checkpoint[] storage ckpts,
+        uint256 blockNumber
+    ) private view returns (Checkpoint memory) {
         // We run a binary search to look for the earliest checkpoint taken after `blockNumber`.
         //
         // Initially we check if the block is recent to narrow the search range.
         // During the loop, the index of the wanted checkpoint remains in the range [low-1, high).
-        // With each iteration, either `low` or `high` is moved towards the middle of the range to maintain the
-        // invariant.
+        // With each iteration, either `low` or `high` is moved towards the middle of the range to maintain the invariant.
         // - If the middle checkpoint is after `blockNumber`, we look in [low, mid)
         // - If the middle checkpoint is before or equal to `blockNumber`, we look in [mid+1, high)
         // Once we reach a single value (when low == high), we've found the right checkpoint at the index high-1, if not
@@ -153,7 +210,10 @@ contract ZeroExVotes is IZeroExVotes {
             }
         }
 
-        return high == 0 ? 0 : _unsafeAccess(ckpts, high - 1).votes;
+        // Leaving here for posterity this is the original OZ implementation which we've replaced
+        // return high == 0 ? 0 : _unsafeAccess(ckpts, high - 1).votes;
+        Checkpoint memory checkpoint = high > 0 ? Checkpoint(0, 0, 0) : _unsafeAccess(ckpts, high - 1);
+        return checkpoint;
     }
 
     function _writeCheckpoint(
@@ -163,15 +223,26 @@ contract ZeroExVotes is IZeroExVotes {
     ) private returns (uint256 oldWeight, uint256 newWeight) {
         uint256 pos = ckpts.length;
 
-        Checkpoint memory oldCkpt = pos == 0 ? Checkpoint(0, 0) : _unsafeAccess(ckpts, pos - 1);
+        Checkpoint memory oldCkpt = pos == 0 ? Checkpoint(0, 0, 0) : _unsafeAccess(ckpts, pos - 1);
 
         oldWeight = oldCkpt.votes;
         newWeight = op(oldWeight, delta);
 
+        // uint256 oldQuadraticWeight = oldCkpt.quadraticVotes;
+        // uint256 newQuadraticWeight = op(oldQuadraticWeight, Math.sqrt(delta));
+
         if (pos > 0 && oldCkpt.fromBlock == block.number) {
             _unsafeAccess(ckpts, pos - 1).votes = SafeCast.toUint224(newWeight);
+            // _unsafeAccess(ckpts, pos - 1).votes = SafeCast.toUint224(votes);
+            // _unsafeAccess(ckpts, pos - 1).quadraticVotes = SafeCast.toUint224(quadraticVotes);
         } else {
-            ckpts.push(Checkpoint({fromBlock: SafeCast.toUint32(block.number), votes: SafeCast.toUint224(newWeight)}));
+            ckpts.push(
+                Checkpoint({
+                    fromBlock: SafeCast.toUint32(block.number),
+                    votes: SafeCast.toUint224(newWeight),
+                    quadraticVotes: 0 // TODO SafeCast.toUint224(quadraticVotes)
+                })
+            );
         }
     }
 
@@ -185,6 +256,8 @@ contract ZeroExVotes is IZeroExVotes {
 
     /**
      * @dev Access an element of the array without performing bounds check. The position is assumed to be within bounds.
+     * Implementation as in openzeppelin/token/ERC20/extensions/ERC20Votes.sol
+     * https://github.com/ethereum/solidity/issues/9117
      */
     function _unsafeAccess(Checkpoint[] storage ckpts, uint256 pos) private pure returns (Checkpoint storage result) {
         assembly {

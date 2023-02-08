@@ -106,7 +106,9 @@ contract ZRXWrappedTokenTest is BaseTest {
     function testShouldBeAbleToSelfDelegateVotingPower() public {
         // Check voting power initially is 0
         uint256 votingPowerAccount2 = votes.getVotes(account2);
+        uint256 votingQuadraticPowerAccount2 = votes.getQuadraticVotes(account2);
         assertEq(votingPowerAccount2, 0);
+        assertEq(votingQuadraticPowerAccount2, 0);
 
         // Wrap ZRX and delegate voting power to themselves
         vm.startPrank(account2);
@@ -117,12 +119,17 @@ contract ZRXWrappedTokenTest is BaseTest {
         // Check voting power is now = token balance
         votingPowerAccount2 = votes.getVotes(account2);
         assertEq(votingPowerAccount2, 100e18);
+        // Check quadratic voting power is now = sqrt(token balance)
+        votingQuadraticPowerAccount2 = votes.getQuadraticVotes(account2);
+        assertEq(votingQuadraticPowerAccount2, Math.sqrt(100e18));
     }
 
     function testShouldBeAbleToDelegateVotingPowerToAnotherAccount() public {
         // Check voting power initially is 0
         uint256 votingPowerAccount3 = votes.getVotes(account3);
+        uint256 votingQuadraticPowerAccount3 = votes.getVotes(account3);
         assertEq(votingPowerAccount3, 0);
+        assertEq(votingQuadraticPowerAccount3, 0);
 
         // Account 2 wraps ZRX and delegates voting power to account3
         vm.startPrank(account2);
@@ -133,5 +140,8 @@ contract ZRXWrappedTokenTest is BaseTest {
         // Check voting power is now = token balance
         votingPowerAccount3 = votes.getVotes(account3);
         assertEq(votingPowerAccount3, 10e18);
+        // Check quadratic voting power is now = sqrt(token balance)
+        votingQuadraticPowerAccount3 = votes.getVotes(account3);
+        assertEq(votingQuadraticPowerAccount3, Math.sqrt(10e18));
     }
 }
