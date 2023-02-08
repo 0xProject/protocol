@@ -39,8 +39,8 @@ import * as OtcOrdersFeature from '../generated-artifacts/OtcOrdersFeature.json'
 import * as OwnableFeature from '../generated-artifacts/OwnableFeature.json';
 import * as PayTakerTransformer from '../generated-artifacts/PayTakerTransformer.json';
 import * as PolygonBridgeAdapter from '../generated-artifacts/PolygonBridgeAdapter.json';
-import * as PositiveSlippageFeeTransformer from '../generated-artifacts/PositiveSlippageFeeTransformer.json';
 import * as SimpleFunctionRegistryFeature from '../generated-artifacts/SimpleFunctionRegistryFeature.json';
+import * as TradeSurplusTransformer from '../generated-artifacts/TradeSurplusTransformer.json';
 import * as TransformERC20Feature from '../generated-artifacts/TransformERC20Feature.json';
 import * as WethTransformer from '../generated-artifacts/WethTransformer.json';
 import * as ZeroEx from '../generated-artifacts/ZeroEx.json';
@@ -56,7 +56,7 @@ export const artifacts = {
     ITransformERC20Feature: ITransformERC20Feature as ContractArtifact,
     FillQuoteTransformer: FillQuoteTransformer as ContractArtifact,
     PayTakerTransformer: PayTakerTransformer as ContractArtifact,
-    PositiveSlippageFeeTransformer: PositiveSlippageFeeTransformer as ContractArtifact,
+    TradeSurplusTransformer: TradeSurplusTransformer as ContractArtifact,
     WethTransformer: WethTransformer as ContractArtifact,
     OwnableFeature: OwnableFeature as ContractArtifact,
     SimpleFunctionRegistryFeature: SimpleFunctionRegistryFeature as ContractArtifact,

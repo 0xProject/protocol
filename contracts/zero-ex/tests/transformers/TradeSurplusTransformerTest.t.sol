@@ -18,24 +18,24 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-erc20/contracts/src/v06/WETH9V06.sol";
 
 import "utils/BaseTest.sol";
-import "../../contracts/src/transformers/PositiveSlippageFeeTransformer.sol";
+import "../../contracts/src/transformers/TradeSurplusTransformer.sol";
 import "../../contracts/src/transformers/IERC20Transformer.sol";
 
-contract PositiveSlippageFeeTransformerTest is BaseTest {
+contract TradeSurplusTransformerTest is BaseTest {
     address public owner = account1;
     address public feeRecipient = account2;
     WETH9V06 weth = new WETH9V06();
     IERC20TokenV06 token1 = IERC20TokenV06(address(weth));
 
-    PositiveSlippageFeeTransformer target = new PositiveSlippageFeeTransformer();
+    TradeSurplusTransformer target = new TradeSurplusTransformer();
 
     function setUp() public {
         vm.deal(address(this), 1e19);
         weth.deposit{value: 10}();
     }
 
-    function test_positiveSlippageFee() public {
-        // Send positive slippage to contract which executes PositiveSlippageFeeTransformer
+    function test_tradeSurplus() public {
+        // Send trade surplus to contract which executes TradeSurplusTransformer
         weth.transfer(address(target), 10);
         uint256 bestCaseAmount = 1;
 
@@ -44,7 +44,7 @@ contract PositiveSlippageFeeTransformerTest is BaseTest {
                 sender: payable(address(this)),
                 recipient: payable(address(this)),
                 data: abi.encode(
-                    PositiveSlippageFeeTransformer.TokenFee({
+                    TradeSurplusTransformer.TokenFee({
                         token: IERC20TokenV06(token1),
                         bestCaseAmount: bestCaseAmount,
                         recipient: payable(feeRecipient)
@@ -56,7 +56,7 @@ contract PositiveSlippageFeeTransformerTest is BaseTest {
         assertEq(result, LibERC20Transformer.TRANSFORMER_SUCCESS);
     }
 
-    function test_positiveSlippageFee_bestCaseEqualsAmount() public {
+    function test_tradeSurplus_bestCaseEqualsAmount() public {
         uint256 bestCaseAmount = 10;
         weth.transfer(address(target), 10);
 
@@ -65,7 +65,7 @@ contract PositiveSlippageFeeTransformerTest is BaseTest {
                 sender: payable(address(this)),
                 recipient: payable(address(this)),
                 data: abi.encode(
-                    PositiveSlippageFeeTransformer.TokenFee({
+                    TradeSurplusTransformer.TokenFee({
                         token: IERC20TokenV06(token1),
                         bestCaseAmount: bestCaseAmount,
                         recipient: payable(feeRecipient)
@@ -77,7 +77,7 @@ contract PositiveSlippageFeeTransformerTest is BaseTest {
         assertEq(result, LibERC20Transformer.TRANSFORMER_SUCCESS);
     }
 
-    function test_positiveSlippageFee_bestCaseGreaterThanAmount() public {
+    function test_tradeSurplus_bestCaseGreaterThanAmount() public {
         uint256 bestCaseAmount = 10;
         weth.transfer(address(target), 1);
 
@@ -86,7 +86,7 @@ contract PositiveSlippageFeeTransformerTest is BaseTest {
                 sender: payable(address(this)),
                 recipient: payable(address(this)),
                 data: abi.encode(
-                    PositiveSlippageFeeTransformer.TokenFee({
+                    TradeSurplusTransformer.TokenFee({
                         token: IERC20TokenV06(token1),
                         bestCaseAmount: bestCaseAmount,
                         recipient: payable(feeRecipient)

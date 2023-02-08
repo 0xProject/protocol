@@ -151,7 +151,6 @@ import * as PancakeSwapFeature from '../test/generated-artifacts/PancakeSwapFeat
 import * as PayTakerTransformer from '../test/generated-artifacts/PayTakerTransformer.json';
 import * as PermissionlessTransformerDeployer from '../test/generated-artifacts/PermissionlessTransformerDeployer.json';
 import * as PolygonBridgeAdapter from '../test/generated-artifacts/PolygonBridgeAdapter.json';
-import * as PositiveSlippageFeeTransformer from '../test/generated-artifacts/PositiveSlippageFeeTransformer.json';
 import * as SimpleFunctionRegistryFeature from '../test/generated-artifacts/SimpleFunctionRegistryFeature.json';
 import * as TestCurve from '../test/generated-artifacts/TestCurve.json';
 import * as TestDelegateCaller from '../test/generated-artifacts/TestDelegateCaller.json';
@@ -198,6 +197,7 @@ import * as TestUniswapV3Feature from '../test/generated-artifacts/TestUniswapV3
 import * as TestUniswapV3Pool from '../test/generated-artifacts/TestUniswapV3Pool.json';
 import * as TestWeth from '../test/generated-artifacts/TestWeth.json';
 import * as TestWethTransformerHost from '../test/generated-artifacts/TestWethTransformerHost.json';
+import * as TradeSurplusTransformer from '../test/generated-artifacts/TradeSurplusTransformer.json';
 import * as Transformer from '../test/generated-artifacts/Transformer.json';
 import * as TransformERC20Feature from '../test/generated-artifacts/TransformERC20Feature.json';
 import * as TransformerDeployer from '../test/generated-artifacts/TransformerDeployer.json';
@@ -311,7 +311,7 @@ export const artifacts = {
     LibERC20Transformer: LibERC20Transformer as ContractArtifact,
     LogMetadataTransformer: LogMetadataTransformer as ContractArtifact,
     PayTakerTransformer: PayTakerTransformer as ContractArtifact,
-    PositiveSlippageFeeTransformer: PositiveSlippageFeeTransformer as ContractArtifact,
+    TradeSurplusTransformer: TradeSurplusTransformer as ContractArtifact,
     Transformer: Transformer as ContractArtifact,
     WethTransformer: WethTransformer as ContractArtifact,
     AbstractBridgeAdapter: AbstractBridgeAdapter as ContractArtifact,

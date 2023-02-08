@@ -106,7 +106,7 @@
         "./contracts/src/transformers/LibERC20Transformer.sol",
         "./contracts/src/transformers/LogMetadataTransformer.sol",
         "./contracts/src/transformers/PayTakerTransformer.sol",
-        "./contracts/src/transformers/PositiveSlippageFeeTransformer.sol",
+        "./contracts/src/transformers/TradeSurplusTransformer.sol",
         "./contracts/src/transformers/Transformer.sol",
         "./contracts/src/transformers/WethTransformer.sol",
         "./contracts/src/transformers/bridges/AbstractBridgeAdapter.sol",

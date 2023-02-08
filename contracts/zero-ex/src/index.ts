@@ -52,7 +52,7 @@ export {
     OptimismBridgeAdapterContract,
     PayTakerTransformerContract,
     PolygonBridgeAdapterContract,
-    PositiveSlippageFeeTransformerContract,
+    TradeSurplusTransformerContract,
     TransformERC20FeatureContract,
     WethTransformerContract,
     ZeroExContract,

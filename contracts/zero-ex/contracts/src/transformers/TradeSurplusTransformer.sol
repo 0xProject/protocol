@@ -23,8 +23,8 @@ import "../errors/LibTransformERC20RichErrors.sol";
 import "./Transformer.sol";
 import "./LibERC20Transformer.sol";
 
-/// @dev A transformer that transfers tokens to arbitrary addresses.
-contract PositiveSlippageFeeTransformer is Transformer {
+/// @dev A transformer that transfers token surplus to arbitrary addresses.
+contract TradeSurplusTransformer is Transformer {
     using LibRichErrorsV06 for bytes;
     using LibSafeMathV06 for uint256;
     using LibERC20Transformer for IERC20TokenV06;

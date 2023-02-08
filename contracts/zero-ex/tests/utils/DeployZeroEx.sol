@@ -38,7 +38,7 @@ import "src/transformers/WethTransformer.sol";
 import "src/transformers/FillQuoteTransformer.sol";
 import "src/transformers/PayTakerTransformer.sol";
 import "src/transformers/AffiliateFeeTransformer.sol";
-import "src/transformers/PositiveSlippageFeeTransformer.sol";
+import "src/transformers/TradeSurplusTransformer.sol";
 import "src/transformers/bridges/IBridgeAdapter.sol";
 import "src/transformers/bridges/EthereumBridgeAdapter.sol";
 
