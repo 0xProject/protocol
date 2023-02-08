@@ -98,7 +98,7 @@ jobs:
             - name: Run Forge coverage
               working-directory: contracts/zero-ex
               run: |
-                  forge coverage --report lcov
+                  forge coverage --report summary --report lcov
 
             - name: Upload the coverage report to Coveralls
               uses: coverallsapp/github-action@master
@@ -106,3 +106,10 @@ jobs:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
                   base-path: ./contracts/zero-ex/
                   path-to-lcov: ./contracts/zero-ex/lcov.info
+
+            - name: Check coverage threshold
+              uses: VeryGoodOpenSource/very_good_coverage@v2
+              with:
+                  path: ./contracts/zero-ex/lcov.info
+                  min_coverage: 6.98
+                  exclude: '**/tests'

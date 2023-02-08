@@ -29,7 +29,7 @@ import "src/transformers/bridges/BridgeProtocols.sol";
 import "src/transformers/bridges/EthereumBridgeAdapter.sol";
 import "src/IZeroEx.sol";
 
-contract WrapEth is Test, ForkUtils, TestUtils {
+contract WrapEthTest is Test, ForkUtils, TestUtils {
     DeployZeroEx.ZeroExDeployed zeroExDeployed;
 
     function setUp() public {
