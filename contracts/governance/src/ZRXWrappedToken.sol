@@ -69,14 +69,14 @@ contract ZRXWrappedToken is ERC20, ERC20Permit, ERC20Wrapper {
         // Snapshots the totalSupply after it has been increased.
         require(totalSupply() <= _maxSupply(), "ERC20Votes: total supply risks overflowing votes");
 
-        zeroExVotes.writeCheckpointAddTotalSupply(amount);
+        zeroExVotes.writeCheckpointTotalSupply(totalSupply());
     }
 
     function _burn(address account, uint256 amount) internal override(ERC20) {
         super._burn(account, amount);
 
         // Snapshots the totalSupply after it has been decreased.
-        zeroExVotes.writeCheckpointSubTotalSupply(amount);
+        zeroExVotes.writeCheckpointTotalSupply(totalSupply());
     }
 
     /**

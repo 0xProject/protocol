@@ -151,19 +151,8 @@ contract ZeroExVotes is IZeroExVotes {
     /**
      * @inheritdoc IZeroExVotes
      */
-    function writeCheckpointAddTotalSupply(
-        uint256 delta
-    ) public override onlyToken returns (uint256 oldWeight, uint256 newWeight) {
-        _writeCheckpoint(_totalSupplyCheckpoints, _add, delta);
-    }
-
-    /**
-     * @inheritdoc IZeroExVotes
-     */
-    function writeCheckpointSubTotalSupply(
-        uint256 delta
-    ) public override onlyToken returns (uint256 oldWeight, uint256 newWeight) {
-        _writeCheckpoint(_totalSupplyCheckpoints, _subtract, delta);
+    function writeCheckpointTotalSupply(uint256 totalSupply) public override onlyToken {
+        _writeCheckpoint(_totalSupplyCheckpoints, totalSupply);
     }
 
     /**
@@ -216,42 +205,50 @@ contract ZeroExVotes is IZeroExVotes {
         return checkpoint;
     }
 
-    function _writeCheckpoint(
-        Checkpoint[] storage ckpts,
-        function(uint256, uint256) view returns (uint256) op,
-        uint256 delta
-    ) private returns (uint256 oldWeight, uint256 newWeight) {
+    // function _writeCheckpoint(
+    //     Checkpoint[] storage ckpts,
+    //     function(uint256, uint256) view returns (uint256) op,
+    //     uint256 delta
+    // ) private returns (uint256 oldWeight, uint256 newWeight) {
+    //     uint256 pos = ckpts.length;
+
+    //     Checkpoint memory oldCkpt = pos == 0 ? Checkpoint(0, 0, 0) : _unsafeAccess(ckpts, pos - 1);
+
+    //     oldWeight = oldCkpt.votes;
+    //     newWeight = op(oldWeight, delta);
+
+    //     // uint256 oldQuadraticWeight = oldCkpt.quadraticVotes;
+    //     // uint256 newQuadraticWeight = op(oldQuadraticWeight, Math.sqrt(delta));
+
+    //     if (pos > 0 && oldCkpt.fromBlock == block.number) {
+    //         _unsafeAccess(ckpts, pos - 1).votes = SafeCast.toUint224(newWeight);
+    //         // _unsafeAccess(ckpts, pos - 1).votes = SafeCast.toUint224(votes);
+    //         // _unsafeAccess(ckpts, pos - 1).quadraticVotes = SafeCast.toUint224(quadraticVotes);
+    //     } else {
+    //         ckpts.push(
+    //             Checkpoint({
+    //                 fromBlock: SafeCast.toUint32(block.number),
+    //                 votes: SafeCast.toUint224(newWeight),
+    //                 quadraticVotes: 0 // TODO SafeCast.toUint224(quadraticVotes)
+    //             })
+    //         );
+    //     }
+    // }
+
+    /**
+     * Alternative version of openzeppelin/token/ERC20/extensions/ERC20Votes.sol implementation
+     * which accepts the new voting weight value directly as opposed to calculating in within the function
+     * based on a sub/add operation required.
+     */
+    function _writeCheckpoint(Checkpoint[] storage ckpts, uint256 newWeight) private {
         uint256 pos = ckpts.length;
-
         Checkpoint memory oldCkpt = pos == 0 ? Checkpoint(0, 0, 0) : _unsafeAccess(ckpts, pos - 1);
-
-        oldWeight = oldCkpt.votes;
-        newWeight = op(oldWeight, delta);
-
-        // uint256 oldQuadraticWeight = oldCkpt.quadraticVotes;
-        // uint256 newQuadraticWeight = op(oldQuadraticWeight, Math.sqrt(delta));
 
         if (pos > 0 && oldCkpt.fromBlock == block.number) {
             _unsafeAccess(ckpts, pos - 1).votes = SafeCast.toUint224(newWeight);
-            // _unsafeAccess(ckpts, pos - 1).votes = SafeCast.toUint224(votes);
-            // _unsafeAccess(ckpts, pos - 1).quadraticVotes = SafeCast.toUint224(quadraticVotes);
         } else {
-            ckpts.push(
-                Checkpoint({
-                    fromBlock: SafeCast.toUint32(block.number),
-                    votes: SafeCast.toUint224(newWeight),
-                    quadraticVotes: 0 // TODO SafeCast.toUint224(quadraticVotes)
-                })
-            );
+            ckpts.push(Checkpoint({fromBlock: SafeCast.toUint32(block.number), votes: SafeCast.toUint224(newWeight)}));
         }
-    }
-
-    function _add(uint256 a, uint256 b) public pure returns (uint256) {
-        return a + b;
-    }
-
-    function _subtract(uint256 a, uint256 b) public pure returns (uint256) {
-        return a - b;
     }
 
     /**

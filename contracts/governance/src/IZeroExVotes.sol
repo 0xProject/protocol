@@ -26,11 +26,6 @@ interface IZeroExVotes {
         uint224 quadraticVotes;
     }
 
-    enum VotingType {
-        OneTokenOneVote,
-        Quadratic
-    }
-
     /**
      * @dev Emitted when a token transfer or delegate change results in changes to a delegate's number of votes.
      */
@@ -92,7 +87,5 @@ interface IZeroExVotes {
 
     function moveVotingPower(address src, address dst, uint256 srcBalance, uint256 dstBalance, uint256 amount) external;
 
-    function writeCheckpointAddTotalSupply(uint256 delta) external returns (uint256 oldWeight, uint256 newWeight);
-
-    function writeCheckpointSubTotalSupply(uint256 delta) external returns (uint256 oldWeight, uint256 newWeight);
+    function writeCheckpointTotalSupply(uint256 totalSupply) external;
 }
