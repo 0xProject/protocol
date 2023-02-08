@@ -27,6 +27,7 @@ import "../migrations/LibMigrate.sol";
 import "../storage/LibMetaTransactionsStorage.sol";
 import "./interfaces/IFeature.sol";
 import "./interfaces/IMetaTransactionsFeature.sol";
+import "./interfaces/IMultiplexFeature.sol";
 import "./interfaces/INativeOrdersFeature.sol";
 import "./interfaces/ITransformERC20Feature.sol";
 import "./libs/LibSignature.sol";
@@ -245,6 +246,8 @@ contract MetaTransactionsFeature is
             returnResult = _executeFillLimitOrderCall(state);
         } else if (state.selector == INativeOrdersFeature.fillRfqOrder.selector) {
             returnResult = _executeFillRfqOrderCall(state);
+        } else if (state.selector == IMultiplexFeature.multiplexBatchSellTokenForToken.selector) {
+            returnResult = _executeMultiplexBatchSellTokenForTokenCall(state);
         } else {
             LibMetaTransactionsRichErrors.MetaTransactionUnsupportedFunctionError(state.hash, state.selector).rrevert();
         }
@@ -450,6 +453,38 @@ contract MetaTransactionsFeature is
                     state.mtx.signer, // taker is mtx signer
                     false,
                     state.mtx.signer
+                ),
+                state.mtx.value
+            );
+    }
+
+    function _executeMultiplexBatchSellTokenForTokenCall(ExecuteState memory state) private returns (bytes memory returnResult) {
+        IERC20TokenV06 inputToken;
+        IERC20TokenV06 outputToken;
+        IMultiplexFeature.BatchSellSubcall[] memory calls;
+        uint256 sellAmount;
+        uint256 minBuyAmount;
+
+        bytes memory args = _extractArgumentsFromCallData(state.mtx.callData);
+        (inputToken, outputToken, calls, sellAmount, minBuyAmount) = abi.decode(
+            args,
+            (IERC20TokenV06, IERC20TokenV06, IMultiplexFeature.BatchSellSubcall[], uint256, uint256)
+        );
+
+        return
+            _callSelf(
+                state.hash,
+                abi.encodeWithSelector(
+                    IMultiplexFeature._multiplexBatchSell.selector,
+                    IMultiplexFeature.BatchSellParams({
+                        inputToken: inputToken,
+                        outputToken: outputToken,
+                        sellAmount: sellAmount,
+                        calls: calls,
+                        useSelfBalance: false,
+                        recipient: state.mtx.signer
+                    }),
+                    minBuyAmount
                 ),
                 state.mtx.value
             );

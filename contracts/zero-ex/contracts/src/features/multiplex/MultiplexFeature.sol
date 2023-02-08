@@ -83,6 +83,7 @@ contract MultiplexFeature is
         _registerFeatureFunction(this.multiplexMultiHopSellEthForToken.selector);
         _registerFeatureFunction(this.multiplexMultiHopSellTokenForEth.selector);
         _registerFeatureFunction(this.multiplexMultiHopSellTokenForToken.selector);
+        _registerFeatureFunction(this._multiplexBatchSell.selector);
         return LibMigrate.MIGRATE_SUCCESS;
     }
 
@@ -103,7 +104,7 @@ contract MultiplexFeature is
         // WETH is now held by this contract,
         // so `useSelfBalance` is true.
         return
-            _multiplexBatchSell(
+            _multiplexBatchSellPrivate(
                 BatchSellParams({
                     inputToken: WETH,
                     outputToken: outputToken,
@@ -133,7 +134,7 @@ contract MultiplexFeature is
         // The outputToken is implicitly WETH. The `recipient`
         // of the WETH is set to  this contract, since we
         // must unwrap the WETH and transfer the resulting ETH.
-        boughtAmount = _multiplexBatchSell(
+        boughtAmount = _multiplexBatchSellPrivate(
             BatchSellParams({
                 inputToken: inputToken,
                 outputToken: WETH,
@@ -167,7 +168,7 @@ contract MultiplexFeature is
         uint256 minBuyAmount
     ) public override returns (uint256 boughtAmount) {
         return
-            _multiplexBatchSell(
+            _multiplexBatchSellPrivate(
                 BatchSellParams({
                     inputToken: inputToken,
                     outputToken: outputToken,
@@ -181,12 +182,26 @@ contract MultiplexFeature is
     }
 
     /// @dev Executes a batch sell and checks that at least
-    ///      `minBuyAmount` of `outputToken` was bought.
+    ///      `minBuyAmount` of `outputToken` was bought. Internal
+    ///      variant.
     /// @param params Batch sell parameters.
     /// @param minBuyAmount The minimum amount of `outputToken` that
     ///        must be bought for this function to not revert.
     /// @return boughtAmount The amount of `outputToken` bought.
     function _multiplexBatchSell(
+        BatchSellParams memory params,
+        uint256 minBuyAmount
+    ) public override onlySelf returns (uint256 boughtAmount) {
+        return _multiplexBatchSellPrivate(params, minBuyAmount);
+    }
+
+    /// @dev Executes a batch sell and checks that at least
+    ///      `minBuyAmount` of `outputToken` was bought.
+    /// @param params Batch sell parameters.
+    /// @param minBuyAmount The minimum amount of `outputToken` that
+    ///        must be bought for this function to not revert.
+    /// @return boughtAmount The amount of `outputToken` bought.
+    function _multiplexBatchSellPrivate(
         BatchSellParams memory params,
         uint256 minBuyAmount
     ) private returns (uint256 boughtAmount) {

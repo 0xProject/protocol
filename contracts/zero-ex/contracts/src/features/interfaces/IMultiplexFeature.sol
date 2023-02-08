@@ -153,6 +153,11 @@ interface IMultiplexFeature {
         uint256 minBuyAmount
     ) external returns (uint256 boughtAmount);
 
+    function _multiplexBatchSell(
+        BatchSellParams memory params,
+        uint256 minBuyAmount
+    ) external returns (uint256 boughtAmount);
+
     /// @dev Sells attached ETH via the given sequence of tokens
     ///      and calls. `tokens[0]` must be WETH.
     ///      The last token in `tokens` is the output token that
