@@ -70,6 +70,7 @@ contract UniswapV3Feature is IFeature, IUniswapV3Feature, FixinCommon, FixinToke
         _registerFeatureFunction(this.sellEthForTokenToUniswapV3.selector);
         _registerFeatureFunction(this.sellTokenForEthToUniswapV3.selector);
         _registerFeatureFunction(this.sellTokenForTokenToUniswapV3.selector);
+        _registerFeatureFunction(this._sellTokenForTokenToUniswapV3.selector);
         _registerFeatureFunction(this._sellHeldTokenForTokenToUniswapV3.selector);
         _registerFeatureFunction(this.uniswapV3SwapCallback.selector);
         return LibMigrate.MIGRATE_SUCCESS;
@@ -137,6 +138,23 @@ contract UniswapV3Feature is IFeature, IUniswapV3Feature, FixinCommon, FixinToke
         address recipient
     ) public override returns (uint256 buyAmount) {
         buyAmount = _swap(encodedPath, sellAmount, minBuyAmount, msg.sender, _normalizeRecipient(recipient));
+    }
+
+    /// @dev Sell a token for another token directly against uniswap v3. Internal variant.
+    /// @param encodedPath Uniswap-encoded path.
+    /// @param sellAmount amount of the first token in the path to sell.
+    /// @param minBuyAmount Minimum amount of the last token in the path to buy.
+    /// @param recipient The recipient of the bought tokens. Can be zero for payer.
+    /// @param payer The address to pull the sold tokens from.
+    /// @return buyAmount Amount of the last token in the path bought.
+    function _sellTokenForTokenToUniswapV3(
+        bytes memory encodedPath,
+        uint256 sellAmount,
+        uint256 minBuyAmount,
+        address recipient,
+        address payer
+    ) public override onlySelf returns (uint256 buyAmount) {
+        buyAmount = _swap(encodedPath, sellAmount, minBuyAmount, payer, _normalizeRecipient(recipient, payer));
     }
 
     /// @dev Sell a token for another token directly against uniswap v3.
@@ -337,8 +355,13 @@ contract UniswapV3Feature is IFeature, IUniswapV3Feature, FixinCommon, FixinToke
         }
     }
 
+    // Convert null address values to fallback.
+    function _normalizeRecipient(address recipient, address alternative) private view returns (address payable normalizedRecipient) {
+        return recipient == address(0) ? payable(alternative) : payable(recipient);
+    }
+
     // Convert null address values to msg.sender.
     function _normalizeRecipient(address recipient) private view returns (address payable normalizedRecipient) {
-        return recipient == address(0) ? msg.sender : payable(recipient);
+        return _normalizeRecipient(recipient, msg.sender);
     }
 }

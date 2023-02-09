@@ -111,7 +111,8 @@ contract MultiplexFeature is
                     sellAmount: msg.value,
                     calls: calls,
                     useSelfBalance: true,
-                    recipient: msg.sender
+                    recipient: msg.sender,
+                    msgSender: msg.sender
                 }),
                 minBuyAmount
             );
@@ -141,7 +142,8 @@ contract MultiplexFeature is
                 sellAmount: sellAmount,
                 calls: calls,
                 useSelfBalance: false,
-                recipient: address(this)
+                recipient: address(this),
+                msgSender: msg.sender
             }),
             minBuyAmount
         );
@@ -175,7 +177,8 @@ contract MultiplexFeature is
                     sellAmount: sellAmount,
                     calls: calls,
                     useSelfBalance: false,
-                    recipient: msg.sender
+                    recipient: msg.sender,
+                    msgSender: msg.sender
                 }),
                 minBuyAmount
             );

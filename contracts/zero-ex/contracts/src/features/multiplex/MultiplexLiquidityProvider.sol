@@ -66,8 +66,8 @@ abstract contract MultiplexLiquidityProvider is FixinCommon, FixinTokenSpender {
             // held by `address(this)`.
             _transferERC20Tokens(params.inputToken, provider, sellAmount);
         } else {
-            // Otherwise, transfer the input tokens from `msg.sender`.
-            _transferERC20TokensFrom(params.inputToken, msg.sender, provider, sellAmount);
+            // Otherwise, transfer the input tokens from `msgSender`.
+            _transferERC20TokensFrom(params.inputToken, params.msgSender, provider, sellAmount);
         }
         // Cache the recipient's balance of the output token.
         uint256 balanceBefore = params.outputToken.balanceOf(params.recipient);

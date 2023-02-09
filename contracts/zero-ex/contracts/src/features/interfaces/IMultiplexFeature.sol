@@ -46,6 +46,8 @@ interface IMultiplexFeature {
         bool useSelfBalance;
         // The recipient of the bought output tokens.
         address recipient;
+        // The sender of the transaction.
+        address msgSender;
     }
 
     // Represents a constituent call of a batch sell.

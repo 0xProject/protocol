@@ -482,7 +482,8 @@ contract MetaTransactionsFeature is
                         sellAmount: sellAmount,
                         calls: calls,
                         useSelfBalance: false,
-                        recipient: state.mtx.signer
+                        recipient: state.mtx.signer,
+                        msgSender: state.mtx.signer
                     }),
                     minBuyAmount
                 ),
