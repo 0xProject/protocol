@@ -3,6 +3,7 @@ import { BigNumber } from '@0x/utils';
 // The fee types below are copied from 0x-api
 interface FeeConfigBase {
     feeRecipient: string | null;
+    billingType: 'on-chain' | 'off-chain';
 }
 
 export interface VolumeBasedFeeConfig extends FeeConfigBase {
@@ -30,12 +31,14 @@ interface FeeBase {
     feeToken: string;
     feeAmount: BigNumber;
     feeRecipient: string | null;
+    billingType: 'on-chain' | 'off-chain';
 }
 
 interface RawFeeBase {
     feeToken: string;
     feeAmount: string;
     feeRecipient: string | null;
+    billingType: 'on-chain' | 'off-chain';
 }
 
 export interface VolumeBasedFee extends FeeBase {

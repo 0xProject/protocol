@@ -15,11 +15,31 @@
             "type": "string",
             "enum": ["volume", "integrator_share"]
         },
-        "zeroExFeeRecipient": {
-            "type": ["string", "null"]
+        "zeroEx": {
+            "type": "object",
+            "properties": {
+                "feeRecipient": {
+                    "type": ["string", "null"]
+                },
+                "billingType": {
+                    "type": "string",
+                    "enum": ["on-chain", "off-chain"]
+                }
+            },
+            "required": ["feeRecipient", "billingType"]
         },
-        "gasFeeRecipient": {
-            "type": ["string", "null"]
+        "gas": {
+            "type": "object",
+            "properties": {
+                "feeRecipient": {
+                    "type": ["string", "null"]
+                },
+                "billingType": {
+                    "type": "string",
+                    "enum": ["on-chain", "off-chain"]
+                }
+            },
+            "required": ["feeRecipient", "billingType"]
         },
         "fees": {
             "type": "array",
@@ -28,5 +48,5 @@
             }
         }
     },
-    "required": ["name", "integratorId", "chainId", "feeOn", "zeroExFeeRecipient", "gasFeeRecipient", "fees"]
+    "required": ["name", "integratorId", "chainId", "feeOn", "zeroEx", "gas", "fees"]
 }

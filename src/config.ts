@@ -230,8 +230,16 @@ interface ZeroExFeeRawConfiguration {
     integratorId: string;
     chainId: number;
     feeOn: 'volume' | 'integrator_share' /* | 'price_improvement' */; // 'price_improvement' is for RFQ liquidity
-    zeroExFeeRecipient: string | null; // null if off-chain payment
-    gasFeeRecipient: string | null; // null if off-chain payment
+    zeroEx: {
+        // fee recipient and billing type for 0x fee
+        feeRecipient: string | null;
+        billingType: 'on-chain' | 'off-chain';
+    };
+    gas: {
+        // fee recipient and billing type for gas fee
+        feeRecipient: string | null;
+        billingType: 'on-chain' | 'off-chain';
+    };
     fees: ZeroExFeeConigurationEntry[];
 }
 
@@ -241,8 +249,14 @@ type ZeroExFeeRawConfigurations = ZeroExFeeRawConfiguration[];
 export interface ZeroExFeeConfiguration {
     name: string;
     feeOn: 'volume' | 'integrator_share' /* | 'price_improvement' */; // 'price_improvement' is for RFQ liquidity
-    zeroExFeeRecipient: string | null;
-    gasFeeRecipient: string | null;
+    zeroEx: {
+        feeRecipient: string | null;
+        billingType: 'on-chain' | 'off-chain';
+    };
+    gas: {
+        feeRecipient: string | null;
+        billingType: 'on-chain' | 'off-chain';
+    };
     pairsFeeEntries: Map<string, BigNumber>; // tokenA-tokenB: <fee_parameter>; tokenA <= tokenB
     cartesianProductFeeEntries: {
         setA: Set<string>;
@@ -329,8 +343,14 @@ export const ZERO_EX_FEE_CONFIGURATION_MAP: Map<string, Map<number, ZeroExFeeCon
             feeConfigByChainId.set(chainId, {
                 name: curr.name,
                 feeOn: curr.feeOn,
-                zeroExFeeRecipient: curr.zeroExFeeRecipient,
-                gasFeeRecipient: curr.gasFeeRecipient,
+                zeroEx: {
+                    feeRecipient: curr.zeroEx.feeRecipient,
+                    billingType: curr.zeroEx.billingType,
+                },
+                gas: {
+                    feeRecipient: curr.gas.feeRecipient,
+                    billingType: curr.gas.billingType,
+                },
                 pairsFeeEntries,
                 cartesianProductFeeEntries,
                 tokensEntries,

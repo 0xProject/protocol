@@ -178,7 +178,7 @@ export class GaslessSwapService {
         try {
             let feeConfigs: FeeConfigs | undefined;
             if (kind === GaslessTypes.MetaTransactionV2) {
-                feeConfigs = this._getFeeConfigs(params);
+                feeConfigs = this._getFeeConfigs(params, 'on-chain'); // integrator billing type would always be on-chain for now
             }
 
             const metaTransactionRequestParams = {
@@ -309,7 +309,7 @@ export class GaslessSwapService {
         try {
             let feeConfigs: FeeConfigs | undefined;
             if (kind === GaslessTypes.MetaTransactionV2) {
-                feeConfigs = this._getFeeConfigs(params);
+                feeConfigs = this._getFeeConfigs(params, 'on-chain'); // integrator billing type would always be on-chain for now
             }
 
             const metaTransactionRequestParams = {
@@ -674,13 +674,14 @@ export class GaslessSwapService {
         await this._redis.set(metaTransactionHashRedisKey(hash), /* value */ 0, 'EX', META_TRANSACTION_HASH_TTL_S);
     }
 
-    private _getFeeConfigs(params: FetchQuoteParamsBase): FeeConfigs {
+    private _getFeeConfigs(params: FetchQuoteParamsBase, integratorBillingType: 'on-chain' | 'off-chain'): FeeConfigs {
         let integratorFeeConfig;
 
         if (params.feeType && params.feeRecipient && params.feeSellTokenPercentage) {
             integratorFeeConfig = {
                 type: params.feeType,
                 recipient: params.feeRecipient,
+                billingType: integratorBillingType,
                 sellTokenPercentage: params.feeSellTokenPercentage,
             };
         }

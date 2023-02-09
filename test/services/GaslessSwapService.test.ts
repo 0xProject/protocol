@@ -213,6 +213,7 @@ describe('GaslessSwapService', () => {
             feeToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
             feeAmount: new BigNumber(1000000000000000000),
             feeRecipient: integratorAddress,
+            billingType: 'on-chain',
             volumePercentage: new BigNumber(0.1),
         },
         zeroExFee: {
@@ -220,6 +221,7 @@ describe('GaslessSwapService', () => {
             feeToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
             feeAmount: new BigNumber(1000000000000000),
             feeRecipient: zeroExAddress,
+            billingType: 'on-chain',
             integratorSharePercentage: new BigNumber(0.1),
         },
         gasFee: {
@@ -228,6 +230,7 @@ describe('GaslessSwapService', () => {
             feeToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
             feeAmount: new BigNumber(10000000),
             feeRecipient: null,
+            billingType: 'off-chain',
             estimatedGas: new BigNumber(1043459),
             feeTokenAmountPerBaseUnitNativeToken: new BigNumber(0.001),
         },

@@ -19,8 +19,14 @@ ZERO_EX_FEE_CONFIGURATIONS='[
         "integratorId": "5062340f-87bb-4e1b-8029-eb8c03a9989c",
         "chainId": 1,
         "feeOn": "volume",
-        "zeroExFeeRecipient": "0x4ea754349ace5303c82f0d1d491041e042f2ad22",
-        "gasFeeRecipient": null,
+        "zeroEx": {
+            "feeRecipient": "0x4ea754349ace5303c82f0d1d491041e042f2ad22",
+            "billingType": "on-chain"
+        },
+        "gas": {
+           "feeRecipient": null,
+           "billingType": "off-chain"
+        },
         "fees": [
             {
                 "kind": "pairs",
@@ -125,8 +131,14 @@ ZERO_EX_FEE_CONFIGURATIONS='[
         "integratorId": "*",
         "chainId": 1,
         "feeOn": "integrator_share",
-        "zeroExFeeRecipient": "0x4ea754349ace5303c82f0d1d491041e042f2ad22",
-        "gasFeeRecipient": null,
+        "zeroEx": {
+            "feeRecipient": "0x4ea754349ace5303c82f0d1d491041e042f2ad22",
+            "billingType": "on-chain"
+        },
+        "gas": {
+           "feeRecipient": null,
+           "billingType": "off-chain"
+        },
         "fees": [          
             {
                 "kind": "tokens",

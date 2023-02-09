@@ -20,6 +20,7 @@ describe('meta_transaction_fee_utils', () => {
                         feeToken: FEE_TOKEN,
                         feeAmount: '1000',
                         feeRecipient: FEE_RECIPIENT,
+                        billingType: 'on-chain',
                         integratorSharePercentage: '10',
                     },
                 });
@@ -34,6 +35,7 @@ describe('meta_transaction_fee_utils', () => {
                         feeToken: FEE_TOKEN,
                         feeAmount: '1000',
                         feeRecipient: FEE_RECIPIENT,
+                        billingType: 'on-chain',
                         volumePercentage: '10',
                     },
                     zeroExFee: {
@@ -41,6 +43,7 @@ describe('meta_transaction_fee_utils', () => {
                         feeToken: FEE_TOKEN,
                         feeAmount: '100000',
                         feeRecipient: FEE_RECIPIENT,
+                        billingType: 'on-chain',
                         integratorSharePercentage: '1',
                     },
                 });
@@ -50,6 +53,7 @@ describe('meta_transaction_fee_utils', () => {
                     feeToken: FEE_TOKEN,
                     feeAmount: new BigNumber(1000),
                     feeRecipient: FEE_RECIPIENT,
+                    billingType: 'on-chain',
                     volumePercentage: new BigNumber(10),
                 });
             });
@@ -63,6 +67,7 @@ describe('meta_transaction_fee_utils', () => {
                         feeToken: FEE_TOKEN,
                         feeAmount: '1000',
                         feeRecipient: FEE_RECIPIENT,
+                        billingType: 'on-chain',
                         volumePercentage: '10',
                     },
                 });
@@ -77,6 +82,7 @@ describe('meta_transaction_fee_utils', () => {
                         feeToken: FEE_TOKEN,
                         feeAmount: '1000',
                         feeRecipient: FEE_RECIPIENT,
+                        billingType: 'on-chain',
                         volumePercentage: '10',
                     },
                     zeroExFee: {
@@ -84,6 +90,7 @@ describe('meta_transaction_fee_utils', () => {
                         feeToken: FEE_TOKEN,
                         feeAmount: '100000',
                         feeRecipient: null,
+                        billingType: 'off-chain',
                         volumePercentage: '1',
                     },
                 });
@@ -93,6 +100,7 @@ describe('meta_transaction_fee_utils', () => {
                     feeToken: FEE_TOKEN,
                     feeAmount: new BigNumber(100000),
                     feeRecipient: null,
+                    billingType: 'off-chain',
                     volumePercentage: new BigNumber(1),
                 });
             });
@@ -104,6 +112,7 @@ describe('meta_transaction_fee_utils', () => {
                         feeToken: FEE_TOKEN,
                         feeAmount: '1000',
                         feeRecipient: FEE_RECIPIENT,
+                        billingType: 'on-chain',
                         volumePercentage: '10',
                     },
                     zeroExFee: {
@@ -111,6 +120,7 @@ describe('meta_transaction_fee_utils', () => {
                         feeToken: FEE_TOKEN,
                         feeAmount: '100000',
                         feeRecipient: FEE_RECIPIENT,
+                        billingType: 'on-chain',
                         integratorSharePercentage: '1',
                     },
                 });
@@ -120,6 +130,7 @@ describe('meta_transaction_fee_utils', () => {
                     feeToken: FEE_TOKEN,
                     feeAmount: new BigNumber(100000),
                     feeRecipient: FEE_RECIPIENT,
+                    billingType: 'on-chain',
                     integratorSharePercentage: new BigNumber(1),
                 });
             });
@@ -133,6 +144,7 @@ describe('meta_transaction_fee_utils', () => {
                         feeToken: FEE_TOKEN,
                         feeAmount: '1000',
                         feeRecipient: FEE_RECIPIENT,
+                        billingType: 'on-chain',
                         integratorSharePercentage: '10',
                     },
                 });
@@ -147,6 +159,7 @@ describe('meta_transaction_fee_utils', () => {
                         feeToken: FEE_TOKEN,
                         feeAmount: '1000',
                         feeRecipient: FEE_RECIPIENT,
+                        billingType: 'on-chain',
                         volumePercentage: '10',
                     },
                     zeroExFee: {
@@ -154,6 +167,7 @@ describe('meta_transaction_fee_utils', () => {
                         feeToken: FEE_TOKEN,
                         feeAmount: '100000',
                         feeRecipient: FEE_RECIPIENT,
+                        billingType: 'on-chain',
                         integratorSharePercentage: '1',
                     },
                     gasFee: {
@@ -161,6 +175,7 @@ describe('meta_transaction_fee_utils', () => {
                         feeToken: FEE_TOKEN,
                         feeAmount: '10',
                         feeRecipient: FEE_RECIPIENT,
+                        billingType: 'on-chain',
                         gasPrice: '123',
                         estimatedGas: '200000',
                         feeTokenAmountPerBaseUnitNativeToken: '0.0001',
@@ -172,6 +187,7 @@ describe('meta_transaction_fee_utils', () => {
                     feeToken: FEE_TOKEN,
                     feeAmount: new BigNumber(10),
                     feeRecipient: FEE_RECIPIENT,
+                    billingType: 'on-chain',
                     gasPrice: new BigNumber(123),
                     estimatedGas: new BigNumber(200000),
                     feeTokenAmountPerBaseUnitNativeToken: new BigNumber(0.0001),
@@ -201,12 +217,14 @@ describe('meta_transaction_fee_utils', () => {
                     integratorFeeConfig: {
                         type: 'volume',
                         recipient: FEE_RECIPIENT,
+                        billingType: 'on-chain',
                         sellTokenPercentage: new BigNumber(0.1),
                     },
                 }).integratorFee;
                 expect(integratorFeeConfig).toEqual({
                     type: 'volume',
                     feeRecipient: FEE_RECIPIENT,
+                    billingType: 'on-chain',
                     volumePercentage: new BigNumber(0.1),
                 });
             });
@@ -226,6 +244,7 @@ describe('meta_transaction_fee_utils', () => {
                     expect(zeroExFeeConfig).toEqual({
                         type: 'volume',
                         feeRecipient: FEE_RECIPIENT,
+                        billingType: 'on-chain',
                         volumePercentage: new BigNumber(0.5),
                     });
                 });
@@ -242,6 +261,7 @@ describe('meta_transaction_fee_utils', () => {
                     expect(zeroExFeeConfig).toEqual({
                         type: 'volume',
                         feeRecipient: FEE_RECIPIENT,
+                        billingType: 'on-chain',
                         volumePercentage: new BigNumber(0.7),
                     });
                 });
@@ -258,6 +278,7 @@ describe('meta_transaction_fee_utils', () => {
                     expect(zeroExFeeConfig).toEqual({
                         type: 'volume',
                         feeRecipient: FEE_RECIPIENT,
+                        billingType: 'on-chain',
                         volumePercentage: new BigNumber(1.5),
                     });
                 });
@@ -274,6 +295,7 @@ describe('meta_transaction_fee_utils', () => {
                     expect(zeroExFeeConfig).toEqual({
                         type: 'volume',
                         feeRecipient: FEE_RECIPIENT,
+                        billingType: 'on-chain',
                         volumePercentage: new BigNumber(0.05),
                     });
                 });
@@ -292,6 +314,7 @@ describe('meta_transaction_fee_utils', () => {
                     expect(zeroExFeeConfig).toEqual({
                         type: 'integrator_share',
                         feeRecipient: FEE_RECIPIENT,
+                        billingType: 'on-chain',
                         integratorSharePercentage: new BigNumber(0.03),
                     });
                 });
@@ -309,6 +332,7 @@ describe('meta_transaction_fee_utils', () => {
                 expect(gasFeeConfig).toEqual({
                     type: 'gas',
                     feeRecipient: null,
+                    billingType: 'off-chain',
                 });
             });
         });
@@ -327,6 +351,7 @@ describe('meta_transaction_fee_utils', () => {
                         feeToken: FEE_TOKEN,
                         feeAmount: new BigNumber(1000),
                         feeRecipient: FEE_RECIPIENT,
+                        billingType: 'on-chain',
                         volumePercentage: new BigNumber(10),
                     },
                     zeroExFee: {
@@ -334,6 +359,7 @@ describe('meta_transaction_fee_utils', () => {
                         feeToken: FEE_TOKEN,
                         feeAmount: new BigNumber(100),
                         feeRecipient: FEE_RECIPIENT,
+                        billingType: 'on-chain',
                         integratorSharePercentage: new BigNumber(1),
                     },
                     gasFee: {
@@ -341,6 +367,7 @@ describe('meta_transaction_fee_utils', () => {
                         feeToken: FEE_TOKEN,
                         feeAmount: new BigNumber(1),
                         feeRecipient: FEE_RECIPIENT,
+                        billingType: 'on-chain',
                         gasPrice: new BigNumber(123),
                         estimatedGas: new BigNumber(200000),
                         feeTokenAmountPerBaseUnitNativeToken: new BigNumber(0.0001),

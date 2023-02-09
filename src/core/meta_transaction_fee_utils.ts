@@ -28,6 +28,7 @@ export function rawFeesToFees(rawFees: RawFees | undefined): Fees | undefined {
             type: 'volume',
             feeToken: rawIntegratorFee.feeToken,
             feeAmount: new BigNumber(rawIntegratorFee.feeAmount),
+            billingType: rawIntegratorFee.billingType,
             feeRecipient: rawFees.integratorFee.feeRecipient,
             volumePercentage: new BigNumber(rawFees.integratorFee.volumePercentage),
         };
@@ -42,6 +43,7 @@ export function rawFeesToFees(rawFees: RawFees | undefined): Fees | undefined {
                 type: 'volume',
                 feeToken: rawZeroExFee.feeToken,
                 feeAmount: new BigNumber(rawZeroExFee.feeAmount),
+                billingType: rawZeroExFee.billingType,
                 feeRecipient: rawZeroExFee.feeRecipient,
                 volumePercentage: new BigNumber(rawZeroExFee.volumePercentage),
             };
@@ -50,6 +52,7 @@ export function rawFeesToFees(rawFees: RawFees | undefined): Fees | undefined {
                 type: 'integrator_share',
                 feeToken: rawZeroExFee.feeToken,
                 feeAmount: new BigNumber(rawZeroExFee.feeAmount),
+                billingType: rawZeroExFee.billingType,
                 feeRecipient: rawZeroExFee.feeRecipient,
                 integratorSharePercentage: new BigNumber(rawZeroExFee.integratorSharePercentage),
             };
@@ -65,6 +68,7 @@ export function rawFeesToFees(rawFees: RawFees | undefined): Fees | undefined {
             feeToken: rawGasFee.feeToken,
             feeAmount: new BigNumber(rawGasFee.feeAmount),
             feeRecipient: rawGasFee.feeRecipient,
+            billingType: rawGasFee.billingType,
             gasPrice: new BigNumber(rawGasFee.gasPrice),
             estimatedGas: new BigNumber(rawGasFee.estimatedGas),
             feeTokenAmountPerBaseUnitNativeToken: new BigNumber(rawGasFee.feeTokenAmountPerBaseUnitNativeToken),
@@ -130,6 +134,7 @@ export function getFeeConfigsFromParams(params: {
     integratorFeeConfig?: {
         type: 'volume'; // `feeType` field in `FetchQuoteParamsBase`
         recipient: string; // `feeRecipient` field in `FetchQuoteParamsBase`
+        billingType: 'on-chain' | 'off-chain';
         sellTokenPercentage: BigNumber; // `feeSellTokenPercentage` field in `FetchQuoteParamsBase`
     };
 }): FeeConfigs {
@@ -141,6 +146,7 @@ export function getFeeConfigsFromParams(params: {
         integratorFee = {
             type: params.integratorFeeConfig.type,
             feeRecipient: params.integratorFeeConfig.recipient,
+            billingType: params.integratorFeeConfig.billingType,
             volumePercentage: params.integratorFeeConfig.sellTokenPercentage,
         };
     }
@@ -155,7 +161,8 @@ export function getFeeConfigsFromParams(params: {
             zeroExFee = getZeroExFeeConfig(feeConfiguration, params.sellToken, params.buyToken);
             gasFee = {
                 type: 'gas',
-                feeRecipient: feeConfiguration.gasFeeRecipient,
+                feeRecipient: feeConfiguration.gas.feeRecipient,
+                billingType: feeConfiguration.gas.billingType,
             };
         }
     }
@@ -238,13 +245,15 @@ function getZeroExFeeConfig(
         if (feeConfiguration.feeOn === 'volume') {
             return {
                 type: 'volume',
-                feeRecipient: feeConfiguration.zeroExFeeRecipient,
+                feeRecipient: feeConfiguration.zeroEx.feeRecipient,
+                billingType: feeConfiguration.zeroEx.billingType,
                 volumePercentage: pairFeeParameter,
             };
         } else if (feeConfiguration.feeOn === 'integrator_share') {
             return {
                 type: 'integrator_share',
-                feeRecipient: feeConfiguration.zeroExFeeRecipient,
+                feeRecipient: feeConfiguration.zeroEx.feeRecipient,
+                billingType: feeConfiguration.zeroEx.billingType,
                 integratorSharePercentage: pairFeeParameter,
             };
         }
@@ -262,13 +271,15 @@ function getZeroExFeeConfig(
             if (feeConfiguration.feeOn === 'volume') {
                 return {
                     type: 'volume',
-                    feeRecipient: feeConfiguration.zeroExFeeRecipient,
+                    feeRecipient: feeConfiguration.zeroEx.feeRecipient,
+                    billingType: feeConfiguration.zeroEx.billingType,
                     volumePercentage: cartesianProductFeeEntry.parameter,
                 };
             } else if (feeConfiguration.feeOn === 'integrator_share') {
                 return {
                     type: 'integrator_share',
-                    feeRecipient: feeConfiguration.zeroExFeeRecipient,
+                    feeRecipient: feeConfiguration.zeroEx.feeRecipient,
+                    billingType: feeConfiguration.zeroEx.billingType,
                     integratorSharePercentage: cartesianProductFeeEntry.parameter,
                 };
             }
@@ -291,13 +302,15 @@ function getZeroExFeeConfig(
         if (feeConfiguration.feeOn === 'volume') {
             return {
                 type: 'volume',
-                feeRecipient: feeConfiguration.zeroExFeeRecipient,
+                feeRecipient: feeConfiguration.zeroEx.feeRecipient,
+                billingType: feeConfiguration.zeroEx.billingType,
                 volumePercentage: tokenFeeParameter,
             };
         } else if (feeConfiguration.feeOn === 'integrator_share') {
             return {
                 type: 'integrator_share',
-                feeRecipient: feeConfiguration.zeroExFeeRecipient,
+                feeRecipient: feeConfiguration.zeroEx.feeRecipient,
+                billingType: feeConfiguration.zeroEx.billingType,
                 integratorSharePercentage: tokenFeeParameter,
             };
         }

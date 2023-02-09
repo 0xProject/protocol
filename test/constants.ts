@@ -200,8 +200,14 @@ export const ZERO_EX_FEE_CONFIGURATIONS = (() => {
     const coinbaseMainnetConfiguration: ZeroExFeeConfiguration = {
         name: 'Coinbase',
         feeOn: 'volume',
-        zeroExFeeRecipient: '0x4ea754349ace5303c82f0d1d491041e042f2ad22',
-        gasFeeRecipient: null,
+        zeroEx: {
+            feeRecipient: '0x4ea754349ace5303c82f0d1d491041e042f2ad22',
+            billingType: 'on-chain',
+        },
+        gas: {
+            feeRecipient: null,
+            billingType: 'off-chain',
+        },
         pairsFeeEntries: new Map([
             [toPairString(MAINET_TOKEN_ADDRESSES.USDC, MAINET_TOKEN_ADDRESSES.WETH), new BigNumber(0.5)],
             [toPairString(MAINET_TOKEN_ADDRESSES.USDT, MAINET_TOKEN_ADDRESSES.WETH), new BigNumber(0.5)],
@@ -226,8 +232,14 @@ export const ZERO_EX_FEE_CONFIGURATIONS = (() => {
     const defaultMainnetConfiguration: ZeroExFeeConfiguration = {
         name: 'All',
         feeOn: 'integrator_share',
-        zeroExFeeRecipient: '0x4ea754349ace5303c82f0d1d491041e042f2ad22',
-        gasFeeRecipient: null,
+        zeroEx: {
+            feeRecipient: '0x4ea754349ace5303c82f0d1d491041e042f2ad22',
+            billingType: 'on-chain',
+        },
+        gas: {
+            feeRecipient: null,
+            billingType: 'off-chain',
+        },
         pairsFeeEntries: new Map(),
         cartesianProductFeeEntries: [],
         tokensEntries: new Map([
