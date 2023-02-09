@@ -124,7 +124,7 @@ jobs:
             WORKSPACE_NAME=${{ env.WORKSPACE_NAME }}
             TURBO_TOKEN=${{ secrets.TURBO_TOKEN }}
             TURBO_TEAM=${{ secrets.TURBO_TEAM }}
-          file: ./.github/Dockerfile
+          file: ./.github/Dockerfile-node
           push: true
           tags: |
             ${{ env.REPOSITORY_URI }}:${{ env.WORKSPACE_NAME }}_${{ github.sha }}
