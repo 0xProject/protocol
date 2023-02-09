@@ -64,7 +64,7 @@ jobs:
         id: app-hashes
         uses: ./packages/workspace-hash-action
         with:
-          dir: apps
+          dir: apps-node
     outputs:
       matrix: ${{ steps.app-hashes.outputs.workspace-hashes }}
   build_images:
