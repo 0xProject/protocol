@@ -1,0 +1,10 @@
+name: "Turborepo Workspace Commit Comment Action"
+description: "Comments on a commit with a list of workspaces and their turbo hashes"
+author: "0x Labs"
+inputs:
+  token:
+    description: 'The GitHub authentication token'
+    default: ${{ github.token }}
+runs:
+  using: "node16"
+  main: "action/index.js"

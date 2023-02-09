@@ -1,0 +1,17 @@
+name: "Turborepo Workspace Hashes"
+description: "Extract workspaces and their hashes from your turborepo"
+author: "0x Labs"
+inputs:
+  dir:
+    required: false
+    description: "Only return workspaces in this directory"
+  separator:
+    required: false
+    description: "The separator between the workspace name and hash"
+    default: "@"
+outputs:
+  workspace-hashes:
+    description: 'A JSON-stringified array of workspace names, the separator, and their hashes, e.g. ["workspace@1234"]'
+runs:
+  using: "node16"
+  main: "action/index.js"
