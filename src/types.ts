@@ -463,6 +463,7 @@ export interface RfqtV2Request {
 
 interface FeeConfigBase {
     feeRecipient: string | null;
+    billingType: 'on-chain' | 'off-chain';
 }
 
 export interface VolumeBasedFeeConfig extends FeeConfigBase {
@@ -490,6 +491,7 @@ interface FeeBase {
     feeToken: string;
     feeAmount: BigNumber;
     feeRecipient: string | null;
+    billingType: 'on-chain' | 'off-chain';
 }
 
 export interface VolumeBasedFee extends FeeBase {

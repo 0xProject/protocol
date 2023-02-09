@@ -486,6 +486,7 @@ function _parseFeeConfigs(req: express.Request): FeeConfigs | undefined {
             parsedFeeConfigs.integratorFee = {
                 type: 'volume',
                 feeRecipient: integratorFee.feeRecipient,
+                billingType: integratorFee.billingType,
                 volumePercentage,
             };
         }
@@ -519,6 +520,7 @@ function _parseFeeConfigs(req: express.Request): FeeConfigs | undefined {
                 parsedFeeConfigs.zeroexFee = {
                     type: 'volume',
                     feeRecipient: zeroexFee.feeRecipient,
+                    billingType: zeroexFee.billingType,
                     volumePercentage: feePercentage,
                 };
             } else if (zeroexFee.type === 'integrator_share') {
@@ -546,6 +548,7 @@ function _parseFeeConfigs(req: express.Request): FeeConfigs | undefined {
                 parsedFeeConfigs.zeroexFee = {
                     type: 'integrator_share',
                     feeRecipient: zeroexFee.feeRecipient,
+                    billingType: zeroexFee.billingType,
                     integratorSharePercentage: feePercentage,
                 };
             }
@@ -568,6 +571,7 @@ function _parseFeeConfigs(req: express.Request): FeeConfigs | undefined {
             parsedFeeConfigs.gasFee = {
                 type: 'gas',
                 feeRecipient: gasFee.feeRecipient,
+                billingType: gasFee.billingType,
             };
         }
     }
