@@ -25,6 +25,9 @@ been added, run:
 yarn turbo login
 yarn turbo link
 ```
+> ℹ️ Tip: after the `link` script asks "Would you like to enable Remote Caching for ~/0x-labs?", make sure to
+> select the `0x-eng` team, _not_ your personal account.
+
 
 ## Depending on shared code
 
@@ -108,7 +111,7 @@ it exists. To pass CI, each pipeline must finish with a `0` exit code. Additiona
 - Commits to `main` must be [signed](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits)
 - Commits to `main` are accomplished by a pull request (PR)
   - PRs require an approval to submit
-  - PRs require [CI](#ci-pipelines) to pass to submit
+  - PRs require [CI](#ci--pipelines) to pass to submit
   - PRs are submitted via “Squash and Merge”. One PR will translate to one commit.
     - Commit messages should be in the form of a present-tense “action”, i.e. `Add prometheus metric for TokenPriceOracle`
     - Commit messages may be prefixed with one or more “tags” describing the portions of the codebase the commit affects, i.e. `[rfqm] Add support for BSC`
@@ -131,10 +134,10 @@ the repository:
 
 Some other things to keep in mind:
 
-The CI runs the scripts specified in the [_CI & pipelines_](#ci-pipelines) section. If your repository needs some
+The CI runs the scripts specified in the [_CI & pipelines_](#ci--pipelines) section. If your repository needs some
 special check in CI, make sure to run it as part of one of the CI checks:
 
-```json
+```
 // package.json
 {
     ...
@@ -153,7 +156,7 @@ If, for some reason, you absolutely, positively, cannot write the outputs of
 your `build` script to the `__build__`, `dist`, or `out` directory, make sure to add
 the build directory to the `outputs` field of the `build` pipeline in `turbo.json`:
 
-```json
+```
 {
   "$schema": "https://turbo.build/schema.json",
   "pipeline": {
@@ -201,7 +204,7 @@ and the [Ignored Build Step](https://vercel.com/docs/concepts/projects/overview#
 
 Consider the scenario where a project wishes to run Foundry tests in CI.
 
-```json
+```
 // package.json
 {
     ...
@@ -285,7 +288,7 @@ the environment variable for the `forge` binary. See the
 [Turborepo docs: Altering Caching Based on Environment Variables](https://turbo.build/repo/docs/core-concepts/caching#altering-caching-based-on-environment-variables)
 to learn more about how environment variables affect the pipeline.
 
-```json
+```
 {
     ...
   "pipeline": {
