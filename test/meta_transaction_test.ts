@@ -206,7 +206,7 @@ describe(SUITE_NAME, () => {
                     takerAddress: TAKER_ADDRESS,
                     feeConfigs: {
                         integratorFee: { type: 'volume', volumePercentage: '0.1', feeRecipient: TAKER_ADDRESS },
-                        zeroexFee: {
+                        zeroExFee: {
                             type: 'integrator_share',
                             integratorSharePercentage: '0.2',
                             feeRecipient: TAKER_ADDRESS,
@@ -287,7 +287,7 @@ describe(SUITE_NAME, () => {
                 takerAddress: TAKER_ADDRESS,
                 feeConfigs: {
                     integratorFee: { type: 'volume', volumePercentage: '0.1' },
-                    zeroexFee: {
+                    zeroExFee: {
                         type: 'integrator_share',
                         integratorSharePercentage: '0.2',
                         feeRecipient: TAKER_ADDRESS,
@@ -307,7 +307,7 @@ describe(SUITE_NAME, () => {
                 takerAddress: TAKER_ADDRESS,
                 feeConfigs: {
                     integratorFee: { type: 'volume', volumePercentage: '0.1' },
-                    zeroexFee: {
+                    zeroExFee: {
                         type: 'integrator_share',
                         integratorSharePercentage: '0.2',
                         feeRecipient: TAKER_ADDRESS,
@@ -376,7 +376,7 @@ describe(SUITE_NAME, () => {
                         integratorId: INTEGRATOR_ID,
                         takerAddress: TAKER_ADDRESS,
                         feeConfigs: {
-                            zeroexFee: { type: 'random', volumePercentage: '0.1' },
+                            zeroExFee: { type: 'random', volumePercentage: '0.1' },
                         },
                     });
 
@@ -399,7 +399,7 @@ describe(SUITE_NAME, () => {
                         integratorId: INTEGRATOR_ID,
                         takerAddress: TAKER_ADDRESS,
                         feeConfigs: {
-                            zeroexFee: { type: 'volume', volumePercentage: '1000' },
+                            zeroExFee: { type: 'volume', volumePercentage: '1000' },
                         },
                     });
 
@@ -422,7 +422,7 @@ describe(SUITE_NAME, () => {
                         integratorId: INTEGRATOR_ID,
                         takerAddress: TAKER_ADDRESS,
                         feeConfigs: {
-                            zeroexFee: { type: 'integrator_share', integratorSharePercentage: '1000' },
+                            zeroExFee: { type: 'integrator_share', integratorSharePercentage: '1000' },
                         },
                     });
 
@@ -445,7 +445,7 @@ describe(SUITE_NAME, () => {
                             takerAddress: TAKER_ADDRESS,
                             feeConfigs: {
                                 integratorFee: { type: 'volume', volumePercentage: '0.1' },
-                                zeroexFee: { type: 'integrator_share', integratorSharePercentage: '1000' },
+                                zeroExFee: { type: 'integrator_share', integratorSharePercentage: '1000' },
                             },
                         });
 
@@ -515,7 +515,7 @@ async function requestSwap(
                 volumePercentage: string;
                 feeRecipient?: string;
             };
-            zeroexFee?:
+            zeroExFee?:
                 | {
                       type: string;
                       volumePercentage: string;

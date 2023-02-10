@@ -70,7 +70,7 @@ describe('calculateGaslessFees', () => {
         it('returns correct 0x fee and total fee amount if 0x fee config is present and the type is volume', () => {
             const { fees, totalOnChainChargedFeeAmount } = calculateFees({
                 feeConfigs: {
-                    zeroexFee: {
+                    zeroExFee: {
                         type: 'volume',
                         feeRecipient: RANDOM_ADDRESS1,
                         billingType: 'on-chain',
@@ -84,7 +84,7 @@ describe('calculateGaslessFees', () => {
                 quoteGasEstimate: new BigNumber(20e3),
             });
 
-            expect(fees.zeroexFee).to.eql({
+            expect(fees.zeroExFee).to.eql({
                 type: 'volume',
                 feeToken: WETH_TOKEN_ADDRESS,
                 feeAmount: new BigNumber(1e3),
@@ -104,7 +104,7 @@ describe('calculateGaslessFees', () => {
                         billingType: 'on-chain',
                         volumePercentage: new BigNumber(0.1),
                     },
-                    zeroexFee: {
+                    zeroExFee: {
                         type: 'integrator_share',
                         feeRecipient: RANDOM_ADDRESS2,
                         billingType: 'on-chain',
@@ -118,7 +118,7 @@ describe('calculateGaslessFees', () => {
                 quoteGasEstimate: new BigNumber(20e3),
             });
 
-            expect(fees.zeroexFee).to.eql({
+            expect(fees.zeroExFee).to.eql({
                 type: 'integrator_share',
                 feeToken: WETH_TOKEN_ADDRESS,
                 billingType: 'on-chain',
@@ -133,7 +133,7 @@ describe('calculateGaslessFees', () => {
             expect(() => {
                 calculateFees({
                     feeConfigs: {
-                        zeroexFee: {
+                        zeroExFee: {
                             type: 'integrator_share',
                             feeRecipient: RANDOM_ADDRESS2,
                             billingType: 'on-chain',
@@ -175,7 +175,7 @@ describe('calculateGaslessFees', () => {
                             billingType: 'on-chain',
                             volumePercentage: new BigNumber(0.01),
                         },
-                        zeroexFee: {
+                        zeroExFee: {
                             type: 'integrator_share',
                             feeRecipient: RANDOM_ADDRESS2,
                             billingType: 'on-chain',
@@ -216,7 +216,7 @@ describe('calculateGaslessFees', () => {
                             billingType: 'on-chain',
                             volumePercentage: new BigNumber(0.01),
                         },
-                        zeroexFee: {
+                        zeroExFee: {
                             type: 'volume',
                             feeRecipient: RANDOM_ADDRESS2,
                             billingType: 'on-chain',

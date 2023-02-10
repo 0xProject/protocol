@@ -44,8 +44,8 @@ export function calculateFees(opts: {
         sellTokenAmount: opts.sellTokenAmount,
     });
 
-    const zeroexFee = _calculateZeroexFee({
-        zeroexFeeConfig: opts.feeConfigs.zeroexFee,
+    const zeroExFee = _calculateZeroExFee({
+        zeroExFeeConfig: opts.feeConfigs.zeroExFee,
         sellToken: opts.sellToken,
         sellTokenAmount: opts.sellTokenAmount,
         integratorFee,
@@ -58,12 +58,12 @@ export function calculateFees(opts: {
         gasPrice: opts.gasPrice,
         quoteGasEstimate: opts.quoteGasEstimate,
         integratorFee,
-        zeroexFee,
+        zeroExFee,
     });
 
     const fees = {
         integratorFee,
-        zeroexFee,
+        zeroExFee,
         gasFee,
     };
 
@@ -82,10 +82,10 @@ function _calculateTotalOnChainChargedFeeAmount(fees: Fees): BigNumber {
         totalFeeAmount = totalFeeAmount.plus(fees.integratorFee.feeAmount);
     }
     // 0x fee
-    if (fees.zeroexFee && fees.zeroexFee.billingType === 'on-chain' && fees.zeroexFee.feeRecipient) {
+    if (fees.zeroExFee && fees.zeroExFee.billingType === 'on-chain' && fees.zeroExFee.feeRecipient) {
         // If the fee kind is integrator_share, the 0x amount has already been included in integrator amount
-        if (fees.zeroexFee.type !== 'integrator_share') {
-            totalFeeAmount = totalFeeAmount.plus(fees.zeroexFee.feeAmount);
+        if (fees.zeroExFee.type !== 'integrator_share') {
+            totalFeeAmount = totalFeeAmount.plus(fees.zeroExFee.feeAmount);
         }
     }
     // Gas fee
@@ -117,27 +117,27 @@ function _calculateIntegratorFee(opts: {
     };
 }
 
-function _calculateZeroexFee(opts: {
-    zeroexFeeConfig?: VolumeBasedFeeConfig | IntegratorShareFeeConfig;
+function _calculateZeroExFee(opts: {
+    zeroExFeeConfig?: VolumeBasedFeeConfig | IntegratorShareFeeConfig;
     sellToken: string;
     sellTokenAmount: BigNumber;
     integratorFee?: VolumeBasedFee;
 }): VolumeBasedFee | IntegratorShareFee | undefined {
-    if (!opts.zeroexFeeConfig) {
+    if (!opts.zeroExFeeConfig) {
         return undefined;
     }
 
-    switch (opts.zeroexFeeConfig.type) {
+    switch (opts.zeroExFeeConfig.type) {
         case 'volume':
             return {
                 type: 'volume',
                 feeToken: opts.sellToken,
                 feeAmount: opts.sellTokenAmount
-                    .times(opts.zeroexFeeConfig.volumePercentage)
+                    .times(opts.zeroExFeeConfig.volumePercentage)
                     .integerValue(BigNumber.ROUND_FLOOR),
-                feeRecipient: opts.zeroexFeeConfig.feeRecipient,
-                billingType: opts.zeroexFeeConfig.billingType,
-                volumePercentage: opts.zeroexFeeConfig.volumePercentage,
+                feeRecipient: opts.zeroExFeeConfig.feeRecipient,
+                billingType: opts.zeroExFeeConfig.billingType,
+                volumePercentage: opts.zeroExFeeConfig.volumePercentage,
             };
         case 'integrator_share':
             if (!opts.integratorFee) {
@@ -149,11 +149,11 @@ function _calculateZeroexFee(opts: {
                 type: 'integrator_share',
                 feeToken: opts.sellToken,
                 feeAmount: opts.integratorFee.feeAmount
-                    .times(opts.zeroexFeeConfig.integratorSharePercentage)
+                    .times(opts.zeroExFeeConfig.integratorSharePercentage)
                     .integerValue(BigNumber.ROUND_FLOOR),
-                feeRecipient: opts.zeroexFeeConfig.feeRecipient,
-                billingType: opts.zeroexFeeConfig.billingType,
-                integratorSharePercentage: opts.zeroexFeeConfig.integratorSharePercentage,
+                feeRecipient: opts.zeroExFeeConfig.feeRecipient,
+                billingType: opts.zeroExFeeConfig.billingType,
+                integratorSharePercentage: opts.zeroExFeeConfig.integratorSharePercentage,
             };
         default:
             return undefined;
@@ -167,7 +167,7 @@ function _calculateGasFee(opts: {
     gasPrice: BigNumber;
     quoteGasEstimate: BigNumber;
     integratorFee?: VolumeBasedFee;
-    zeroexFee?: VolumeBasedFee | IntegratorShareFee;
+    zeroExFee?: VolumeBasedFee | IntegratorShareFee;
 }): GasFee | undefined {
     if (!opts.gasFeeConfig) {
         return undefined;
@@ -184,12 +184,12 @@ function _calculateGasFee(opts: {
         feeRecipients.add(opts.integratorFee.feeRecipient);
     }
     if (
-        opts.zeroexFee &&
-        opts.zeroexFee.billingType === 'on-chain' &&
-        opts.zeroexFee.feeRecipient &&
-        opts.zeroexFee.feeAmount.gt(0)
+        opts.zeroExFee &&
+        opts.zeroExFee.billingType === 'on-chain' &&
+        opts.zeroExFee.feeRecipient &&
+        opts.zeroExFee.feeAmount.gt(0)
     ) {
-        feeRecipients.add(opts.zeroexFee.feeRecipient);
+        feeRecipients.add(opts.zeroExFee.feeRecipient);
     }
     if (opts.gasFeeConfig && opts.gasFeeConfig.billingType === 'on-chain' && opts.gasFeeConfig.feeRecipient) {
         feeRecipients.add(opts.gasFeeConfig.feeRecipient);
