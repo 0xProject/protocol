@@ -137,18 +137,14 @@ Some other things to keep in mind:
 The CI runs the scripts specified in the [_CI & pipelines_](#ci--pipelines) section. If your repository needs some
 special check in CI, make sure to run it as part of one of the CI checks:
 
-```
-// package.json
+```json
 {
-    ...
-    scripts: {
+    "scripts": {
         "circular": "madge --circular --extensions ts ./",
         "lint": "eslint .",
         "format": "prettier --list-different --config .prettierrc",
-        ...
         "lint:ci": "yarn circular && yarn format && yarn lint"
     }
-    ...
 }
 ```
 
@@ -156,7 +152,7 @@ If, for some reason, you absolutely, positively, cannot write the outputs of
 your `build` script to the `__build__`, `dist`, or `out` directory, make sure to add
 the build directory to the `outputs` field of the `build` pipeline in `turbo.json`:
 
-```
+```json
 {
   "$schema": "https://turbo.build/schema.json",
   "pipeline": {
@@ -169,7 +165,6 @@ the build directory to the `outputs` field of the `build` pipeline in `turbo.jso
         "other-build-folder/**"
       ]
     },
-    ...
   }
 }
 ```
@@ -204,12 +199,9 @@ and the [Ignored Build Step](https://vercel.com/docs/concepts/projects/overview#
 
 Consider the scenario where a project wishes to run Foundry tests in CI.
 
-```
-// package.json
+```json
 {
-    ...
-    scripts: {
-        ...
+    "scripts": {
         "test:ci": "forge test -vvv"
     }
 }
@@ -288,11 +280,9 @@ the environment variable for the `forge` binary. See the
 [Turborepo docs: Altering Caching Based on Environment Variables](https://turbo.build/repo/docs/core-concepts/caching#altering-caching-based-on-environment-variables)
 to learn more about how environment variables affect the pipeline.
 
-```
+```json
 {
-    ...
   "pipeline": {
-    ...
     "foundry-demo#build": {
       "dependsOn": ["^build"],
       "outputs": [
