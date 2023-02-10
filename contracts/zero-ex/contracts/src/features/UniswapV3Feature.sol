@@ -356,7 +356,7 @@ contract UniswapV3Feature is IFeature, IUniswapV3Feature, FixinCommon, FixinToke
     }
 
     // Convert null address values to fallback.
-    function _normalizeRecipient(address recipient, address alternative) private view returns (address payable normalizedRecipient) {
+    function _normalizeRecipient(address recipient, address alternative) private pure returns (address payable normalizedRecipient) {
         return recipient == address(0) ? payable(alternative) : payable(recipient);
     }
 

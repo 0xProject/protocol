@@ -248,6 +248,8 @@ contract MetaTransactionsFeature is
             returnResult = _executeFillRfqOrderCall(state);
         } else if (state.selector == IMultiplexFeature.multiplexBatchSellTokenForToken.selector) {
             returnResult = _executeMultiplexBatchSellTokenForTokenCall(state);
+        } else if (state.selector == IMultiplexFeature.multiplexMultiHopSellTokenForToken.selector) {
+            returnResult = _executeMultiplexMultiHopSellTokenForTokenCall(state);
         } else {
             LibMetaTransactionsRichErrors.MetaTransactionUnsupportedFunctionError(state.hash, state.selector).rrevert();
         }
@@ -429,7 +431,7 @@ contract MetaTransactionsFeature is
 
     /// @dev Execute a `INativeOrdersFeature.fillRfqOrder()` meta-transaction call
     ///      by decoding the call args and translating the call to the internal
-    ///      `INativeOrdersFeature._fillRfqOrder()` variant, where we can overrideunimpleme
+    ///      `INativeOrdersFeature._fillRfqOrder()` variant, where we can override
     ///      the taker address.
     function _executeFillRfqOrderCall(ExecuteState memory state) private returns (bytes memory returnResult) {
         LibNativeOrder.RfqOrder memory order;
@@ -458,6 +460,10 @@ contract MetaTransactionsFeature is
             );
     }
 
+    /// @dev Execute a `IMultiplexFeature.multiplexBatchSellTokenForToken()` meta-transaction
+    ///      call by decoding the call args and translating the call to the internal
+    ///      `IMultiplexFeature._multiplexBatchSell()` variant, where we can override the
+    ///      msgSender address.
     function _executeMultiplexBatchSellTokenForTokenCall(ExecuteState memory state) private returns (bytes memory returnResult) {
         IERC20TokenV06 inputToken;
         IERC20TokenV06 outputToken;
@@ -479,6 +485,41 @@ contract MetaTransactionsFeature is
                     IMultiplexFeature.BatchSellParams({
                         inputToken: inputToken,
                         outputToken: outputToken,
+                        sellAmount: sellAmount,
+                        calls: calls,
+                        useSelfBalance: false,
+                        recipient: state.mtx.signer,
+                        msgSender: state.mtx.signer
+                    }),
+                    minBuyAmount
+                ),
+                state.mtx.value
+            );
+    }
+
+    /// @dev Execute a `IMultiplexFeature.multiplexMultiHopSellTokenForToken()` meta-transaction
+    ///      call by decoding the call args and translating the call to the internal
+    ///      `IMultiplexFeature._multiplexMultiHopSell()` variant, where we can override the
+    ///      msgSender address.
+    function _executeMultiplexMultiHopSellTokenForTokenCall(ExecuteState memory state) private returns (bytes memory returnResult) {
+        address[] memory tokens;
+        IMultiplexFeature.MultiHopSellSubcall[] memory calls;
+        uint256 sellAmount;
+        uint256 minBuyAmount;
+
+        bytes memory args = _extractArgumentsFromCallData(state.mtx.callData);
+        (tokens, calls, sellAmount, minBuyAmount) = abi.decode(
+            args,
+            (address[], IMultiplexFeature.MultiHopSellSubcall[], uint256, uint256)
+        );
+
+        return
+            _callSelf(
+                state.hash,
+                abi.encodeWithSelector(
+                    IMultiplexFeature._multiplexMultiHopSell.selector,
+                    IMultiplexFeature.MultiHopSellParams({
+                        tokens: tokens,
                         sellAmount: sellAmount,
                         calls: calls,
                         useSelfBalance: false,
