@@ -4,34 +4,18 @@
     "build": {
       "dependsOn": ["^build"],
       "outputs": [
-        "dist/**",
         "__build__/**",
-        "lib/**",
-        "test/generated-*/**",
-        ".svelte-kit/**",
-        ".vercel/**"
+        "test/generated-*/**"
       ]
-    },
-    "foundry-demo#build": {
-      "dependsOn": ["^build"],
-      "outputs": [
-        "out/**",
-        "lib/**"
-      ],
-      "env": ["TURBO_VERSION_FORGE"]
     },
     "build:no-diff": {
       "dependsOn": ["^build:no-diff"]
     },
-    "dev": {
-      "cache": false
-    },
-    "lint": {
+    "lint:ci": {
       "outputs": []
     },
     "test:ci": {
-      "dependsOn": ["build"],
-      "inputs": ["src/**/*.tsx?", "(test|__tests__)/**/*.tsx?"]
+      "dependsOn": ["build"]
     }
   }
 }

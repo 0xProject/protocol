@@ -53,9 +53,13 @@ jobs:
           yarn build:no-diff
           git diff --exit-code
 
-      # Todo: Test/Lint
+      - name: Lint
+        run: yarn lint:ci
 
-      - name: Comment commit
+      - name: Test
+        run: yarn test:ci
+
+      - name: Comment commit with workspace hashes
         uses: ./packages/workspace-commit-comment-action
         with:
           token: ${{ secrets.GITHUB_TOKEN }}

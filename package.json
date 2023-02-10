@@ -11,7 +11,7 @@
     "build": "./turbo-prerun.sh && turbo run build",
     "build:no-diff": "./turbo-prerun.sh && turbo run build:no-diff",
     "lint:ci": "./turbo-prerun.sh && turbo run lint:ci",
-    "test": "./turbo-prerun.sh && turbo run test:ci"
+    "test:ci": "./turbo-prerun.sh && turbo run test:ci"
   },
   "devDependencies": {
     "turbo": "1.7.4"
