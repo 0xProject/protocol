@@ -137,27 +137,24 @@ jobs:
                   exclude: '**/tests'
 
             - name: Run Forge build on governance contracts
-                working-directory: contracts/governance
-                run: |
-                forge --version
-                forge build --sizes
+              working-directory: ./contracts/governance
+              run: |
+                  forge --version
+                  forge build --sizes
 
             - name: Run Forge tests on governance contracts
-                working-directory: contracts/governance
-                run: |
-                forge test -vvv --gas-report
+              working-directory: ./contracts/governance
+              run: |
+                  forge test -vvv --gas-report
 
             - name: Run Forge coverage on governance contracts
-                working-directory: contracts/governance
-                run: |
-                forge coverage --report lcov
+              working-directory: ./contracts/governance
+              run: |
+                  forge coverage --report lcov
 
-      - name: Upload the coverage report to Coveralls
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          base-path: ./contracts/governance/
-          path-to-lcov: ./contracts/governance/lcov.info
-
-
-
+            - name: Upload the coverage report to Coveralls
+              uses: coverallsapp/github-action@master
+              with:
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  base-path: ./contracts/governance/
+                  path-to-lcov: ./contracts/governance/lcov.info
