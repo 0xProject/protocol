@@ -142,6 +142,7 @@
         "immutable": "^4.2.2",
         "json-rpc-error": "^2.0.0",
         "kafkajs": "^1.15.0",
+        "@kybernetwork/ks-elastic-sc": "KyberNetwork/ks-elastic-sc#362d9b6a726bcb286cc47c082c46f6259a5ae82d",
         "lodash": "^4.17.15",
         "node-fetch": "^2.6.1",
         "npm-run-all": "4.1.2",
