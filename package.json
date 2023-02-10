@@ -1,5 +1,5 @@
 {
-  "name": "test-monorepo",
+  "name": "0x-labs",
   "version": "0.0.0",
   "private": true,
   "workspaces": [
@@ -10,17 +10,14 @@
   "scripts": {
     "build": "./turbo-prerun.sh && turbo run build",
     "build:no-diff": "./turbo-prerun.sh && turbo run build:no-diff",
-    "dev": "./turbo-prerun.sh && turbo run dev --parallel",
-    "lint": "./turbo-prerun.sh && turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "lint:ci": "./turbo-prerun.sh && turbo run lint:ci",
+    "test": "./turbo-prerun.sh && turbo run test:ci"
   },
   "devDependencies": {
-    "eslint-config-custom": "*",
-    "prettier": "latest",
-    "turbo": "latest"
+    "turbo": "1.7.4"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=16.0.0"
   },
   "dependencies": {},
   "packageManager": "yarn@1.22.19"
