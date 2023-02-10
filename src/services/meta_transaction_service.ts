@@ -16,6 +16,7 @@ import {
     MetaTransactionV2QuoteParams,
     MetaTransactionV2QuoteResponse,
     MetaTransactionV2QuoteResult,
+    GetSwapQuoteParams,
 } from '../types';
 import { publishQuoteReport } from '../utils/quote_report_utils';
 import { SwapService } from './swap_service';
@@ -175,14 +176,14 @@ export class MetaTransactionService implements IMetaTransactionService {
     ): Promise<MetaTransactionV2QuoteResult> {
         const wrappedNativeToken = NATIVE_FEE_TOKEN_BY_CHAIN_ID[CHAIN_ID];
 
-        const quoteParams = {
+        const quoteParams: GetSwapQuoteParams = {
             ...params,
             // NOTE: Internally all ETH trades are for WETH, we just wrap/unwrap automatically
             buyToken: params.isETHBuy ? wrappedNativeToken : params.buyTokenAddress,
             endpoint,
-            isMetaTransaction: true,
             isUnwrap: false,
             isWrap: false,
+            metaTransactionVersion: 'v1',
             sellToken: params.sellTokenAddress,
             shouldSellEntireBalance: false,
             skipValidation: true,
@@ -249,14 +250,14 @@ export class MetaTransactionService implements IMetaTransactionService {
             feeType: AffiliateFeeType.GaslessFee,
             recipient: FEE_RECIPIENT_ADDRESS,
         };
-        const quoteParams = {
+        const quoteParams: GetSwapQuoteParams = {
             ...params,
             // NOTE: Internally all ETH trades are for WETH, we just wrap/unwrap automatically
             buyToken: params.isETHBuy ? wrappedNativeToken : params.buyTokenAddress,
             endpoint,
-            isMetaTransaction: true,
             isUnwrap: false,
             isWrap: false,
+            metaTransactionVersion: 'v1',
             sellToken: params.sellTokenAddress,
             shouldSellEntireBalance: false,
             skipValidation: true,

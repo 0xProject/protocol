@@ -200,7 +200,7 @@ export function getFQTTransformerDataFromOptimizedOrders(
  */
 export function requiresTransformERC20(opts: ExchangeProxyContractOpts): boolean {
     // Is a mtx.
-    if (opts.isMetaTransaction) {
+    if (opts.metaTransactionVersion !== undefined) {
         return true;
     }
     // Has an affiliate fee.

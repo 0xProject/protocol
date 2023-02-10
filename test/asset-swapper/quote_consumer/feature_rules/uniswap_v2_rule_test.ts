@@ -54,7 +54,7 @@ describe('UniswapV2Rule', () => {
                 isToETH: false,
                 affiliateFees: [NO_AFFILIATE_FEE],
                 refundReceiver: TAKER_ADDRESS,
-                isMetaTransaction: true,
+                metaTransactionVersion: 'v1',
                 shouldSellEntireBalance: false,
             });
 
@@ -76,7 +76,6 @@ describe('UniswapV2Rule', () => {
                     },
                 ],
                 refundReceiver: NULL_ADDRESS,
-                isMetaTransaction: false,
                 shouldSellEntireBalance: false,
             });
 
@@ -91,7 +90,6 @@ describe('UniswapV2Rule', () => {
                 isToETH: false,
                 affiliateFees: [NO_AFFILIATE_FEE],
                 refundReceiver: TAKER_ADDRESS,
-                isMetaTransaction: false,
                 shouldSellEntireBalance: true,
             });
 
@@ -106,7 +104,6 @@ describe('UniswapV2Rule', () => {
                 isToETH: false,
                 affiliateFees: [NO_AFFILIATE_FEE],
                 refundReceiver: TAKER_ADDRESS,
-                isMetaTransaction: false,
                 shouldSellEntireBalance: true,
             });
 
@@ -121,7 +118,6 @@ describe('UniswapV2Rule', () => {
                 isToETH: false,
                 affiliateFees: [NO_AFFILIATE_FEE],
                 refundReceiver: TAKER_ADDRESS,
-                isMetaTransaction: false,
                 shouldSellEntireBalance: false,
             });
 
@@ -136,7 +132,6 @@ describe('UniswapV2Rule', () => {
                 isToETH: false,
                 affiliateFees: [NO_AFFILIATE_FEE],
                 refundReceiver: TAKER_ADDRESS,
-                isMetaTransaction: false,
                 shouldSellEntireBalance: false,
             });
 
@@ -160,7 +155,6 @@ describe('UniswapV2Rule', () => {
                 isToETH: false,
                 affiliateFees: [NO_AFFILIATE_FEE],
                 refundReceiver: TAKER_ADDRESS,
-                isMetaTransaction: false,
                 shouldSellEntireBalance: false,
             });
 
@@ -179,7 +173,6 @@ describe('UniswapV2Rule', () => {
                 isToETH: false,
                 affiliateFees: [NO_AFFILIATE_FEE],
                 refundReceiver: TAKER_ADDRESS,
-                isMetaTransaction: false,
                 shouldSellEntireBalance: false,
             });
 
@@ -202,7 +195,6 @@ describe('UniswapV2Rule', () => {
                 isToETH: false,
                 affiliateFees: [NO_AFFILIATE_FEE],
                 refundReceiver: TAKER_ADDRESS,
-                isMetaTransaction: false,
                 shouldSellEntireBalance: false,
             });
 

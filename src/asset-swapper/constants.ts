@@ -67,7 +67,6 @@ const DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS: ExchangeProxyContractOpts 
         },
     ],
     refundReceiver: NULL_ADDRESS,
-    isMetaTransaction: false,
     shouldSellEntireBalance: false,
 };
 

@@ -219,7 +219,7 @@ export interface GetSwapQuoteParams extends SwapQuoteParamsBase {
     isUnwrap: boolean;
     isETHSell: boolean;
     isETHBuy: boolean;
-    isMetaTransaction: boolean;
+    metaTransactionVersion?: 'v1' | 'v2';
     // The ID of the integrator associated with the provided API key, if there is one.
     integrator?: Integrator;
     // The HTTP request origin
