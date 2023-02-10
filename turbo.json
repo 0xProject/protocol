@@ -3,17 +3,12 @@
   "pipeline": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [
-        "__build__/**",
-        "test/generated-*/**"
-      ]
+      "outputs": ["__build__/**", "dist/**", "out/**"]
     },
     "build:no-diff": {
       "dependsOn": ["^build:no-diff"]
     },
-    "lint:ci": {
-      "outputs": []
-    },
+    "lint:ci": {},
     "test:ci": {
       "dependsOn": ["build"]
     }
