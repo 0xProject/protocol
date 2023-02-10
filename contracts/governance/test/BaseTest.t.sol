@@ -22,6 +22,7 @@ pragma solidity ^0.8.17;
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
 import "@openzeppelin/token/ERC20/ERC20.sol";
+import "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 import "./ZRXMock.sol";
 import "../src/ZRXWrappedToken.sol";
 import "../src/ZeroExVotes.sol";
@@ -55,15 +56,22 @@ contract BaseTest is Test {
         // return address(_address);
 
         ZRXMock mockZRX = new ZRXMock();
+
         ZeroExVotes votes = new ZeroExVotes();
-        ZRXWrappedToken token = new ZRXWrappedToken(mockZRX, votes);
+        ERC1967Proxy votesProxy = new ERC1967Proxy(address(votes), new bytes(0));
+        votes = ZeroExVotes(address(votesProxy));
+
+        ZRXWrappedToken token = new ZRXWrappedToken(mockZRX, IZeroExVotes(address(votesProxy)));
         votes.initialize(address(token));
 
         address[] memory proposers = new address[](0);
         address[] memory executors = new address[](0);
 
         ZeroExTimelock protocolTimelock = new ZeroExTimelock(2 days, proposers, executors, account1);
-        ZeroExProtocolGovernor protocolGovernor = new ZeroExProtocolGovernor(IVotes(address(votes)), protocolTimelock);
+        ZeroExProtocolGovernor protocolGovernor = new ZeroExProtocolGovernor(
+            IVotes(address(votesProxy)),
+            protocolTimelock
+        );
 
         protocolTimelock.grantRole(protocolTimelock.PROPOSER_ROLE(), address(protocolGovernor));
         protocolTimelock.grantRole(protocolTimelock.EXECUTOR_ROLE(), address(protocolGovernor));

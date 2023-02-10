@@ -11,8 +11,8 @@
     "test": "forge test"
   },
   "repository": {
-      "type": "git",
-      "url": "https://github.com/0xProject/protocol.git"
+    "type": "git",
+    "url": "https://github.com/0xProject/protocol.git"
   },
   "license": "Apache-2.0",
   "dependencies": {}

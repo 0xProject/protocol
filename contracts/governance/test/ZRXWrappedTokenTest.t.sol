@@ -103,6 +103,11 @@ contract ZRXWrappedTokenTest is BaseTest {
         assertEq(tokenBalance2, 100e18 - wTokenBalance2 - tokenBalance4);
     }
 
+    function testShouldNotBeAbleToReinitialiseTheZeroExVotes() public {
+        vm.expectRevert("ZeroExVotes: Already initialized");
+        votes.initialize(account2);
+    }
+
     function testShouldBeAbleToSelfDelegateVotingPower() public {
         // Check voting power initially is 0
         uint256 votingPowerAccount2 = votes.getVotes(account2);

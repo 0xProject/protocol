@@ -36,6 +36,7 @@ contract ZeroExVotes is IZeroExVotes {
     }
 
     function initialize(address _token) public {
+        require(token == address(0), "ZeroExVotes: Already initialized");
         token = _token;
     }
 
