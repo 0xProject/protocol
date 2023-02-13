@@ -48,6 +48,7 @@ import * as TestNativeOrderSampler from '../test/generated-artifacts/TestNativeO
 import * as TwoHopSampler from '../test/generated-artifacts/TwoHopSampler.json';
 import * as UniswapSampler from '../test/generated-artifacts/UniswapSampler.json';
 import * as UniswapV2Sampler from '../test/generated-artifacts/UniswapV2Sampler.json';
+import * as UniswapV3MultiQuoter from '../test/generated-artifacts/UniswapV3MultiQuoter.json';
 import * as UniswapV3Sampler from '../test/generated-artifacts/UniswapV3Sampler.json';
 import * as UtilitySampler from '../test/generated-artifacts/UtilitySampler.json';
 import * as VelodromeSampler from '../test/generated-artifacts/VelodromeSampler.json';
@@ -83,6 +84,7 @@ export const artifacts = {
     TwoHopSampler: TwoHopSampler as ContractArtifact,
     UniswapSampler: UniswapSampler as ContractArtifact,
     UniswapV2Sampler: UniswapV2Sampler as ContractArtifact,
+    UniswapV3MultiQuoter: UniswapV3MultiQuoter as ContractArtifact,
     UniswapV3Sampler: UniswapV3Sampler as ContractArtifact,
     UtilitySampler: UtilitySampler as ContractArtifact,
     VelodromeSampler: VelodromeSampler as ContractArtifact,

@@ -15,3 +15,4 @@ remappings = [
 allow_paths = ["../node_modules"]
 cache_path = 'foundry-cache'
 optimizer_runs = 1000000
+fs_permissions = [{ access = "read-write", path = "./"}]

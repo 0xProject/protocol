@@ -32,6 +32,7 @@
         "./contracts/src/TwoHopSampler.sol",
         "./contracts/src/UniswapSampler.sol",
         "./contracts/src/UniswapV2Sampler.sol",
+        "./contracts/src/UniswapV3MultiQuoter.sol",
         "./contracts/src/UniswapV3Sampler.sol",
         "./contracts/src/UtilitySampler.sol",
         "./contracts/src/VelodromeSampler.sol",

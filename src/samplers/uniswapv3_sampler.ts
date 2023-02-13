@@ -17,13 +17,13 @@ export class UniswapV3Sampler implements BridgeSampler<UniswapV3FillData> {
     private readonly source: ERC20BridgeSource = ERC20BridgeSource.UniswapV3;
     private readonly samplerContract: ERC20BridgeSamplerContract;
     private readonly chainId: ChainId;
-    private readonly quoterAddress: string;
+    private readonly factoryAddress: string;
     private readonly routerAddress: string;
 
     constructor(chainId: ChainId, samplerContract: ERC20BridgeSamplerContract) {
         this.chainId = chainId;
         this.samplerContract = samplerContract;
-        ({ quoter: this.quoterAddress, router: this.routerAddress } = UNISWAPV3_CONFIG_BY_CHAIN_ID[chainId]);
+        ({ factory: this.factoryAddress, router: this.routerAddress } = UNISWAPV3_CONFIG_BY_CHAIN_ID[chainId]);
     }
 
     createSampleSellsOperation(
@@ -76,7 +76,7 @@ export class UniswapV3Sampler implements BridgeSampler<UniswapV3FillData> {
             source: this.source,
             contract: this.samplerContract,
             function: samplerFunction,
-            params: [this.quoterAddress, tokenAddressPath, amounts],
+            params: [this.factoryAddress, tokenAddressPath, amounts],
             callback: (callResults: string, fillData: UniswapV3FillData): BigNumber[] => {
                 const [paths, gasUsed, samples] = this.samplerContract.getABIDecodedReturnData<
                     [string[], BigNumber[], BigNumber[]]

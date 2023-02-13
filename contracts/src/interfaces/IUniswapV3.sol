@@ -1,9 +1,8 @@
 pragma solidity >=0.6;
 
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-
 interface IUniswapV3QuoterV2 {
-    function factory() external view returns (IUniswapV3Factory factory);
+    /// @return Returns the address of the Uniswap V3 factory
+    function factory() external view returns (IUniswapV3Factory);
 
     // @notice Returns the amount out received for a given exact input swap without executing the swap
     // @param path The path of the swap, i.e. each token pair and the pool fee
@@ -45,12 +44,31 @@ interface IUniswapV3QuoterV2 {
 }
 
 interface IUniswapV3Pool {
-    function token0() external view returns (IERC20TokenV06);
+    /// @notice The first of the two tokens of the pool, sorted by address
+    /// @return The token contract address
+    function token0() external view returns (address);
 
-    function token1() external view returns (IERC20TokenV06);
+    /// @notice The second of the two tokens of the pool, sorted by address
+    /// @return The token contract address
+    function token1() external view returns (address);
 
+    /// @notice The pool's fee in hundredths of a bip, i.e. 1e-6
+    /// @return The fee
     function fee() external view returns (uint24);
 
+    /// @notice The 0th storage slot in the pool stores many values, and is exposed as a single method to save gas
+    /// when accessed externally.
+    /// @return sqrtPriceX96 The current price of the pool as a sqrt(token1/token0) Q64.96 value
+    /// tick The current tick of the pool, i.e. according to the last tick transition that was run.
+    /// This value may not always be equal to SqrtTickMath.getTickAtSqrtRatio(sqrtPriceX96) if the price is on a tick
+    /// boundary.
+    /// observationIndex The index of the last oracle observation that was written,
+    /// observationCardinality The current maximum number of observations stored in the pool,
+    /// observationCardinalityNext The next maximum number of observations, to be updated when the observation.
+    /// feeProtocol The protocol fee for both tokens of the pool.
+    /// Encoded as two 4 bit values, where the protocol fee of token1 is shifted 4 bits and the protocol fee of token0
+    /// is the lower 4 bits. Used as the denominator of a fraction of the swap fee, e.g. 4 means 1/4th of the swap fee.
+    /// unlocked Whether the pool is currently locked to reentrancy
     function slot0()
         external
         view
@@ -110,5 +128,33 @@ interface IUniswapV3Pool {
 }
 
 interface IUniswapV3Factory {
+    /// @notice Returns the pool address for a given pair of tokens and a fee, or address 0 if it does not exist
+    /// @dev tokenA and tokenB may be passed in either token0/token1 or token1/token0 order
+    /// @param a The contract address of either token0 or token1
+    /// @param b The contract address of the other token
+    /// @param fee The fee collected upon every swap in the pool, denominated in hundredths of a bip
+    /// @return pool The pool address
     function getPool(address a, address b, uint24 fee) external view returns (IUniswapV3Pool pool);
+}
+
+interface IUniswapV3MultiQuoter {
+    // @notice Returns the amounts out received for a given set of exact input swaps without executing the swap
+    /// @param factory The factory contract managing UniswapV3 pools
+    /// @param path The path of the swap, i.e. each token pair and the pool fee
+    /// @param amountsIn The amounts in of the first token to swap
+    function quoteExactMultiInput(
+        IUniswapV3Factory factory,
+        bytes memory path,
+        uint256[] memory amountsIn
+    ) external view;
+
+    /// @notice Returns the amounts in received for a given set of exact output swaps without executing the swap
+    /// @param factory The factory contract managing UniswapV3 pools
+    /// @param path The path of the swap, i.e. each token pair and the pool fee. Path must be provided in reverse order
+    /// @param amountsOut The amounts out of the last token to receive
+    function quoteExactMultiOutput(
+        IUniswapV3Factory factory,
+        bytes memory path,
+        uint256[] memory amountsOut
+    ) external view;
 }

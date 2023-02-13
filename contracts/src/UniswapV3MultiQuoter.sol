@@ -12,7 +12,7 @@
   limitations under the License.
 */
 
-pragma solidity ^0.6;
+pragma solidity ^0.7;
 pragma experimental ABIEncoderV2;
 
 import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
@@ -27,7 +27,13 @@ import "./interfaces/IUniswapV3.sol";
 
 /// @title Provides quotes for multiple swap amounts
 /// @notice Allows getting the expected amount out or amount in for multiple given swap amounts without executing the swap
-contract UniswapV3MultiQuoter {
+contract UniswapV3MultiQuoter is IUniswapV3MultiQuoter {
+    // TODO: both quoteExactMultiInput and quoteExactMultiOutput revert at the end of the quoting logic
+    // and return results encodied into a revert reason. The revert should be removed and replaced with
+    // a normal return statement whenever UniswapV3Sampler stops having the two pool filtering logic.
+    // The two pool filtering logic causes pool's storage slots to be warmed up, causing gas estimates
+    // to be significantly below the gas used during settlement. Additionally, per the following EIP
+    // this revert logic might not clear warm storage slots in the future: https://eips.ethereum.org/EIPS/eip-3978
     using Path for bytes;
     using SafeCast for uint256;
     using LowGasSafeMath for int256;
@@ -46,6 +52,8 @@ contract UniswapV3MultiQuoter {
         uint128 liquidity;
         // the current quote amount we are querying liquidity for
         uint256 amountsIndex;
+        // the current aggregate gas estimate for multi swap
+        uint256 gasAggregate;
     }
 
     // the intermediate calculations for each tick and quote amount
@@ -64,6 +72,8 @@ contract UniswapV3MultiQuoter {
         uint256 amountOut;
         // how much fee is being paid in
         uint256 feeAmount;
+        // how much gas was left before the current step
+        uint256 gasBefore;
     }
 
     // the result of multiswap
@@ -76,25 +86,24 @@ contract UniswapV3MultiQuoter {
         int256[] amounts1;
     }
 
-    /// @notice Returns the amounts out received for a given set of exact input swaps without executing the swap
+    /// @notice Quotes amounts out for a set of exact input swaps and provides results encoded into a revert reason
     /// @param factory The factory contract managing UniswapV3 pools
     /// @param path The path of the swap, i.e. each token pair and the pool fee
     /// @param amountsIn The amounts in of the first token to swap
-    /// @return amountsOut The amounts of the last token that would be received
-    /// @return gasEstimate The estimates of the gas that the swap consumes
+    /// @dev This function reverts at the end of the quoting logic and encodes (uint256[] amountsOut, uint256[] gasEstimates)
+    /// into the revert reason. See additional documentation below.
     function quoteExactMultiInput(
         IUniswapV3Factory factory,
         bytes memory path,
         uint256[] memory amountsIn
-    ) public returns (uint256[] memory amountsOut, uint256[] memory gasEstimate) {
+    ) public view override {
         for (uint256 i = 0; i < amountsIn.length - 1; ++i) {
             require(
                 amountsIn[i] <= amountsIn[i + 1],
                 "UniswapV3MultiQuoter/amountsIn must be monotonically increasing"
             );
         }
-
-        gasEstimate = new uint256[](amountsIn.length);
+        uint256[] memory gasEstimates = new uint256[](amountsIn.length);
 
         while (true) {
             (address tokenIn, address tokenOut, uint24 fee) = path.decodeFirstPool();
@@ -116,29 +125,43 @@ contract UniswapV3MultiQuoter {
 
             for (uint256 i = 0; i < amountsIn.length; ++i) {
                 amountsIn[i] = zeroForOne ? uint256(-result.amounts1[i]) : uint256(-result.amounts0[i]);
-                gasEstimate[i] += result.gasEstimates[i];
+                gasEstimates[i] += result.gasEstimates[i];
             }
 
             // decide whether to continue or terminate
             if (path.hasMultiplePools()) {
                 path = path.skipToken();
             } else {
-                return (amountsIn, gasEstimate);
+                // quote results must be encoded into a revert because otherwise subsequent calls
+                // to UniswapV3MultiQuoter result in multiswap hitting pool storage slots that are
+                // already warm. This results in very inaccurate gas estimates when estimating gas
+                // usage for settlement.
+                bytes memory revertResult = abi.encodeWithSignature(
+                    "result(uint256[],uint256[])",
+                    amountsIn,
+                    gasEstimates
+                );
+                assembly {
+                    revert(add(revertResult, 0x20), mload(revertResult))
+                }
             }
         }
     }
 
-    /// @notice Returns the amounts in received for a given set of exact output swaps without executing the swap
+    /// @notice Quotes amounts in a set of exact output swaps and provides results encoded into a revert reason
     /// @param factory The factory contract managing UniswapV3 pools
     /// @param path The path of the swap, i.e. each token pair and the pool fee. Path must be provided in reverse order
     /// @param amountsOut The amounts out of the last token to receive
-    /// @return amountsIn The amounts of the first token swap
-    /// @return gasEstimate The estimates of the gas that the swap consumes
+    /// @dev This function reverts at the end of the quoting logic and encodes (uint256[] amountsIn, uint256[] gasEstimates)
+    /// into the revert reason. See additional documentation below.
     function quoteExactMultiOutput(
         IUniswapV3Factory factory,
         bytes memory path,
         uint256[] memory amountsOut
-    ) public returns (uint256[] memory amountsIn, uint256[] memory gasEstimate) {
+    ) public view override {
+        uint256[] memory amountsIn = new uint256[](amountsOut.length);
+        uint256[] memory gasEstimates = new uint256[](amountsOut.length);
+
         for (uint256 i = 0; i < amountsOut.length - 1; ++i) {
             require(
                 amountsOut[i] <= amountsOut[i + 1],
@@ -146,16 +169,15 @@ contract UniswapV3MultiQuoter {
             );
         }
 
-        gasEstimate = new uint256[](amountsOut.length);
-
+        uint256 nextAmountsLength = amountsOut.length;
         while (true) {
             (address tokenOut, address tokenIn, uint24 fee) = path.decodeFirstPool();
             bool zeroForOne = tokenIn < tokenOut;
             IUniswapV3Pool pool = factory.getPool(tokenIn, tokenOut, fee);
 
             // multiswap only accepts int256[] for output amounts
-            int256[] memory amounts = new int256[](amountsOut.length);
-            for (uint256 i = 0; i < amountsOut.length; ++i) {
+            int256[] memory amounts = new int256[](nextAmountsLength);
+            for (uint256 i = 0; i < nextAmountsLength; ++i) {
                 amounts[i] = -int256(amountsOut[i]);
             }
 
@@ -166,22 +188,47 @@ contract UniswapV3MultiQuoter {
                 zeroForOne ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1
             );
 
-            for (uint256 i = 0; i < amountsOut.length; ++i) {
-                amountsOut[i] = zeroForOne ? uint256(result.amounts0[i]) : uint256(result.amounts1[i]);
-                gasEstimate[i] += result.gasEstimates[i];
+            for (uint256 i = 0; i < nextAmountsLength; ++i) {
+                uint256 amountReceived = zeroForOne ? uint256(-result.amounts1[i]) : uint256(-result.amounts0[i]);
+                if (amountReceived != amountsOut[i]) {
+                    // for exact output swaps we need to check whether we would receive the full amount due to
+                    // multiswap behavior when hitting the limit
+                    nextAmountsLength = i;
+                    break;
+                } else {
+                    // populate amountsOut for the next pool
+                    amountsOut[i] = zeroForOne ? uint256(result.amounts0[i]) : uint256(result.amounts1[i]);
+                    gasEstimates[i] += result.gasEstimates[i];
+                }
             }
 
-            // decide whether to continue or terminate
-            if (path.hasMultiplePools()) {
-                path = path.skipToken();
-            } else {
-                return (amountsOut, gasEstimate);
+            if (nextAmountsLength == 0 || !path.hasMultiplePools()) {
+                for (uint256 i = 0; i < nextAmountsLength; ++i) {
+                    amountsIn[i] = amountsOut[i];
+                }
+
+                // quote results must be encoded into a revert because otherwise subsequent calls
+                // to UniswapV3MultiQuoter result in multiswap hitting pool storage slots that are
+                // already warm. This results in very inaccurate gas estimates when estimating gas
+                // usage for settlement.
+                bytes memory revertResult = abi.encodeWithSignature(
+                    "result(uint256[],uint256[])",
+                    amountsIn,
+                    gasEstimates
+                );
+                assembly {
+                    revert(add(revertResult, 0x20), mload(revertResult))
+                }
             }
+
+            path = path.skipToken();
         }
     }
 
     /// @notice swap multiple amounts of token0 for token1 or token1 for token1
-    /// @dev The results of multiswap includes slight rounding issues resulting from rounding up/rounding down in SqrtPriceMath library
+    /// @dev The results of multiswap includes slight rounding issues resulting from rounding up/rounding down in SqrtPriceMath library. Additionally,
+    /// it should be noted that multiswap requires a monotonically increasing list of amounts for exact inputs and monotonically decreasing list of
+    /// amounts for exact outputs.
     /// @param pool The UniswapV3 pool to simulate each of the swap amounts for
     /// @param zeroForOne The direction of the swap, true for token0 to token1, false for token1 to token0
     /// @param amounts The amounts of the swaps, positive values indicate exactInput and negative values indicate exact output
@@ -193,12 +240,11 @@ contract UniswapV3MultiQuoter {
         bool zeroForOne,
         int256[] memory amounts,
         uint160 sqrtPriceLimitX96
-    ) private returns (MultiSwapResult memory result) {
+    ) private view returns (MultiSwapResult memory result) {
         result.gasEstimates = new uint256[](amounts.length);
         result.amounts0 = new int256[](amounts.length);
         result.amounts1 = new int256[](amounts.length);
 
-        uint256 gasBefore = gasleft();
         (uint160 sqrtPriceX96Start, int24 tickStart, , , , , ) = pool.slot0();
         int24 tickSpacing = pool.tickSpacing();
         uint24 fee = pool.fee();
@@ -211,12 +257,14 @@ contract UniswapV3MultiQuoter {
             sqrtPriceX96: sqrtPriceX96Start,
             tick: tickStart,
             liquidity: pool.liquidity(),
-            amountsIndex: 0
+            amountsIndex: 0,
+            gasAggregate: 0
         });
 
         // continue swapping as long as we haven't used the entire input/output and haven't reached the price limit
         while (state.amountSpecifiedRemaining != 0 && state.sqrtPriceX96 != sqrtPriceLimitX96) {
             StepComputations memory step;
+            step.gasBefore = gasleft();
 
             step.sqrtPriceStartX96 = state.sqrtPriceX96;
 
@@ -270,6 +318,7 @@ contract UniswapV3MultiQuoter {
                 }
 
                 state.tick = zeroForOne ? step.tickNext - 1 : step.tickNext;
+                state.gasAggregate += step.gasBefore - gasleft();
             } else if (state.sqrtPriceX96 != step.sqrtPriceStartX96) {
                 // recompute unless we're on a lower tick boundary (i.e. already transitioned ticks), and haven't moved
                 state.tick = TickMath.getTickAtSqrtRatio(state.sqrtPriceX96);
@@ -280,7 +329,14 @@ contract UniswapV3MultiQuoter {
                     ? (amounts[state.amountsIndex], state.amountCalculated)
                     : (state.amountCalculated, amounts[state.amountsIndex]);
 
-                result.gasEstimates[state.amountsIndex] = gasBefore - gasleft();
+                if (state.sqrtPriceX96 != step.sqrtPriceNextX96) {
+                    result.gasEstimates[state.amountsIndex] = scaleMultiswapGasEstimate(
+                        state.gasAggregate + (step.gasBefore - gasleft())
+                    );
+                } else {
+                    // we are moving to the next tick
+                    result.gasEstimates[state.amountsIndex] = scaleMultiswapGasEstimate(state.gasAggregate);
+                }
 
                 if (state.amountsIndex == amounts.length - 1) {
                     return (result);
@@ -295,9 +351,17 @@ contract UniswapV3MultiQuoter {
             (result.amounts0[i], result.amounts1[i]) = zeroForOne == exactInput
                 ? (amounts[i] - state.amountSpecifiedRemaining, state.amountCalculated)
                 : (state.amountCalculated, amounts[i] - state.amountSpecifiedRemaining);
+            result.gasEstimates[i] = scaleMultiswapGasEstimate(state.gasAggregate);
         }
+    }
 
-        result.gasEstimates[state.amountsIndex] = gasBefore - gasleft();
+    /// @notice Returns the multiswap gas estimate scaled to UniswapV3Pool:swap estimates
+    /// @dev These parameters have been determined by running a linear regression between UniswapV3QuoterV2
+    /// gas estimates and the unscaled gas estimates from multiswap
+    /// @param multiSwapEstimate the gas estimate from multiswap
+    /// @return swapEstimate the gas estimate equivalent for UniswapV3Pool:swap
+    function scaleMultiswapGasEstimate(uint256 multiSwapEstimate) private pure returns (uint256 swapEstimate) {
+        return (166 * multiSwapEstimate) / 100 + 50000;
     }
 
     /// @notice Returns the next initialized tick contained in the same word (or adjacent word) as the tick that is either

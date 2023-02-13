@@ -147,7 +147,10 @@ contract TestUniswapV3Sampler is Test, UniswapV3Common {
         uint256[] memory amountsIn
     ) private returns (uint256 uniQuoterGasUsage, uint256 multiQuoterGasUsage) {
         uint256 gas0 = gasleft();
-        (uint256[] memory multiQuoterAmountsOut, ) = multiQuoter.quoteExactMultiInput(factory, path, amountsIn);
+        uint256[] memory multiQuoterAmountsOut;
+        try multiQuoter.quoteExactMultiInput(factory, path, amountsIn) {} catch (bytes memory reason) {
+            (, multiQuoterAmountsOut, ) = catchMultiSwapResult(reason);
+        }
         uint256 gas1 = gasleft();
 
         for (uint256 i = 0; i < amountsIn.length; ++i) {
@@ -167,7 +170,13 @@ contract TestUniswapV3Sampler is Test, UniswapV3Common {
                     uniQuoterAmountOut - ERROR_THRESHOLD,
                     "compareQuoterSells: MultiQuoter amount is too low compared to UniQuoter amount"
                 );
-            } catch {}
+            } catch {
+                assertEq(
+                    multiQuoterAmountsOut[i],
+                    0,
+                    "compareQuoterSells: MultiQuoter amount should be 0 when UniQuoter reverts"
+                );
+            }
         }
         return (gas1 - gasleft(), gas0 - gas1);
     }
@@ -177,7 +186,10 @@ contract TestUniswapV3Sampler is Test, UniswapV3Common {
         uint256[] memory amountsOut
     ) private returns (uint256 uniQuoterGasUsage, uint256 multiQuoterGasUsage) {
         uint256 gas0 = gasleft();
-        (uint256[] memory multiQuoterAmountsIn, ) = multiQuoter.quoteExactMultiOutput(factory, path, amountsOut);
+        uint256[] memory multiQuoterAmountsIn;
+        try multiQuoter.quoteExactMultiOutput(factory, path, amountsOut) {} catch (bytes memory reason) {
+            (, multiQuoterAmountsIn, ) = catchMultiSwapResult(reason);
+        }
         uint256 gas1 = gasleft();
 
         for (uint256 i = 0; i < amountsOut.length; ++i) {
@@ -197,8 +209,79 @@ contract TestUniswapV3Sampler is Test, UniswapV3Common {
                     uniQuoterAmountIn - ERROR_THRESHOLD,
                     "compareQuoterBuys: MultiQuoter amount is too low compared to UniQuoter mamount"
                 );
-            } catch {}
+            } catch {
+                assertEq(
+                    multiQuoterAmountsIn[i],
+                    0,
+                    "compareQuoterBuys: MultiQuoter amount should be 0 when UniQuoter reverts"
+                );
+            }
         }
         return (gas1 - gasleft(), gas0 - gas1);
+    }
+
+    function testWarmStorage() public {
+        IERC20TokenV06[] memory tokenPath = new IERC20TokenV06[](3);
+        tokenPath[0] = IERC20TokenV06(0x03ab458634910AaD20eF5f1C8ee96F1D6ac54919); // RAI
+        tokenPath[1] = IERC20TokenV06(0x6B175474E89094C44Da98b954EedeAC495271d0F); // DAI
+        tokenPath[2] = IERC20TokenV06(0x111111111117dC0aa78b770fA6A738034120C302); // 1INCH
+
+        uint256 inputAmount = 228852900000000000000000;
+        uint256[] memory amounts = new uint256[](13);
+        for (uint256 i = 0; i < amounts.length; ++i) {
+            amounts[i] = (i + 1) * (inputAmount / 13);
+        }
+
+        bytes
+            memory path = hex"03ab458634910aad20ef5f1c8ee96f1d6ac549190001f46b175474e89094c44da98b954eedeac495271d0f002710111111111117dc0aa78b770fa6a738034120c302";
+
+        console.log("UQ Cold Read");
+        for (uint256 i = 0; i < amounts.length; ++i) {
+            try uniQuoter.quoteExactInput(path, amounts[i]) returns (
+                uint256 /* amountOut */,
+                uint160[] memory /* sqrtPriceX96AfterList */,
+                uint32[] memory /* initializedTicksCrossedList */,
+                uint256 uqGasEstimate
+            ) {
+                console.log("UQ Gas Estimates: i=%d, UQ: %d", i, uqGasEstimate);
+            } catch {}
+        }
+
+        console.log("UQ Warm Read");
+
+        for (uint256 i = 0; i < amounts.length; ++i) {
+            try uniQuoter.quoteExactInput(path, amounts[i]) returns (
+                uint256 /* amountOut */,
+                uint160[] memory /* sqrtPriceX96AfterList */,
+                uint32[] memory /* initializedTicksCrossedList */,
+                uint256 uqGasEstimate
+            ) {
+                console.log("UQ Gas Estimates: i=%d, UQ: %d", i, uqGasEstimate);
+            } catch {}
+        }
+
+        console.log("MQ Cold Read");
+
+        {
+            uint256[] memory mqGasEstimates;
+            try multiQuoter.quoteExactMultiInput(factory, path, amounts) {} catch (bytes memory reason) {
+                (, , mqGasEstimates) = catchMultiSwapResult(reason);
+            }
+            for (uint256 i = 0; i < amounts.length; ++i) {
+                console.log("MQ Gas Estimates: i=%d, MQ: %d", i, mqGasEstimates[i]);
+            }
+        }
+
+        console.log("MQ Warm Read");
+
+        {
+            uint256[] memory mqGasEstimates;
+            try multiQuoter.quoteExactMultiInput(factory, path, amounts) {} catch (bytes memory reason) {
+                (, , mqGasEstimates) = catchMultiSwapResult(reason);
+            }
+            for (uint256 i = 0; i < amounts.length; ++i) {
+                console.log("MQ Gas Estimates: i=%d, MQ: %d", i, mqGasEstimates[i]);
+            }
+        }
     }
 }

@@ -8,8 +8,10 @@ import { ContractArtifact } from 'ethereum-types';
 import * as BalanceChecker from '../generated-artifacts/BalanceChecker.json';
 import * as ERC20BridgeSampler from '../generated-artifacts/ERC20BridgeSampler.json';
 import * as FakeTaker from '../generated-artifacts/FakeTaker.json';
+import * as UniswapV3MultiQuoter from '../generated-artifacts/UniswapV3MultiQuoter.json';
 export const artifacts = {
     ERC20BridgeSampler: ERC20BridgeSampler as ContractArtifact,
     BalanceChecker: BalanceChecker as ContractArtifact,
     FakeTaker: FakeTaker as ContractArtifact,
+    UniswapV3MultiQuoter: UniswapV3MultiQuoter as ContractArtifact,
 };
