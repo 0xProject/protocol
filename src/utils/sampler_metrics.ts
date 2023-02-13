@@ -27,16 +27,21 @@ export const SAMPLER_METRICS = {
     /**
      * Logs the gas information performed during a sampler call.
      *
-     * @param data.side The market side
-     * @param data.gasBefore The gas remaining measured before any operations have been performed
-     * @param data.gasAfter The gas remaining measured after all operations have been performed
+     * @param side The market side
+     * @param gasLimit The gas limit (gas remaining measured before any operations have been performed)
+     * @param gasLeft The gas remaining measured after all operations have been performed
      */
-    logGasDetails: (data: { side: 'buy' | 'sell'; gasBefore: BigNumber; gasAfter: BigNumber }): void => {
-        const { side, gasBefore, gasAfter } = data;
-        const gasUsed = gasBefore.minus(gasAfter);
-
+    logGasDetails: ({
+        side,
+        gasLimit,
+        gasUsed,
+    }: {
+        side: 'buy' | 'sell';
+        gasLimit: BigNumber;
+        gasUsed: BigNumber;
+    }): void => {
         SAMPLER_GAS_USED_SUMMARY.observe({ side }, gasUsed.toNumber());
-        SAMPLER_GAS_LIMIT_SUMMARY.observe(gasBefore.toNumber());
+        SAMPLER_GAS_LIMIT_SUMMARY.observe(gasLimit.toNumber());
     },
 
     /**

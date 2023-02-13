@@ -148,6 +148,9 @@ interface QuoteBase {
     // Our calculated price impact or null if we were unable to
     // to calculate any price impact
     estimatedPriceImpact: BigNumber | null;
+    debugData?: {
+        samplerGasUsage: number;
+    };
 }
 
 export interface GetSwapQuoteResponseLiquiditySource {
@@ -226,6 +229,9 @@ export interface GetSwapQuoteParams extends SwapQuoteParamsBase {
     origin?: string;
     // Whether the optimal route accounts for expected slippage for each liquidity source
     enableSlippageProtection?: boolean;
+
+    // Non-functional parameters:
+    isDebugEnabled: boolean;
 }
 
 // GET /swap/price

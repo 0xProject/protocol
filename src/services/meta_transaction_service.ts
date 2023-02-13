@@ -220,6 +220,7 @@ export class MetaTransactionService implements IMetaTransactionService {
             sellToken: params.sellTokenAddress,
             shouldSellEntireBalance: false,
             skipValidation: true,
+            isDebugEnabled: false,
         };
 
         const quote = await this._swapService.calculateSwapQuoteAsync(quoteParams);
@@ -295,6 +296,7 @@ export class MetaTransactionService implements IMetaTransactionService {
             shouldSellEntireBalance: false,
             skipValidation: true,
             affiliateFee,
+            isDebugEnabled: false,
         };
 
         const quote = await this._swapService.calculateSwapQuoteAsync(quoteParams);

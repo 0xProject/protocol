@@ -535,6 +535,7 @@ export class SwapService implements ISwapService {
             buyTokenToEthRate,
             quoteReport,
             blockNumber: swapQuote.blockNumber,
+            debugData: params.isDebugEnabled ? { samplerGasUsage: swapQuote.samplerGasUsage } : undefined,
         };
 
         if (apiSwapQuote.buyAmount.lte(new BigNumber(0))) {

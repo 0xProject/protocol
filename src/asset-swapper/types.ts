@@ -211,14 +211,6 @@ export interface IPath {
     getSlippedOrdersByType(maxSlippage: number): OptimizedOrdersByType;
 }
 
-/**
- * takerToken: Address of the taker asset.
- * makerToken: Address of the maker asset.
- * gasPrice: gas price used to determine protocolFee amount, default to ethGasStation fast amount.
- * orders: An array of objects conforming to OptimizedMarketOrder. These orders can be used to cover the requested assetBuyAmount plus slippage.
- * bestCaseQuoteInfo: Info about the best case price for the asset.
- * worstCaseQuoteInfo: Info about the worst case price for the asset.
- */
 interface SwapQuoteBase {
     takerToken: string;
     makerToken: string;
@@ -234,6 +226,7 @@ interface SwapQuoteBase {
     takerAmountPerEth: BigNumber;
     makerAmountPerEth: BigNumber;
     blockNumber: number;
+    samplerGasUsage: number;
 }
 
 /**

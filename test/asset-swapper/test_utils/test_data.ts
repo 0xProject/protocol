@@ -241,6 +241,7 @@ export function createSwapQuote({
         takerAmountPerEth: takerAmountPerEth || new BigNumber(0),
         makerAmountPerEth: makerAmountPerEth || new BigNumber(0),
         blockNumber: 424242,
+        samplerGasUsage: 1_000_000,
     };
 }
 

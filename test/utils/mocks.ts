@@ -58,4 +58,5 @@ export const randomSellQuote: SwapQuote = {
     takerAmountPerEth: new BigNumber(0),
     makerAmountPerEth: new BigNumber(0),
     blockNumber: 1337420,
+    samplerGasUsage: 1_000_000,
 };

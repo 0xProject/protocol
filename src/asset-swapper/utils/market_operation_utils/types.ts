@@ -315,6 +315,7 @@ export interface MarketSideLiquidity {
     quotes: RawQuotes;
     isRfqSupported: boolean;
     blockNumber: number;
+    samplerGasUsage: number;
 }
 
 export interface PathContext {

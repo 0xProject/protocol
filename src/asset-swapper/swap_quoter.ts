@@ -359,7 +359,8 @@ function createSwapQuote(
     });
 
     // Put together the swap quote
-    const { makerTokenDecimals, takerTokenDecimals, blockNumber } = optimizerResult.marketSideLiquidity;
+    const { makerTokenDecimals, takerTokenDecimals, blockNumber, samplerGasUsage } =
+        optimizerResult.marketSideLiquidity;
     const swapQuote = {
         makerToken,
         takerToken,
@@ -375,6 +376,7 @@ function createSwapQuote(
         quoteReport,
         extendedQuoteReportSources,
         blockNumber,
+        samplerGasUsage,
     };
 
     if (operation === MarketOperation.Buy) {

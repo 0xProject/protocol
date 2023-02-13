@@ -203,7 +203,7 @@ export class MarketOperationUtils {
 
         const [
             blockNumber,
-            gasBefore,
+            gasLimit,
             tokenDecimals,
             orderFillableTakerAmounts,
             // TODO: rename inputAmountPerEth, outputAmountPerEth (the unit is wei and also it's per native token)
@@ -212,7 +212,7 @@ export class MarketOperationUtils {
             dexQuotes,
             rawTwoHopQuotes,
             isTxOriginContract,
-            gasAfter,
+            gasLeft,
         ] = await samplerPromise;
 
         const defaultLabels = ['getMarketSellLiquidityAsync', opts?.endpoint || 'N/A'];
@@ -232,9 +232,8 @@ export class MarketOperationUtils {
             NO_CONVERSION_TO_NATIVE_FOUND.labels(...defaultLabels).inc();
         }
 
-        // Log the gas metrics
-        SAMPLER_METRICS.logGasDetails({ side: 'sell', gasBefore, gasAfter });
-        SAMPLER_METRICS.logBlockNumber(blockNumber);
+        const gasUsed = MarketOperationUtils.computeGasUsed({ gasLimit, gasLeft });
+        MarketOperationUtils.exportSamplerMetric({ side: 'sell', gasLimit, gasUsed, blockNumber });
 
         const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
         const isMicroSwap = this.isMicroSwap(takerAmount, inputAmountPerEth);
@@ -262,6 +261,7 @@ export class MarketOperationUtils {
             },
             isRfqSupported,
             blockNumber: blockNumber.toNumber(),
+            samplerGasUsage: gasUsed.toNumber(),
         };
     }
 
@@ -330,7 +330,7 @@ export class MarketOperationUtils {
 
         const [
             blockNumber,
-            gasBefore,
+            gasLimit,
             tokenDecimals,
             orderFillableMakerAmounts,
             ethToMakerAssetRate,
@@ -338,7 +338,7 @@ export class MarketOperationUtils {
             dexQuotes,
             rawTwoHopQuotes,
             isTxOriginContract,
-            gasAfter,
+            gasLeft,
         ] = await samplerPromise;
 
         const defaultLabels = ['getMarketBuyLiquidityAsync', opts?.endpoint || 'N/A'];
@@ -358,8 +358,8 @@ export class MarketOperationUtils {
             NO_CONVERSION_TO_NATIVE_FOUND.labels(...defaultLabels).inc();
         }
 
-        SAMPLER_METRICS.logGasDetails({ side: 'buy', gasBefore, gasAfter });
-        SAMPLER_METRICS.logBlockNumber(blockNumber);
+        const gasUsed = MarketOperationUtils.computeGasUsed({ gasLimit, gasLeft });
+        MarketOperationUtils.exportSamplerMetric({ side: 'buy', gasLimit, gasUsed, blockNumber });
 
         const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
         const isMicroSwap = this.isMicroSwap(makerAmount, ethToMakerAssetRate);
@@ -388,6 +388,7 @@ export class MarketOperationUtils {
             },
             isRfqSupported,
             blockNumber: blockNumber.toNumber(),
+            samplerGasUsage: gasUsed.toNumber(),
         };
     }
 
@@ -805,6 +806,25 @@ export class MarketOperationUtils {
         _.values(this.sampler.poolsCaches)
             .filter((cache) => cache !== undefined && !cache.isFresh(takerToken, makerToken))
             .forEach((cache) => cache?.getFreshPoolsForPairAsync(takerToken, makerToken));
+    }
+
+    private static exportSamplerMetric({
+        side,
+        gasLimit,
+        gasUsed,
+        blockNumber,
+    }: {
+        side: 'sell' | 'buy';
+        gasLimit: BigNumber;
+        gasUsed: BigNumber;
+        blockNumber: BigNumber;
+    }) {
+        SAMPLER_METRICS.logGasDetails({ side, gasLimit, gasUsed });
+        SAMPLER_METRICS.logBlockNumber(blockNumber);
+    }
+
+    private static computeGasUsed({ gasLimit, gasLeft }: { gasLimit: BigNumber; gasLeft: BigNumber }): BigNumber {
+        return gasLimit.minus(gasLeft);
     }
 
     private static filterTwoHopQuotes(

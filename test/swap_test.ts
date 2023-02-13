@@ -352,13 +352,22 @@ describe(SUITE_NAME, () => {
                 sellToken: 'WETH',
                 sellAmount: '1234',
             });
-            expectCorrectQuoteResponse(
-                response,
+            expectCorrectQuoteResponse(response, {
+                to: CONTRACT_ADDRESSES.exchangeProxy,
+            });
+        });
 
-                {
-                    to: CONTRACT_ADDRESSES.exchangeProxy,
+        it('should include debugData when debug=true', async () => {
+            const response = await requestSwap(app, 'quote', {
+                sellToken: 'WETH',
+                sellAmount: '1234',
+                debug: 'true',
+            });
+            expectCorrectQuoteResponse(response, {
+                debugData: {
+                    samplerGasUsage: 130_000, // approximate: +- 50%
                 },
-            );
+            });
         });
 
         it('should return a ExchangeProxy transaction for sellToken=ETH', async () => {
@@ -366,13 +375,9 @@ describe(SUITE_NAME, () => {
                 sellToken: 'WETH',
                 sellAmount: '1234',
             });
-            expectCorrectQuoteResponse(
-                response,
-
-                {
-                    to: CONTRACT_ADDRESSES.exchangeProxy,
-                },
-            );
+            expectCorrectQuoteResponse(response, {
+                to: CONTRACT_ADDRESSES.exchangeProxy,
+            });
         });
 
         // TODO: unskip when Docker Ganache snapshot has been updated
@@ -429,6 +434,7 @@ describe(SUITE_NAME, () => {
                 const buyQuoteResponse = await httpGetAsync({ route: buyQuoteRoute });
                 buyQuoteWithoutFee = buyQuoteResponse.body;
             });
+
             it('can add a buy token affiliate fee to a sell quote', async () => {
                 const feeRecipient = randomAddress();
                 const buyTokenPercentageFee = new BigNumber(0.05);
@@ -598,7 +604,7 @@ async function expectSwapError(swapResponse: supertest.Response, swapErrors: Swa
     if (swapErrors.validationErrors) {
         expect(swapResponse.status).to.be.eq(StatusCodes.BAD_REQUEST);
         expect(swapResponse.body.code).to.eq(100);
-        expect(swapResponse.body.validationErrors).to.be.eql(swapErrors.validationErrors);
+        expect(swapResponse.body.validationErrors).to.be.deep.eq(swapErrors.validationErrors);
         return swapResponse;
     }
     if (swapErrors.generalUserError) {
@@ -632,6 +638,16 @@ function expectCorrectQuoteResponse(
             continue;
         }
 
-        expect(quoteResponse[property], property).to.eql(expectedResponse[property]);
+        if (prop === 'debugData') {
+            const { samplerGasUsage, ...rest } = quoteResponse[property];
+            const { samplerGasUsage: expectedSamplerGasUsage, ...expectedRest } = expectedResponse[property];
+            console.log(samplerGasUsage, expectedSamplerGasUsage);
+            expect(samplerGasUsage).gt(expectedSamplerGasUsage * 0.5, 'samplerGasUsage is too low');
+            expect(samplerGasUsage).lt(expectedSamplerGasUsage * 1.5, 'samplerGasUsage is too high');
+            expect(rest).to.be.deep.eq(expectedRest);
+            continue;
+        }
+
+        expect(quoteResponse[property], property).to.deep.eq(expectedResponse[property]);
     }
 }

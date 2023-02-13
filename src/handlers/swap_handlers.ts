@@ -376,6 +376,7 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
     // Whether the entire callers balance should be sold, used for contracts where the
     // amount available is non-deterministic
     const shouldSellEntireBalance = req.query.shouldSellEntireBalance === 'true' ? true : false;
+    const isDebugEnabled = req.query.debug === 'true' ? true : false;
 
     // Parse tokens and eth wrap/unwraps
     const sellTokenRaw = req.query.sellToken as string;
@@ -546,6 +547,7 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
         takerAddress: takerAddress as string,
         enableSlippageProtection,
         priceImpactProtectionPercentage,
+        isDebugEnabled,
     };
 };
 
