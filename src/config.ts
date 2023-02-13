@@ -2,7 +2,6 @@
 import { HttpServiceConfig } from '@0x/api-utils';
 import { assert } from '@0x/assert';
 import { RfqMakerAssetOfferings } from '@0x/asset-swapper/lib/src/types';
-import { LiquidityProviderRegistry } from '@0x/asset-swapper/lib/src/utils/market_operation_utils/types';
 import { ChainId } from '@0x/contract-addresses';
 import { BigNumber } from '@0x/utils';
 import * as fs from 'fs';
@@ -955,25 +954,8 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
                 });
             }
             return offerings;
-        case EnvVarType.LiquidityProviderRegistry:
-            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-            // eslint-disable-next-line no-case-declarations
-            const registry: LiquidityProviderRegistry = JSON.parse(value);
-            // tslint:disable-next-line:forin
-            for (const liquidityProvider in registry) {
-                assert.isETHAddressHex('liquidity provider address', liquidityProvider);
-
-                const { tokens } = registry[liquidityProvider];
-                assert.isArray(`token list for liquidity provider ${liquidityProvider}`, tokens);
-                tokens.forEach((token, i) => {
-                    assert.isETHAddressHex(`address of token ${i} for liquidity provider ${liquidityProvider}`, token);
-                });
-                // TODO jacob validate gas cost callback in registry
-                // assert.isNumber(`gas cost for liquidity provider ${liquidityProvider}`, gasCost);
-            }
-            return registry;
 
         default:
-            throw new Error(`Unrecognised EnvVarType: ${expectedType} encountered for variable ${name}.`);
+            throw new Error(`Unrecognized EnvVarType: ${expectedType} encountered for variable ${name}.`);
     }
 }
