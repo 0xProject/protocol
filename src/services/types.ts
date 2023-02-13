@@ -88,11 +88,19 @@ export interface LiquiditySource {
     hops?: string[];
 }
 
+// TODO: The type is only a placeholder and should be replaced by eip-712 context soon. Please move `MetaTransactionTradeResponse` and
+//       `MetaTransactionV1TradeResponse` to `MetaTransactionClient` file
+export type MetaTransactionTradeResponse =
+    MetaTransactionV1TradeResponse /* add MetaTransactionV2TradeResponse when it's ready */;
+
+interface MetaTransactionV1TradeResponse {
+    kind: GaslessTypes.MetaTransaction;
+    hash: string;
+    metaTransaction: MetaTransaction; // TODO: This field is a placeholder and should be updated to `eip712`
+}
+
 export interface MetaTransactionV2QuoteResponse extends BaseRfqmQuoteResponse {
-    type: GaslessTypes.MetaTransactionV2;
-    // TODO: This needs to be updated to the new meta-transaction type when smart contract changes are finished and corresponding types are published in packages
-    metaTransaction: MetaTransactionV2;
-    metaTransactionHash: string;
+    trade: MetaTransactionTradeResponse;
     approval?: ApprovalResponse;
     sources: LiquiditySource[];
     fees?: TruncatedFees;

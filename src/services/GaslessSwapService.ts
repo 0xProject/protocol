@@ -14,12 +14,7 @@ import { RfqmJobStatus } from '../entities/types';
 import { logger } from '../logger';
 import { ExecuteMetaTransactionEip712Context, PermitEip712Context, GaslessTypes } from '../core/types';
 import { FeeConfigs, TruncatedFees } from '../core/types/meta_transaction_fees';
-import {
-    getV1QuoteAsync,
-    getV2QuoteAsync,
-    MetaTransactionClientV1QuoteResponse,
-    MetaTransactionClientV2QuoteResponse,
-} from '../utils/MetaTransactionClient';
+import { getV1QuoteAsync, getV2QuoteAsync, MetaTransactionClientQuoteResponse } from '../utils/MetaTransactionClient';
 import { RfqmDbUtils } from '../utils/rfqm_db_utils';
 import { HealthCheckResult } from '../utils/rfqm_health_check';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
@@ -191,10 +186,7 @@ export class GaslessSwapService {
                 feeConfigs,
             };
 
-            let metaTransactionQuote:
-                | MetaTransactionClientV1QuoteResponse
-                | MetaTransactionClientV2QuoteResponse
-                | null;
+            let metaTransactionQuote: MetaTransactionClientQuoteResponse | null;
 
             switch (kind) {
                 case GaslessTypes.MetaTransaction:
@@ -231,7 +223,7 @@ export class GaslessSwapService {
             }
 
             if (metaTransactionQuote) {
-                if (metaTransactionQuote.type === GaslessTypes.MetaTransaction) {
+                if (kind === GaslessTypes.MetaTransaction) {
                     return {
                         ...metaTransactionQuote.price,
                         allowanceTarget: this._blockchainUtils.getExchangeProxyAddress(),
@@ -240,7 +232,7 @@ export class GaslessSwapService {
                 } else {
                     return {
                         ...metaTransactionQuote.price,
-                        sources: metaTransactionQuote.sources,
+                        sources: metaTransactionQuote.sources ?? [],
                         fees: feesToTruncatedFees(metaTransactionQuote.fees),
                         allowanceTarget: this._blockchainUtils.getExchangeProxyAddress(),
                     };
@@ -321,10 +313,7 @@ export class GaslessSwapService {
                 feeConfigs,
             };
 
-            let metaTransactionQuote:
-                | MetaTransactionClientV1QuoteResponse
-                | MetaTransactionClientV2QuoteResponse
-                | null;
+            let metaTransactionQuote: MetaTransactionClientQuoteResponse | null;
 
             switch (kind) {
                 case GaslessTypes.MetaTransaction:
@@ -368,27 +357,30 @@ export class GaslessSwapService {
                           metaTransactionQuote.price.sellAmount,
                       )
                     : null;
+                const metaTransaction = metaTransactionQuote.trade.metaTransaction;
                 // TODO: Publish fee event for meta-transaction v2
-                await this._storeMetaTransactionHashAsync(metaTransactionQuote.metaTransaction.getHash());
+                await this._storeMetaTransactionHashAsync(metaTransaction.getHash());
 
-                if (metaTransactionQuote.type === GaslessTypes.MetaTransaction) {
+                if (kind === GaslessTypes.MetaTransaction) {
+                    // Response from /meta_transaction/v1 endpoint. The meta-transaction type
+                    // can ONLY be meta-transaction v1
                     return {
                         ...metaTransactionQuote.price,
                         approval: approval ?? undefined,
-                        metaTransaction: metaTransactionQuote.metaTransaction,
-                        metaTransactionHash: metaTransactionQuote.metaTransaction.getHash(),
+                        metaTransaction,
+                        metaTransactionHash: metaTransaction.getHash(),
                         type: GaslessTypes.MetaTransaction,
                         allowanceTarget: this._blockchainUtils.getExchangeProxyAddress(),
                         liquiditySource: 'amm',
                     };
                 } else {
+                    // Response from /meta_transaction/v2 endpoint. The meta-transaction type
+                    // can either be meta-transaction v1 / v2
                     return {
                         ...metaTransactionQuote.price,
                         approval: approval ?? undefined,
-                        metaTransaction: metaTransactionQuote.metaTransaction,
-                        metaTransactionHash: metaTransactionQuote.metaTransaction.getHash(),
-                        type: GaslessTypes.MetaTransactionV2,
-                        sources: metaTransactionQuote.sources,
+                        trade: metaTransactionQuote.trade,
+                        sources: metaTransactionQuote.sources ?? [],
                         fees: feesToTruncatedFees(metaTransactionQuote.fees),
                         allowanceTarget: this._blockchainUtils.getExchangeProxyAddress(),
                     };

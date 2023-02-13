@@ -21,6 +21,8 @@ import {
     ApprovalResponse,
     FetchIndicativeQuoteResponse,
     LiquiditySource,
+    MetaTransactionV1QuoteResponse,
+    MetaTransactionV2QuoteResponse,
     MetaTransactionV2,
     OtcOrderRfqmQuoteResponse,
 } from '../../src/services/types';
@@ -301,9 +303,12 @@ describe('GaslessSwapService', () => {
 
             it('gets an AMM price if no RFQ liquidity is available', async () => {
                 getMetaTransactionV1QuoteAsyncMock.mockResolvedValueOnce({
-                    metaTransaction: metaTransactionV1,
+                    trade: {
+                        kind: GaslessTypes.MetaTransaction,
+                        hash: metaTransactionV1.getHash(),
+                        metaTransaction: metaTransactionV1,
+                    },
                     price,
-                    type: GaslessTypes.MetaTransaction,
                 });
                 mockRfqmService.fetchIndicativeQuoteAsync.mockResolvedValueOnce(null);
 
@@ -336,9 +341,12 @@ describe('GaslessSwapService', () => {
 
             it('gets an AMM price if RFQ request throws', async () => {
                 getMetaTransactionV1QuoteAsyncMock.mockResolvedValueOnce({
-                    metaTransaction: metaTransactionV1,
+                    trade: {
+                        kind: GaslessTypes.MetaTransaction,
+                        hash: metaTransactionV1.getHash(),
+                        metaTransaction: metaTransactionV1,
+                    },
                     price,
-                    type: GaslessTypes.MetaTransaction,
                 });
                 mockRfqmService.fetchIndicativeQuoteAsync.mockImplementationOnce(() => {
                     throw new Error('rfqm quote threw up');
@@ -445,9 +453,12 @@ describe('GaslessSwapService', () => {
         describe('tx relay v1', () => {
             it('gets a meta-transaction price', async () => {
                 getMetaTransactionV2QuoteAsyncMock.mockResolvedValueOnce({
-                    metaTransaction: metaTransactionV2,
+                    trade: {
+                        kind: GaslessTypes.MetaTransaction,
+                        hash: metaTransactionV1.getHash(),
+                        metaTransaction: metaTransactionV1,
+                    },
                     price,
-                    type: GaslessTypes.MetaTransactionV2,
                     sources,
                     fees,
                 });
@@ -587,12 +598,13 @@ describe('GaslessSwapService', () => {
             });
         });
     });
+
     describe('fetchQuoteAsync', () => {
         describe('zero-g', () => {
             it('gets an RFQ quote if available', async () => {
                 mockRfqmService.fetchFirmQuoteAsync.mockResolvedValueOnce({ quote: otcQuote, quoteReportId: null });
 
-                const result = await gaslessSwapService.fetchQuoteAsync(
+                const result = (await gaslessSwapService.fetchQuoteAsync(
                     {
                         buyAmount: new BigNumber(1800054805473),
                         buyToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
@@ -604,7 +616,7 @@ describe('GaslessSwapService', () => {
                         checkApproval: false,
                     },
                     GaslessTypes.MetaTransaction,
-                );
+                )) as OtcOrderRfqmQuoteResponse & { liquiditySource: 'rfq' | 'amm' };
 
                 expect(result).not.toBeNull();
                 expect(result?.type).toEqual(GaslessTypes.OtcOrder);
@@ -642,13 +654,16 @@ describe('GaslessSwapService', () => {
 
             it('gets an AMM quote if no RFQ liquidity is available', async () => {
                 getMetaTransactionV1QuoteAsyncMock.mockResolvedValueOnce({
-                    metaTransaction: metaTransactionV1,
+                    trade: {
+                        kind: GaslessTypes.MetaTransaction,
+                        hash: metaTransactionV1.getHash(),
+                        metaTransaction: metaTransactionV1,
+                    },
                     price,
-                    type: GaslessTypes.MetaTransaction,
                 });
                 mockRfqmService.fetchFirmQuoteAsync.mockResolvedValueOnce({ quote: null, quoteReportId: null });
 
-                const result = await gaslessSwapService.fetchQuoteAsync(
+                const result = (await gaslessSwapService.fetchQuoteAsync(
                     {
                         buyAmount: new BigNumber(1800054805473),
                         buyToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
@@ -660,7 +675,7 @@ describe('GaslessSwapService', () => {
                         checkApproval: false,
                     },
                     GaslessTypes.MetaTransaction,
-                );
+                )) as MetaTransactionV1QuoteResponse & { liquiditySource: 'rfq' | 'amm' };
 
                 expect(result).not.toBeNull();
                 expect(result?.type).toEqual(GaslessTypes.MetaTransaction);
@@ -731,9 +746,12 @@ describe('GaslessSwapService', () => {
 
             it('adds an affiliate address if one is included in the integrator configuration but not in the quote request', async () => {
                 getMetaTransactionV1QuoteAsyncMock.mockResolvedValueOnce({
-                    metaTransaction: metaTransactionV1,
+                    trade: {
+                        kind: GaslessTypes.MetaTransaction,
+                        hash: metaTransactionV1.getHash(),
+                        metaTransaction: metaTransactionV1,
+                    },
                     price,
-                    type: GaslessTypes.MetaTransaction,
                 });
                 mockRfqmService.fetchFirmQuoteAsync.mockResolvedValueOnce({ quote: null, quoteReportId: null });
 
@@ -757,9 +775,12 @@ describe('GaslessSwapService', () => {
 
             it('uses the affiliate address in the quote request even if one is present in integrator configuration', async () => {
                 getMetaTransactionV1QuoteAsyncMock.mockResolvedValueOnce({
-                    metaTransaction: metaTransactionV1,
+                    trade: {
+                        kind: GaslessTypes.MetaTransaction,
+                        hash: metaTransactionV1.getHash(),
+                        metaTransaction: metaTransactionV1,
+                    },
                     price,
-                    type: GaslessTypes.MetaTransaction,
                 });
                 mockRfqmService.fetchFirmQuoteAsync.mockResolvedValueOnce({ quote: null, quoteReportId: null });
 
@@ -830,9 +851,12 @@ describe('GaslessSwapService', () => {
 
             it('stores a metatransaction hash', async () => {
                 getMetaTransactionV1QuoteAsyncMock.mockResolvedValueOnce({
-                    metaTransaction: metaTransactionV1,
+                    trade: {
+                        kind: GaslessTypes.MetaTransaction,
+                        hash: metaTransactionV1.getHash(),
+                        metaTransaction: metaTransactionV1,
+                    },
                     price,
-                    type: GaslessTypes.MetaTransaction,
                 });
                 mockRfqmService.fetchFirmQuoteAsync.mockResolvedValueOnce({ quote: null, quoteReportId: null });
 
@@ -863,9 +887,12 @@ describe('GaslessSwapService', () => {
                     isRequired: true,
                 };
                 getMetaTransactionV1QuoteAsyncMock.mockResolvedValueOnce({
-                    metaTransaction: metaTransactionV1,
+                    trade: {
+                        kind: GaslessTypes.MetaTransaction,
+                        hash: metaTransactionV1.getHash(),
+                        metaTransaction: metaTransactionV1,
+                    },
                     price,
-                    type: GaslessTypes.MetaTransaction,
                 });
                 mockRfqmService.fetchFirmQuoteAsync.mockResolvedValueOnce({ quote: null, quoteReportId: null });
                 mockRfqmService.getGaslessApprovalResponseAsync.mockResolvedValueOnce(approvalResponse);
@@ -891,14 +918,17 @@ describe('GaslessSwapService', () => {
         describe('tx relay v1', () => {
             it('gets a meta-transaction quote', async () => {
                 getMetaTransactionV2QuoteAsyncMock.mockResolvedValueOnce({
-                    metaTransaction: metaTransactionV1,
+                    trade: {
+                        kind: GaslessTypes.MetaTransaction,
+                        hash: metaTransactionV1.getHash(),
+                        metaTransaction: metaTransactionV1,
+                    },
                     price,
-                    type: GaslessTypes.MetaTransactionV2,
                     sources,
                     fees,
                 });
 
-                const result = await gaslessSwapService.fetchQuoteAsync(
+                const result = (await gaslessSwapService.fetchQuoteAsync(
                     {
                         buyAmount: new BigNumber(1800054805473),
                         buyToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
@@ -913,15 +943,12 @@ describe('GaslessSwapService', () => {
                         feeSellTokenPercentage: new BigNumber(0.1),
                     },
                     GaslessTypes.MetaTransactionV2,
-                );
+                )) as MetaTransactionV2QuoteResponse;
 
                 expect(result).not.toBeNull();
-                expect(result?.type).toEqual(GaslessTypes.MetaTransactionV2);
-                if (result?.type !== GaslessTypes.MetaTransactionV2) {
-                    // Refine type for further assertions
-                    throw new Error('Result should be a meta-transaction v2');
-                }
-                expect(result.metaTransaction.getHash()).toEqual(metaTransactionV2.getHash());
+                expect(result?.trade.kind).toEqual(GaslessTypes.MetaTransaction);
+                expect(result?.trade.hash).toEqual(metaTransactionV1.getHash());
+                console.log(result);
                 expect(result).toMatchInlineSnapshot(`
                     Object {
                       "allowanceTarget": "0x12345",
@@ -946,21 +973,6 @@ describe('GaslessSwapService', () => {
                         },
                       },
                       "gas": "1043459",
-                      "metaTransaction": MetaTransaction {
-                        "callData": "0x415565b00000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f6190000000000000000000000002791bca1f2de4661ed88a30c99a7a9449aa8417400000000000000000000000000000000000000000000003635c9adc5dea000000000000000000000000000000000000000000000000000000000017b9e2a304f00000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000940000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000008a0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f6190000000000000000000000002791bca1f2de4661ed88a30c99a7a9449aa8417400000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000000000000860000000000000000000000000000000000000000000000000000000000000086000000000000000000000000000000000000000000000000000000000000007c000000000000000000000000000000000000000000000003635c9adc5dea000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000500000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000001e000000000000000000000000000000000000000000000000000000000000003400000000000000000000000000000000000000000000000000000000000000420000000000000000000000000000000000000000000000000000000000000052000000000000000000000000000000002517569636b5377617000000000000000000000000000000000000000000000000000000000000008570b55cfac18858000000000000000000000000000000000000000000000000000000039d0b9efd1000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000a5e0829caced8ffdd4de3c43696c57f7d7a678ff000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000020000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f6190000000000000000000000002791bca1f2de4661ed88a30c99a7a9449aa8417400000000000000000000000000000002517569636b53776170000000000000000000000000000000000000000000000000000000000000042b85aae7d60c42c00000000000000000000000000000000000000000000000000000001c94ebec37000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000a5e0829caced8ffdd4de3c43696c57f7d7a678ff000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000030000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f6190000000000000000000000000d500b1d8e8ef31e21c99d1db9a6444d3adf12700000000000000000000000002791bca1f2de4661ed88a30c99a7a9449aa841740000000000000000000000000000000b446f646f5632000000000000000000000000000000000000000000000000000000000000000000042b85aae7d60c42c00000000000000000000000000000000000000000000000000000001db5156c13000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000400000000000000000000000005333eb1e32522f1893b7c9fea3c263807a02d561000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000012556e69737761705633000000000000000000000000000000000000000000000000000000000000190522016f044a05b0000000000000000000000000000000000000000000000000000000b08217af9400000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000060000000000000000000000000e592427a0aece92de3edee1f18e0157c058615640000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000012556e697377617056330000000000000000000000000000000000000000000000000000000000000c829100b78224ef50000000000000000000000000000000000000000000000000000000570157389f000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000e592427a0aece92de3edee1f18e0157c05861564000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000427ceb23fd6bc0add59e62ac25578270cff1b9f6190001f41bfd67037b42cf73acf2047067bd4f2c47d9bfd6000bb82791bca1f2de4661ed88a30c99a7a9449aa841740000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000e00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000020000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f619000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee0000000000000000000000000000000000000000000000000000000000000000869584cd0000000000000000000000008c611defbd838a13de3a5923693c58a7c1807c6300000000000000000000000000000000000000000000005b89d96b4863067a6b",
-                        "chainId": 137,
-                        "expirationTimeSeconds": "9990868679",
-                        "feeAmount": "0",
-                        "feeToken": "0x0000000000000000000000000000000000000000",
-                        "maxGasPrice": "4294967296",
-                        "minGasPrice": "1",
-                        "salt": "32606650794224190000000000000000000000000000000000000000000000000000000000000",
-                        "sender": "0x0000000000000000000000000000000000000000",
-                        "signer": "0x4c42a706410f1190f97d26fe3c999c90070aa40f",
-                        "value": "0",
-                        "verifyingContract": "0xdef1c0ded9bec7f1a1670819833240f027b25eff",
-                      },
-                      "metaTransactionHash": "0xde5a11983edd012047dd3107532f007a73ae488bfb354f35b8a40580e2a775a1",
                       "price": "1800.054805",
                       "sellAmount": "1000000000000000000000",
                       "sellTokenAddress": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
@@ -978,7 +990,24 @@ describe('GaslessSwapService', () => {
                           "proportion": "0.6923",
                         },
                       ],
-                      "type": "metatransaction_v2",
+                      "trade": Object {
+                        "hash": "0xde5a11983edd012047dd3107532f007a73ae488bfb354f35b8a40580e2a775a1",
+                        "kind": "metatransaction",
+                        "metaTransaction": MetaTransaction {
+                          "callData": "0x415565b00000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f6190000000000000000000000002791bca1f2de4661ed88a30c99a7a9449aa8417400000000000000000000000000000000000000000000003635c9adc5dea000000000000000000000000000000000000000000000000000000000017b9e2a304f00000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000940000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000008a0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f6190000000000000000000000002791bca1f2de4661ed88a30c99a7a9449aa8417400000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000000000000860000000000000000000000000000000000000000000000000000000000000086000000000000000000000000000000000000000000000000000000000000007c000000000000000000000000000000000000000000000003635c9adc5dea000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000500000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000001e000000000000000000000000000000000000000000000000000000000000003400000000000000000000000000000000000000000000000000000000000000420000000000000000000000000000000000000000000000000000000000000052000000000000000000000000000000002517569636b5377617000000000000000000000000000000000000000000000000000000000000008570b55cfac18858000000000000000000000000000000000000000000000000000000039d0b9efd1000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000a5e0829caced8ffdd4de3c43696c57f7d7a678ff000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000020000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f6190000000000000000000000002791bca1f2de4661ed88a30c99a7a9449aa8417400000000000000000000000000000002517569636b53776170000000000000000000000000000000000000000000000000000000000000042b85aae7d60c42c00000000000000000000000000000000000000000000000000000001c94ebec37000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000a5e0829caced8ffdd4de3c43696c57f7d7a678ff000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000030000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f6190000000000000000000000000d500b1d8e8ef31e21c99d1db9a6444d3adf12700000000000000000000000002791bca1f2de4661ed88a30c99a7a9449aa841740000000000000000000000000000000b446f646f5632000000000000000000000000000000000000000000000000000000000000000000042b85aae7d60c42c00000000000000000000000000000000000000000000000000000001db5156c13000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000400000000000000000000000005333eb1e32522f1893b7c9fea3c263807a02d561000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000012556e69737761705633000000000000000000000000000000000000000000000000000000000000190522016f044a05b0000000000000000000000000000000000000000000000000000000b08217af9400000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000060000000000000000000000000e592427a0aece92de3edee1f18e0157c058615640000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000012556e697377617056330000000000000000000000000000000000000000000000000000000000000c829100b78224ef50000000000000000000000000000000000000000000000000000000570157389f000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000e592427a0aece92de3edee1f18e0157c05861564000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000427ceb23fd6bc0add59e62ac25578270cff1b9f6190001f41bfd67037b42cf73acf2047067bd4f2c47d9bfd6000bb82791bca1f2de4661ed88a30c99a7a9449aa841740000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000e00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000020000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f619000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee0000000000000000000000000000000000000000000000000000000000000000869584cd0000000000000000000000008c611defbd838a13de3a5923693c58a7c1807c6300000000000000000000000000000000000000000000005b89d96b4863067a6b",
+                          "chainId": 137,
+                          "expirationTimeSeconds": "9990868679",
+                          "feeAmount": "0",
+                          "feeToken": "0x0000000000000000000000000000000000000000",
+                          "maxGasPrice": "4294967296",
+                          "minGasPrice": "1",
+                          "salt": "32606650794224190000000000000000000000000000000000000000000000000000000000000",
+                          "sender": "0x0000000000000000000000000000000000000000",
+                          "signer": "0x4c42a706410f1190f97d26fe3c999c90070aa40f",
+                          "value": "0",
+                          "verifyingContract": "0xdef1c0ded9bec7f1a1670819833240f027b25eff",
+                        },
+                      },
                     }
                 `);
             });
@@ -1016,9 +1045,12 @@ describe('GaslessSwapService', () => {
 
             it('adds an affiliate address if one is included in the integrator configuration but not in the quote request', async () => {
                 getMetaTransactionV2QuoteAsyncMock.mockResolvedValueOnce({
-                    metaTransaction: metaTransactionV1,
+                    trade: {
+                        kind: GaslessTypes.MetaTransaction,
+                        hash: metaTransactionV1.getHash(),
+                        metaTransaction: metaTransactionV1,
+                    },
                     price,
-                    type: GaslessTypes.MetaTransactionV2,
                     sources,
                     fees,
                 });
@@ -1046,9 +1078,12 @@ describe('GaslessSwapService', () => {
 
             it('uses the affiliate address in the quote request even if one is present in integrator configuration', async () => {
                 getMetaTransactionV2QuoteAsyncMock.mockResolvedValueOnce({
-                    metaTransaction: metaTransactionV1,
+                    trade: {
+                        kind: GaslessTypes.MetaTransaction,
+                        hash: metaTransactionV1.getHash(),
+                        metaTransaction: metaTransactionV1,
+                    },
                     price,
-                    type: GaslessTypes.MetaTransactionV2,
                     sources,
                     fees,
                 });
@@ -1125,9 +1160,12 @@ describe('GaslessSwapService', () => {
 
             it('stores a metatransaction hash', async () => {
                 getMetaTransactionV2QuoteAsyncMock.mockResolvedValueOnce({
-                    metaTransaction: metaTransactionV1,
+                    trade: {
+                        kind: GaslessTypes.MetaTransaction,
+                        hash: metaTransactionV1.getHash(),
+                        metaTransaction: metaTransactionV1,
+                    },
                     price,
-                    type: GaslessTypes.MetaTransactionV2,
                     sources,
                     fees,
                 });
@@ -1162,9 +1200,12 @@ describe('GaslessSwapService', () => {
                     isRequired: true,
                 };
                 getMetaTransactionV2QuoteAsyncMock.mockResolvedValueOnce({
-                    metaTransaction: metaTransactionV1,
+                    trade: {
+                        kind: GaslessTypes.MetaTransaction,
+                        hash: metaTransactionV1.getHash(),
+                        metaTransaction: metaTransactionV1,
+                    },
                     price,
-                    type: GaslessTypes.MetaTransactionV2,
                     sources,
                     fees,
                 });
@@ -1191,6 +1232,7 @@ describe('GaslessSwapService', () => {
             });
         });
     });
+
     describe('processSubmitAsync', () => {
         describe('zero-g', () => {
             it('fails if the metatransaction is expired', async () => {

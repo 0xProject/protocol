@@ -1,7 +1,7 @@
 import { pino, ValidationError, ValidationErrorCodes, ValidationErrorItem } from '@0x/api-utils';
 import { SwapQuoterError } from '@0x/asset-swapper';
-import { MetaTransaction } from '@0x/protocol-utils';
-import { ExchangeProxyMetaTransaction } from '@0x/types';
+import { MetaTransaction, MetaTransactionFields } from '@0x/protocol-utils';
+import { EIP712DomainWithDefaultSchema } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 import { BAD_REQUEST } from 'http-status-codes';
@@ -15,7 +15,7 @@ import { GaslessTypes } from '../core/types';
 import { FeeConfigs, Fees, RawFees } from '../core/types/meta_transaction_fees';
 import { GetQuote, GetQuoteResponse } from '../proto-ts/meta_transaction.pb';
 
-import { FetchIndicativeQuoteResponse, LiquiditySource, MetaTransactionV2 } from '../services/types';
+import { FetchIndicativeQuoteResponse, LiquiditySource, MetaTransactionTradeResponse } from '../services/types';
 import { bigNumberToProto, protoToBigNumber } from './ProtoUtils';
 import { stringsToMetaTransactionFields } from './rfqm_request_utils';
 
@@ -30,6 +30,7 @@ interface QuoteParams {
     slippagePercentage?: BigNumber;
     takerAddress: string;
     quoteUniqueId?: string; // ID to use for the quote report `decodedUniqueId`
+    metaTransactionVersion?: 'v1' | 'v2';
     feeConfigs?: FeeConfigs;
 }
 
@@ -58,18 +59,6 @@ interface QuoteBase {
     estimatedPriceImpact: BigNumber | null;
 }
 
-export interface BasePriceResponse extends QuoteBase {
-    sellTokenAddress: string;
-    buyTokenAddress: string;
-    value: BigNumber;
-    gas: BigNumber;
-}
-
-interface GetMetaTransactionV1QuoteResponse extends BasePriceResponse {
-    metaTransactionHash: string;
-    metaTransaction: ExchangeProxyMetaTransaction;
-}
-
 // Raw type of `QuoteBase` as the quote response sent by meta-transaction endpoints is serialized.
 interface RawQuoteBase {
     chainId: number;
@@ -94,6 +83,13 @@ interface RawQuoteBase {
     estimatedPriceImpact: string | null;
 }
 
+export interface BasePriceResponse extends QuoteBase {
+    sellTokenAddress: string;
+    buyTokenAddress: string;
+    value: BigNumber;
+    gas: BigNumber;
+}
+
 // Raw type of `BasePriceResponse` as the quote response sent by meta-transaction endpoints is serialized.
 interface RawBasePriceResponse extends RawQuoteBase {
     sellTokenAddress: string;
@@ -102,24 +98,51 @@ interface RawBasePriceResponse extends RawQuoteBase {
     gas: string;
 }
 
+/****** Types for 0x-api meta-transaction v1 endpoints ******/
+// Raw type of `ExchangeProxyMetaTransaction` as the quote response sent by meta-transaction endpoints is serialized.
+interface RawExchangeProxyMetaTransaction {
+    signer: string;
+    sender: string;
+    minGasPrice: string;
+    maxGasPrice: string;
+    expirationTimeSeconds: string;
+    salt: string;
+    callData: string;
+    value: string;
+    feeToken: string;
+    feeAmount: string;
+    domain: EIP712DomainWithDefaultSchema;
+}
+
+interface GetMetaTransactionV1QuoteResponse extends RawBasePriceResponse {
+    metaTransactionHash: string;
+    metaTransaction: RawExchangeProxyMetaTransaction;
+}
+
+/****** Types for 0x-api meta-transaction v2 endpoints ******/
+type RawTradeResponse = RawMetaTransactionV1TradeResponse /** add RawMetaTransactionV2TradeResponse when it's ready */;
+
+interface RawMetaTransactionV1TradeResponse {
+    kind: GaslessTypes.MetaTransaction;
+    hash: string;
+    metaTransaction: Record<keyof Omit<MetaTransactionFields, 'chainId'>, string> & { chainId: number };
+}
+
 // Quote response sent by meta-transaction v2 /quote endpoint
 interface GetMetaTransactionV2QuoteResponse extends RawBasePriceResponse {
-    metaTransactionHash: string;
-    // TODO: This needs to be updated when the smart contract change is finished and the new type is published
-    metaTransaction: Record<keyof Omit<ExchangeProxyMetaTransaction, 'domain'>, string> & {
-        domain: { chainId: number; verifyingContract: string };
-    };
+    trade: RawTradeResponse;
     fees?: RawFees;
 }
 
-export interface MetaTransactionClientV1QuoteResponse {
-    type: GaslessTypes.MetaTransaction;
-    metaTransaction: MetaTransaction;
+export interface MetaTransactionClientQuoteResponse {
+    trade: MetaTransactionTradeResponse;
     price: FetchIndicativeQuoteResponse;
+    sources?: LiquiditySource[];
+    fees?: Fees;
 }
 
 /**
- * Queries the MetaTransaction v1 service for an AMM quote wrapped in a
+ * Queries the MetaTransaction v1 endpoints for an AMM quote wrapped in a
  * MetaTransaction.
  * If no AMM liquidity is available, returns `null`.
  *
@@ -135,7 +158,7 @@ export async function getV1QuoteAsync(
     params: QuoteParams,
     meter?: { requestDurationSummary: Summary<'chainId' | 'success'>; chainId: number },
     noLiquidityLogger?: pino.LogFn,
-): Promise<MetaTransactionClientV1QuoteResponse | null> {
+): Promise<MetaTransactionClientQuoteResponse | null> {
     const stopTimer = meter?.requestDurationSummary.startTimer({ chainId: meter.chainId });
 
     let response: AxiosResponse<GetMetaTransactionV1QuoteResponse>;
@@ -177,33 +200,46 @@ export async function getV1QuoteAsync(
 
     stopTimer && stopTimer({ success: 'true' });
 
-    const { buyAmount, buyTokenAddress, gas, price, sellAmount, sellTokenAddress } = response.data;
+    const { buyAmount, buyTokenAddress, gas, price, sellAmount, sellTokenAddress, metaTransactionHash } = response.data;
 
     // A fun thing here is that the return from the API, @0x/types:ExchangeProxyMetaTransaction
     // does not match @0x/protocol-utils:MetaTransaction. So, we pull the domain information out
     // and put it at the top level of the constructor parameters
-    return {
-        type: GaslessTypes.MetaTransaction,
-        metaTransaction: new MetaTransaction({
+    const metaTransaction = new MetaTransaction(
+        stringsToMetaTransactionFields({
             ...response.data.metaTransaction,
             chainId: response.data.metaTransaction.domain.chainId,
             verifyingContract: response.data.metaTransaction.domain.verifyingContract,
         }),
-        price: { buyAmount, buyTokenAddress, gas, price, sellAmount, sellTokenAddress },
+    );
+
+    const computedHash = metaTransaction.getHash();
+    if (computedHash !== metaTransactionHash) {
+        throw new Error(
+            `Computered meta-transaction hash ${computedHash} is different from hash returned from meta-transaction endpoints ${metaTransactionHash}`,
+        );
+    }
+
+    return {
+        trade: {
+            kind: GaslessTypes.MetaTransaction,
+            hash: metaTransaction.getHash(),
+            metaTransaction,
+        },
+        price: {
+            buyAmount: new BigNumber(buyAmount),
+            buyTokenAddress,
+            gas: new BigNumber(gas),
+            price: new BigNumber(price),
+            sellAmount: new BigNumber(sellAmount),
+            sellTokenAddress,
+        },
     };
 }
 
-export interface MetaTransactionClientV2QuoteResponse {
-    type: GaslessTypes.MetaTransactionV2;
-    metaTransaction: MetaTransactionV2;
-    price: FetchIndicativeQuoteResponse;
-    sources: LiquiditySource[];
-    fees?: Fees;
-}
-
 /**
- * Queries the meta-transaction v2 service for a meta-transaction quote wrapped in a
- * meta-transaction.
+ * Queries the meta-transaction v2 endpoints for a meta-transaction quote wrapped in a
+ * meta-transaction. The meta-transaction type returned could be either v1 or v2.
  *
  * If no liquidity is available, returns `null`.
  *
@@ -219,7 +255,7 @@ export async function getV2QuoteAsync(
     params: QuoteParams,
     meter?: { requestDurationSummary: Summary<'chainId' | 'success'>; chainId: number },
     noLiquidityLogger?: pino.LogFn,
-): Promise<MetaTransactionClientV2QuoteResponse | null> {
+): Promise<MetaTransactionClientQuoteResponse | null> {
     const stopTimer = meter?.requestDurationSummary.startTimer({ chainId: meter.chainId });
 
     let response: AxiosResponse<GetMetaTransactionV2QuoteResponse>;
@@ -232,36 +268,53 @@ export async function getV2QuoteAsync(
 
     stopTimer && stopTimer({ success: 'true' });
 
-    const { buyAmount, buyTokenAddress, gas, price, sellAmount, sellTokenAddress } = response.data;
+    const { buyAmount, buyTokenAddress, gas, price, sellAmount, sellTokenAddress, trade: rawTrade } = response.data;
 
-    return {
-        type: GaslessTypes.MetaTransactionV2,
-        // TODO: This needs to be updated to the new meta-transaction type when smart contract changes are finished and corresponding types are published in packages
-        metaTransaction: new MetaTransactionV2(
-            stringsToMetaTransactionFields({
-                ...response.data.metaTransaction,
-                chainId: response.data.metaTransaction.domain.chainId,
-                verifyingContract: response.data.metaTransaction.domain.verifyingContract,
-            }),
-        ),
-        price: {
-            buyAmount: new BigNumber(buyAmount),
-            buyTokenAddress,
-            gas: new BigNumber(gas),
-            price: new BigNumber(price),
-            sellAmount: new BigNumber(sellAmount),
-            sellTokenAddress,
-        },
-        sources: response.data.sources
-            .map((source) => {
-                return {
-                    ...source,
-                    proportion: new BigNumber(source.proportion),
-                };
-            })
-            .filter((source) => source.proportion.gt(ZERO)),
-        fees: rawFeesToFees(response.data.fees),
-    };
+    switch (rawTrade.kind) {
+        case GaslessTypes.MetaTransaction: {
+            const metaTransaction = new MetaTransaction(
+                stringsToMetaTransactionFields({
+                    ...rawTrade.metaTransaction,
+                }),
+            );
+
+            const computedHash = metaTransaction.getHash();
+            if (computedHash !== rawTrade.hash) {
+                throw new Error(
+                    `Computered meta-transaction hash ${computedHash} is different from hash returned from meta-transaction endpoints ${rawTrade.hash}`,
+                );
+            }
+
+            return {
+                trade: {
+                    kind: GaslessTypes.MetaTransaction,
+                    hash: rawTrade.hash,
+                    metaTransaction,
+                },
+                price: {
+                    buyAmount: new BigNumber(buyAmount),
+                    buyTokenAddress,
+                    gas: new BigNumber(gas),
+                    price: new BigNumber(price),
+                    sellAmount: new BigNumber(sellAmount),
+                    sellTokenAddress,
+                },
+                sources: response.data.sources
+                    .map((source) => {
+                        return {
+                            ...source,
+                            proportion: new BigNumber(source.proportion),
+                        };
+                    })
+                    .filter((source) => source.proportion.gt(ZERO)),
+                fees: rawFeesToFees(response.data.fees),
+            };
+        }
+        default:
+            ((_x: never) => {
+                throw new Error('unreachable');
+            })(rawTrade.kind);
+    }
 }
 
 /**
