@@ -1,9 +1,9 @@
-import { InsufficientAssetLiquidityError, MockedRfqQuoteResponse } from '@0x/asset-swapper';
-import { AltMockedRfqQuoteResponse } from '@0x/asset-swapper/lib/src/types';
+import { InsufficientAssetLiquidityError } from '@0x/asset-swapper';
 import { BigNumber } from '@0x/utils';
 import axios, { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import * as _ from 'lodash';
+import { AltMockedRfqQuoteResponse, MockedRfqQuoteResponse } from '../altMmTypes';
 
 export enum RfqQuoteEndpoint {
     Indicative = 'price',
@@ -57,7 +57,8 @@ export const testHelpers = {
                 if (mockedResponse.callback !== undefined) {
                     mockedAxios
                         .onGet(`${endpoint}/${quoteType}`, { params: requestParams }, requestHeaders)
-                        .reply(mockedResponse.callback);
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        .reply(mockedResponse.callback as any);
                 } else {
                     mockedAxios
                         .onGet(`${endpoint}/${quoteType}`, { params: requestParams }, requestHeaders)

@@ -1,17 +1,7 @@
 // tslint:disable max-file-line-count
-import { constants, KEEP_ALIVE_TTL } from '@0x/asset-swapper/lib/src/constants';
-import {
-    AltMockedRfqQuoteResponse,
-    AltQuoteModel,
-    AltQuoteRequestData,
-    AltQuoteSide,
-    AltRfqMakerAssetOfferings,
-    MarketOperation,
-    MockedRfqQuoteResponse,
-} from '@0x/asset-swapper/lib/src/types';
 import { tokenUtils } from '@0x/dev-utils';
 import { FillQuoteTransformerOrderType, SignatureType } from '@0x/protocol-utils';
-import { StatusCodes } from '@0x/types';
+import { MarketOperation, StatusCodes } from '@0x/types';
 import { BigNumber, logUtils } from '@0x/utils';
 import Axios from 'axios';
 import { expect } from 'chai';
@@ -19,8 +9,16 @@ import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 import * as _ from 'lodash';
 
-import { NULL_ADDRESS } from '../../core/constants';
+import { KEEP_ALIVE_TTL, NULL_ADDRESS, ONE_SECOND_MS } from '../../core/constants';
 import { TakerRequestQueryParamsUnnested, V4RFQIndicativeQuote } from '../../quote-server/types';
+import {
+    AltMockedRfqQuoteResponse,
+    AltQuoteModel,
+    AltQuoteRequestData,
+    AltQuoteSide,
+    AltRfqMakerAssetOfferings,
+    MockedRfqQuoteResponse,
+} from '../altMmTypes';
 import { QuoteRequestor } from '../QuoteRequestor';
 
 import { RfqQuoteEndpoint, testHelpers } from './testHelpers';
@@ -43,7 +41,7 @@ function makeThreeMinuteExpiry(): BigNumber {
     const expiry = new Date(Date.now());
     // tslint:disable-next-line: custom-no-magic-numbers
     expiry.setMinutes(expiry.getMinutes() + 3);
-    return new BigNumber(Math.round(expiry.valueOf() / constants.ONE_SECOND_MS));
+    return new BigNumber(Math.round(expiry.valueOf() / ONE_SECOND_MS));
 }
 
 describe('QuoteRequestor', () => {

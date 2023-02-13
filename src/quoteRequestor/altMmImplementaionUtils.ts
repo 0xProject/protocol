@@ -1,21 +1,16 @@
-import { constants } from '@0x/asset-swapper/lib/src/constants';
-import {
-    AltFirmQuoteResponse,
-    AltIndicativeQuoteResponse,
-    AltOffering,
-    AltQuoteModel,
-    AltQuoteRequestData,
-    AltQuoteSide,
-    AltRfqMakerAssetOfferings,
-} from '@0x/asset-swapper/lib/src/types';
+import { AltFirmQuoteResponse, AltIndicativeQuoteResponse } from '@0x/asset-swapper/lib/src/types';
 import { Web3Wrapper } from '@0x/dev-utils';
 import { BigNumber } from '@0x/utils';
 import { AxiosInstance, CancelToken } from 'axios';
 
 import { logger } from '../logger';
 import { TakerRequestQueryParamsUnnested, V4RFQFirmQuote, V4RFQIndicativeQuote } from '../quote-server/types';
+import { AltOffering, AltQuoteModel, AltQuoteRequestData, AltQuoteSide, AltRfqMakerAssetOfferings } from './altMmTypes';
 
 const SUCCESS_CODE = 201;
+
+// https://github.com/0xProject/protocol/blob/fe935f787cbe8c9116ff702195f3161e86c1aea4/packages/asset-swapper/src/constants.ts#L31
+const ALT_MM_IMPUTED_INDICATIVE_EXPIRY_SECONDS = 180;
 
 function getAltMarketInfo(
     offerings: AltOffering[],
@@ -105,7 +100,7 @@ function parseIndicativeQuoteResponseFromAltMM(
             // tslint:disable-next-line:custom-no-magic-numbers
             new BigNumber(Date.now() / 1000)
                 .integerValue(BigNumber.ROUND_DOWN)
-                .plus(constants.ALT_MM_IMPUTED_INDICATIVE_EXPIRY_SECONDS),
+                .plus(ALT_MM_IMPUTED_INDICATIVE_EXPIRY_SECONDS),
     };
 }
 
