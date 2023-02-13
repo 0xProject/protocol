@@ -1,4 +1,3 @@
-import { MarketOperation } from '@0x/asset-swapper/lib/src/types';
 import { SchemaValidator } from '@0x/json-schemas';
 import { Signature } from '@0x/protocol-utils';
 import { schemas as quoteServerSchemas } from '../quote-server/schemas';
@@ -20,6 +19,7 @@ import { ZERO } from '../core/constants';
 import { logger } from '../logger';
 import { schemas } from '../core/schemas';
 import { Fee, IndicativeQuote, QuoteServerPriceParams } from '../core/types';
+import { MarketOperation } from '@0x/types';
 
 const MARKET_MAKER_SIGN_LATENCY = new Summary({
     name: 'market_maker_sign_latency',

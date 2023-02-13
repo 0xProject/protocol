@@ -1,4 +1,4 @@
-import { MarketOperation } from '@0x/asset-swapper/lib/src/types';
+import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import axios, { AxiosInstance } from 'axios';
 import { EventEmitter } from 'stream';

@@ -2,7 +2,6 @@
 // tslint:disable:no-empty
 // tslint:disable:max-file-line-count
 
-import { MarketOperation } from '@0x/asset-swapper/lib/src/types';
 import { ethSignHashWithKey, OtcOrder } from '@0x/protocol-utils';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import Axios from 'axios';
@@ -14,6 +13,7 @@ import { SignRequest } from '../../src/quote-server/types';
 import { Fee, QuoteServerPriceParams } from '../../src/core/types';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
 import { CHAIN_ID, CONTRACT_ADDRESSES } from '../constants';
+import { MarketOperation } from '@0x/types';
 
 const makerUri = 'https://some-market-maker.xyz';
 const integrator: Integrator = {
