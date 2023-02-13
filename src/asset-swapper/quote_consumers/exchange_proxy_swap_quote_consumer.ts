@@ -24,7 +24,7 @@ import {
     CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID,
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
 } from '../utils/market_operation_utils/constants';
-import { CurveFillData, FinalUniswapV3FillData, UniswapV2FillData } from '../utils/market_operation_utils/types';
+import { CurveFillData, FinalTickDEXMultiPathFillData, UniswapV2FillData } from '../utils/market_operation_utils/types';
 
 import {
     ERC20BridgeSource,
@@ -119,19 +119,19 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
             this.chainId === ChainId.Mainnet &&
             isDirectSwapCompatible(quote.path, optsWithDefaults, [ERC20BridgeSource.UniswapV3])
         ) {
-            const fillData = (slippedOrders[0] as OptimizedMarketBridgeOrder<FinalUniswapV3FillData>).fillData;
+            const fillData = (slippedOrders[0] as OptimizedMarketBridgeOrder<FinalTickDEXMultiPathFillData>).fillData;
             let _calldataHexString;
             if (isFromETH) {
                 _calldataHexString = this.exchangeProxy
-                    .sellEthForTokenToUniswapV3(fillData.uniswapPath, minBuyAmount, NULL_ADDRESS)
+                    .sellEthForTokenToUniswapV3(fillData.path, minBuyAmount, NULL_ADDRESS)
                     .getABIEncodedTransactionData();
             } else if (isToETH) {
                 _calldataHexString = this.exchangeProxy
-                    .sellTokenForEthToUniswapV3(fillData.uniswapPath, sellAmount, minBuyAmount, NULL_ADDRESS)
+                    .sellTokenForEthToUniswapV3(fillData.path, sellAmount, minBuyAmount, NULL_ADDRESS)
                     .getABIEncodedTransactionData();
             } else {
                 _calldataHexString = this.exchangeProxy
-                    .sellTokenForTokenToUniswapV3(fillData.uniswapPath, sellAmount, minBuyAmount, NULL_ADDRESS)
+                    .sellTokenForTokenToUniswapV3(fillData.path, sellAmount, minBuyAmount, NULL_ADDRESS)
                     .getABIEncodedTransactionData();
             }
             return {
@@ -365,11 +365,11 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
                     });
                     break switch_statement;
                 case ERC20BridgeSource.UniswapV3: {
-                    const fillData = (order as OptimizedMarketBridgeOrder<FinalUniswapV3FillData>).fillData;
+                    const fillData = (order as OptimizedMarketBridgeOrder<FinalTickDEXMultiPathFillData>).fillData;
                     subcalls.push({
                         id: MultiplexSubcall.UniswapV3,
                         sellAmount: order.takerAmount,
-                        data: fillData.uniswapPath,
+                        data: fillData.path,
                     });
                     break switch_statement;
                 }
@@ -458,7 +458,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
                 case ERC20BridgeSource.UniswapV3:
                     subcalls.push({
                         id: MultiplexSubcall.UniswapV3,
-                        data: (order.fillData as FinalUniswapV3FillData).uniswapPath,
+                        data: (order.fillData as FinalTickDEXMultiPathFillData).path,
                     });
                     break;
                 default:

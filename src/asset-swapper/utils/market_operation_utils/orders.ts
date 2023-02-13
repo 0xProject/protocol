@@ -29,7 +29,7 @@ import {
     CurveFillData,
     DexSample,
     DODOFillData,
-    FinalUniswapV3FillData,
+    FinalTickDEXMultiPathFillData,
     GenericRouterFillData,
     GMXFillData,
     KyberDmmFillData,
@@ -42,8 +42,8 @@ import {
     ShellFillData,
     SynthetixFillData,
     UniswapV2FillData,
-    UniswapV3FillData,
-    UniswapV3PathAmount,
+    TickDEXMultiPathFillData,
+    PathAmount,
     VelodromeFillData,
     WOOFiFillData,
 } from './types';
@@ -327,8 +327,8 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             break;
         }
         case ERC20BridgeSource.UniswapV3: {
-            const uniswapV3FillData = (order as OptimizedMarketBridgeOrder<FinalUniswapV3FillData>).fillData;
-            bridgeData = encoder.encode([uniswapV3FillData.router, uniswapV3FillData.uniswapPath]);
+            const uniswapV3FillData = (order as OptimizedMarketBridgeOrder<FinalTickDEXMultiPathFillData>).fillData;
+            bridgeData = encoder.encode([uniswapV3FillData.router, uniswapV3FillData.path]);
             break;
         }
         case ERC20BridgeSource.KyberDmm: {
@@ -594,12 +594,12 @@ function toFillBase(fill: Fill): FillBase {
 function createFinalBridgeOrderFillDataFromCollapsedFill(fill: Fill): FillData {
     switch (fill.source) {
         case ERC20BridgeSource.UniswapV3: {
-            const fd = fill.fillData as UniswapV3FillData;
-            const { uniswapPath, gasUsed } = getBestUniswapV3PathAmountForInputAmount(fd, fill.input);
-            const finalFillData: FinalUniswapV3FillData = {
+            const fd = fill.fillData as TickDEXMultiPathFillData;
+            const { path: uniswapPath, gasUsed } = getBestUniswapV3PathAmountForInputAmount(fd, fill.input);
+            const finalFillData: FinalTickDEXMultiPathFillData = {
                 router: fd.router,
                 tokenAddressPath: fd.tokenAddressPath,
-                uniswapPath,
+                path: uniswapPath,
                 gasUsed,
             };
             return finalFillData;
@@ -611,9 +611,9 @@ function createFinalBridgeOrderFillDataFromCollapsedFill(fill: Fill): FillData {
 }
 
 function getBestUniswapV3PathAmountForInputAmount(
-    fillData: UniswapV3FillData,
+    fillData: TickDEXMultiPathFillData,
     inputAmount: BigNumber,
-): UniswapV3PathAmount {
+): PathAmount {
     if (fillData.pathAmounts.length === 0) {
         throw new Error(`No Uniswap V3 paths`);
     }

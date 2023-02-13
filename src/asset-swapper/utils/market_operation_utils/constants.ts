@@ -16,8 +16,8 @@ import {
     CurveFunctionSelectors,
     CurveInfo,
     DODOFillData,
-    FinalUniswapV3FillData,
-    isFinalUniswapV3FillData,
+    FinalTickDEXMultiPathFillData,
+    isFinalPathFillData,
     LidoFillData,
     LidoInfo,
     MakerPsmFillData,
@@ -26,7 +26,7 @@ import {
     PsmInfo,
     SynthetixFillData,
     UniswapV2FillData,
-    UniswapV3FillData,
+    TickDEXMultiPathFillData,
     WOOFiFillData,
 } from './types';
 
@@ -2019,12 +2019,12 @@ export const DEFAULT_GAS_SCHEDULE: GasSchedule = {
         return gas;
     },
     [ERC20BridgeSource.UniswapV3]: (fillData?: FillData) => {
-        const uniFillData = fillData as UniswapV3FillData | FinalUniswapV3FillData;
+        const uniFillData = fillData as TickDEXMultiPathFillData | FinalTickDEXMultiPathFillData;
         // NOTE: This base value was heuristically chosen by looking at how much it generally
         // underestimated gas usage
         const base = 34e3; // 34k base
         let gas = base;
-        if (isFinalUniswapV3FillData(uniFillData)) {
+        if (isFinalPathFillData(uniFillData)) {
             gas += uniFillData.gasUsed;
         } else {
             // NOTE: We don't actually know which of the paths would be used in the router
