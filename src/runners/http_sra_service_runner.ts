@@ -25,6 +25,7 @@ import { SentryInit, SentryOptions } from '../sentry';
 import { WebsocketService } from '../services/websocket_service';
 import { HttpServiceConfig, AppDependencies } from '../types';
 import { providerUtils } from '../utils/provider_utils';
+import * as promBundle from 'express-prom-bundle';
 
 import { destroyCallback } from './utils';
 
@@ -54,6 +55,9 @@ if (require.main === module) {
 async function runHttpServiceAsync(
     dependencies: AppDependencies,
     config: HttpServiceConfig,
+    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+    // eslint-disable-next-line @typescript-eslint/no-inferrable-types
+    useMetricsMiddleware: boolean = true,
     _app?: core.Express,
 ): Promise<Server> {
     const app = _app || express();
@@ -69,6 +73,28 @@ async function runHttpServiceAsync(
         };
 
         SentryInit(options);
+    }
+
+    if (useMetricsMiddleware) {
+        /**
+         * express-prom-bundle will create a histogram metric called "http_request_duration_seconds"
+         * The official prometheus docs describe how to use this exact histogram metric: https://prometheus.io/docs/practices/histograms/
+         * We use the following labels: statusCode, path
+         */
+        const metricsMiddleware = promBundle({
+            autoregister: false,
+            includeStatusCode: true,
+            includePath: true,
+            customLabels: { chainId: undefined },
+            normalizePath: [['/order/.*', '/order/#orderHash']],
+            transformLabels: (labels, req, _res) => {
+                Object.assign(labels, { chainId: req.header('0x-chain-id') || 1 });
+            },
+            // buckets used for the http_request_duration_seconds histogram. All numbers (in seconds) represents boundaries of buckets.
+            // tslint:disable-next-line: custom-no-magic-numbers
+            buckets: [0.01, 0.04, 0.1, 0.3, 0.6, 1, 1.5, 2, 2.5, 3, 4, 6, 9],
+        });
+        app.use(metricsMiddleware);
     }
 
     app.use(addressNormalizer);

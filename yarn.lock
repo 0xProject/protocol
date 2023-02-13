@@ -6222,6 +6222,14 @@ express-async-handler@^1.1.4:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/express-async-handler/-/express-async-handler-1.2.0.tgz#ffc9896061d90f8d2e71a2d2b8668db5b0934391"
 
+express-prom-bundle@^6.6.0:
+  version "6.6.0"
+  resolved "https://registry.yarnpkg.com/express-prom-bundle/-/express-prom-bundle-6.6.0.tgz#9c33c1bd1478d70e3961a53aed2d17f15ef821ca"
+  integrity sha512-tZh2P2p5a8/yxQ5VbRav011Poa4R0mHqdFwn9Swe/obXDe5F0jY9wtRAfNYnqk4LXY7akyvR/nrvAHxQPWUjsQ==
+  dependencies:
+    on-finished "^2.3.0"
+    url-value-parser "^2.0.0"
+
 express@^4.14.0, express@^4.17.1:
   version "4.18.1"
   resolved "https://registry.yarnpkg.com/express/-/express-4.18.1.tgz#7797de8b9c72c857b9cd0e14a5eea80666267caf"
