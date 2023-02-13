@@ -171,10 +171,6 @@ contract ZRXWrappedTokenTest is BaseTest {
         wToken.delegate(account4);
         vm.stopPrank();
 
-        IZeroExVotes.Checkpoint memory lastChpt = votes.checkpoints(account4, 0);
-        console.log(lastChpt.votes);
-        console.log(lastChpt.quadraticVotes);
-
         // Check voting power is now = token balance
         votingPowerAccount4 = votes.getVotes(account4);
         assertEq(votingPowerAccount4, 300e18);
@@ -205,10 +201,6 @@ contract ZRXWrappedTokenTest is BaseTest {
         wToken.depositFor(account3, 200e18);
         wToken.delegate(account4);
         vm.stopPrank();
-
-        IZeroExVotes.Checkpoint memory lastChpt = votes.checkpoints(account4, 0);
-        console.log(lastChpt.votes);
-        console.log(lastChpt.quadraticVotes);
 
         // Check voting power is now = token balance
         votingPowerAccount4 = votes.getVotes(account4);
