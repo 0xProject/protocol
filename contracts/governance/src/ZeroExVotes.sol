@@ -172,7 +172,7 @@ contract ZeroExVotes is IZeroExVotes {
                 // Remove the entire source delegator's sqrt balance from delegatee's voting power.
                 // `srcDelegateBalance` is value _after_ transfer so add the amount that was transferred.
                 if (pos > 0)
-                    oldCkptSrcDelegate.quadraticVotes -= SafeCast.toUint224(Math.sqrt(srcDelegateBalance + amount));
+                    oldCkptSrcDelegate.quadraticVotes -= SafeCast.toUint48(Math.sqrt(srcDelegateBalance + amount));
 
                 uint256 newLinearBalance = oldCkptSrcDelegate.votes - amount;
                 uint256 newQuadraticBalance = oldCkptSrcDelegate.quadraticVotes + Math.sqrt(srcDelegateBalance);
@@ -197,7 +197,7 @@ contract ZeroExVotes is IZeroExVotes {
                 // Remove the entire destination delegator's sqrt balance from delegatee's voting power.
                 // `dstDelegateBalance` is value _after_ transfer so remove the amount that was transferred.
                 if (pos > 0)
-                    oldCkptDstDelegate.quadraticVotes -= SafeCast.toUint224(Math.sqrt(dstDelegateBalance - amount));
+                    oldCkptDstDelegate.quadraticVotes -= SafeCast.toUint48(Math.sqrt(dstDelegateBalance - amount));
 
                 uint256 newLinearBalance = oldCkptDstDelegate.votes + amount;
                 uint256 newQuadraticBalance = oldCkptDstDelegate.quadraticVotes + Math.sqrt(dstDelegateBalance);
@@ -283,14 +283,14 @@ contract ZeroExVotes is IZeroExVotes {
 
         if (pos > 0 && _unsafeAccess(ckpts, pos - 1).fromBlock == block.number) {
             Checkpoint storage chpt = _unsafeAccess(ckpts, pos - 1);
-            chpt.votes = SafeCast.toUint224(voteWeight);
-            chpt.quadraticVotes = SafeCast.toUint224(quadraticVoteWeight);
+            chpt.votes = SafeCast.toUint96(voteWeight);
+            chpt.quadraticVotes = SafeCast.toUint48(quadraticVoteWeight);
         } else {
             ckpts.push(
                 Checkpoint({
                     fromBlock: SafeCast.toUint32(block.number),
-                    votes: SafeCast.toUint224(voteWeight),
-                    quadraticVotes: SafeCast.toUint224(quadraticVoteWeight)
+                    votes: SafeCast.toUint96(voteWeight),
+                    quadraticVotes: SafeCast.toUint48(quadraticVoteWeight)
                 })
             );
         }

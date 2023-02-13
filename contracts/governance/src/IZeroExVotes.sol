@@ -22,8 +22,8 @@ pragma solidity ^0.8.17;
 interface IZeroExVotes {
     struct Checkpoint {
         uint32 fromBlock;
-        uint224 votes;
-        uint224 quadraticVotes;
+        uint96 votes;
+        uint48 quadraticVotes;
     }
 
     /**
