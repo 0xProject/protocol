@@ -165,6 +165,7 @@ describe(SUITE_NAME, () => {
                 buyToken: 'ZRX',
                 sellAmount: '10000',
                 integratorId: 'integrator',
+                metaTransactionVersion: 'v1',
             });
             expect(swapResponse.statusCode).eq(HttpStatus.StatusCodes.OK);
         });
@@ -243,7 +244,10 @@ describe(SUITE_NAME, () => {
             ];
 
             for (const body of bodyPermutations) {
-                const response = await requestSwap(app, 'quote', 'v2', body);
+                const response = await requestSwap(app, 'quote', 'v2', {
+                    ...body,
+                    metaTransactionVersion: 'v1',
+                });
                 expectCorrectQuoteResponse(response, {
                     buyAmount: new BigNumber(body.buyAmount),
                     sellTokenAddress: body.sellToken.startsWith('0x')
@@ -265,6 +269,7 @@ describe(SUITE_NAME, () => {
                 buyAmount: '10000000000000000000000000000000',
                 integratorId: 'integrator',
                 takerAddress: TAKER_ADDRESS,
+                metaTransactionVersion: 'v1',
                 feeConfigs: { integratorFee: { type: 'volume', volumePercentage: '0.1' } },
             });
             expectSwapError(response, {
@@ -285,6 +290,7 @@ describe(SUITE_NAME, () => {
                 buyAmount: '1234',
                 integratorId: INTEGRATOR_ID,
                 takerAddress: TAKER_ADDRESS,
+                metaTransactionVersion: 'v1',
                 feeConfigs: {
                     integratorFee: { type: 'volume', volumePercentage: '0.1' },
                     zeroExFee: {
@@ -305,6 +311,7 @@ describe(SUITE_NAME, () => {
                 sellAmount: '1234',
                 integratorId: INTEGRATOR_ID,
                 takerAddress: TAKER_ADDRESS,
+                metaTransactionVersion: 'v1',
                 feeConfigs: {
                     integratorFee: { type: 'volume', volumePercentage: '0.1' },
                     zeroExFee: {
@@ -318,6 +325,27 @@ describe(SUITE_NAME, () => {
             expectCorrectQuoteResponse(response, { sellAmount: new BigNumber(1234) });
         });
 
+        it('should returns the correct trade kind', async () => {
+            const response = await requestSwap(app, 'quote', 'v2', {
+                buyToken: 'ZRX',
+                sellToken: 'WETH',
+                sellAmount: '1234',
+                integratorId: INTEGRATOR_ID,
+                takerAddress: TAKER_ADDRESS,
+                metaTransactionVersion: 'v1',
+                feeConfigs: {
+                    integratorFee: { type: 'volume', volumePercentage: '0.1' },
+                    zeroExFee: {
+                        type: 'integrator_share',
+                        integratorSharePercentage: '0.2',
+                        feeRecipient: TAKER_ADDRESS,
+                    },
+                    gasFee: { type: 'gas' },
+                },
+            });
+            expect(response.body.trade.kind).to.eql('metatransaction');
+        });
+
         describe('fee configs', async () => {
             describe('integrator', async () => {
                 it('should throw error if kind is invalid', async () => {
@@ -327,6 +355,7 @@ describe(SUITE_NAME, () => {
                         sellAmount: '1234',
                         integratorId: INTEGRATOR_ID,
                         takerAddress: TAKER_ADDRESS,
+                        metaTransactionVersion: 'v1',
                         feeConfigs: {
                             integratorFee: { type: 'random', volumePercentage: '0.1' },
                         },
@@ -350,6 +379,7 @@ describe(SUITE_NAME, () => {
                         sellAmount: '1234',
                         integratorId: INTEGRATOR_ID,
                         takerAddress: TAKER_ADDRESS,
+                        metaTransactionVersion: 'v1',
                         feeConfigs: {
                             integratorFee: { type: 'volume', volumePercentage: '1000' },
                         },
@@ -375,6 +405,7 @@ describe(SUITE_NAME, () => {
                         sellAmount: '1234',
                         integratorId: INTEGRATOR_ID,
                         takerAddress: TAKER_ADDRESS,
+                        metaTransactionVersion: 'v1',
                         feeConfigs: {
                             zeroExFee: { type: 'random', volumePercentage: '0.1' },
                         },
@@ -398,6 +429,7 @@ describe(SUITE_NAME, () => {
                         sellAmount: '1234',
                         integratorId: INTEGRATOR_ID,
                         takerAddress: TAKER_ADDRESS,
+                        metaTransactionVersion: 'v1',
                         feeConfigs: {
                             zeroExFee: { type: 'volume', volumePercentage: '1000' },
                         },
@@ -421,6 +453,7 @@ describe(SUITE_NAME, () => {
                         sellAmount: '1234',
                         integratorId: INTEGRATOR_ID,
                         takerAddress: TAKER_ADDRESS,
+                        metaTransactionVersion: 'v1',
                         feeConfigs: {
                             zeroExFee: { type: 'integrator_share', integratorSharePercentage: '1000' },
                         },
@@ -443,6 +476,7 @@ describe(SUITE_NAME, () => {
                             sellAmount: '1234',
                             integratorId: INTEGRATOR_ID,
                             takerAddress: TAKER_ADDRESS,
+                            metaTransactionVersion: 'v1',
                             feeConfigs: {
                                 integratorFee: { type: 'volume', volumePercentage: '0.1' },
                                 zeroExFee: { type: 'integrator_share', integratorSharePercentage: '1000' },
@@ -470,6 +504,7 @@ describe(SUITE_NAME, () => {
                         sellAmount: '1234',
                         integratorId: INTEGRATOR_ID,
                         takerAddress: TAKER_ADDRESS,
+                        metaTransactionVersion: 'v1',
                         feeConfigs: {
                             gasFee: { type: 'random' },
                         },
@@ -509,6 +544,7 @@ async function requestSwap(
         slippagePercentage?: string;
         integratorId: string;
         quoteUniqueId?: string;
+        metaTransactionVersion?: 'v1' | 'v2';
         feeConfigs?: {
             integratorFee?: {
                 type: string;

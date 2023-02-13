@@ -392,6 +392,17 @@ function parseV2RequestBody(req: express.Request): MetaTransactionV2QuoteRequest
     const sellTokenAddress = findTokenAddressOrThrowApiError(sellToken, 'sellToken', CHAIN_ID);
     const takerAddress = (req.body.takerAddress as string).toLowerCase();
 
+    const metaTransactionVersion = req.body.metaTransactionVersion;
+    if (metaTransactionVersion !== 'v1' && metaTransactionVersion !== 'v2') {
+        throw new ValidationError([
+            {
+                field: 'metaTransactionVersion',
+                code: ValidationErrorCodes.IncorrectFormat,
+                reason: ValidationErrorReasons.InvalidMetaTransactionVersion,
+            },
+        ]);
+    }
+
     const slippagePercentage = parseFloat(req.body.slippagePercentage as string) || DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE;
     if (slippagePercentage >= 1) {
         throw new ValidationError([
@@ -442,6 +453,7 @@ function parseV2RequestBody(req: express.Request): MetaTransactionV2QuoteRequest
         affiliateFee,
         affiliateAddress,
         integratorId,
+        metaTransactionVersion,
         quoteUniqueId,
         priceImpactProtectionPercentage,
         feeConfigs: parsedFeeConfigs,

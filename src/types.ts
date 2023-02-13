@@ -2,7 +2,7 @@ import { HttpServiceConfig as BaseHttpConfig } from '@0x/api-utils';
 import { ExchangeProxyMetaTransaction } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { ContractAddresses, ChainId } from '@0x/contract-addresses';
-import { OtcOrder } from '@0x/protocol-utils';
+import { MetaTransaction, OtcOrder } from '@0x/protocol-utils';
 import { Connection } from 'typeorm';
 import { Kafka } from 'kafkajs';
 
@@ -245,10 +245,16 @@ export interface MetaTransactionV1QuoteResponse extends BasePriceResponse {
  * Response type for /meta_transaction/v2/quote endpoint
  */
 export interface MetaTransactionV2QuoteResponse extends BasePriceResponse {
-    metaTransactionHash: string;
-    // TODO(vic): Update to MetaTransactionV2 when it's ready
-    metaTransaction: ExchangeProxyMetaTransaction;
+    trade: TradeResponse;
     fees?: Fees;
+}
+
+type TradeResponse = MetaTransactionV1TradeResponse /* add MetaTransactionV2TradeResponse when it's ready */;
+
+interface MetaTransactionV1TradeResponse {
+    kind: 'metatransaction';
+    hash: string;
+    metaTransaction: MetaTransaction;
 }
 
 /**
@@ -281,6 +287,7 @@ export interface MetaTransactionV1QuoteRequestParams extends SwapQuoteParamsBase
  * Request type for /meta_transaction/v2/price and /meta_transaction/v2/quote
  */
 export interface MetaTransactionV2QuoteRequestParams extends MetaTransactionV1QuoteRequestParams {
+    metaTransactionVersion: 'v1' | 'v2'; // version of meta-transaction caller requests to use
     feeConfigs?: FeeConfigs;
 }
 
@@ -302,6 +309,7 @@ export interface MetaTransactionV1QuoteParams extends SwapQuoteParamsBase {
  * Parameters for the V2 Meta Transaction Service price and quote functions.
  */
 export interface MetaTransactionV2QuoteParams extends MetaTransactionV1QuoteParams {
+    metaTransactionVersion: 'v1' | 'v2'; // version of meta-transaction caller requests to use
     feeConfigs?: FeeConfigs;
 }
 

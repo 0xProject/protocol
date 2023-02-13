@@ -1,4 +1,5 @@
 import { generatePseudoRandomSalt, getExchangeProxyMetaTransactionHash } from '@0x/order-utils';
+import { MetaTransaction } from '@0x/protocol-utils';
 import { ExchangeProxyMetaTransaction } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { Kafka, Producer } from 'kafkajs';
@@ -79,20 +80,26 @@ export class MetaTransactionService implements IMetaTransactionService {
         };
 
         // Generate meta-transaction
-        // TODO(vic): Update to meta-transaction v2 when it's ready
-        const metaTransaction = this._generateExchangeProxyMetaTransaction(
-            quote.callData,
-            quote.taker,
-            normalizeGasPrice(quote.gasPrice),
-            ZERO, // protocol fee
-        );
-
-        const metaTransactionHash = getExchangeProxyMetaTransactionHash(metaTransaction);
-        return {
-            ...commonQuoteFields,
-            metaTransaction,
-            metaTransactionHash,
-        };
+        switch (params.metaTransactionVersion) {
+            case 'v1': {
+                const metaTransaction = this._generateMetaTransactionV1(
+                    quote.callData,
+                    quote.taker,
+                    ZERO, // protocol fee
+                );
+                return {
+                    ...commonQuoteFields,
+                    trade: {
+                        kind: 'metatransaction',
+                        hash: metaTransaction.getHash(),
+                        metaTransaction,
+                    },
+                };
+            }
+            case 'v2':
+            default:
+                throw new Error(`metaTransactionVersion ${params.metaTransactionVersion} is not supported`);
+        }
     }
 
     public async getMetaTransactionV1PriceAsync(
@@ -143,6 +150,7 @@ export class MetaTransactionService implements IMetaTransactionService {
         };
     }
 
+    // TODO: Remove this function and usages after /meta-transaction/v1 endpoints are deprecated
     private _generateExchangeProxyMetaTransaction(
         callData: string,
         takerAddress: string,
@@ -165,6 +173,31 @@ export class MetaTransactionService implements IMetaTransactionService {
                 verifyingContract: this._exchangeProxyAddress,
             },
         };
+    }
+
+    /**
+     * Generate meta-transaction v1. This should be used in favor of `_generateExchangeProxyMetaTransaction` which
+     * exists for historic reason.
+     */
+    private _generateMetaTransactionV1(
+        callData: string,
+        takerAddress: string,
+        protocolFee: BigNumber,
+    ): MetaTransaction {
+        return new MetaTransaction({
+            callData,
+            minGasPrice: ZERO,
+            maxGasPrice: new BigNumber(2).pow(48), // high value 0x1000000000000
+            expirationTimeSeconds: createExpirationTime(),
+            salt: generatePseudoRandomSalt(),
+            signer: takerAddress,
+            sender: NULL_ADDRESS,
+            feeAmount: ZERO,
+            feeToken: NULL_ADDRESS,
+            value: protocolFee,
+            chainId: CHAIN_ID,
+            verifyingContract: this._exchangeProxyAddress,
+        });
     }
 
     /**
