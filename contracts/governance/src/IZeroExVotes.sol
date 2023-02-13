@@ -86,6 +86,17 @@ interface IZeroExVotes {
     function getPastTotalSupply(uint256 blockNumber) external view returns (uint256);
 
     /**
+     * @dev Retrieve the sqrt of `totalSupply` at the end of `blockNumber`. Note, this value is the square root of the
+     * sum of all balances.
+     * It is but NOT the sum of all the sqrt of the delegated votes!
+     *
+     * Requirements:
+     *
+     * - `blockNumber` must have been already mined
+     */
+    function getPastQuadraticTotalSupply(uint256 blockNumber) external view returns (uint256);
+
+    /**
      * @dev Moves the voting power for an account with balance `delegateBalance` from `srcDelegatee` to `dstDelegatee`.
      * Note that if the delegator isn't delegating to anyone before the function call `srcDelegatee` = address(0)
      */

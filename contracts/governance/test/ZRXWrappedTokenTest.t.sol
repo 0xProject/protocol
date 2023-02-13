@@ -103,6 +103,42 @@ contract ZRXWrappedTokenTest is BaseTest {
         assertEq(tokenBalance2, 100e18 - wTokenBalance2 - tokenBalance4);
     }
 
+    function testWrappedZRXTotalsAreCorrect() public {
+        // Wrap 1e18 and check total supply is correct
+        vm.startPrank(account2);
+        token.approve(address(wToken), 1e18);
+        wToken.depositFor(account2, 1e18);
+        vm.stopPrank();
+        uint256 wTokenBalance = wToken.totalSupply();
+        assertEq(wTokenBalance, 1e18);
+
+        // Wrap 2e18 more and check total supply is correct
+        vm.startPrank(account3);
+        token.approve(address(wToken), 2e18);
+        wToken.depositFor(account3, 2e18);
+        vm.stopPrank();
+        wTokenBalance = wToken.totalSupply();
+        assertEq(wTokenBalance, 1e18 + 2e18);
+
+        // Unwrap 1e7 and check total supply is correct
+        vm.startPrank(account2);
+        wToken.withdrawTo(account2, 1e7);
+        vm.stopPrank();
+        wTokenBalance = wToken.totalSupply();
+        assertEq(wTokenBalance, 3e18 - 1e7);
+
+        // Unwrap 8e17 and check total supply is correct
+        vm.startPrank(account2);
+        wToken.withdrawTo(account2, 8e17);
+        vm.stopPrank();
+        wTokenBalance = wToken.totalSupply();
+        assertEq(wTokenBalance, 3e18 - 1e7 - 8e17);
+
+        // We are not keeping record of total balances so check they are zero
+        assertEq(votes.getPastTotalSupply(0), 0);
+        assertEq(votes.getPastQuadraticTotalSupply(0), 0);
+    }
+
     function testShouldNotBeAbleToReinitialiseTheZeroExVotes() public {
         vm.expectRevert("ZeroExVotes: Already initialized");
         votes.initialize(account2);

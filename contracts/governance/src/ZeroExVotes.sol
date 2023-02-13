@@ -93,12 +93,25 @@ contract ZeroExVotes is IZeroExVotes {
     /**
      * @inheritdoc IZeroExVotes
      */
-    // TODO we probably don't need to keep track of total supply checkpoints as all governance values are fixed numbers
     function getPastTotalSupply(uint256 blockNumber) public view override returns (uint256) {
         require(blockNumber < block.number, "ZeroExVotes: block not yet mined");
 
+        // Note that due to the disabled updates of `_totalSupplyCheckpoints` in `writeCheckpointTotalSupply` function
+        // this always returns 0.
         Checkpoint memory checkpoint = _checkpointsLookup(_totalSupplyCheckpoints, blockNumber);
         return checkpoint.votes;
+    }
+
+    /**
+     * @inheritdoc IZeroExVotes
+     */
+    function getPastQuadraticTotalSupply(uint256 blockNumber) public view override returns (uint256) {
+        require(blockNumber < block.number, "ZeroExVotes: block not yet mined");
+
+        // Note that due to the disabled updates of `_totalSupplyCheckpoints` in `writeCheckpointTotalSupply` function
+        // this always returns 0.
+        Checkpoint memory checkpoint = _checkpointsLookup(_totalSupplyCheckpoints, blockNumber);
+        return checkpoint.quadraticVotes;
     }
 
     /**
@@ -219,7 +232,9 @@ contract ZeroExVotes is IZeroExVotes {
      * @inheritdoc IZeroExVotes
      */
     function writeCheckpointTotalSupply(uint256 totalSupply) public override onlyToken {
-        _writeCheckpoint(_totalSupplyCheckpoints, totalSupply, Math.sqrt(totalSupply));
+        // Currently we don't keep track of total supply checkpoints as all governance settings are fixed numbers
+        // i.e. governance quorum is not a percentage of total
+        // _writeCheckpoint(_totalSupplyCheckpoints, totalSupply, Math.sqrt(totalSupply));
     }
 
     /**
