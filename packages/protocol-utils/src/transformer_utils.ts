@@ -163,6 +163,7 @@ export enum BridgeProtocol {
     Synthetix,
     WOOFi,
     AaveV3,
+    Clober
 }
 
 /**
