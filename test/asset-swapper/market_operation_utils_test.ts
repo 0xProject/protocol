@@ -447,9 +447,7 @@ describe('MarketOperationUtils tests', () => {
                 numSamples: NUM_SAMPLES,
                 sampleDistributionBase: 1,
                 bridgeSlippage: 0,
-                maxFallbackSlippage: 100,
                 excludedSources: DEFAULT_EXCLUDED,
-                allowFallback: false,
                 gasPrice: new BigNumber(30e9),
             };
 
@@ -1128,31 +1126,6 @@ describe('MarketOperationUtils tests', () => {
                 expect(orderSources.sort()).to.deep.eq(expectedSources.sort());
             });
 
-            // NOTE: Currently fallbacks for native orders are disabled
-            // TODO: remove this if we remove fallbacks completely
-            it.skip('does not create a fallback if below maxFallbackSlippage', async () => {
-                const rates: RatesBySource = {};
-                rates[ERC20BridgeSource.Native] = [1, 1, 0.01, 0.01];
-                rates[ERC20BridgeSource.Uniswap] = [1, 1, 0.01, 0.01];
-                rates[ERC20BridgeSource.SushiSwap] = [0.49, 0.49, 0.49, 0.49];
-                rates[ERC20BridgeSource.Curve] = [0.35, 0.2, 0.01, 0.01];
-                replaceSamplerOps({
-                    getSellQuotes: createGetMultipleSellQuotesOperationFromRates(rates),
-                });
-                const improvedOrdersResponse = await getMarketSellOrdersAsync(
-                    marketOperationUtils,
-                    createOrdersFromSellRates(FILL_AMOUNT, rates[ERC20BridgeSource.Native]),
-                    FILL_AMOUNT,
-                    { ...DEFAULT_OPTS, numSamples: 4, allowFallback: true, maxFallbackSlippage: 0.25 },
-                );
-                const improvedOrders = improvedOrdersResponse.path.getOrders();
-                const orderSources = improvedOrders.map((o) => o.source);
-                const firstSources = [ERC20BridgeSource.Native, ERC20BridgeSource.Native, ERC20BridgeSource.Uniswap];
-                const secondSources: ERC20BridgeSource[] = [];
-                expect(orderSources.slice(0, firstSources.length).sort()).to.deep.eq(firstSources.sort());
-                expect(orderSources.slice(firstSources.length).sort()).to.deep.eq(secondSources.sort());
-            });
-
             it('factors in exchange proxy gas overhead', async () => {
                 // Uniswap has a slightly better rate than Curve (via LiquidityProvider),
                 // but Curve is better accounting for the EP gas overhead.
@@ -1201,9 +1174,7 @@ describe('MarketOperationUtils tests', () => {
                 numSamples: NUM_SAMPLES,
                 sampleDistributionBase: 1,
                 bridgeSlippage: 0,
-                maxFallbackSlippage: 100,
                 excludedSources: DEFAULT_EXCLUDED,
-                allowFallback: false,
                 gasPrice: GAS_PRICE,
             };
 
@@ -1437,30 +1408,6 @@ describe('MarketOperationUtils tests', () => {
                     ERC20BridgeSource.Uniswap,
                 ];
                 expect(orderSources.sort()).to.deep.eq(expectedSources.sort());
-            });
-
-            // NOTE: Currently fallbacks for native orders are disabled
-            // TODO: remove this if we remove fallbacks completely
-            it.skip('does not create a fallback if below maxFallbackSlippage', async () => {
-                const rates: RatesBySource = { ...ZERO_RATES };
-                rates[ERC20BridgeSource.Native] = [1, 1, 0.01, 0.01];
-                rates[ERC20BridgeSource.Uniswap] = [1, 1, 0.01, 0.01];
-                rates[ERC20BridgeSource.SushiSwap] = [0.49, 0.49, 0.49, 0.49];
-                replaceSamplerOps({
-                    getBuyQuotes: createGetMultipleBuyQuotesOperationFromRates(rates),
-                });
-                const improvedOrdersResponse = await getMarketBuyOrdersAsync(
-                    marketOperationUtils,
-                    createOrdersFromBuyRates(FILL_AMOUNT, rates[ERC20BridgeSource.Native]),
-                    FILL_AMOUNT,
-                    { ...DEFAULT_OPTS, numSamples: 4, allowFallback: true, maxFallbackSlippage: 0.25 },
-                );
-                const improvedOrders = improvedOrdersResponse.path.getOrders();
-                const orderSources = improvedOrders.map((o) => o.source);
-                const firstSources = [ERC20BridgeSource.Native, ERC20BridgeSource.Native, ERC20BridgeSource.Uniswap];
-                const secondSources: ERC20BridgeSource[] = [];
-                expect(orderSources.slice(0, firstSources.length).sort()).to.deep.eq(firstSources.sort());
-                expect(orderSources.slice(firstSources.length).sort()).to.deep.eq(secondSources.sort());
             });
 
             it('factors in exchange proxy gas overhead', async () => {

@@ -19,7 +19,6 @@ import {
     SwapQuoterRfqOpts,
 } from './asset-swapper';
 import {
-    DEFAULT_FALLBACK_SLIPPAGE_PERCENTAGE,
     DEFAULT_LOGGER_INCLUDE_TIMESTAMP,
     DEFAULT_META_TX_MIN_ALLOWED_SLIPPAGE,
     DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
@@ -473,7 +472,6 @@ const SAMPLE_DISTRIBUTION_BASE: number = _.isEmpty(process.env.SAMPLE_DISTRIBUTI
 
 export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
     bridgeSlippage: DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
-    maxFallbackSlippage: DEFAULT_FALLBACK_SLIPPAGE_PERCENTAGE,
     numSamples: 13,
     sampleDistributionBase: SAMPLE_DISTRIBUTION_BASE,
     neonRouterNumSamples: NEON_ROUTER_NUM_SAMPLES,

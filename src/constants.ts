@@ -20,7 +20,6 @@ const GAS_LIMIT_BUFFER_PERCENTAGE = 0.1; // Add 10% to the estimated gas limit
 export const GAS_LIMIT_BUFFER_MULTIPLIER = GAS_LIMIT_BUFFER_PERCENTAGE + 1;
 export const DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE = 0.01; // 1% Slippage
 export const DEFAULT_PRICE_IMPACT_PROTECTION_PERCENTAGE = 1.0; // 100%
-export const DEFAULT_FALLBACK_SLIPPAGE_PERCENTAGE = 0.015; // 1.5% Slippage in a fallback route
 export const PERCENTAGE_SIG_DIGITS = 4;
 export const TX_BASE_GAS = new BigNumber(21000);
 export const AFFILIATE_FEE_TRANSFORMER_GAS = new BigNumber(15000);
