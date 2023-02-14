@@ -4,6 +4,7 @@ import { RFQM_TX_GAS_ESTIMATE, RFQM_TX_OTC_ORDER_GAS_ESTIMATE } from '../core/co
 // different gas amounts used. These premia allow us to better estimate the gas each token uses
 // NOTE: Addresses must be in lower case
 const TOKEN_GAS_PREMIUM: Record<string, number> = {
+    // Mainnet
     /* 1INCH  */ '0x111111111117dc0aa78b770fa6a738034120c302': 6e3,
     /* AAVE   */ '0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9': 160e3,
     /* BADGER */ '0x3472a5a71965499acd81997a54bba8d852c6e53d': 100e3,
@@ -21,6 +22,17 @@ const TOKEN_GAS_PREMIUM: Record<string, number> = {
     /* USDC   */ '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': 25e3,
     /* USDT   */ '0xdac17f958d2ee523a2206206994597c13d831ec7': 20e3,
     /* YFI    */ '0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e': 10e3,
+
+    // Polygon
+    /* USDC   */ '0x2791bca1f2de4661ed88a30c99a7a9449aa84174': 15e3,
+    /* USDT   */ '0xc2132d05d31c914a87c6611c10748aeb04b58e8f': 15e3,
+    /* WETH   */ '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619': 15e3,
+    /* WBTC   */ '0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6': 15e3,
+    /* DAI    */ '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063': 15e3,
+    /* AAVE   */ '0xd6df932a45c0f255f85145f286ea0b292b21c90b': 15e3,
+    /* LINK   */ '0xb0897686c545045afc77cf20ec7a532e3120e0f1': 15e3,
+    /* LINK   */ '0x53e0bca35ec356bd5dddfebbd1fc0fd03fabad39': 15e3, // lol, yes, there are two LINK tokens on Polygon
+    /* SHIB   */ '0x6f8a06447ff6fcf75d803135a7de15ce88c1d4ec': 15e3,
 };
 
 // If the buy token is native, an unwrap operation is needed which cost us additional gas.
