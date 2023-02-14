@@ -7,7 +7,6 @@ import { GasOracle } from './GasOracle';
 import { GasStationAttendant } from './GasStationAttendant';
 import { GasStationAttendantEthereum } from './GasStationAttendantEthereum';
 import { GasStationAttendantPolygon } from './GasStationAttendantPolygon';
-import { GasStationAttendantRopsten } from './GasStationAttendantRopsten';
 
 export function getGasStationAttendant(
     chain: ChainConfiguration,
@@ -20,8 +19,6 @@ export function getGasStationAttendant(
         case /* ethereum */ 1:
             gasOracle = GasOracle.create(chain.gasStationUrl, axiosInstance);
             return new GasStationAttendantEthereum(gasOracle);
-        case /* ropsten */ 3:
-            return new GasStationAttendantRopsten(protocolFeeUtils);
         case /* ganache */ 1337:
             gasOracle = GasOracle.create(chain.gasStationUrl, axiosInstance);
             return new GasStationAttendantEthereum(gasOracle);
