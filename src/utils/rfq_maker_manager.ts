@@ -1,4 +1,3 @@
-import { RfqMakerAssetOfferings } from '@0x/asset-swapper';
 import * as EventEmitter from 'events';
 import { Counter, Summary } from 'prom-client';
 
@@ -9,6 +8,14 @@ import { logger } from '../logger';
 import { ConfigManager } from './config_manager';
 import { toPairString } from '../core/pair_utils';
 import { RfqMakerDbUtils } from './rfq_maker_db_utils';
+
+/**
+ * A mapping from RFQ-T/M quote provider URLs to the trading pairs they support.
+ * The value type represents an array of supported asset pairs, with each array element encoded as a 2-element array of token addresses.
+ */
+export interface RfqMakerAssetOfferings {
+    [endpoint: string]: Array<[string, string]>;
+}
 
 const RFQ_MAKER_REFRESH_FAILED = new Counter({
     name: 'rfq_maker_refresh_failed',

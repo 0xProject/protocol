@@ -1,7 +1,6 @@
 // tslint:disable:custom-no-magic-numbers max-file-line-count
 import { HttpServiceConfig } from '@0x/api-utils';
 import { assert } from '@0x/assert';
-import { RfqMakerAssetOfferings } from '@0x/asset-swapper/lib/src/types';
 import { ChainId } from '@0x/contract-addresses';
 import { BigNumber } from '@0x/utils';
 import * as fs from 'fs';
@@ -923,37 +922,6 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
         case EnvVarType.JsonStringList:
             assert.isString(name, value);
             return JSON.parse(value);
-        case EnvVarType.RfqMakerAssetOfferings:
-            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-            // eslint-disable-next-line no-case-declarations
-            const offerings: RfqMakerAssetOfferings = JSON.parse(value);
-            // tslint:disable-next-line:forin
-            for (const makerEndpoint in offerings) {
-                assert.isWebUri('market maker endpoint', makerEndpoint);
-
-                const assetOffering = offerings[makerEndpoint];
-                assert.isArray(`value in maker endpoint mapping, for index ${makerEndpoint},`, assetOffering);
-                assetOffering.forEach((assetPair, i) => {
-                    assert.isArray(`asset pair array ${i} for maker endpoint ${makerEndpoint}`, assetPair);
-                    assert.assert(
-                        assetPair.length === 2,
-                        `asset pair array ${i} for maker endpoint ${makerEndpoint} does not consist of exactly two elements.`,
-                    );
-                    assert.isETHAddressHex(
-                        `first token address for asset pair ${i} for maker endpoint ${makerEndpoint}`,
-                        assetPair[0],
-                    );
-                    assert.isETHAddressHex(
-                        `second token address for asset pair ${i} for maker endpoint ${makerEndpoint}`,
-                        assetPair[1],
-                    );
-                    assert.assert(
-                        assetPair[0] !== assetPair[1],
-                        `asset pair array ${i} for maker endpoint ${makerEndpoint} has identical assets`,
-                    );
-                });
-            }
-            return offerings;
 
         default:
             throw new Error(`Unrecognized EnvVarType: ${expectedType} encountered for variable ${name}.`);

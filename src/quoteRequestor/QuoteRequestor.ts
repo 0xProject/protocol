@@ -4,7 +4,6 @@ import {
     AltRfqMakerAssetOfferings,
     Integrator,
     MarketOperation,
-    RfqMakerAssetOfferings,
     RfqmRequestOptions,
     RfqPairType,
     RfqRequestOpts,
@@ -27,6 +26,7 @@ import {
     V4SignedRfqOrder,
     V4RFQIndicativeQuote,
 } from '../quote-server/types';
+import { RfqMakerAssetOfferings } from '../utils/rfq_maker_manager';
 
 import { returnQuoteFromAltMMAsync } from './altMmImplementaionUtils';
 import { RfqMakerBlacklist } from './rfqMakerBlacklist';

@@ -1,5 +1,4 @@
 // tslint:disable custom-no-magic-numbers max-file-line-count
-import { RfqMakerAssetOfferings } from '@0x/asset-swapper/lib/src/types';
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { OtcOrder } from '@0x/protocol-utils';
 import { Signature, SignatureType } from '@0x/protocol-utils/lib/src/signature_utils';
@@ -23,7 +22,7 @@ import { GasStationAttendant } from '../../src/utils/GasStationAttendant';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
 import { RfqBalanceCheckUtils, RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
 import { RfqMakerDbUtils } from '../../src/utils/rfq_maker_db_utils';
-import { RfqMakerManager } from '../../src/utils/rfq_maker_manager';
+import { RfqMakerAssetOfferings, RfqMakerManager } from '../../src/utils/rfq_maker_manager';
 import { TokenMetadataManager } from '../../src/utils/TokenMetadataManager';
 import { TokenPriceOracle } from '../../src/utils/TokenPriceOracle';
 import { ZeroExApiClient } from '../../src/utils/ZeroExApiClient';

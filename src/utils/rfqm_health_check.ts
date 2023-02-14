@@ -1,10 +1,10 @@
-import { RfqMakerAssetOfferings } from '@0x/asset-swapper/lib/src/types';
 import { BigNumber } from '@0x/utils';
 import { Gauge } from 'prom-client';
 import { Producer } from 'sqs-producer';
 
 import { ETH_DECIMALS, RFQM_TX_GAS_ESTIMATE } from '../core/constants';
 import { RfqmWorkerHeartbeatEntity } from '../entities';
+import { RfqMakerAssetOfferings } from './rfq_maker_manager';
 
 const SQS_QUEUE_SIZE_DEGRADED_THRESHOLD = 10; // More messages sitting in queue than this will cause a DEGRADED issue
 const SQS_QUEUE_SIZE_FAILED_THRESHOLD = 20; // More messages sitting in queue than this will cause a FAILED issue
