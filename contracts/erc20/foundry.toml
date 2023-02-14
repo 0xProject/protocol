@@ -5,5 +5,11 @@ libs = [
     'lib',
     'node_modules',
 ]
+remappings = [
+    '@0x/contracts-utils/=../utils/'
+]
+allow_paths = [
+    '../utils/'
+]
 optimizer_runs = 1_000_000
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
