@@ -29,6 +29,7 @@ import "./mixins/MixinUniswapV3.sol";
 import "./mixins/MixinUniswapV2.sol";
 import "./mixins/MixinWOOFi.sol";
 import "./mixins/MixinZeroExBridge.sol";
+import "./mixins/MixinClober.sol";
 
 contract ArbitrumBridgeAdapter is
     AbstractBridgeAdapter(42161, "Arbitrum"),
@@ -43,9 +44,10 @@ contract ArbitrumBridgeAdapter is
     MixinUniswapV3,
     MixinUniswapV2,
     MixinWOOFi,
-    MixinZeroExBridge
+    MixinZeroExBridge,
+    MixinClober
 {
-    constructor(IEtherTokenV06 weth) public MixinCurve(weth) MixinAaveV3(true) {}
+    constructor(IEtherTokenV06 weth) public MixinCurve(weth) MixinAaveV3(true) MixinClober(weth) {}
 
     function _trade(
         BridgeOrder memory order,
@@ -115,6 +117,11 @@ contract ArbitrumBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeWOOFi(sellToken, buyToken, sellAmount, order.bridgeData);
+        } else if (protocolId == BridgeProtocols.CLOBER) {
+            if (dryRun) {
+                return (0, true);
+            }
+            boughtAmount = _tradeClober(sellToken, buyToken, sellAmount, order.bridgeData);
         }
 
         emit BridgeFill(order.source, sellToken, buyToken, sellAmount, boughtAmount);

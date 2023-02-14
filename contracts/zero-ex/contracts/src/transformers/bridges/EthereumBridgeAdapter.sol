@@ -39,6 +39,7 @@ import "./mixins/MixinUniswap.sol";
 import "./mixins/MixinUniswapV2.sol";
 import "./mixins/MixinUniswapV3.sol";
 import "./mixins/MixinZeroExBridge.sol";
+import "./mixins/MixinClober.sol";
 
 contract EthereumBridgeAdapter is
     AbstractBridgeAdapter(1, "Ethereum"),
@@ -63,7 +64,8 @@ contract EthereumBridgeAdapter is
     MixinUniswap,
     MixinUniswapV2,
     MixinUniswapV3,
-    MixinZeroExBridge
+    MixinZeroExBridge,
+    MixinClober
 {
     constructor(
         IEtherTokenV06 weth
@@ -75,6 +77,7 @@ contract EthereumBridgeAdapter is
         MixinCurve(weth)
         MixinLido(weth)
         MixinUniswap(weth)
+        MixinClober(weth)
     {}
 
     function _trade(
@@ -195,6 +198,11 @@ contract EthereumBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeZeroExBridge(sellToken, buyToken, sellAmount, order.bridgeData);
+        } else if (protocolId == BridgeProtocols.CLOBER) {
+            if (dryRun) {
+                return (0, true);
+            }
+            boughtAmount = _tradeClober(sellToken, buyToken, sellAmount, order.bridgeData);
         }
 
         emit BridgeFill(order.source, sellToken, buyToken, sellAmount, boughtAmount);

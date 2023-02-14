@@ -32,6 +32,7 @@ import "./mixins/MixinUniswapV2.sol";
 import "./mixins/MixinUniswapV3.sol";
 import "./mixins/MixinWOOFi.sol";
 import "./mixins/MixinZeroExBridge.sol";
+import "./mixins/MixinClober.sol";
 
 contract PolygonBridgeAdapter is
     AbstractBridgeAdapter(137, "Polygon"),
@@ -49,9 +50,10 @@ contract PolygonBridgeAdapter is
     MixinUniswapV3,
     MixinSolidly,
     MixinWOOFi,
-    MixinZeroExBridge
+    MixinZeroExBridge,
+    MixinClober
 {
-    constructor(IEtherTokenV06 weth) public MixinCurve(weth) MixinAaveV3(false) {}
+    constructor(IEtherTokenV06 weth) public MixinCurve(weth) MixinAaveV3(false) MixinClober(weth) {}
 
     function _trade(
         BridgeOrder memory order,
@@ -136,6 +138,11 @@ contract PolygonBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeAaveV3(sellToken, buyToken, sellAmount, order.bridgeData);
+        } else if (protocolId == BridgeProtocols.CLOBER) {
+            if (dryRun) {
+                return (0, true);
+            }
+            boughtAmount = _tradeClober(sellToken, buyToken, sellAmount, order.bridgeData);
         }
 
         emit BridgeFill(order.source, sellToken, buyToken, sellAmount, boughtAmount);
