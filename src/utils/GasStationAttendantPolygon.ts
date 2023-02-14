@@ -2,10 +2,8 @@ import { ProtocolFeeUtils } from '@0x/asset-swapper';
 import { BigNumber } from '@0x/utils';
 
 import { GWEI_DECIMALS, RFQM_TX_OTC_ORDER_GAS_ESTIMATE } from '../core/constants';
-import { MetaTransactionSubmissionEntity, RfqmV2TransactionSubmissionEntity } from '../entities';
 
 import { GasStationAttendant, Wei, WeiPerGas } from './GasStationAttendant';
-import { SubmissionContext } from './SubmissionContext';
 
 // The total minimum bid recommended by the post here:
 // https://forum.matic.network/t/recommended-min-gas-price-setting/2531
@@ -13,7 +11,6 @@ import { SubmissionContext } from './SubmissionContext';
 const MINIMUM_BID_WEI = 30000000000;
 
 // The maximum tip we're willing to pay, based on p99 historical data
-const MAXIMUM_TIP_WEI = new BigNumber(3000).shiftedBy(GWEI_DECIMALS);
 
 // Increase multiplier for tip with each resubmission cycle
 const TEN_PERCENT_INCREASE = 1.1;
@@ -98,54 +95,5 @@ export class GasStationAttendantPolygon implements GasStationAttendant {
         const gasRateWei = paddedMaxPriorityFeePerGas.plus(0); // Amortizing the base fee to 0
 
         return gasRateWei.integerValue(BigNumber.ROUND_CEIL);
-    }
-
-    /**
-     * The submission strategy mostly relies on updating the max priority fee
-     * as we assume the base fee is always ~0.
-     *
-     * For the max priority fee, we'll start with the "fast" gas price. On
-     * resubmits, we'll use either the new fast gas price or a 10% increase
-     * on the previous gas price, whichever is higher.
-     */
-    public async getNextBidAsync(
-        submissionContext: SubmissionContext<
-            RfqmV2TransactionSubmissionEntity[] | MetaTransactionSubmissionEntity[]
-        > | null,
-    ): Promise<{ maxFeePerGas: BigNumber; maxPriorityFeePerGas: BigNumber } | null> {
-        const gasPriceEstimateWei = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
-        const maxPriorityFeePerGas = gasPriceEstimateWei;
-        // Always use 1 GWEI since it's pretty much always 0
-        const baseFee = new BigNumber(1).shiftedBy(GWEI_DECIMALS);
-
-        if (!submissionContext) {
-            const initialMaxPriorityFeePerGasWei = new BigNumber(maxPriorityFeePerGas);
-            return {
-                maxPriorityFeePerGas: initialMaxPriorityFeePerGasWei,
-                maxFeePerGas: BigNumber.max(baseFee.plus(initialMaxPriorityFeePerGasWei), MINIMUM_BID_WEI),
-            };
-        }
-
-        const { maxFeePerGas: oldMaxFeePerGas, maxPriorityFeePerGas: oldMaxPriorityFeePerGas } =
-            submissionContext.maxGasFees;
-
-        const newMaxPriorityFeePerGas = BigNumber.max(
-            oldMaxPriorityFeePerGas.times(TEN_PERCENT_INCREASE),
-            gasPriceEstimateWei,
-        );
-
-        if (newMaxPriorityFeePerGas.isGreaterThan(MAXIMUM_TIP_WEI)) {
-            return null;
-        }
-
-        const newMaxFeePerGas = BigNumber.max(
-            newMaxPriorityFeePerGas.plus(baseFee),
-            oldMaxFeePerGas.multipliedBy(TEN_PERCENT_INCREASE),
-        );
-
-        return {
-            maxPriorityFeePerGas: newMaxPriorityFeePerGas.integerValue(BigNumber.ROUND_CEIL),
-            maxFeePerGas: newMaxFeePerGas.integerValue(BigNumber.ROUND_CEIL),
-        };
     }
 }

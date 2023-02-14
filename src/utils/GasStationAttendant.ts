@@ -1,9 +1,5 @@
 import { BigNumber } from '@0x/utils';
 
-import { MetaTransactionSubmissionEntity, RfqmV2TransactionSubmissionEntity } from '../entities';
-
-import { SubmissionContext } from './SubmissionContext';
-
 export type Wei = BigNumber;
 export type WeiPerGas = BigNumber;
 
@@ -39,25 +35,6 @@ export type WeiPerGas = BigNumber;
  * have two for a blockchain to try new submission strategies.
  */
 export interface GasStationAttendant {
-    /**
-     * Given a current set of transaction submissions for a job,
-     * compute the gas rate bid for the next resubmission.
-     *
-     * Call with a `null` submission context to get a bid for the
-     * first transaction.
-     *
-     * Attendants for EIP-1559 chains return `maxFeePerGas` and
-     * `maxPriorityFeePerGas`, while attendants for type 0 only chains
-     * return `maxGasPrice`.
-     *
-     * Returns `null` if there should not be another resubmission.
-     */
-    getNextBidAsync: (
-        submissionContext: SubmissionContext<
-            RfqmV2TransactionSubmissionEntity[] | MetaTransactionSubmissionEntity[]
-        > | null,
-    ) => Promise<{ maxFeePerGas: BigNumber; maxPriorityFeePerGas: BigNumber } | { maxGasPrice: BigNumber } | null>;
-
     /**
      * Returns the expected gas rate (WEI/GAS) we will pay for a transaction
      * we submit now. Based on the current gas conditions; can integrate

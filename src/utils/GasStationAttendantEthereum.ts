@@ -1,17 +1,8 @@
 import { BigNumber } from '@0x/utils';
 
-import { GWEI_DECIMALS } from '../core/constants';
-import { MetaTransactionSubmissionEntity, RfqmV2TransactionSubmissionEntity } from '../entities';
-
 import { GasOracle } from './GasOracle';
 import { GasStationAttendant, Wei, WeiPerGas } from './GasStationAttendant';
 import { calculateGasEstimate } from './rfqm_gas_estimate_utils';
-import { SubmissionContext } from './SubmissionContext';
-
-const INITIAL_MAX_PRIORITY_FEE_PER_GAS_GWEI = 2;
-const MAX_PRIORITY_FEE_PER_GAS_CAP = new BigNumber(128e9); // The maximum tip we're willing to pay
-// Retrying an EIP 1559 transaction: https://docs.alchemy.com/alchemy/guides/eip-1559/retry-eip-1559-tx
-const MAX_PRIORITY_FEE_PER_GAS_MULTIPLIER = 1.5; // Increase multiplier for tip with each resubmission cycle
 
 /**
  * An implementation of `GasStationAttendant` designed for Ethereum Mainnet.
@@ -69,45 +60,5 @@ export class GasStationAttendantEthereum implements GasStationAttendant {
         // Trades take ~1.5 submissions on average, so that's 2.75 GWEI
         const avgMaxPriorityFeePerGasRate = 2750000000;
         return baseFee.plus(avgMaxPriorityFeePerGasRate).integerValue(BigNumber.ROUND_CEIL);
-    }
-
-    /**
-     * The submission strategy starts with a maxPriorityFee of 2 GWEI and adds
-     * 2 x the base fee to get the initial maxFeePerGas.
-     */
-    public async getNextBidAsync(
-        submissionContext: SubmissionContext<
-            RfqmV2TransactionSubmissionEntity[] | MetaTransactionSubmissionEntity[]
-        > | null,
-    ): Promise<{ maxFeePerGas: BigNumber; maxPriorityFeePerGas: BigNumber } | null> {
-        const baseFee = await this._gasOracle.getBaseFeePerGasWeiAsync();
-        if (!submissionContext) {
-            // Our first bid is 2x the base fee + 2 GWEI tip
-            const initialMaxPriorityFeePerGas = new BigNumber(INITIAL_MAX_PRIORITY_FEE_PER_GAS_GWEI).times(
-                Math.pow(10, GWEI_DECIMALS),
-            );
-            return {
-                maxPriorityFeePerGas: initialMaxPriorityFeePerGas,
-                maxFeePerGas: baseFee.times(2).plus(initialMaxPriorityFeePerGas),
-            };
-        }
-        const { maxFeePerGas: oldMaxFeePerGas, maxPriorityFeePerGas: oldMaxPriorityFeePerGas } =
-            submissionContext.maxGasFees;
-        const newMaxPriorityFeePerGas = oldMaxPriorityFeePerGas.times(MAX_PRIORITY_FEE_PER_GAS_MULTIPLIER);
-        if (newMaxPriorityFeePerGas.isGreaterThanOrEqualTo(MAX_PRIORITY_FEE_PER_GAS_CAP)) {
-            // We've reached our max; don't put in any new transactions
-            return null;
-        }
-        // The RPC nodes still need at least a 0.1 increase in both values to accept the new transaction.
-        // For the new max fee per gas, we'll take the maximum of a 0.1 increase from the last value
-        // or the value from an increase in the base fee.
-        const newMaxFeePerGas = BigNumber.max(
-            oldMaxFeePerGas.multipliedBy(1.1), // tslint:disable-line: custom-no-magic-numbers
-            baseFee.multipliedBy(2).plus(newMaxPriorityFeePerGas),
-        );
-        return {
-            maxPriorityFeePerGas: newMaxPriorityFeePerGas.integerValue(BigNumber.ROUND_CEIL),
-            maxFeePerGas: newMaxFeePerGas.integerValue(BigNumber.ROUND_CEIL),
-        };
     }
 }
