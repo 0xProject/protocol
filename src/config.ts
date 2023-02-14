@@ -392,8 +392,6 @@ export const MAX_PER_PAGE = 1000;
 
 export const PROTOCOL_FEE_MULTIPLIER = new BigNumber(0);
 
-export const RFQT_PROTOCOL_FEE_GAS_PRICE_MAX_PADDING_MULTIPLIER = 1.2;
-
 const UNWRAP_GAS_BY_CHAIN_ID = valueByChainId<BigNumber>(
     {
         // NOTE: FTM uses a different WFTM implementation than WETH which uses more gas

@@ -1,30 +1,7 @@
-import { BigNumber, NULL_ADDRESS, NULL_BYTES } from '@0x/utils';
+import { BigNumber } from '@0x/utils';
 
-import { MarketOperation, RfqOrderFields, SwapQuote } from '../../src/asset-swapper';
+import { MarketOperation, SwapQuote } from '../../src/asset-swapper';
 import { IPath } from '../../src/asset-swapper/types';
-
-export const rfqtIndicativeQuoteResponse = {
-    makerAmount: '100000000000000000',
-    takerAmount: '100000000000000000',
-    makerToken: '0x871dd7c2b4b25e1aa18728e9d5f2af4c4e431f5c',
-    takerToken: '0x0b1ba0af832d7c05fd64161e0db78e85978e8082',
-    expiry: '1903620548', // in the year 2030
-};
-
-export const ganacheZrxWethRfqOrderExchangeProxy: RfqOrderFields = {
-    chainId: 1337,
-    verifyingContract: '0x48bacb9266a570d521063ef5dd96e61686dbe788',
-    maker: '0x5409ed021d9299bf6814279a6a1411a7e866a631',
-    makerAmount: new BigNumber('100000000000000000'),
-    takerAmount: new BigNumber('100000000000000000'),
-    expiry: new BigNumber('33122559973'),
-    salt: new BigNumber('1586559973114'),
-    makerToken: '0x871dd7c2b4b25e1aa18728e9d5f2af4c4e431f5c',
-    takerToken: '0x0b1ba0af832d7c05fd64161e0db78e85978e8082',
-    pool: NULL_BYTES,
-    txOrigin: NULL_ADDRESS,
-    taker: NULL_ADDRESS,
-};
 
 const bestCaseQuoteInfo = {
     feeTakerTokenAmount: new BigNumber('383288145500497440'),

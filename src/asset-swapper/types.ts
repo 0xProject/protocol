@@ -8,7 +8,6 @@ import {
     RfqOrderFields,
     Signature,
 } from '@0x/protocol-utils';
-import { TakerRequestQueryParamsUnnested } from '@0x/quote-server';
 import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 import {
@@ -398,20 +397,6 @@ export enum MarketOperation {
 export enum OrderPrunerPermittedFeeTypes {
     NoFees = 'NO_FEES',
     TakerDenominatedTakerFee = 'TAKER_DENOMINATED_TAKER_FEE',
-}
-
-/**
- * Represents a mocked RFQ-T/M maker responses.
- */
-export interface MockedRfqQuoteResponse {
-    endpoint: string;
-    requestApiKey: string;
-    requestParams: TakerRequestQueryParamsUnnested;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
-    responseData: any;
-    responseCode: number;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
-    callback?: (config: any) => Promise<any>;
 }
 
 export interface SamplerOverrides {
