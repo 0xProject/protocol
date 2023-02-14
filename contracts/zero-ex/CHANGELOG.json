@@ -1,5 +1,14 @@
 [
     {
+        "timestamp": 1676384530,
+        "version": "0.38.7",
+        "changes": [
+            {
+                "note": "Add support for Clober to bridge adapter"
+            }
+        ]
+    },
+    {
         "timestamp": 1675210931,
         "version": "0.38.6",
         "changes": [
