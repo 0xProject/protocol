@@ -196,7 +196,8 @@ enum ExchangeProxyRefundReceiver {
 export interface ExchangeProxyContractOpts {
     isFromETH: boolean;
     isToETH: boolean;
-    affiliateFees: readonly AffiliateFeeAmount[];
+    sellTokenAffiliateFees: readonly AffiliateFeeAmount[];
+    buyTokenAffiliateFees: readonly AffiliateFeeAmount[];
     positiveSlippageFee?: AffiliateFeeAmount; // TODO: use a different type to represent Positive Slippage Fee
     refundReceiver: string | ExchangeProxyRefundReceiver;
     metaTransactionVersion?: 'v1' | 'v2'; // Only present if this is a MetaTransaction

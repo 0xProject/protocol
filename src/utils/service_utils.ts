@@ -95,7 +95,7 @@ export const serviceUtils = {
 
         return [...singleSourceLiquiditySources, ...multihopLiquiditySources];
     },
-    getAffiliateFeeAmounts(quote: SwapQuote, fee: AffiliateFee): AffiliateFeeAmounts {
+    getBuyTokenFeeAmounts(quote: SwapQuote, fee: AffiliateFee): AffiliateFeeAmounts {
         if (fee.feeType === AffiliateFeeType.None || fee.recipient === NULL_ADDRESS || fee.recipient === '') {
             return {
                 sellTokenFeeAmount: ZERO,

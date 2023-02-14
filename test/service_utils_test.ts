@@ -107,7 +107,7 @@ describe(SUITE_NAME, () => {
                 buyTokenPercentageFee: 0,
                 sellTokenPercentageFee: 0,
             };
-            const costInfo = serviceUtils.getAffiliateFeeAmounts(randomSellQuote, affiliateFee);
+            const costInfo = serviceUtils.getBuyTokenFeeAmounts(randomSellQuote, affiliateFee);
             expect(costInfo).to.deep.equal({
                 buyTokenFeeAmount: ZERO,
                 sellTokenFeeAmount: ZERO,
@@ -121,7 +121,7 @@ describe(SUITE_NAME, () => {
                 buyTokenPercentageFee: 0.01,
                 sellTokenPercentageFee: 0,
             };
-            const costInfo = serviceUtils.getAffiliateFeeAmounts(randomSellQuote, affiliateFee);
+            const costInfo = serviceUtils.getBuyTokenFeeAmounts(randomSellQuote, affiliateFee);
             expect(costInfo).to.deep.equal({
                 buyTokenFeeAmount: randomSellQuote.worstCaseQuoteInfo.makerAmount
                     .times(affiliateFee.buyTokenPercentageFee)
@@ -139,7 +139,7 @@ describe(SUITE_NAME, () => {
             buyTokenPercentageFee: 0,
             sellTokenPercentageFee: 0,
         };
-        const costInfo = serviceUtils.getAffiliateFeeAmounts(randomSellQuote, affiliateFee);
+        const costInfo = serviceUtils.getBuyTokenFeeAmounts(randomSellQuote, affiliateFee);
         expect(costInfo).to.deep.equal({
             buyTokenFeeAmount: ZERO,
             sellTokenFeeAmount: ZERO,
@@ -153,7 +153,7 @@ describe(SUITE_NAME, () => {
             buyTokenPercentageFee: 0,
             sellTokenPercentageFee: 0,
         };
-        const costInfo = serviceUtils.getAffiliateFeeAmounts(randomSellQuote, affiliateFee);
+        const costInfo = serviceUtils.getBuyTokenFeeAmounts(randomSellQuote, affiliateFee);
         expect(costInfo).to.deep.equal({
             buyTokenFeeAmount: randomSellQuote.gasPrice
                 .times(randomSellQuote.worstCaseQuoteInfo.gas)

@@ -204,7 +204,8 @@ export function requiresTransformERC20(opts: ExchangeProxyContractOpts): boolean
         return true;
     }
     // Has an affiliate fee.
-    if (opts.affiliateFees.some((f) => f.buyTokenFeeAmount.isGreaterThan(0) || f.sellTokenFeeAmount.isGreaterThan(0))) {
+    const affiliateFees = [...opts.sellTokenAffiliateFees, ...opts.buyTokenAffiliateFees];
+    if (affiliateFees.some((f) => f.buyTokenFeeAmount.gt(0) || f.sellTokenFeeAmount.gt(0))) {
         return true;
     }
 

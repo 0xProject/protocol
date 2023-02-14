@@ -65,7 +65,14 @@ export class TransformERC20Rule extends AbstractFeatureRule {
 
     public createCalldata(quote: SwapQuote, opts: ExchangeProxyContractOpts): CalldataInfo {
         // TODO(kyu-c): further breakdown calldata creation logic.
-        const { affiliateFees, positiveSlippageFee, isFromETH, isToETH, shouldSellEntireBalance } = opts;
+        const {
+            sellTokenAffiliateFees,
+            buyTokenAffiliateFees,
+            positiveSlippageFee,
+            isFromETH,
+            isToETH,
+            shouldSellEntireBalance,
+        } = opts;
 
         const swapContext = this.getSwapContext(quote, opts);
         const { sellToken, buyToken, sellAmount, ethAmount } = swapContext;
@@ -73,6 +80,25 @@ export class TransformERC20Rule extends AbstractFeatureRule {
 
         // Build up the transformations.
         const transformations = [] as ERC20Transformation[];
+
+        // Create an AffiliateFeeTransformer if there are fees in sell token.
+        // Must be before the FillQuoteTransformer.
+        // Also prefer to take fees in ETH if possible, so must be before the WETH transformer.
+        if (sellTokenAffiliateFees.length > 0) {
+            transformations.push({
+                deploymentNonce: this.transformerNonces.affiliateFeeTransformer,
+                data: encodeAffiliateFeeTransformerData({
+                    fees: sellTokenAffiliateFees
+                        .filter((fee) => fee.sellTokenFeeAmount.gt(0))
+                        .map((fee) => ({
+                            token: isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
+                            amount: fee.sellTokenFeeAmount,
+                            recipient: fee.recipient,
+                        })),
+                }),
+            });
+        }
+
         // Create a WETH wrapper if coming from ETH.
         // Don't add the wethTransformer to CELO. There is no wrap/unwrap logic for CELO.
         if (isFromETH && this.chainId !== ChainId.Celo) {
@@ -85,6 +111,7 @@ export class TransformERC20Rule extends AbstractFeatureRule {
             });
         }
 
+        // Add the FillQuoteTransformer (FQT), which will convert the sell token to the buy token.
         transformations.push(...this.createFillQuoteTransformations(quote, opts));
 
         // Create a WETH unwrapper if going to ETH.
@@ -100,10 +127,10 @@ export class TransformERC20Rule extends AbstractFeatureRule {
         }
 
         let gasOverhead = ZERO_AMOUNT;
-        const fees = [...affiliateFees];
-        positiveSlippageFee && fees.push(positiveSlippageFee); // Append positive slippage fee if present
-        fees.forEach((fee) => {
-            const { feeType, buyTokenFeeAmount, sellTokenFeeAmount, recipient: feeRecipient } = fee;
+        const buyTokenFees = [...buyTokenAffiliateFees];
+        positiveSlippageFee && buyTokenFees.push(positiveSlippageFee); // Append positive slippage fee if present
+        buyTokenFees.forEach((fee) => {
+            const { feeType, buyTokenFeeAmount, recipient: feeRecipient } = fee;
             if (feeRecipient === NULL_ADDRESS) {
                 return;
             } else if (feeType === AffiliateFeeType.None) {
@@ -152,9 +179,6 @@ export class TransformERC20Rule extends AbstractFeatureRule {
                     // Adjust the minimum buy amount by the fee.
                     minBuyAmount = BigNumber.max(0, minBuyAmount.minus(buyTokenFeeAmount));
                 }
-                if (sellTokenFeeAmount.isGreaterThan(0)) {
-                    throw new Error('Affiliate fees denominated in sell token are not yet supported');
-                }
             } else if (feeType === AffiliateFeeType.GaslessFee) {
                 if (buyTokenFeeAmount.isGreaterThan(0)) {
                     transformations.push({
@@ -171,9 +195,6 @@ export class TransformERC20Rule extends AbstractFeatureRule {
                     });
                     // Adjust the minimum buy amount by the fee.
                     minBuyAmount = BigNumber.max(0, minBuyAmount.minus(buyTokenFeeAmount));
-                }
-                if (sellTokenFeeAmount.isGreaterThan(0)) {
-                    throw new Error('Affiliate fees denominated in sell token are not yet supported');
                 }
             } else {
                 // A compile time check that we've handled all cases of feeType

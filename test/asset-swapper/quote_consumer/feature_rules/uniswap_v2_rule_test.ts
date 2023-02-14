@@ -52,7 +52,8 @@ describe('UniswapV2Rule', () => {
             const isCompatible = uniswapV2Rule.isCompatible(COMPATIBLE_UNI_V2_SWAP_QUOTE, {
                 isFromETH: false,
                 isToETH: false,
-                affiliateFees: [NO_AFFILIATE_FEE],
+                sellTokenAffiliateFees: [],
+                buyTokenAffiliateFees: [NO_AFFILIATE_FEE],
                 refundReceiver: TAKER_ADDRESS,
                 metaTransactionVersion: 'v1',
                 shouldSellEntireBalance: false,
@@ -67,7 +68,8 @@ describe('UniswapV2Rule', () => {
             const isCompatible = uniswapV2Rule.isCompatible(COMPATIBLE_UNI_V2_SWAP_QUOTE, {
                 isFromETH: false,
                 isToETH: false,
-                affiliateFees: [
+                sellTokenAffiliateFees: [],
+                buyTokenAffiliateFees: [
                     {
                         feeType: AffiliateFeeType.PositiveSlippageFee,
                         sellTokenFeeAmount: new BigNumber(0),
@@ -88,7 +90,8 @@ describe('UniswapV2Rule', () => {
             const isCompatible = uniswapV2Rule.isCompatible(COMPATIBLE_UNI_V2_SWAP_QUOTE, {
                 isFromETH: false,
                 isToETH: false,
-                affiliateFees: [NO_AFFILIATE_FEE],
+                sellTokenAffiliateFees: [],
+                buyTokenAffiliateFees: [NO_AFFILIATE_FEE],
                 refundReceiver: TAKER_ADDRESS,
                 shouldSellEntireBalance: true,
             });
@@ -102,7 +105,8 @@ describe('UniswapV2Rule', () => {
             const isCompatible = uniswapV2Rule.isCompatible(COMPATIBLE_UNI_V2_SWAP_QUOTE, {
                 isFromETH: false,
                 isToETH: false,
-                affiliateFees: [NO_AFFILIATE_FEE],
+                sellTokenAffiliateFees: [],
+                buyTokenAffiliateFees: [NO_AFFILIATE_FEE],
                 refundReceiver: TAKER_ADDRESS,
                 shouldSellEntireBalance: true,
             });
@@ -116,7 +120,8 @@ describe('UniswapV2Rule', () => {
             const isCompatible = uniswapV2Rule.isCompatible(COMPATIBLE_UNI_V2_SWAP_QUOTE, {
                 isFromETH: false,
                 isToETH: false,
-                affiliateFees: [NO_AFFILIATE_FEE],
+                sellTokenAffiliateFees: [],
+                buyTokenAffiliateFees: [NO_AFFILIATE_FEE],
                 refundReceiver: TAKER_ADDRESS,
                 shouldSellEntireBalance: false,
             });
@@ -130,7 +135,8 @@ describe('UniswapV2Rule', () => {
             const isCompatible = uniswapV2Rule.isCompatible(COMPATIBLE_SUSHI_SWAP_SWAP_QUOTE, {
                 isFromETH: false,
                 isToETH: false,
-                affiliateFees: [NO_AFFILIATE_FEE],
+                sellTokenAffiliateFees: [],
+                buyTokenAffiliateFees: [NO_AFFILIATE_FEE],
                 refundReceiver: TAKER_ADDRESS,
                 shouldSellEntireBalance: false,
             });
@@ -153,7 +159,8 @@ describe('UniswapV2Rule', () => {
             const isCompatible = uniswapV2Rule.isCompatible(velodromeSwapQuote, {
                 isFromETH: false,
                 isToETH: false,
-                affiliateFees: [NO_AFFILIATE_FEE],
+                sellTokenAffiliateFees: [],
+                buyTokenAffiliateFees: [NO_AFFILIATE_FEE],
                 refundReceiver: TAKER_ADDRESS,
                 shouldSellEntireBalance: false,
             });
@@ -171,7 +178,8 @@ describe('UniswapV2Rule', () => {
             const calldataInfo = uniswapV2Rule.createCalldata(COMPATIBLE_UNI_V2_SWAP_QUOTE, {
                 isFromETH: false,
                 isToETH: false,
-                affiliateFees: [NO_AFFILIATE_FEE],
+                sellTokenAffiliateFees: [],
+                buyTokenAffiliateFees: [NO_AFFILIATE_FEE],
                 refundReceiver: TAKER_ADDRESS,
                 shouldSellEntireBalance: false,
             });
@@ -193,7 +201,8 @@ describe('UniswapV2Rule', () => {
             const calldataInfo = uniswapV2Rule.createCalldata(COMPATIBLE_SUSHI_SWAP_SWAP_QUOTE, {
                 isFromETH: false,
                 isToETH: false,
-                affiliateFees: [NO_AFFILIATE_FEE],
+                sellTokenAffiliateFees: [],
+                buyTokenAffiliateFees: [NO_AFFILIATE_FEE],
                 refundReceiver: TAKER_ADDRESS,
                 shouldSellEntireBalance: false,
             });
