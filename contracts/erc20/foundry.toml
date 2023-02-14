@@ -1,0 +1,9 @@
+[profile.default]
+src = 'src'
+out = 'out'
+libs = [
+    'lib',
+    'node_modules',
+]
+optimizer_runs = 1_000_000
+# See more config options https://github.com/foundry-rs/foundry/tree/master/config

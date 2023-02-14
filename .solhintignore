@@ -1,4 +1,4 @@
-contracts/erc20/contracts/src/ZRXToken.sol
+contracts/erc20/src/ZRXToken.sol
 node_modules/
 lib
 deps
