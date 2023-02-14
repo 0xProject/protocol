@@ -177,7 +177,8 @@ export async function buildRfqmServiceAsync(
     const provider: SupportedProvider = rpcProvider;
 
     const contractAddresses = await getContractAddressesForNetworkOrThrowAsync(provider, chain);
-    const axiosInstance = Axios.create(getAxiosRequestConfigWithProxy());
+    const axiosInstance = Axios.create(getAxiosRequestConfig());
+    const proxiedAxiosInstance = Axios.create(getAxiosRequestConfigWithProxy());
 
     const protocolFeeUtils = ProtocolFeeUtils.getInstance(
         PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
@@ -198,7 +199,7 @@ export async function buildRfqmServiceAsync(
         queueUrl: chain.sqsUrl,
     });
 
-    const quoteServerClient = new QuoteServerClient(axiosInstance);
+    const quoteServerClient = new QuoteServerClient(proxiedAxiosInstance);
 
     const cacheClient = new CacheClient(redis);
 

@@ -56,6 +56,7 @@ export async function buildRfqtServicesAsync(
     rfqMakerDbUtils: RfqMakerDbUtils,
     redis: Redis,
 ): Promise<RfqtServices> {
+    const proxiedAxiosInstance = Axios.create(getAxiosRequestConfigWithProxy());
     const axiosInstance = Axios.create(getAxiosRequestConfig());
     const configManager = new ConfigManager();
     const altRfqOptions =
@@ -78,8 +79,8 @@ export async function buildRfqtServicesAsync(
 
             const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, chainId);
             await rfqMakerManager.initializeAsync();
-            const quoteRequestor = new RefreshingQuoteRequestor(rfqMakerManager, axiosInstance, altRfqOptions);
-            const quoteServerClient = new QuoteServerClient(axiosInstance);
+            const quoteRequestor = new RefreshingQuoteRequestor(rfqMakerManager, proxiedAxiosInstance, altRfqOptions);
+            const quoteServerClient = new QuoteServerClient(proxiedAxiosInstance);
             const contractAddresses = getContractAddressesForChainOrThrow(chainId);
             const ethersProvider = new providers.JsonRpcProvider(chain.rpcUrl, chainId);
             const provider: SupportedProvider = providerUtils.createWeb3Provider(chain.rpcUrl);
@@ -143,14 +144,21 @@ export async function buildRfqtServicesAsync(
 }
 
 /**
- * Creates the Axios Request Config
+ * Creates the default Axios Request Config
  */
-function getAxiosRequestConfig(): AxiosRequestConfig {
-    const axiosRequestConfig: AxiosRequestConfig = {
+export function getAxiosRequestConfig(timeout: number = DEFAULT_AXIOS_TIMEOUT): AxiosRequestConfig {
+    return {
         httpAgent: new HttpAgent({ keepAlive: true, timeout: KEEP_ALIVE_TTL }),
         httpsAgent: new HttpsAgent({ keepAlive: true, timeout: KEEP_ALIVE_TTL }),
-        timeout: DEFAULT_AXIOS_TIMEOUT,
+        timeout,
     };
+}
+
+/**
+ * Creates the Axios Request Config with egress proxy
+ */
+export function getAxiosRequestConfigWithProxy(): AxiosRequestConfig {
+    const axiosRequestConfig: AxiosRequestConfig = getAxiosRequestConfig();
     if (RFQ_PROXY_ADDRESS !== undefined && RFQ_PROXY_PORT !== undefined) {
         axiosRequestConfig.proxy = {
             host: RFQ_PROXY_ADDRESS,
