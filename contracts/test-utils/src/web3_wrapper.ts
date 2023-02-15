@@ -17,6 +17,7 @@ export const txDefaults = {
 export const providerConfigs: Web3Config = {
     total_accounts: constants.NUM_TEST_ACCOUNTS,
     shouldUseInProcessGanache: true,
+    shouldUseFakeGasEstimate: false,
     shouldAllowUnlimitedContractSize: true,
     hardfork: 'istanbul',
     gasLimit: 100e6,
