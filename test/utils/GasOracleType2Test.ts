@@ -1,9 +1,8 @@
 import Axios, { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
-import { expect } from 'chai';
 import * as HttpStatus from 'http-status-codes';
 
-import { GasOracle } from '../../src/utils/GasOracle';
+import { GasOracleType2 } from '../../src/utils/GasOracleType2';
 
 const fakeEip1559Response = {
     result: {
@@ -39,29 +38,25 @@ const fakeEip1559Response = {
 let axiosClient: AxiosInstance;
 let axiosMock: AxiosMockAdapter;
 
-describe('GasOracle', () => {
+describe('GasOracleType2', () => {
     beforeAll(() => {
         axiosClient = Axios.create();
         axiosMock = new AxiosMockAdapter(axiosClient);
     });
 
     describe('create', () => {
-        it('parses the legacy URL', async () => {
-            axiosMock.onGet(`http://gas-price-oracle-svc.gas-price-oracle/v2/source/median`).replyOnce(HttpStatus.OK);
-
-            const gasOracle = GasOracle.create(
-                'http://gas-price-oracle-svc.gas-price-oracle/source/median?output=eth_gas_station',
-                axiosClient,
-            );
-            try {
-                await gasOracle.getBaseFeePerGasWeiAsync();
-            } catch {
-                // This will fail since we're not faking a valid response.
-                // Just want to make sure the right URL is being called.
-            }
-            expect(axiosMock.history.get[0].url).to.equal(
-                'http://gas-price-oracle-svc.gas-price-oracle/v2/source/median',
-            );
+        it('fails for non-default output formats', async () => {
+            expect(() =>
+                GasOracleType2.create(
+                    'http://gas-price-oracle-svc.gas-price-oracle/v2/source/median?output=eth_gas_station',
+                    axiosClient,
+                ),
+            ).toThrow();
+        });
+        it('fails for a v0 URL', async () => {
+            expect(() =>
+                GasOracleType2.create('http://gas-price-oracle-svc.gas-price-oracle/source/median', axiosClient),
+            ).toThrow();
         });
     });
 
@@ -71,13 +66,13 @@ describe('GasOracle', () => {
                 .onGet(`http://gas-price-oracle-svc.gas-price-oracle/v2/source/median`)
                 .replyOnce(HttpStatus.OK, fakeEip1559Response);
 
-            const gasOracle = GasOracle.create(
+            const gasOracle = GasOracleType2.create(
                 'http://gas-price-oracle-svc.gas-price-oracle/v2/source/median',
                 axiosClient,
             );
 
             const baseFee = await gasOracle.getBaseFeePerGasWeiAsync();
-            expect(baseFee.toString()).equals('78383362949');
+            expect(baseFee.toString()).toEqual('78383362949');
         });
     });
 
@@ -87,13 +82,13 @@ describe('GasOracle', () => {
                 .onGet(`http://gas-price-oracle-svc.gas-price-oracle/v2/source/median`)
                 .replyOnce(HttpStatus.OK, fakeEip1559Response);
 
-            const gasOracle = GasOracle.create(
+            const gasOracle = GasOracleType2.create(
                 'http://gas-price-oracle-svc.gas-price-oracle/v2/source/median',
                 axiosClient,
             );
 
             const baseFee = await gasOracle.getMaxPriorityFeePerGasWeiAsync('low');
-            expect(baseFee.toString()).equals('1240000000');
+            expect(baseFee.toString()).toEqual('1240000000');
         });
     });
 });

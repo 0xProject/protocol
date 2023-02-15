@@ -2,15 +2,15 @@ import { BigNumber } from '@0x/utils';
 import { expect } from 'chai';
 import { instance, mock, when } from 'ts-mockito';
 
-import { GasOracle } from '../../src/utils/GasOracle';
+import { GasOracleType2 } from '../../src/utils/GasOracleType2';
 import { GasStationAttendantEthereum } from '../../src/utils/GasStationAttendantEthereum';
 import { calculateGasEstimate } from '../../src/utils/rfqm_gas_estimate_utils';
 
-let gasOracleMock: GasOracle;
+let gasOracleMock: GasOracleType2;
 
 describe('GasStationAttendantEthereum', () => {
     beforeAll(() => {
-        gasOracleMock = mock(GasOracle);
+        gasOracleMock = mock(GasOracleType2);
     });
 
     describe('getWorkerBalanceForTradeAsync', () => {

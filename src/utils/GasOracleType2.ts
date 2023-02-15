@@ -33,27 +33,26 @@ const TIMEOUT_MS = 250;
  * (https://github.com/0xProject/gas-price-oracle) "v2" endpoints
  * which provide support for EIP1559
  */
-export class GasOracle {
+export class GasOracleType2 {
     private readonly _url: string;
     private readonly _axiosInstance: AxiosInstance;
 
     /**
-     * Creates an instance of `GasOracle`.
+     * Creates an instance of `GasOracleType2`.
      *
-     * The URL is parsed so that we can use the "eth gas station" URL format
-     * present in the config, eg:
-     * "http://gas-price-oracle-svc.gas-price-oracle/source/median?output=eth_gas_station".
-     *
-     * The function transforms this URL into a v2 URL which will report EIP1559-data.
+     * Verifies that the URL is of the format
+     * "http://gas-price-oracle-svc.gas-price-oracle/v2/source/median", that way
+     * we don't accidentally put in a v0 URL.
      */
-    public static create(url: string, axiosInstance: AxiosInstance): GasOracle {
-        const domainRegex = /https?:\/\/(?<domain>(\w|\d|-|\.)*)/;
-        const result = domainRegex.exec(url);
-        const domain = result?.groups?.domain;
-        if (!domain) {
-            throw new Error(`Unable to extract domain for url ${url}`);
+    public static create(url: string, axiosInstance: AxiosInstance): GasOracleType2 {
+        const domainRegex = /^https?:\/\/[^/]*\/v2\/source\/median$/;
+        if (!domainRegex.test(url)) {
+            throw new Error(
+                `Error creating GasOracleType2: URL ${url} is not of the expected format.
+                Make sure you aren't trying to use a v0 URL with GasOracleType2`,
+            );
         }
-        return new GasOracle(`http://${domain}/v2/source/median`, axiosInstance);
+        return new GasOracleType2(url, axiosInstance);
     }
 
     /**
@@ -99,8 +98,8 @@ export class GasOracle {
      * Constructor is marked `private` to force users to use the static
      * creator functions, which validate the URL.
      */
-    private constructor(url: string, axiosInsatnce: AxiosInstance) {
-        this._axiosInstance = axiosInsatnce;
+    private constructor(url: string, axiosInstance: AxiosInstance) {
+        this._axiosInstance = axiosInstance;
         this._url = url;
     }
 }

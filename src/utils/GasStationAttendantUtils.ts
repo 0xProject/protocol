@@ -3,7 +3,7 @@ import { AxiosInstance } from 'axios';
 
 import { ChainConfiguration } from '../config';
 
-import { GasOracle } from './GasOracle';
+import { GasOracleType2 } from './GasOracleType2';
 import { GasStationAttendant } from './GasStationAttendant';
 import { GasStationAttendantEthereum } from './GasStationAttendantEthereum';
 import { GasStationAttendantPolygon } from './GasStationAttendantPolygon';
@@ -13,14 +13,14 @@ export function getGasStationAttendant(
     axiosInstance: AxiosInstance,
     protocolFeeUtils: ProtocolFeeUtils,
 ): GasStationAttendant {
-    let gasOracle: GasOracle;
+    let gasOracle: GasOracleType2;
     // tslint:disable: custom-no-magic-numbers
     switch (chain.chainId) {
         case /* ethereum */ 1:
-            gasOracle = GasOracle.create(chain.gasStationUrl, axiosInstance);
+            gasOracle = GasOracleType2.create(chain.gasStationUrl, axiosInstance);
             return new GasStationAttendantEthereum(gasOracle);
         case /* ganache */ 1337:
-            gasOracle = GasOracle.create(chain.gasStationUrl, axiosInstance);
+            gasOracle = GasOracleType2.create(chain.gasStationUrl, axiosInstance);
             return new GasStationAttendantEthereum(gasOracle);
         case /* polygon */ 137:
             return new GasStationAttendantPolygon(protocolFeeUtils);

@@ -1,6 +1,6 @@
 import { BigNumber } from '@0x/utils';
 
-import { GasOracle } from './GasOracle';
+import { GasOracleType2 } from './GasOracleType2';
 import { GasStationAttendant, Wei, WeiPerGas } from './GasStationAttendant';
 import { calculateGasEstimate } from './rfqm_gas_estimate_utils';
 
@@ -8,9 +8,9 @@ import { calculateGasEstimate } from './rfqm_gas_estimate_utils';
  * An implementation of `GasStationAttendant` designed for Ethereum Mainnet.
  */
 export class GasStationAttendantEthereum implements GasStationAttendant {
-    private readonly _gasOracle: GasOracle;
+    private readonly _gasOracle: GasOracleType2;
 
-    constructor(gasOracle: GasOracle) {
+    constructor(gasOracle: GasOracleType2) {
         this._gasOracle = gasOracle;
     }
 
