@@ -39,6 +39,7 @@ contract PolygonBridgeAdapter is
     MixinAaveV3,
     MixinAaveV2,
     MixinBalancerV2Batch,
+    MixinClober,
     MixinCurve,
     MixinCurveV2,
     MixinDodo,
@@ -50,10 +51,9 @@ contract PolygonBridgeAdapter is
     MixinUniswapV3,
     MixinSolidly,
     MixinWOOFi,
-    MixinZeroExBridge,
-    MixinClober
+    MixinZeroExBridge
 {
-    constructor(IEtherTokenV06 weth) public MixinCurve(weth) MixinAaveV3(false) MixinClober(weth) {}
+    constructor(IEtherTokenV06 weth) public MixinClober(weth) MixinCurve(weth) MixinAaveV3(false) {}
 
     function _trade(
         BridgeOrder memory order,

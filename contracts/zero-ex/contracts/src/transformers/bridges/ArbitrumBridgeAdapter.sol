@@ -35,6 +35,7 @@ contract ArbitrumBridgeAdapter is
     AbstractBridgeAdapter(42161, "Arbitrum"),
     MixinAaveV3,
     MixinBalancerV2Batch,
+    MixinClober,
     MixinCurve,
     MixinCurveV2,
     MixinDodoV2,
@@ -44,10 +45,9 @@ contract ArbitrumBridgeAdapter is
     MixinUniswapV3,
     MixinUniswapV2,
     MixinWOOFi,
-    MixinZeroExBridge,
-    MixinClober
+    MixinZeroExBridge
 {
-    constructor(IEtherTokenV06 weth) public MixinCurve(weth) MixinAaveV3(true) MixinClober(weth) {}
+    constructor(IEtherTokenV06 weth) public MixinClober(weth) MixinCurve(weth) MixinAaveV3(true) {}
 
     function _trade(
         BridgeOrder memory order,

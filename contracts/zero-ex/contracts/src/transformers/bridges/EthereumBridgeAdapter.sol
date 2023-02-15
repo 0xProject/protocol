@@ -48,6 +48,7 @@ contract EthereumBridgeAdapter is
     MixinBalancerV2Batch,
     MixinBancor,
     MixinBancorV3,
+    MixinClober,
     MixinCompound,
     MixinCurve,
     MixinCurveV2,
@@ -64,8 +65,7 @@ contract EthereumBridgeAdapter is
     MixinUniswap,
     MixinUniswapV2,
     MixinUniswapV3,
-    MixinZeroExBridge,
-    MixinClober
+    MixinZeroExBridge
 {
     constructor(
         IEtherTokenV06 weth
@@ -73,11 +73,11 @@ contract EthereumBridgeAdapter is
         public
         MixinBancor(weth)
         MixinBancorV3(weth)
+        MixinClober(weth)
         MixinCompound(weth)
         MixinCurve(weth)
         MixinLido(weth)
         MixinUniswap(weth)
-        MixinClober(weth)
     {}
 
     function _trade(
