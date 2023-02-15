@@ -7,7 +7,7 @@ import { Kafka, Producer } from 'kafkajs';
 import _ = require('lodash');
 import { Counter, Histogram } from 'prom-client';
 
-import { ChainId, ERC20BridgeSource, RfqRequestOpts, SwapQuoterError } from '../asset-swapper';
+import { ERC20BridgeSource, RfqRequestOpts, SwapQuoterError } from '../asset-swapper';
 import {
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
@@ -48,6 +48,7 @@ import { parseUtils } from '../utils/parse_utils';
 import { publishQuoteReport } from '../utils/quote_report_utils';
 import { schemaUtils } from '../utils/schema_utils';
 import { GasPriceUtils } from '../asset-swapper';
+import { ChainId } from '@0x/contract-addresses';
 
 let kafkaProducer: Producer | undefined;
 if (KAFKA_BROKERS !== undefined) {
