@@ -65,22 +65,34 @@ contract MixinClober {
         // Grant the Clober router an allowance to sell the sell token.
         sellToken.approveIfBelow(address(router), sellAmount);
 
-        ICloberRouter.MarketOrderParams memory params = ICloberRouter.MarketOrderParams({
-            market: address(market),
-            deadline: uint64(block.timestamp + 100),
-            user: msg.sender,
-            limitPriceIndex: isTakingBid ? 0 : type(uint16).max,
-            rawAmount: isTakingBid ? 0 : market.quoteToRaw(sellAmount, true),
-            expendInput: true,
-            useNative: address(sellToken) == address(WETH) ? true : false,
-            baseAmount: isTakingBid ? sellAmount : 0
-        });
-
+        bool useNative = address(sellToken) == address(WETH) ? true : false;
         uint256 beforeBalance = buyToken.balanceOf(address(this));
         if (isTakingBid) {
-            router.marketAsk(params);
+            router.marketAsk(
+                ICloberRouter.MarketOrderParams({
+                    market: address(market),
+                    deadline: uint64(block.timestamp + 100),
+                    user: msg.sender,
+                    limitPriceIndex: 0,
+                    rawAmount: 0,
+                    expendInput: true,
+                    useNative: useNative,
+                    baseAmount: sellAmount
+                })
+            );
         } else {
-            router.marketBid(params);
+            router.marketBid(
+                ICloberRouter.MarketOrderParams({
+                    market: address(market),
+                    deadline: uint64(block.timestamp + 100),
+                    user: msg.sender,
+                    limitPriceIndex: type(uint16).max,
+                    rawAmount: market.quoteToRaw(sellAmount, true),
+                    expendInput: true,
+                    useNative: useNative,
+                    baseAmount: 0
+                })
+            );
         }
         return buyToken.balanceOf(address(this)).safeSub(beforeBalance);
     }
