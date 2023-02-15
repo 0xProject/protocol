@@ -14,8 +14,8 @@
 
 pragma solidity ^0.6.5;
 
-import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/v06/LibERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
 
 interface IBalancerPool {
     /// @dev Sell `tokenAmountIn` of `tokenIn` and receive `tokenOut`.

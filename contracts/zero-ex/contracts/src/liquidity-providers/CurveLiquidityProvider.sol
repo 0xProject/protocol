@@ -16,8 +16,8 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/v06/LibERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../transformers/LibERC20Transformer.sol";
 import "../vendor/ILiquidityProvider.sol";

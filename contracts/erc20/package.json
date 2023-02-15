@@ -11,8 +11,6 @@
     },
     "scripts": {
         "test:ci": "forge test",
-        "contracts:gen": "contracts-gen generate",
-        "contracts:copy": "contracts-gen copy",
         "docs:md": "ts-doc-gen --sourceDir='$PROJECT_FILES' --output=$MD_FILE_DIR --fileExtension=mdx --tsconfig=./typedoc-tsconfig.json",
         "docs:json": "typedoc --excludePrivate --excludeExternals --excludeProtected --ignoreCompilerErrors --target ES5 --tsconfig typedoc-tsconfig.json --json $JSON_FILE_PATH $PROJECT_FILES"
     },

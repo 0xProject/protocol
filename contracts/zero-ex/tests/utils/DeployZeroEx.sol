@@ -42,8 +42,8 @@ import "src/transformers/PositiveSlippageFeeTransformer.sol";
 import "src/transformers/bridges/IBridgeAdapter.sol";
 import "src/transformers/bridges/EthereumBridgeAdapter.sol";
 
-import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/WETH9V06.sol";
+import "@0x/contracts-erc20/src/v06/IEtherTokenV06.sol";
+import "@0x/contracts-erc20/src/v06/WETH9V06.sol";
 
 contract DeployZeroEx is Test {
     ZeroEx public ZERO_EX = ZeroEx(0xDef1C0ded9bec7F1a1670819833240f027b25EfF);

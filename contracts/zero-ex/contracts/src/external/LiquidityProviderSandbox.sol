@@ -17,7 +17,7 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/errors/LibOwnableRichErrorsV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
 import "../vendor/ILiquidityProvider.sol";
 import "../vendor/v3/IERC20Bridge.sol";
 import "./ILiquidityProviderSandbox.sol";

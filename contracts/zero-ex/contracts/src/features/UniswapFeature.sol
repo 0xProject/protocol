@@ -15,8 +15,8 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
+import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/v06/IEtherTokenV06.sol";
 import "../migrations/LibMigrate.sol";
 import "../fixins/FixinCommon.sol";
 import "./interfaces/IFeature.sol";

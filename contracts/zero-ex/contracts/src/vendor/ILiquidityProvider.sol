@@ -14,7 +14,7 @@
 
 pragma solidity ^0.6.5;
 
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
 
 interface ILiquidityProvider {
     /// @dev An optional event an LP can emit for each fill against a source.
