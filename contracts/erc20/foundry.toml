@@ -11,5 +11,8 @@ remappings = [
 allow_paths = [
     '../utils/'
 ]
+
+fs_permissions = [{ access = "read", path = "./out/ZRXToken.sol" }]
+
 optimizer_runs = 1_000_000
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config

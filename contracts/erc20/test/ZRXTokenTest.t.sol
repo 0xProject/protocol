@@ -19,23 +19,93 @@ import "../src/v08/IERC20TokenV08.sol";
 
 contract ZRXTokenTest is Test {
     address payable internal owner = payable(vm.addr(1));
-    address payable internal spender = payable(vm.addr(2));
+    address payable internal user = payable(vm.addr(2));
+    uint256 internal totalSupply = 1_000_000_000 * 1e18;
+    uint256 internal constant MAX_UINT = 2 ^ (256 - 1);
     IERC20TokenV08 zrxToken;
 
     function setUp() public {
         vm.deal(owner, 1e20);
-        vm.deal(spender, 1e20);
+        vm.deal(user, 1e20);
 
-        // zrxToken = new ZRXToken();
-        bytes memory _bytecode = abi.encodePacked(vm.getCode("../out/ZRXToken.sol/ZRXToken.json"));
+        vm.prank(owner);
+        bytes memory _bytecode = abi.encodePacked(vm.getCode("./out/ZRXToken.sol/ZRXToken.json"));
         address _address;
         assembly {
             _address := create(0, add(_bytecode, 0x20), mload(_bytecode))
         }
+        vm.stopPrank();
         zrxToken = IERC20TokenV08(address(_address));
     }
 
     function testShouldHave18Decimals() public {
         assertEq(zrxToken.decimals(), 18);
+    }
+
+    function testShouldHaveTotalSupplyOf1Billion() public {
+        assertEq(zrxToken.totalSupply(), totalSupply);
+    }
+
+    function testShouldInitializeOwnerBalanceToTotalSupply() public {
+        assertEq(zrxToken.balanceOf(owner), totalSupply);
+    }
+
+    function testShouldTransferBalanceCorrectly() public {
+        vm.prank(owner);
+        zrxToken.transfer(user, 100);
+
+        assertEq(zrxToken.balanceOf(user), 100);
+        assertEq(zrxToken.balanceOf(owner), totalSupply - 100);
+    }
+
+    function testShouldReturnTrueOnAZeroValueTransfer() public {
+        vm.prank(owner);
+        bool success = zrxToken.transfer(user, 0);
+        assertEq(success, true);
+    }
+
+    function testShouldReturnFalseIfSenderHasInsufficientBalance() public {
+        vm.prank(owner);
+        zrxToken.approve(user, totalSupply + 1);
+        vm.stopPrank();
+
+        bool success = zrxToken.transferFrom(owner, user, totalSupply + 1);
+        assertEq(success, false);
+    }
+
+    function testShouldReturnFalseIfRecipientHasInsufficientAllowance() public {
+        vm.prank(owner);
+        zrxToken.approve(user, totalSupply - 1);
+        vm.stopPrank();
+
+        bool success = zrxToken.transferFrom(owner, user, totalSupply);
+        assertEq(success, false);
+    }
+
+    function testShouldReturnTrueOnAZeroValueApprovedTransfer() public {
+        vm.prank(user);
+        bool success = zrxToken.transferFrom(owner, user, 0);
+        assertEq(success, true);
+    }
+
+    function testShouldNotModifySenderAllowanceIfSetToUINT256Max() public {
+        vm.prank(owner);
+        zrxToken.approve(user, MAX_UINT);
+        vm.stopPrank();
+
+        zrxToken.transferFrom(owner, user, 100);
+        assertEq(zrxToken.allowance(owner, user), MAX_UINT);
+    }
+
+    function testShouldTransferCorrectlyWhenSufficientAllowance() public {
+        vm.prank(owner);
+        zrxToken.approve(user, 1000 * 1e18);
+        vm.stopPrank();
+
+        vm.prank(user);
+        zrxToken.transferFrom(owner, user, 100 * 1e18);
+        assertEq(zrxToken.allowance(owner, user), 900 * 1e18);
+        assertEq(zrxToken.balanceOf(user), 100 * 1e18);
+        assertEq(zrxToken.balanceOf(owner), totalSupply - 100 * 1e18);
     }
 }
