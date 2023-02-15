@@ -20,7 +20,7 @@ pragma solidity ^0.5.5;
 
 import "@0x/contracts-utils/contracts/src/LibSafeMath.sol";
 import "@0x/contracts-utils/contracts/src/Ownable.sol";
-import "../src/MintableERC20Token.sol";
+import "../../src/MintableERC20Token.sol";
 
 contract DummyERC20Token is Ownable, MintableERC20Token {
     using LibSafeMath for uint256;
