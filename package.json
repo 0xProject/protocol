@@ -40,7 +40,7 @@
         "test:all": "wsrun --fast-exit --serial --exclude-missing -p $PKG -c test",
         "test:contracts": "wsrun --serial -p $(echo ${npm_package_config_contractsPackages} ${npm_package_config_ignoreTestsForPackages} | tr ' ' '\n' | sort | uniq -u | tr '\n' ' ') --fast-exit --exclude-missing -c test",
         "test:contracts:all": "wsrun --serial -p ${npm_package_config_contractsPackages} --fast-exit --exclude-missing -c test",
-        "test:links": "yarn check-md --ignore **/contracts/zero-ex/contracts/deps/forge-std/README.md,**/node_modules",
+        "test:links": "yarn check-md --ignore **/forge-std/README.md,**/lib/openzeppelin-contracts,**/node_modules",
         "generate_doc": "node ./node_modules/@0x/monorepo-scripts/lib/doc_generate.js --config ./doc-gen-config.json",
         "upload_md_docs": "aws s3 rm --recursive s3://docs-markdown; wsrun --exclude-missing -c s3:sync_md_docs",
         "diff_md_docs:ci": "wsrun --exclude-missing -c diff_docs",
