@@ -85,7 +85,6 @@
         "madge": "^5.0.1",
         "make-promises-safe": "^5.1.0",
         "mocha": "^6.2.2",
-        "msw": "^0.44.2",
         "nodemon": "^1.19.4",
         "pino-pretty": "^9.1.1",
         "prettier": "^2.3.1",
