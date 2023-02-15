@@ -22,7 +22,6 @@ export {
     MarketOperation,
     OrderPrunerPermittedFeeTypes,
     RfqFirmQuoteValidator,
-    RfqMakerAssetOfferings,
     RfqRequestOpts,
     SamplerOverrides,
     SignedNativeOrder,

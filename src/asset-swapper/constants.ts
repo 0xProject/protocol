@@ -3,7 +3,6 @@ import { SignatureType } from '@0x/protocol-utils';
 import { BigNumber, logUtils } from '@0x/utils';
 
 import {
-    AffiliateFeeType,
     ExchangeProxyContractOpts,
     LogFunction,
     OrderPrunerOpts,

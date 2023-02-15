@@ -11,7 +11,6 @@ import {
     ChainId,
     DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID,
     OrderPrunerPermittedFeeTypes,
-    RfqMakerAssetOfferings,
     SamplerOverrides,
     SOURCE_FLAGS,
     SwapQuoteRequestOpts,
@@ -98,34 +97,6 @@ const getIntegratorIdFromLabel = (label: string): string | undefined => {
         }
     }
 };
-
-type RfqOrderType = 'rfq' | 'otc';
-
-/**
- * The JSON config for each Market Maker, providing information including URIs, type of order supported and authentication.
- */
-interface RfqMakerConfig {
-    makerId: string;
-    label: string;
-    rfqmMakerUri: string;
-    rfqmOrderTypes: RfqOrderType[];
-    rfqtMakerUri: string;
-    rfqtOrderTypes: RfqOrderType[];
-    apiKeyHashes: string[];
-}
-
-/**
- * A list of type RfqMakerConfig, read from the RFQ_MAKER_CONFIGS env variable
- */
-export const RFQ_MAKER_CONFIGS: RfqMakerConfig[] = (() => {
-    try {
-        const makerConfigs = resolveEnvVar<RfqMakerConfig[]>('RFQ_MAKER_CONFIGS', EnvVarType.JsonStringList, []);
-        schemaUtils.validateSchema(makerConfigs, schemas.rfqMakerConfigListSchema);
-        return makerConfigs;
-    } catch (e) {
-        throw new Error(`RFQ_MAKER_CONFIGS was defined but is not valid JSON per the schema: ${e}`);
-    }
-})();
 
 // Log level for pino.js
 export const LOG_LEVEL: string = _.isEmpty(process.env.LOG_LEVEL)
@@ -313,21 +284,6 @@ export const ALT_RFQ_MM_ENDPOINT: string | undefined = _.isEmpty(process.env.ALT
 export const ALT_RFQ_MM_API_KEY: string | undefined = _.isEmpty(process.env.ALT_RFQ_MM_API_KEY)
     ? undefined
     : assertEnvVarType('ALT_RFQ_MM_API_KEY', process.env.ALT_RFQ_MM_API_KEY, EnvVarType.NonEmptyString);
-const ALT_RFQ_MM_PROFILE: string | undefined = _.isEmpty(process.env.ALT_RFQ_MM_PROFILE)
-    ? undefined
-    : assertEnvVarType('ALT_RFQ_MM_PROFILE', process.env.ALT_RFQ_MM_PROFILE, EnvVarType.NonEmptyString);
-
-export const RFQT_MAKER_ASSET_OFFERINGS = resolveEnvVar<RfqMakerAssetOfferings>(
-    'RFQT_MAKER_ASSET_OFFERINGS',
-    EnvVarType.RfqMakerAssetOfferings,
-    {},
-);
-
-export const RFQM_MAKER_ASSET_OFFERINGS = resolveEnvVar<RfqMakerAssetOfferings>(
-    'RFQM_MAKER_ASSET_OFFERINGS',
-    EnvVarType.RfqMakerAssetOfferings,
-    {},
-);
 
 export const META_TX_EXPIRATION_BUFFER_MS = TEN_MINUTES_MS;
 
@@ -495,20 +451,10 @@ const SAMPLER_OVERRIDES: SamplerOverrides | undefined = (() => {
     }
 })();
 
-let SWAP_QUOTER_RFQT_OPTS: SwapQuoterRfqOpts = {
+const SWAP_QUOTER_RFQT_OPTS: SwapQuoterRfqOpts = {
     integratorsWhitelist: RFQT_INTEGRATORS,
     txOriginBlacklist: RFQT_TX_ORIGIN_BLACKLIST,
 };
-
-if (ALT_RFQ_MM_API_KEY && ALT_RFQ_MM_PROFILE) {
-    SWAP_QUOTER_RFQT_OPTS = {
-        ...SWAP_QUOTER_RFQT_OPTS,
-        altRfqCreds: {
-            altRfqApiKey: ALT_RFQ_MM_API_KEY,
-            altRfqProfile: ALT_RFQ_MM_PROFILE,
-        },
-    };
-}
 
 export const SWAP_QUOTER_OPTS: Partial<SwapQuoterOpts> = {
     chainId: CHAIN_ID,
@@ -697,35 +643,6 @@ function assertEnvVarType(name: string, value: string | undefined, expectedType:
         case EnvVarType.JsonStringList: {
             assert.isString(name, value);
             return JSON.parse(value);
-        }
-        case EnvVarType.RfqMakerAssetOfferings: {
-            const offerings: RfqMakerAssetOfferings = JSON.parse(value);
-            for (const makerEndpoint in offerings) {
-                assert.isWebUri('market maker endpoint', makerEndpoint);
-
-                const assetOffering = offerings[makerEndpoint];
-                assert.isArray(`value in maker endpoint mapping, for index ${makerEndpoint},`, assetOffering);
-                assetOffering.forEach((assetPair, i) => {
-                    assert.isArray(`asset pair array ${i} for maker endpoint ${makerEndpoint}`, assetPair);
-                    assert.assert(
-                        assetPair.length === 2,
-                        `asset pair array ${i} for maker endpoint ${makerEndpoint} does not consist of exactly two elements.`,
-                    );
-                    assert.isETHAddressHex(
-                        `first token address for asset pair ${i} for maker endpoint ${makerEndpoint}`,
-                        assetPair[0],
-                    );
-                    assert.isETHAddressHex(
-                        `second token address for asset pair ${i} for maker endpoint ${makerEndpoint}`,
-                        assetPair[1],
-                    );
-                    assert.assert(
-                        assetPair[0] !== assetPair[1],
-                        `asset pair array ${i} for maker endpoint ${makerEndpoint} has identical assets`,
-                    );
-                });
-            }
-            return offerings;
         }
         default:
             throw new Error(`Unrecognised EnvVarType: ${expectedType} encountered for variable ${name}.`);

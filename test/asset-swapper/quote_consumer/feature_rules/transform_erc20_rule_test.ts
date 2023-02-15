@@ -30,7 +30,6 @@ import {
 } from '../../test_utils/test_data';
 
 import { chaiSetup } from '../../utils/chai_setup';
-import { getRandomAmount } from '../../utils/utils';
 
 chaiSetup.configure();
 const expect = chai.expect;
