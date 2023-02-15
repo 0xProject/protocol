@@ -15,14 +15,14 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "../src/transformers/IERC20Transformer.sol";
 import "../src/transformers/LibERC20Transformer.sol";
 import "./tokens/TestMintableERC20Token.sol";
 
 contract TestMintTokenERC20Transformer is IERC20Transformer {
     struct TransformData {
-        IERC20TokenV06 inputToken;
+        IERC20Token inputToken;
         TestMintableERC20Token outputToken;
         uint256 burnAmount;
         uint256 mintAmount;
@@ -59,7 +59,7 @@ contract TestMintTokenERC20Transformer is IERC20Transformer {
             data.inputToken.transfer(address(0), data.burnAmount);
         }
         // Mint output tokens.
-        if (!LibERC20Transformer.isTokenETH(IERC20TokenV06(address(data.outputToken)))) {
+        if (!LibERC20Transformer.isTokenETH(IERC20Token(address(data.outputToken)))) {
             if (data.feeAmount > data.mintAmount) {
                 data.outputToken.burn(context.recipient, data.feeAmount - data.mintAmount);
             } else {

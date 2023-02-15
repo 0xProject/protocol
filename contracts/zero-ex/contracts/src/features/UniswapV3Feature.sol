@@ -15,7 +15,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "@0x/contracts-erc20/src/v06/IEtherTokenV06.sol";
 import "../vendor/IUniswapV3Pool.sol";
 import "../migrations/LibMigrate.sol";
@@ -163,8 +163,8 @@ contract UniswapV3Feature is IFeature, IUniswapV3Feature, FixinCommon, FixinToke
     /// @param data Arbitrary data forwarded from swap() caller. An ABI-encoded
     ///        struct of: inputToken, outputToken, fee, payer
     function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata data) external override {
-        IERC20TokenV06 token0;
-        IERC20TokenV06 token1;
+        IERC20Token token0;
+        IERC20Token token1;
         address payer;
         {
             uint24 fee;
@@ -212,7 +212,7 @@ contract UniswapV3Feature is IFeature, IUniswapV3Feature, FixinCommon, FixinToke
                 bool zeroForOne;
                 IUniswapV3Pool pool;
                 {
-                    (IERC20TokenV06 inputToken, uint24 fee, IERC20TokenV06 outputToken) = _decodeFirstPoolInfoFromPath(
+                    (IERC20Token inputToken, uint24 fee, IERC20Token outputToken) = _decodeFirstPoolInfoFromPath(
                         encodedPath
                     );
                     pool = _toPool(inputToken, fee, outputToken);
@@ -248,7 +248,7 @@ contract UniswapV3Feature is IFeature, IUniswapV3Feature, FixinCommon, FixinToke
 
     // Pay tokens from `payer` to `to`, using `transferFrom()` if
     // `payer` != this contract.
-    function _pay(IERC20TokenV06 token, address payer, address to, uint256 amount) private {
+    function _pay(IERC20Token token, address payer, address to, uint256 amount) private {
         if (payer != address(this)) {
             _transferERC20TokensFrom(token, payer, to, amount);
         } else {
@@ -259,8 +259,8 @@ contract UniswapV3Feature is IFeature, IUniswapV3Feature, FixinCommon, FixinToke
     // Update `swapCallbackData` in place with new values.
     function _updateSwapCallbackData(
         bytes memory swapCallbackData,
-        IERC20TokenV06 inputToken,
-        IERC20TokenV06 outputToken,
+        IERC20Token inputToken,
+        IERC20Token outputToken,
         uint24 fee,
         address payer
     ) private pure {
@@ -275,9 +275,9 @@ contract UniswapV3Feature is IFeature, IUniswapV3Feature, FixinCommon, FixinToke
 
     // Compute the pool address given two tokens and a fee.
     function _toPool(
-        IERC20TokenV06 inputToken,
+        IERC20Token inputToken,
         uint24 fee,
-        IERC20TokenV06 outputToken
+        IERC20Token outputToken
     ) private view returns (IUniswapV3Pool pool) {
         // address(keccak256(abi.encodePacked(
         //     hex"ff",
@@ -287,7 +287,7 @@ contract UniswapV3Feature is IFeature, IUniswapV3Feature, FixinCommon, FixinToke
         // )))
         bytes32 ffFactoryAddress = UNI_FF_FACTORY_ADDRESS;
         bytes32 poolInitCodeHash = UNI_POOL_INIT_CODE_HASH;
-        (IERC20TokenV06 token0, IERC20TokenV06 token1) = inputToken < outputToken
+        (IERC20Token token0, IERC20Token token1) = inputToken < outputToken
             ? (inputToken, outputToken)
             : (outputToken, inputToken);
         assembly {
@@ -314,7 +314,7 @@ contract UniswapV3Feature is IFeature, IUniswapV3Feature, FixinCommon, FixinToke
     // Return the first input token, output token, and fee of an encoded uniswap path.
     function _decodeFirstPoolInfoFromPath(
         bytes memory encodedPath
-    ) private pure returns (IERC20TokenV06 inputToken, uint24 fee, IERC20TokenV06 outputToken) {
+    ) private pure returns (IERC20Token inputToken, uint24 fee, IERC20Token outputToken) {
         require(encodedPath.length >= SINGLE_HOP_PATH_SIZE, "UniswapV3Feature/BAD_PATH_ENCODING");
         assembly {
             let p := add(encodedPath, 32)

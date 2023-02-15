@@ -236,8 +236,8 @@ Same functionality as ``cancelPairLimitOrders`` but ``msg.sender`` is a register
     /// @param minValidSalt The new minimum valid salt.
     function cancelPairLimitOrdersWithSigner(
         address maker,
-        IERC20TokenV06 makerToken,
-        IERC20TokenV06 takerToken,
+        IERC20Token makerToken,
+        IERC20Token takerToken,
         uint256 minValidSalt
     )
         external;
@@ -277,8 +277,8 @@ Same functionality as ``batchCancelPairLimitOrders`` but ``msg.sender`` is a reg
     /// @param minValidSalts The new minimum valid salts.
     function batchCancelPairLimitOrdersWithSigner(
         address maker,
-        IERC20TokenV06[] memory makerTokens,
-        IERC20TokenV06[] memory takerTokens,
+        IERC20Token[] memory makerTokens,
+        IERC20Token[] memory takerTokens,
         uint256[] memory minValidSalts
     )
         external;
@@ -521,8 +521,8 @@ Same functionality as ``cancelPairRfqOrders`` but ``msg.sender`` is a registered
     /// @param minValidSalt The new minimum valid salt.
     function cancelPairRfqOrdersWithSigner(
         address maker,
-        IERC20TokenV06 makerToken,
-        IERC20TokenV06 takerToken,
+        IERC20Token makerToken,
+        IERC20Token takerToken,
         uint256 minValidSalt
     )
         external;
@@ -562,8 +562,8 @@ Same functionality as ``batchCancelPairRfqOrders`` but ``msg.sender`` is a regis
     /// @param minValidSalts The new minimum valid salts.
     function batchCancelPairRfqOrdersWithSigner(
         address maker,
-        IERC20TokenV06[] memory makerTokens,
-        IERC20TokenV06[] memory takerTokens,
+        IERC20Token[] memory makerTokens,
+        IERC20Token[] memory takerTokens,
         uint256[] memory minValidSalts
     )
         external;
@@ -818,7 +818,7 @@ This function buys an ERC721 token given a sell order.
 
 .. code-block:: solidity
 
-    
+
     /// @dev Buys an ERC721 asset by filling the given order.
     /// @param sellOrder The ERC721 sell order.
     /// @param signature The order signature.
@@ -843,7 +843,7 @@ cancelERC721Order
 This function cancels an ERC721 order using the order `nonce` field.
 
 .. code-block:: solidity
-    
+
     /// @dev Cancel a single ERC721 order by its nonce. The caller
     ///      should be the maker of the order. Silently succeeds if
     ///      an order with the same nonce has already been filled or
@@ -874,7 +874,7 @@ batchBuyERC721s
 This function buys a number of ERC721's. If you wish the transaction to revert unless ALL NFT's are purchased, set `revertIfIncomplete` to true.
 
 .. code-block:: solidity
-    
+
     /// @dev Buys multiple ERC721 assets by filling the
     ///      given orders.
     /// @param sellOrders The ERC721 sell orders.
@@ -898,7 +898,7 @@ matchERC721Orders
 This function matches a buy order and a sell order together. The matcher receives any spread in price.
 
 .. code-block:: solidity
-    
+
     /// @dev Matches a pair of complementary orders that have
     ///      a non-negative spread. Each order is filled at
     ///      their respective price, and the matcher receives
@@ -926,7 +926,7 @@ batchMatchERC721Orders
 This function matches a buy orders and a sell orders together. The matcher receives any spread in price.
 
 .. code-block:: solidity
-    
+
     /// @dev Matches pairs of complementary orders that have
     ///      non-negative spreads. Each order is filled at
     ///      their respective price, and the matcher receives
@@ -948,8 +948,8 @@ This function matches a buy orders and a sell orders together. The matcher recei
     )
         _external_
         returns (uint256[] _memory_ profits, bool[] _memory_ successes);
-    
-    
+
+
 preSignERC721Order
 ----------------------------
 
@@ -962,7 +962,7 @@ This function pre-signs an order. Useful for contracts that wish to buy or sell 
     ///      valid for that order and signer.
     /// @param order An ERC721 order.
     function preSignERC721Order(LibNFTOrder.ERC721Order _calldata_ order)
-        _external_;        
+        _external_;
 
 validateERC721OrderSignature
 ----------------------------
@@ -981,7 +981,7 @@ A read function to validate an ERC721 order signature.
     )
         _external_
         _view_;
-    
+
 
 validateERC721OrderProperties
 ---------------------------------
@@ -1013,7 +1013,7 @@ getERC721OrderStatus
 A read function to return the order status. E.g whether it is filled, cancelled or expired.
 
 .. code-block:: solidity
-    
+
     /// @dev Get the current status of an ERC721 order.
     /// @param order The ERC721 order.
     /// @return status The status of the order.
@@ -1021,7 +1021,7 @@ A read function to return the order status. E.g whether it is filled, cancelled 
         _external_
         _view_
         returns (LibNFTOrder.OrderStatus status);
-    
+
 
 getERC721OrderHash
 ----------------------------
@@ -1037,7 +1037,7 @@ A read function to return the uniquie order hash.
         _external_
         _view_
         returns (bytes32 orderHash);
-    
+
 getERC721OrderStatusBitVector
 ---------------------------------
 
@@ -1060,7 +1060,7 @@ getERC721OrderStatusBitVector
 sellERC1155
 ----------------------------
 
-Sells an ERC115 token given a buy order. 
+Sells an ERC115 token given a buy order.
 
 .. code-block:: solidity
 
@@ -1089,12 +1089,12 @@ Sells an ERC115 token given a buy order.
         bytes _calldata_ callbackData
     )
         _external_;
-    
+
 
 buyERC1155
 ----------------------------
 
-Buys an ERC115 token given a sell order. 
+Buys an ERC115 token given a sell order.
 
 .. code-block:: solidity
 
@@ -1117,12 +1117,12 @@ Buys an ERC115 token given a sell order.
     )
         _external_
         _payable_;
-    
+
 
 cancelERC1155Order
 ----------------------------
 
-Cancels an ERC115 order given the order struct. 
+Cancels an ERC115 order given the order struct.
 
 .. code-block:: solidity
 
@@ -1136,7 +1136,7 @@ Cancels an ERC115 order given the order struct.
 batchCancelERC1155Orders
 ----------------------------
 
-Cancels a number of ERC115 orders. 
+Cancels a number of ERC115 orders.
 
 .. code-block:: solidity
 
@@ -1146,7 +1146,7 @@ Cancels a number of ERC115 orders.
     /// @param orders The orders to cancel.
     function batchCancelERC1155Orders(LibNFTOrder.ERC1155Order[] _calldata_ orders)
         _external_;
-    
+
 batchBuyERC1155s
 ----------------------------
 
@@ -1173,7 +1173,7 @@ Buys multiple ERC1155 assets given the sell orders.
         _external_
         _payable_
         returns (bool[] _memory_ successes);
-    
+
 preSignERC1155Order
 ----------------------------
 

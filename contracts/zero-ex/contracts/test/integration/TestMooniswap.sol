@@ -15,14 +15,14 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "../tokens/TestMintableERC20Token.sol";
 
 contract TestMooniswap {
     event MooniswapCalled(
         uint256 value,
-        IERC20TokenV06 sellToken,
-        IERC20TokenV06 buyToken,
+        IERC20Token sellToken,
+        IERC20Token buyToken,
         uint256 sellAmount,
         uint256 minBuyAmount,
         address referral
@@ -35,24 +35,17 @@ contract TestMooniswap {
     }
 
     function swap(
-        IERC20TokenV06 sellToken,
+        IERC20Token sellToken,
         TestMintableERC20Token buyToken,
         uint256 sellAmount,
         uint256 minBuyAmount,
         address referral
     ) external payable returns (uint256 boughtAmount) {
-        emit MooniswapCalled(
-            msg.value,
-            sellToken,
-            IERC20TokenV06(address(buyToken)),
-            sellAmount,
-            minBuyAmount,
-            referral
-        );
+        emit MooniswapCalled(msg.value, sellToken, IERC20Token(address(buyToken)), sellAmount, minBuyAmount, referral);
         boughtAmount = nextBuyAmount;
         nextBuyAmount = 0;
         require(boughtAmount >= minBuyAmount, "UNDERBOUGHT");
-        if (sellToken != IERC20TokenV06(0)) {
+        if (sellToken != IERC20Token(0)) {
             sellToken.transferFrom(msg.sender, address(this), sellAmount);
         } else {
             require(sellAmount == msg.value, "NOT_ENOUGH_ETH");

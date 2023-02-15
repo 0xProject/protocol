@@ -15,7 +15,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 
 /// @dev Exchange Proxy Recovery Functions
 interface IFundRecoveryFeature {
@@ -24,5 +24,5 @@ interface IFundRecoveryFeature {
     /// @param erc20 ERC20 Token Address.
     /// @param amountOut Amount of tokens to withdraw.
     /// @param recipientWallet Recipient wallet address.
-    function transferTrappedTokensTo(IERC20TokenV06 erc20, uint256 amountOut, address payable recipientWallet) external;
+    function transferTrappedTokensTo(IERC20Token erc20, uint256 amountOut, address payable recipientWallet) external;
 }

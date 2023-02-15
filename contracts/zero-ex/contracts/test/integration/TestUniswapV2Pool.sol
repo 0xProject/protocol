@@ -14,21 +14,21 @@
 
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "../../src/vendor/IUniswapV2Pair.sol";
 
 interface IUniswapV2PoolDeployer {
     struct CreationParameters {
-        IERC20TokenV06 token0;
-        IERC20TokenV06 token1;
+        IERC20Token token0;
+        IERC20Token token1;
     }
 
     function creationParameters() external view returns (CreationParameters memory);
 }
 
 contract TestUniswapV2Pool is IUniswapV2Pair {
-    IERC20TokenV06 public immutable token0;
-    IERC20TokenV06 public immutable token1;
+    IERC20Token public immutable token0;
+    IERC20Token public immutable token1;
 
     uint112 reserve0;
     uint112 reserve1;

@@ -16,7 +16,7 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "@0x/contracts-erc20/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibMathV06.sol";
@@ -31,8 +31,8 @@ import "../IZeroEx.sol";
 /// @dev A transformer that fills an ERC20 market sell/buy quote.
 ///      This transformer shortcuts bridge orders and fills them directly
 contract FillQuoteTransformer is Transformer {
-    using LibERC20TokenV06 for IERC20TokenV06;
-    using LibERC20Transformer for IERC20TokenV06;
+    using LibERC20TokenV06 for IERC20Token;
+    using LibERC20Transformer for IERC20Token;
     using LibSafeMathV06 for uint256;
     using LibSafeMathV06 for uint128;
     using LibRichErrorsV06 for bytes;
@@ -77,10 +77,10 @@ contract FillQuoteTransformer is Transformer {
         Side side;
         // The token being sold.
         // This should be an actual token, not the ETH pseudo-token.
-        IERC20TokenV06 sellToken;
+        IERC20Token sellToken;
         // The token being bought.
         // This should be an actual token, not the ETH pseudo-token.
-        IERC20TokenV06 buyToken;
+        IERC20Token buyToken;
         // External liquidity bridge orders. Sorted by fill sequence.
         IBridgeAdapter.BridgeOrder[] bridgeOrders;
         // Native limit orders. Sorted by fill sequence.

@@ -15,7 +15,6 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
 import "../libs/LibSignature.sol";
 import "../libs/LibNativeOrder.sol";
 

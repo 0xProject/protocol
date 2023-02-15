@@ -15,7 +15,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "@0x/contracts-erc20/src/v06/IEtherTokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
@@ -51,9 +51,9 @@ abstract contract NativeOrdersSettlement is
         // Recipient of the maker tokens.
         address recipient;
         // Maker token.
-        IERC20TokenV06 makerToken;
+        IERC20Token makerToken;
         // Taker token.
-        IERC20TokenV06 takerToken;
+        IERC20Token takerToken;
         // Maker token amount.
         uint128 makerAmount;
         // Taker token amount.
@@ -352,8 +352,8 @@ abstract contract NativeOrdersSettlement is
                 maker: params.order.maker,
                 payer: params.taker,
                 recipient: params.taker,
-                makerToken: IERC20TokenV06(params.order.makerToken),
-                takerToken: IERC20TokenV06(params.order.takerToken),
+                makerToken: IERC20Token(params.order.makerToken),
+                takerToken: IERC20Token(params.order.takerToken),
                 makerAmount: params.order.makerAmount,
                 takerAmount: params.order.takerAmount,
                 takerTokenFillAmount: params.takerTokenFillAmount,
@@ -441,8 +441,8 @@ abstract contract NativeOrdersSettlement is
                 maker: params.order.maker,
                 payer: params.useSelfBalance ? address(this) : params.taker,
                 recipient: params.recipient,
-                makerToken: IERC20TokenV06(params.order.makerToken),
-                takerToken: IERC20TokenV06(params.order.takerToken),
+                makerToken: IERC20Token(params.order.makerToken),
+                takerToken: IERC20Token(params.order.takerToken),
                 makerAmount: params.order.makerAmount,
                 takerAmount: params.order.takerAmount,
                 takerTokenFillAmount: params.takerTokenFillAmount,

@@ -15,7 +15,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "@0x/contracts-erc20/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibBytesV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
@@ -124,8 +124,8 @@ contract TransformERC20Feature is IFeature, ITransformERC20Feature, FixinCommon,
     ///        in sequence.
     /// @return outputTokenAmount The amount of `outputToken` received by the sender.
     function transformERC20(
-        IERC20TokenV06 inputToken,
-        IERC20TokenV06 outputToken,
+        IERC20Token inputToken,
+        IERC20Token outputToken,
         uint256 inputTokenAmount,
         uint256 minOutputTokenAmount,
         Transformation[] memory transformations
@@ -301,7 +301,7 @@ contract TransformERC20Feature is IFeature, ITransformERC20Feature, FixinCommon,
     }
 
     function _executeOutputTokenTransfer(
-        IERC20TokenV06 outputToken,
+        IERC20Token outputToken,
         IFlashWallet wallet,
         address payable recipient
     ) private returns (uint256 transferAmount) {
@@ -311,7 +311,7 @@ contract TransformERC20Feature is IFeature, ITransformERC20Feature, FixinCommon,
         } else {
             bytes memory resultData = wallet.executeCall(
                 payable(address(outputToken)),
-                abi.encodeWithSelector(IERC20TokenV06.transfer.selector, recipient, transferAmount),
+                abi.encodeWithSelector(IERC20Token.transfer.selector, recipient, transferAmount),
                 0
             );
             if (resultData.length == 0) {

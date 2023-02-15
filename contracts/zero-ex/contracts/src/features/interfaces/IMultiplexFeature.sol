@@ -15,7 +15,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 
 interface IMultiplexFeature {
     // Identifies the type of subcall.
@@ -34,9 +34,9 @@ interface IMultiplexFeature {
     // Parameters for a batch sell.
     struct BatchSellParams {
         // The token being sold.
-        IERC20TokenV06 inputToken;
+        IERC20Token inputToken;
         // The token being bought.
-        IERC20TokenV06 outputToken;
+        IERC20Token outputToken;
         // The amount of `inputToken` to sell.
         uint256 sellAmount;
         // The nested calls to perform.
@@ -116,7 +116,7 @@ interface IMultiplexFeature {
     ///        must be bought for this function to not revert.
     /// @return boughtAmount The amount of `outputToken` bought.
     function multiplexBatchSellEthForToken(
-        IERC20TokenV06 outputToken,
+        IERC20Token outputToken,
         BatchSellSubcall[] calldata calls,
         uint256 minBuyAmount
     ) external payable returns (uint256 boughtAmount);
@@ -130,7 +130,7 @@ interface IMultiplexFeature {
     ///        must be bought for this function to not revert.
     /// @return boughtAmount The amount of ETH bought.
     function multiplexBatchSellTokenForEth(
-        IERC20TokenV06 inputToken,
+        IERC20Token inputToken,
         BatchSellSubcall[] calldata calls,
         uint256 sellAmount,
         uint256 minBuyAmount
@@ -146,8 +146,8 @@ interface IMultiplexFeature {
     ///        that must be bought for this function to not revert.
     /// @return boughtAmount The amount of `outputToken` bought.
     function multiplexBatchSellTokenForToken(
-        IERC20TokenV06 inputToken,
-        IERC20TokenV06 outputToken,
+        IERC20Token inputToken,
+        IERC20Token outputToken,
         BatchSellSubcall[] calldata calls,
         uint256 sellAmount,
         uint256 minBuyAmount

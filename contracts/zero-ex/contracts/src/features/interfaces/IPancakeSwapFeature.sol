@@ -15,7 +15,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 
 /// @dev VIP PancakeSwap (and forks) fill functions.
 interface IPancakeSwapFeature {
@@ -37,7 +37,7 @@ interface IPancakeSwapFeature {
     /// @param fork The protocol fork to use.
     /// @return buyAmount Amount of `tokens[-1]` bought.
     function sellToPancakeSwap(
-        IERC20TokenV06[] calldata tokens,
+        IERC20Token[] calldata tokens,
         uint256 sellAmount,
         uint256 minBuyAmount,
         ProtocolFork fork

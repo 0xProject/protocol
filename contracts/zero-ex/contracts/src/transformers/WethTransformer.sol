@@ -26,12 +26,12 @@ import "./LibERC20Transformer.sol";
 contract WethTransformer is Transformer {
     using LibRichErrorsV06 for bytes;
     using LibSafeMathV06 for uint256;
-    using LibERC20Transformer for IERC20TokenV06;
+    using LibERC20Transformer for IERC20Token;
 
     /// @dev Transform data to ABI-encode and pass into `transform()`.
     struct TransformData {
         // The token to wrap/unwrap. Must be either ETH or WETH.
-        IERC20TokenV06 token;
+        IERC20Token token;
         // Amount of `token` to wrap or unwrap.
         // `uint(-1)` will unwrap the entire balance.
         uint256 amount;

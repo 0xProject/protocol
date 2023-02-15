@@ -23,8 +23,8 @@ contract TestMetaTransactionsTransformERC20Feature is TransformERC20Feature {
         address sender,
         uint256 value,
         address taker,
-        IERC20TokenV06 inputToken,
-        IERC20TokenV06 outputToken,
+        IERC20Token inputToken,
+        IERC20Token outputToken,
         uint256 inputTokenAmount,
         uint256 minOutputTokenAmount,
         Transformation[] transformations
@@ -58,7 +58,7 @@ contract TestMetaTransactionsTransformERC20Feature is TransformERC20Feature {
                     salt: 0,
                     callData: "",
                     value: 0,
-                    feeToken: IERC20TokenV06(0),
+                    feeToken: IERC20Token(0),
                     feeAmount: 0
                 }),
                 signature
@@ -79,7 +79,7 @@ contract TestMetaTransactionsTransformERC20Feature is TransformERC20Feature {
                 salt: 0,
                 callData: "",
                 value: 0,
-                feeToken: IERC20TokenV06(0),
+                feeToken: IERC20Token(0),
                 feeAmount: 0
             });
             IMetaTransactionsFeature(address(this)).batchExecuteMetaTransactions(mtxs, signatures);

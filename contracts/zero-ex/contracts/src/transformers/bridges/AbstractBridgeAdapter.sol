@@ -32,15 +32,15 @@ abstract contract AbstractBridgeAdapter is IBridgeAdapter {
     function isSupportedSource(bytes32 source) external override returns (bool isSupported) {
         BridgeOrder memory placeholderOrder;
         placeholderOrder.source = source;
-        IERC20TokenV06 placeholderToken = IERC20TokenV06(address(0));
+        IERC20Token placeholderToken = IERC20Token(address(0));
 
         (, isSupported) = _trade(placeholderOrder, placeholderToken, placeholderToken, 0, true);
     }
 
     function trade(
         BridgeOrder memory order,
-        IERC20TokenV06 sellToken,
-        IERC20TokenV06 buyToken,
+        IERC20Token sellToken,
+        IERC20Token buyToken,
         uint256 sellAmount
     ) public override returns (uint256 boughtAmount) {
         (boughtAmount, ) = _trade(order, sellToken, buyToken, sellAmount, false);
@@ -48,8 +48,8 @@ abstract contract AbstractBridgeAdapter is IBridgeAdapter {
 
     function _trade(
         BridgeOrder memory order,
-        IERC20TokenV06 sellToken,
-        IERC20TokenV06 buyToken,
+        IERC20Token sellToken,
+        IERC20Token buyToken,
         uint256 sellAmount,
         bool dryRun
     ) internal virtual returns (uint256 boughtAmount, bool supportedSource);

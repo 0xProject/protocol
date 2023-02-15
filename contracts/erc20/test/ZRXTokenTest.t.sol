@@ -15,14 +15,14 @@
 pragma solidity ^0.8.17;
 
 import "forge-std/Test.sol";
-import "../src/v08/IERC20TokenV08.sol";
+import "../src/IERC20Token.sol";
 
 contract ZRXTokenTest is Test {
     address payable internal owner = payable(vm.addr(1));
     address payable internal user = payable(vm.addr(2));
     uint256 internal totalSupply = 1_000_000_000 * 1e18;
     uint256 internal constant MAX_UINT = 2 ^ (256 - 1);
-    IERC20TokenV08 zrxToken;
+    IERC20Token zrxToken;
 
     function setUp() public {
         vm.deal(owner, 1e20);
@@ -35,7 +35,7 @@ contract ZRXTokenTest is Test {
             _address := create(0, add(_bytecode, 0x20), mload(_bytecode))
         }
         vm.stopPrank();
-        zrxToken = IERC20TokenV08(address(_address));
+        zrxToken = IERC20Token(address(_address));
     }
 
     function testShouldHave18Decimals() public {

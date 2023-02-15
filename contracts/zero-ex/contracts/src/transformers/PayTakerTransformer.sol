@@ -17,7 +17,7 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "@0x/contracts-erc20/src/v06/LibERC20TokenV06.sol";
 import "../errors/LibTransformERC20RichErrors.sol";
 import "./Transformer.sol";
@@ -27,12 +27,12 @@ import "./LibERC20Transformer.sol";
 contract PayTakerTransformer is Transformer {
     using LibRichErrorsV06 for bytes;
     using LibSafeMathV06 for uint256;
-    using LibERC20Transformer for IERC20TokenV06;
+    using LibERC20Transformer for IERC20Token;
 
     /// @dev Transform data to ABI-encode and pass into `transform()`.
     struct TransformData {
         // The tokens to transfer to the taker.
-        IERC20TokenV06[] tokens;
+        IERC20Token[] tokens;
         // Amount of each token in `tokens` to transfer to the taker.
         // `uint(-1)` will transfer the entire balance.
         uint256[] amounts;

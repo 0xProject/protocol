@@ -15,7 +15,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 
 /// @dev VIP uniswap fill functions.
 interface IUniswapFeature {
@@ -26,7 +26,7 @@ interface IUniswapFeature {
     /// @param isSushi Use sushiswap if true.
     /// @return buyAmount Amount of `tokens[-1]` bought.
     function sellToUniswap(
-        IERC20TokenV06[] calldata tokens,
+        IERC20Token[] calldata tokens,
         uint256 sellAmount,
         uint256 minBuyAmount,
         bool isSushi

@@ -16,7 +16,7 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/src/v06/LibERC20TokenV06.sol";
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 
 interface IBalancerV2BatchSwapVault {
     enum SwapKind {
@@ -42,7 +42,7 @@ interface IBalancerV2BatchSwapVault {
     function batchSwap(
         SwapKind kind,
         BatchSwapStep[] calldata swaps,
-        IERC20TokenV06[] calldata assets,
+        IERC20Token[] calldata assets,
         FundManagement calldata funds,
         int256[] calldata limits,
         uint256 deadline
@@ -50,12 +50,12 @@ interface IBalancerV2BatchSwapVault {
 }
 
 contract MixinBalancerV2Batch {
-    using LibERC20TokenV06 for IERC20TokenV06;
+    using LibERC20TokenV06 for IERC20Token;
 
     struct BalancerV2BatchBridgeData {
         IBalancerV2BatchSwapVault vault;
         IBalancerV2BatchSwapVault.BatchSwapStep[] swapSteps;
-        IERC20TokenV06[] assets;
+        IERC20Token[] assets;
     }
 
     function _tradeBalancerV2Batch(
@@ -68,7 +68,7 @@ contract MixinBalancerV2Batch {
             IBalancerV2BatchSwapVault.BatchSwapStep[] memory swapSteps,
             address[] memory assets_
         ) = abi.decode(bridgeData, (IBalancerV2BatchSwapVault, IBalancerV2BatchSwapVault.BatchSwapStep[], address[]));
-        IERC20TokenV06[] memory assets;
+        IERC20Token[] memory assets;
         assembly {
             assets := assets_
         }

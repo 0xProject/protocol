@@ -25,7 +25,7 @@ contract PositiveSlippageFeeTransformerTest is BaseTest {
     address public owner = account1;
     address public feeRecipient = account2;
     WETH9V06 weth = new WETH9V06();
-    IERC20TokenV06 token1 = IERC20TokenV06(address(weth));
+    IERC20Token token1 = IERC20Token(address(weth));
 
     PositiveSlippageFeeTransformer target = new PositiveSlippageFeeTransformer();
 
@@ -45,7 +45,7 @@ contract PositiveSlippageFeeTransformerTest is BaseTest {
                 recipient: payable(address(this)),
                 data: abi.encode(
                     PositiveSlippageFeeTransformer.TokenFee({
-                        token: IERC20TokenV06(token1),
+                        token: IERC20Token(token1),
                         bestCaseAmount: bestCaseAmount,
                         recipient: payable(feeRecipient)
                     })
@@ -66,7 +66,7 @@ contract PositiveSlippageFeeTransformerTest is BaseTest {
                 recipient: payable(address(this)),
                 data: abi.encode(
                     PositiveSlippageFeeTransformer.TokenFee({
-                        token: IERC20TokenV06(token1),
+                        token: IERC20Token(token1),
                         bestCaseAmount: bestCaseAmount,
                         recipient: payable(feeRecipient)
                     })
@@ -87,7 +87,7 @@ contract PositiveSlippageFeeTransformerTest is BaseTest {
                 recipient: payable(address(this)),
                 data: abi.encode(
                     PositiveSlippageFeeTransformer.TokenFee({
-                        token: IERC20TokenV06(token1),
+                        token: IERC20Token(token1),
                         bestCaseAmount: bestCaseAmount,
                         recipient: payable(feeRecipient)
                     })

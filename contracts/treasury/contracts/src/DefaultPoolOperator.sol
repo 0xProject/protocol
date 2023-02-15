@@ -20,19 +20,19 @@
 pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "./IStaking.sol";
 
 contract DefaultPoolOperator {
     // Immutables
     IStaking public immutable stakingProxy;
-    IERC20TokenV06 public immutable weth;
+    IERC20Token public immutable weth;
     bytes32 public immutable poolId;
 
     /// @dev Initializes this contract and creates a staking pool.
     /// @param stakingProxy_ The 0x staking proxy contract.
     /// @param weth_ The WETH token contract.
-    constructor(IStaking stakingProxy_, IERC20TokenV06 weth_) public {
+    constructor(IStaking stakingProxy_, IERC20Token weth_) public {
         stakingProxy = stakingProxy_;
         weth = weth_;
         // operator share = 100%

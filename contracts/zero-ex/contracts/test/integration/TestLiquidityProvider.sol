@@ -15,7 +15,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 
 contract TestLiquidityProvider {
     event SellTokenForToken(
@@ -52,10 +52,10 @@ contract TestLiquidityProvider {
             outputToken,
             recipient,
             minBuyAmount,
-            IERC20TokenV06(inputToken).balanceOf(address(this))
+            IERC20Token(inputToken).balanceOf(address(this))
         );
-        uint256 outputTokenBalance = IERC20TokenV06(outputToken).balanceOf(address(this));
-        IERC20TokenV06(outputToken).transfer(recipient, outputTokenBalance);
+        uint256 outputTokenBalance = IERC20Token(outputToken).balanceOf(address(this));
+        IERC20Token(outputToken).transfer(recipient, outputTokenBalance);
     }
 
     /// @dev Trades ETH for token. ETH must be sent to the contract prior to
@@ -71,8 +71,8 @@ contract TestLiquidityProvider {
         bytes calldata // auxiliaryData
     ) external returns (uint256) {
         emit SellEthForToken(outputToken, recipient, minBuyAmount, address(this).balance);
-        uint256 outputTokenBalance = IERC20TokenV06(outputToken).balanceOf(address(this));
-        IERC20TokenV06(outputToken).transfer(recipient, outputTokenBalance);
+        uint256 outputTokenBalance = IERC20Token(outputToken).balanceOf(address(this));
+        IERC20Token(outputToken).transfer(recipient, outputTokenBalance);
     }
 
     /// @dev Trades token for ETH. The token must be sent to the contract prior
@@ -87,7 +87,7 @@ contract TestLiquidityProvider {
         uint256 minBuyAmount,
         bytes calldata // auxiliaryData
     ) external returns (uint256) {
-        emit SellTokenForEth(inputToken, recipient, minBuyAmount, IERC20TokenV06(inputToken).balanceOf(address(this)));
+        emit SellTokenForEth(inputToken, recipient, minBuyAmount, IERC20Token(inputToken).balanceOf(address(this)));
         recipient.transfer(address(this).balance);
     }
 }

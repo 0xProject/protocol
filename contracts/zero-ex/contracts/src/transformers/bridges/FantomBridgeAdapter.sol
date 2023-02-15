@@ -39,8 +39,8 @@ contract FantomBridgeAdapter is
 
     function _trade(
         BridgeOrder memory order,
-        IERC20TokenV06 sellToken,
-        IERC20TokenV06 buyToken,
+        IERC20Token sellToken,
+        IERC20Token buyToken,
         uint256 sellAmount,
         bool dryRun
     ) internal override returns (uint256 boughtAmount, bool supportedSource) {

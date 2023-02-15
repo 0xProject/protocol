@@ -15,7 +15,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 
 /// @dev Helpers for moving tokens around.
@@ -28,7 +28,7 @@ abstract contract FixinTokenSpender {
     /// @param owner The owner of the tokens.
     /// @param to The recipient of the tokens.
     /// @param amount The amount of `token` to transfer.
-    function _transferERC20TokensFrom(IERC20TokenV06 token, address owner, address to, uint256 amount) internal {
+    function _transferERC20TokensFrom(IERC20Token token, address owner, address to, uint256 amount) internal {
         require(address(token) != address(this), "FixinTokenSpender/CANNOT_INVOKE_SELF");
 
         assembly {
@@ -69,7 +69,7 @@ abstract contract FixinTokenSpender {
     /// @param token The token to spend.
     /// @param to The recipient of the tokens.
     /// @param amount The amount of `token` to transfer.
-    function _transferERC20Tokens(IERC20TokenV06 token, address to, uint256 amount) internal {
+    function _transferERC20Tokens(IERC20Token token, address to, uint256 amount) internal {
         require(address(token) != address(this), "FixinTokenSpender/CANNOT_INVOKE_SELF");
 
         assembly {
@@ -121,7 +121,7 @@ abstract contract FixinTokenSpender {
     /// @param token The token to spend.
     /// @param owner The owner of the tokens.
     /// @return amount The amount of tokens that can be pulled.
-    function _getSpendableERC20BalanceOf(IERC20TokenV06 token, address owner) internal view returns (uint256) {
+    function _getSpendableERC20BalanceOf(IERC20Token token, address owner) internal view returns (uint256) {
         return LibSafeMathV06.min256(token.allowance(owner, address(this)), token.balanceOf(owner));
     }
 }

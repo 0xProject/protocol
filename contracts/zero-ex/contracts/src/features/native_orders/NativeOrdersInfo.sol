@@ -15,7 +15,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibMathV06.sol";
 import "../../fixins/FixinEIP712.sol";
@@ -32,7 +32,7 @@ abstract contract NativeOrdersInfo is FixinEIP712, FixinTokenSpender {
     // @dev Params for `_getActualFillableTakerTokenAmount()`.
     struct GetActualFillableTakerTokenAmountParams {
         address maker;
-        IERC20TokenV06 makerToken;
+        IERC20Token makerToken;
         uint128 orderMakerAmount;
         uint128 orderTakerAmount;
         LibNativeOrder.OrderInfo orderInfo;

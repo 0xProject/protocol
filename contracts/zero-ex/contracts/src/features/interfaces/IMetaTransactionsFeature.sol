@@ -15,7 +15,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "../libs/LibSignature.sol";
 
 /// @dev Meta-transactions feature.
@@ -39,7 +39,7 @@ interface IMetaTransactionsFeature {
         // Amount of ETH to attach to the call.
         uint256 value;
         // ERC20 fee `signer` pays `sender`.
-        IERC20TokenV06 feeToken;
+        IERC20Token feeToken;
         // ERC20 fee amount.
         uint256 feeAmount;
     }

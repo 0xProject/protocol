@@ -16,15 +16,15 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/src/v06/LibERC20TokenV06.sol";
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "@0x/contracts-erc20/src/v06/IEtherTokenV06.sol";
 import "../IBridgeAdapter.sol";
 
 /// @dev Moooniswap pool interface.
 interface IMooniswapPool {
     function swap(
-        IERC20TokenV06 sellToken,
-        IERC20TokenV06 buyToken,
+        IERC20Token sellToken,
+        IERC20Token buyToken,
         uint256 sellAmount,
         uint256 minBoughtAmount,
         address referrer
@@ -33,7 +33,7 @@ interface IMooniswapPool {
 
 /// @dev BridgeAdapter mixin for mooniswap.
 contract MixinMooniswap {
-    using LibERC20TokenV06 for IERC20TokenV06;
+    using LibERC20TokenV06 for IERC20Token;
     using LibERC20TokenV06 for IEtherTokenV06;
 
     /// @dev WETH token.
@@ -44,8 +44,8 @@ contract MixinMooniswap {
     }
 
     function _tradeMooniswap(
-        IERC20TokenV06 sellToken,
-        IERC20TokenV06 buyToken,
+        IERC20Token sellToken,
+        IERC20Token buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
     ) internal returns (uint256 boughtAmount) {
@@ -62,8 +62,8 @@ contract MixinMooniswap {
         }
 
         boughtAmount = pool.swap{value: ethValue}(
-            sellToken == WETH ? IERC20TokenV06(0) : sellToken,
-            buyToken == WETH ? IERC20TokenV06(0) : buyToken,
+            sellToken == WETH ? IERC20Token(0) : sellToken,
+            buyToken == WETH ? IERC20Token(0) : buyToken,
             sellAmount,
             1,
             address(0)

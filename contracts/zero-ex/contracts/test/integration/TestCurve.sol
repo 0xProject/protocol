@@ -15,7 +15,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "../tokens/TestMintableERC20Token.sol";
 
 contract TestCurve {
@@ -37,10 +37,10 @@ contract TestCurve {
     int128 public constant ETH_COIN_IDX = 2;
 
     uint256 public buyAmount;
-    IERC20TokenV06 public sellToken;
+    IERC20Token public sellToken;
     TestMintableERC20Token public buyToken;
 
-    constructor(IERC20TokenV06 sellToken_, TestMintableERC20Token buyToken_, uint256 buyAmount_) public payable {
+    constructor(IERC20Token sellToken_, TestMintableERC20Token buyToken_, uint256 buyAmount_) public payable {
         sellToken = sellToken_;
         buyToken = buyToken_;
         buyAmount = buyAmount_;

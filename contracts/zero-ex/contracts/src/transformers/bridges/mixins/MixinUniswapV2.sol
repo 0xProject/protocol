@@ -16,7 +16,7 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/src/v06/LibERC20TokenV06.sol";
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "../IBridgeAdapter.sol";
 
 /*
@@ -36,22 +36,22 @@ interface IUniswapV2Router02 {
     function swapExactTokensForTokens(
         uint256 amountIn,
         uint256 amountOutMin,
-        IERC20TokenV06[] calldata path,
+        IERC20Token[] calldata path,
         address to,
         uint256 deadline
     ) external returns (uint256[] memory amounts);
 }
 
 contract MixinUniswapV2 {
-    using LibERC20TokenV06 for IERC20TokenV06;
+    using LibERC20TokenV06 for IERC20Token;
 
     function _tradeUniswapV2(
-        IERC20TokenV06 buyToken,
+        IERC20Token buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
     ) internal returns (uint256 boughtAmount) {
         IUniswapV2Router02 router;
-        IERC20TokenV06[] memory path;
+        IERC20Token[] memory path;
         {
             address[] memory _path;
             (router, _path) = abi.decode(bridgeData, (IUniswapV2Router02, address[]));

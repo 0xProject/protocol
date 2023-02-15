@@ -15,7 +15,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "../../transformers/IERC20Transformer.sol";
 import "../../external/IFlashWallet.sol";
 
@@ -37,10 +37,10 @@ interface ITransformERC20Feature {
         address payable taker;
         // The token being provided by the taker.
         // If `0xeee...`, ETH is implied and should be provided with the call.`
-        IERC20TokenV06 inputToken;
+        IERC20Token inputToken;
         // The token to be acquired by the taker.
         // `0xeee...` implies ETH.
-        IERC20TokenV06 outputToken;
+        IERC20Token outputToken;
         // The amount of `inputToken` to take from the taker.
         // If set to `uint256(-1)`, the entire spendable balance of the taker
         // will be solt.
@@ -112,8 +112,8 @@ interface ITransformERC20Feature {
     ///        in sequence.
     /// @return outputTokenAmount The amount of `outputToken` received by the sender.
     function transformERC20(
-        IERC20TokenV06 inputToken,
-        IERC20TokenV06 outputToken,
+        IERC20Token inputToken,
+        IERC20Token outputToken,
         uint256 inputTokenAmount,
         uint256 minOutputTokenAmount,
         Transformation[] calldata transformations

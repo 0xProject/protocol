@@ -15,7 +15,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "../src/IZeroEx.sol";
 import "../src/vendor/IERC1155Token.sol";
 import "../src/vendor/IERC721Token.sol";
@@ -46,7 +46,7 @@ contract TestNFTOrderPresigner {
         token.setApprovalForAll(address(zeroEx), true);
     }
 
-    function approveERC20(IERC20TokenV06 token) external {
+    function approveERC20(IERC20Token token) external {
         token.approve(address(zeroEx), uint256(-1));
     }
 

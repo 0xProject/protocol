@@ -94,8 +94,8 @@ contract SwapEthForERC20Test is Test, ForkUtils, TestUtils {
             // Set up the FillQuoteTransformer data
             FillQuoteTransformer.TransformData memory fqtData;
             fqtData.side = FillQuoteTransformer.Side.Sell;
-            fqtData.sellToken = IERC20TokenV06(address(tokens.WrappedNativeToken));
-            fqtData.buyToken = IERC20TokenV06(address(tokens.USDT));
+            fqtData.sellToken = IERC20Token(address(tokens.WrappedNativeToken));
+            fqtData.buyToken = IERC20Token(address(tokens.USDT));
             // the FQT has a sequence, e.g first RFQ then Limit then Bridge
             // since solidity doesn't support arrays of different types, this is one simple solution
             // We use a Bridge order type here as we will fill on UniswapV2
@@ -142,13 +142,13 @@ contract SwapEthForERC20Test is Test, ForkUtils, TestUtils {
 
             vm.deal(address(this), 1e18);
             uint256 balanceETHBefore = address(this).balance;
-            uint256 balanceERC20Before = IERC20TokenV06(tokens.USDT).balanceOf(address(this));
+            uint256 balanceERC20Before = IERC20Token(tokens.USDT).balanceOf(address(this));
 
             IZeroEx(payable(addresses.exchangeProxy)).transformERC20{value: 1e18}(
                 // input token
-                IERC20TokenV06(LibERC20Transformer.ETH_TOKEN_ADDRESS),
+                IERC20Token(LibERC20Transformer.ETH_TOKEN_ADDRESS),
                 // output token
-                IERC20TokenV06(address(tokens.USDT)),
+                IERC20Token(address(tokens.USDT)),
                 // input token amount
                 1e18,
                 // min output token amount
@@ -162,9 +162,9 @@ contract SwapEthForERC20Test is Test, ForkUtils, TestUtils {
             log_named_uint("        NativeAsset balance after", balanceETHBefore - address(this).balance);
             log_named_uint(
                 "        ERC-20 balance after",
-                IERC20TokenV06(tokens.USDT).balanceOf(address(this)) - balanceERC20Before
+                IERC20Token(tokens.USDT).balanceOf(address(this)) - balanceERC20Before
             );
-            assert(IERC20TokenV06(tokens.USDT).balanceOf(address(this)) > 0);
+            assert(IERC20Token(tokens.USDT).balanceOf(address(this)) > 0);
         } else {
             emit log_string("Liquidity Source not available on this chain");
         }

@@ -15,8 +15,6 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
-
 /// @dev A transformation callback used in `TransformERC20.transformERC20()`.
 interface IERC20Transformer {
     /// @dev Context information to pass into `transform()` by `TransformERC20.transformERC20()`.

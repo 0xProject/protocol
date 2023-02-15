@@ -15,7 +15,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../../fixins/FixinCommon.sol";
 import "../../fixins/FixinTokenSpender.sol";
@@ -75,9 +75,9 @@ abstract contract MultiplexUniswapV2 is FixinCommon, FixinTokenSpender {
         // so we transfer the tokens in now (either from `msg.sender`
         // or using the Exchange Proxy's balance).
         if (params.useSelfBalance) {
-            _transferERC20Tokens(IERC20TokenV06(tokens[0]), firstPairAddress, sellAmount);
+            _transferERC20Tokens(IERC20Token(tokens[0]), firstPairAddress, sellAmount);
         } else {
-            _transferERC20TokensFrom(IERC20TokenV06(tokens[0]), msg.sender, firstPairAddress, sellAmount);
+            _transferERC20TokensFrom(IERC20Token(tokens[0]), msg.sender, firstPairAddress, sellAmount);
         }
         // Execute the Uniswap/Sushiswap trade.
         return _sellToUniswapV2(tokens, sellAmount, isSushi, firstPairAddress, params.recipient);

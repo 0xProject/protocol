@@ -61,9 +61,9 @@ contract WrapEth is Test, ForkUtils, TestUtils {
         uint256 balanceWETHBefore = zeroExDeployed.weth.balanceOf(address(this));
         zeroExDeployed.zeroEx.transformERC20{value: 1e18}(
             // input token
-            IERC20TokenV06(LibERC20Transformer.ETH_TOKEN_ADDRESS),
+            IERC20Token(LibERC20Transformer.ETH_TOKEN_ADDRESS),
             // output token
-            IERC20TokenV06(address(zeroExDeployed.weth)),
+            IERC20Token(address(zeroExDeployed.weth)),
             // input token amount
             1e18,
             // min output token amount

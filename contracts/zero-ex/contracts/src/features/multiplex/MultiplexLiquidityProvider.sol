@@ -15,7 +15,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "@0x/contracts-erc20/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../../external/ILiquidityProviderSandbox.sol";
@@ -25,7 +25,7 @@ import "../../vendor/ILiquidityProvider.sol";
 import "../interfaces/IMultiplexFeature.sol";
 
 abstract contract MultiplexLiquidityProvider is FixinCommon, FixinTokenSpender {
-    using LibERC20TokenV06 for IERC20TokenV06;
+    using LibERC20TokenV06 for IERC20Token;
     using LibSafeMathV06 for uint256;
 
     // Same event fired by LiquidityProviderFeature
@@ -125,8 +125,8 @@ abstract contract MultiplexLiquidityProvider is FixinCommon, FixinTokenSpender {
         IMultiplexFeature.MultiHopSellParams memory params,
         bytes memory wrappedCallData
     ) internal {
-        IERC20TokenV06 inputToken = IERC20TokenV06(params.tokens[state.hopIndex]);
-        IERC20TokenV06 outputToken = IERC20TokenV06(params.tokens[state.hopIndex + 1]);
+        IERC20Token inputToken = IERC20Token(params.tokens[state.hopIndex]);
+        IERC20Token outputToken = IERC20Token(params.tokens[state.hopIndex + 1]);
         // Decode the provider address and auxiliary data.
         (address provider, bytes memory auxiliaryData) = abi.decode(wrappedCallData, (address, bytes));
         // Cache the recipient's balance of the output token.

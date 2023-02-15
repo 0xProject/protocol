@@ -15,7 +15,7 @@
 pragma solidity ^0.6.5;
 
 import "@0x/contracts-erc20/src/v06/LibERC20TokenV06.sol";
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 
 interface IBalancerPool {
     /// @dev Sell `tokenAmountIn` of `tokenIn` and receive `tokenOut`.
@@ -28,20 +28,20 @@ interface IBalancerPool {
     /// @return spotPriceAfter The new marginal spot price of the given
     ///         token pair for this pool.
     function swapExactAmountIn(
-        IERC20TokenV06 tokenIn,
+        IERC20Token tokenIn,
         uint256 tokenAmountIn,
-        IERC20TokenV06 tokenOut,
+        IERC20Token tokenOut,
         uint256 minAmountOut,
         uint256 maxPrice
     ) external returns (uint256 tokenAmountOut, uint256 spotPriceAfter);
 }
 
 contract MixinBalancer {
-    using LibERC20TokenV06 for IERC20TokenV06;
+    using LibERC20TokenV06 for IERC20Token;
 
     function _tradeBalancer(
-        IERC20TokenV06 sellToken,
-        IERC20TokenV06 buyToken,
+        IERC20Token sellToken,
+        IERC20Token buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
     ) internal returns (uint256 boughtAmount) {

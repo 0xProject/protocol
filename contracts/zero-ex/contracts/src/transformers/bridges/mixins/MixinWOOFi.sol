@@ -16,7 +16,7 @@ pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/src/v06/LibERC20TokenV06.sol";
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "@0x/contracts-erc20/src/v06/IEtherTokenV06.sol";
 import "../IBridgeAdapter.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
@@ -42,7 +42,7 @@ interface IWooPP {
 }
 
 contract MixinWOOFi {
-    using LibERC20TokenV06 for IERC20TokenV06;
+    using LibERC20TokenV06 for IERC20Token;
     using LibERC20TokenV06 for IEtherTokenV06;
     using LibSafeMathV06 for uint256;
 
@@ -50,8 +50,8 @@ contract MixinWOOFi {
     address constant rebateAddress = 0xBfdcBB4C05843163F491C24f9c0019c510786304;
 
     function _tradeWOOFi(
-        IERC20TokenV06 sellToken,
-        IERC20TokenV06 buyToken,
+        IERC20Token sellToken,
+        IERC20Token buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
     ) public returns (uint256 boughtAmount) {

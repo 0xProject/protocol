@@ -14,7 +14,7 @@
 
 pragma solidity ^0.6.5;
 
-import "@0x/contracts-erc20/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 
 interface ILiquidityProvider {
     /// @dev An optional event an LP can emit for each fill against a source.
@@ -29,8 +29,8 @@ interface ILiquidityProvider {
     /// @param sender The caller of the LP.
     /// @param recipient The recipient of the output tokens.
     event LiquidityProviderFill(
-        IERC20TokenV06 inputToken,
-        IERC20TokenV06 outputToken,
+        IERC20Token inputToken,
+        IERC20Token outputToken,
         uint256 inputTokenAmount,
         uint256 outputTokenAmount,
         bytes32 sourceId,
@@ -49,8 +49,8 @@ interface ILiquidityProvider {
     /// @param auxiliaryData Arbitrary auxiliary data supplied to the contract.
     /// @return boughtAmount The amount of `outputToken` bought.
     function sellTokenForToken(
-        IERC20TokenV06 inputToken,
-        IERC20TokenV06 outputToken,
+        IERC20Token inputToken,
+        IERC20Token outputToken,
         address recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
@@ -65,7 +65,7 @@ interface ILiquidityProvider {
     /// @param auxiliaryData Arbitrary auxiliary data supplied to the contract.
     /// @return boughtAmount The amount of `outputToken` bought.
     function sellEthForToken(
-        IERC20TokenV06 outputToken,
+        IERC20Token outputToken,
         address recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
@@ -79,7 +79,7 @@ interface ILiquidityProvider {
     /// @param auxiliaryData Arbitrary auxiliary data supplied to the contract.
     /// @return boughtAmount The amount of ETH bought.
     function sellTokenForEth(
-        IERC20TokenV06 inputToken,
+        IERC20Token inputToken,
         address payable recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
@@ -94,8 +94,8 @@ interface ILiquidityProvider {
     /// @param sellAmount Amount of `inputToken` to sell.
     /// @return outputTokenAmount Amount of `outputToken` that would be obtained.
     function getSellQuote(
-        IERC20TokenV06 inputToken,
-        IERC20TokenV06 outputToken,
+        IERC20Token inputToken,
+        IERC20Token outputToken,
         uint256 sellAmount
     ) external view returns (uint256 outputTokenAmount);
 }
