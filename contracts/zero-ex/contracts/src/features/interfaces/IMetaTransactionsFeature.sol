@@ -44,30 +44,6 @@ interface IMetaTransactionsFeature {
         uint256 feeAmount;
     }
 
-    struct MetaTransactionFeeData {
-        // ERC20 fee recipient
-        address recipient;
-        // ERC20 fee amount
-        uint256 amount;
-    }
-
-    struct MetaTransactionDataV2 {
-        // Signer of meta-transaction. On whose behalf to execute the MTX.
-        address payable signer;
-        // Required sender, or NULL for anyone.
-        address sender;
-        // MTX is invalid after this time.
-        uint256 expirationTimeSeconds;
-        // Nonce to make this MTX unique.
-        uint256 salt;
-        // Encoded call data to a function on the exchange proxy.
-        bytes callData;
-        // ERC20 fee `signer` pays `sender`.
-        IERC20TokenV06 feeToken;
-        // ERC20 fees.
-        MetaTransactionFeeData[] fees;
-    }
-
     /// @dev Emitted whenever a meta-transaction is executed via
     ///      `executeMetaTransaction()` or `executeMetaTransactions()`.
     /// @param hash The meta-transaction hash.

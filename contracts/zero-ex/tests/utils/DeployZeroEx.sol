@@ -28,6 +28,7 @@ import "src/features/FundRecoveryFeature.sol";
 import "src/features/TransformERC20Feature.sol";
 import "src/features/OtcOrdersFeature.sol";
 import "src/features/MetaTransactionsFeature.sol";
+import "src/features/MetaTransactionsFeatureV2.sol";
 import "src/features/nft_orders/ERC1155OrdersFeature.sol";
 import "src/features/nft_orders/ERC721OrdersFeature.sol";
 import "src/features/UniswapFeature.sol";
@@ -68,6 +69,7 @@ contract DeployZeroEx is Test {
         FundRecoveryFeature fundRecoveryFeature;
         TransformERC20Feature transformERC20Feature;
         MetaTransactionsFeature metaTransactionsFeature;
+        MetaTransactionsFeatureV2 metaTransactionsFeatureV2;
         ERC1155OrdersFeature erc1155OrdersFeature;
         ERC721OrdersFeature erc721OrdersFeature;
         MultiplexFeature multiplexFeature;
@@ -133,6 +135,7 @@ contract DeployZeroEx is Test {
         emit log_named_address("UniswapV3Feature", address(ZERO_EX_DEPLOYED.features.uniswapV3Feature));
         emit log_named_address("FundRecoveryFeature", address(ZERO_EX_DEPLOYED.features.fundRecoveryFeature));
         emit log_named_address("MetaTransactionsFeature", address(ZERO_EX_DEPLOYED.features.metaTransactionsFeature));
+        emit log_named_address("MetaTransactionsFeatureV2", address(ZERO_EX_DEPLOYED.features.metaTransactionsFeatureV2));
         emit log_named_address("ERC1155OrdersFeature", address(ZERO_EX_DEPLOYED.features.erc1155OrdersFeature));
         emit log_named_address("ERC721OrdersFeature", address(ZERO_EX_DEPLOYED.features.erc721OrdersFeature));
         emit log_named_address("TransformERC20Feature", address(ZERO_EX_DEPLOYED.features.transformERC20Feature));
@@ -201,6 +204,7 @@ contract DeployZeroEx is Test {
         );
         ZERO_EX_DEPLOYED.features.fundRecoveryFeature = new FundRecoveryFeature();
         ZERO_EX_DEPLOYED.features.metaTransactionsFeature = new MetaTransactionsFeature(address(ZERO_EX));
+        ZERO_EX_DEPLOYED.features.metaTransactionsFeatureV2 = new MetaTransactionsFeatureV2(address(ZERO_EX));
         ZERO_EX_DEPLOYED.features.erc1155OrdersFeature = new ERC1155OrdersFeature(
             address(ZERO_EX),
             ZERO_EX_DEPLOYED.weth
@@ -268,6 +272,11 @@ contract DeployZeroEx is Test {
         IZERO_EX.migrate(
             address(ZERO_EX_DEPLOYED.features.metaTransactionsFeature),
             abi.encodeWithSelector(MetaTransactionsFeature.migrate.selector),
+            address(this)
+        );
+        IZERO_EX.migrate(
+            address(ZERO_EX_DEPLOYED.features.metaTransactionsFeatureV2),
+            abi.encodeWithSelector(MetaTransactionsFeatureV2.migrate.selector),
             address(this)
         );
         IZERO_EX.migrate(
