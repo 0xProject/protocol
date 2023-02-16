@@ -214,11 +214,6 @@ export class SwapService implements ISwapService {
 
         this._swapQuoterOpts = {
             ...SWAP_QUOTER_OPTS,
-            rfqt: {
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
-                ...SWAP_QUOTER_OPTS.rfqt!,
-                warningLogger: logger.warn.bind(logger),
-            },
             contractAddresses,
         };
 

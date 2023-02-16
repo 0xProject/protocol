@@ -329,7 +329,6 @@ export interface Integrator {
 export interface SwapQuoterRfqOpts {
     integratorsWhitelist: Integrator[];
     txOriginBlacklist: Set<string>;
-    warningLogger?: LogFunction;
 }
 
 export type AssetSwapperContractAddresses = ContractAddresses;

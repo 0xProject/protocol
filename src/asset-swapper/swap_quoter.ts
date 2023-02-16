@@ -8,6 +8,7 @@ import * as _ from 'lodash';
 import { artifacts } from '../artifacts';
 import { RfqClient } from '../utils/rfq_client';
 import { ERC20BridgeSamplerContract } from '../wrappers';
+import { logger } from '../logger';
 
 import { constants } from './constants';
 import {
@@ -298,27 +299,23 @@ export class SwapQuoter {
 
         // If an integrator ID was provided, but the ID is not whitelisted, raise a warning and disable RFQ
         if (!this._isIntegratorIdWhitelisted(integrator.integratorId)) {
-            if (this._rfqtOptions && this._rfqtOptions.warningLogger) {
-                this._rfqtOptions.warningLogger(
-                    {
-                        ...integrator,
-                    },
-                    'Attempt at using an RFQ API key that is not whitelisted. Disabling RFQ for the request lifetime.',
-                );
-            }
+            logger.warn(
+                {
+                    ...integrator,
+                },
+                'Attempt at using an RFQ API key that is not whitelisted. Disabling RFQ for the request lifetime.',
+            );
             return undefined;
         }
 
         // If the requested tx origin is blacklisted, raise a warning and disable RFQ
         if (this._isTxOriginBlacklisted(txOrigin)) {
-            if (this._rfqtOptions && this._rfqtOptions.warningLogger) {
-                this._rfqtOptions.warningLogger(
-                    {
-                        txOrigin,
-                    },
-                    'Attempt at using a tx Origin that is blacklisted. Disabling RFQ for the request lifetime.',
-                );
-            }
+            logger.warn(
+                {
+                    txOrigin,
+                },
+                'Attempt at using a tx Origin that is blacklisted. Disabling RFQ for the request lifetime.',
+            );
             return undefined;
         }
 

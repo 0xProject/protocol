@@ -5,13 +5,14 @@ import { Connection, In, MoreThanOrEqual } from 'typeorm';
 import { LimitOrder } from '../asset-swapper';
 import {
     DB_ORDERS_UPDATE_CHUNK_SIZE,
+    MAX_ORDER_EXPIRATION_BUFFER_SECONDS,
     SRA_ORDER_EXPIRATION_BUFFER_SECONDS,
     SRA_PERSISTENT_ORDER_POSTING_WHITELISTED_API_KEYS,
 } from '../config';
 import { ONE_SECOND_MS } from '../constants';
 import { PersistentSignedOrderV4Entity, SignedOrderV4Entity } from '../entities';
-import { ValidationError, ValidationErrorCodes, ValidationErrorReasons } from '../errors';
-import { alertOnExpiredOrders } from '../logger';
+import { ExpiredOrderError, ValidationError, ValidationErrorCodes, ValidationErrorReasons } from '../errors';
+import { logger } from '../logger';
 import {
     IOrderBookService,
     OrderbookResponse,
@@ -211,7 +212,7 @@ export class OrderBookService implements IOrderBookService {
 
         // check for expired orders
         const { fresh, expired } = orderUtils.groupByFreshness(apiOrders, SRA_ORDER_EXPIRATION_BUFFER_SECONDS);
-        alertOnExpiredOrders(expired);
+        logErrorOnExpiredOrders(expired);
 
         const paginatedApiOrders = paginationUtils.paginate(fresh, page, perPage);
         return paginatedApiOrders;
@@ -241,5 +242,23 @@ export class OrderBookService implements IOrderBookService {
         await this._connection
             .getRepository(PersistentSignedOrderV4Entity)
             .save(addedOrders, { chunk: DB_ORDERS_UPDATE_CHUNK_SIZE });
+    }
+}
+
+/**
+ * If the max age of expired orders exceeds the configured threshold, this function
+ * logs an error capturing the details of the expired orders
+ */
+function logErrorOnExpiredOrders(expired: SRAOrder[], details?: string): void {
+    const maxExpirationTimeSeconds = Date.now() / ONE_SECOND_MS + MAX_ORDER_EXPIRATION_BUFFER_SECONDS;
+    let idx = 0;
+    if (
+        expired.find((order, i) => {
+            idx = i;
+            return order.order.expiry.toNumber() > maxExpirationTimeSeconds;
+        })
+    ) {
+        const error = new ExpiredOrderError(expired[idx].order, MAX_ORDER_EXPIRATION_BUFFER_SECONDS, details);
+        logger.error(error);
     }
 }
