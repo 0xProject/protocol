@@ -94,6 +94,18 @@ jobs:
               run: |
                   forge test -vvv --gas-report
 
+            - name: Run Forge coverage for erc20
+              working-directory: contracts/erc20
+              run: |
+                  forge coverage --report summary --report lcov
+
+            - name: Upload the coverage report to Coveralls
+              uses: coverallsapp/github-action@master
+              with:
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  base-path: ./contracts/erc20/
+                  path-to-lcov: ./contracts/erc20/lcov.info
+
             - name: Run Forge build for zero-ex
               working-directory: contracts/zero-ex
               run: |
