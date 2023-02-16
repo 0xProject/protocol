@@ -92,10 +92,6 @@ export const assert = {
     ...sharedAssert,
     isValidOrderbook(variableName: string, orderFetcher: Orderbook): void {
         sharedAssert.isFunction(`${variableName}.getOrdersAsync`, orderFetcher.getOrdersAsync.bind(orderFetcher));
-        sharedAssert.isFunction(
-            `${variableName}.getBatchOrdersAsync`,
-            orderFetcher.getBatchOrdersAsync.bind(orderFetcher),
-        );
     },
     isValidPercentage(variableName: string, percentage: number): void {
         assert.isNumber(variableName, percentage);

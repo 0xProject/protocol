@@ -12,13 +12,6 @@ export class NoOpOrderbook extends Orderbook {
     ): Promise<SignedLimitOrder[]> {
         return [];
     }
-    public async getBatchOrdersAsync(
-        _makerTokens: string[],
-        _takerToken: string,
-        _pruneFn?: (o: SignedLimitOrder) => boolean,
-    ): Promise<SignedLimitOrder[][]> {
-        return [];
-    }
     public async destroyAsync(): Promise<void> {
         return;
     }
