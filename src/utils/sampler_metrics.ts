@@ -3,23 +3,23 @@ import { Gauge, Summary } from 'prom-client';
 
 const SAMPLER_GAS_USED_SUMMARY = new Summary({
     name: 'sampler_gas_used_summary',
-    help: 'Provides information about the gas used during a sampler call',
+    help: 'The gas used during a sampler call',
     labelNames: ['side'],
 });
 
 const SAMPLER_GAS_LIMIT_SUMMARY = new Summary({
     name: 'sampler_gas_limit_summary',
-    help: 'Provides information about the gas limit detected during a sampler call',
+    help: 'The gas limit detected during a sampler call',
 });
 
 const SAMPLER_BLOCK_NUMBER_GAUGE = new Gauge({
     name: 'sampler_blocknumber',
-    help: 'Provides information about the gas limit detected during a sampler call',
+    help: 'The block number of a sampler call',
 });
 
 const ROUTER_EXECUTION_TIME_SUMMARY = new Summary({
     name: 'router_execution_time',
-    help: 'Provides information about the execution time for routing related logic',
+    help: 'Execution time for routing related logic',
     labelNames: ['router', 'type'],
 });
 
