@@ -1,4 +1,3 @@
-import { ERC20BridgeSource, FillData, NativeFillData, RfqOrderFields } from '@0x/asset-swapper';
 import { BigNumber } from '@0x/utils';
 import { Producer } from 'kafkajs';
 
@@ -6,9 +5,80 @@ import { logger } from '../logger';
 import { FirmOtcQuote, IndicativeQuote, RfqtV2Quote, StoredFee } from '../core/types';
 
 import { numberUtils } from './number_utils';
+import {
+    FillQuoteTransformerLimitOrderInfo,
+    FillQuoteTransformerRfqOrderInfo,
+    RfqOrderFields,
+} from '@0x/protocol-utils';
 
 /** Migrated from @0x/asset-swapper */
 
+/**
+ * DEX sources to aggregate.
+ */
+enum ERC20BridgeSource {
+    Native = 'Native',
+    Uniswap = 'Uniswap',
+    UniswapV2 = 'Uniswap_V2',
+    Eth2Dai = 'Eth2Dai',
+    Kyber = 'Kyber',
+    Curve = 'Curve',
+    LiquidityProvider = 'LiquidityProvider',
+    MultiBridge = 'MultiBridge',
+    Balancer = 'Balancer',
+    BalancerV2 = 'Balancer_V2',
+    Cream = 'CREAM',
+    Bancor = 'Bancor',
+    MakerPsm = 'MakerPsm',
+    MStable = 'mStable',
+    Mooniswap = 'Mooniswap',
+    MultiHop = 'MultiHop',
+    Shell = 'Shell',
+    Swerve = 'Swerve',
+    SnowSwap = 'SnowSwap',
+    SushiSwap = 'SushiSwap',
+    Dodo = 'DODO',
+    DodoV2 = 'DODO_V2',
+    CryptoCom = 'CryptoCom',
+    Linkswap = 'Linkswap',
+    KyberDmm = 'KyberDMM',
+    Smoothy = 'Smoothy',
+    Component = 'Component',
+    Saddle = 'Saddle',
+    XSigma = 'xSigma',
+    UniswapV3 = 'Uniswap_V3',
+    CurveV2 = 'Curve_V2',
+    Lido = 'Lido',
+    ShibaSwap = 'ShibaSwap',
+    AaveV2 = 'Aave_V2',
+    Compound = 'Compound',
+    PancakeSwap = 'PancakeSwap',
+    PancakeSwapV2 = 'PancakeSwap_V2',
+    BakerySwap = 'BakerySwap',
+    Nerve = 'Nerve',
+    Belt = 'Belt',
+    Ellipsis = 'Ellipsis',
+    ApeSwap = 'ApeSwap',
+    CafeSwap = 'CafeSwap',
+    CheeseSwap = 'CheeseSwap',
+    JulSwap = 'JulSwap',
+    ACryptos = 'ACryptoS',
+    QuickSwap = 'QuickSwap',
+    ComethSwap = 'ComethSwap',
+    Dfyn = 'Dfyn',
+    WaultSwap = 'WaultSwap',
+    Polydex = 'Polydex',
+    FirebirdOneSwap = 'FirebirdOneSwap',
+    JetSwap = 'JetSwap',
+    IronSwap = 'IronSwap',
+    Pangolin = 'Pangolin',
+    TraderJoe = 'TraderJoe',
+    UbeSwap = 'UbeSwap',
+    SpiritSwap = 'SpiritSwap',
+    SpookySwap = 'SpookySwap',
+    Beethovenx = 'Beethovenx',
+    MorpheusSwap = 'MorpheusSwap',
+}
 export interface ExtendedQuoteReport {
     quoteId?: string;
     taker?: string;
@@ -27,6 +97,9 @@ export interface ExtendedQuoteReport {
     sourcesDelivered: ExtendedQuoteReportIndexedEntryOutbound[] | undefined;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface FillData {} // yes, it was really this in asset swapper
+type NativeFillData = FillQuoteTransformerRfqOrderInfo | FillQuoteTransformerLimitOrderInfo;
 export interface QuoteReportEntryBase {
     liquiditySource: ERC20BridgeSource;
     makerAmount: BigNumber;
