@@ -2,14 +2,15 @@ import { OtcOrder, RfqOrder, SIGNATURE_ABI } from '@0x/protocol-utils';
 import { AbiEncoder } from '@0x/utils';
 
 export enum MultiplexSubcall {
-    Invalid,
-    Rfq,
-    Otc,
-    UniswapV2,
-    UniswapV3,
-    TransformERC20,
-    BatchSell,
-    MultiHopSell,
+    Invalid = 0,
+    Rfq = 1,
+    Otc = 2,
+    UniswapV2 = 3,
+    UniswapV3 = 4,
+    LiquidityProvider = 5,
+    TransformERC20 = 6,
+    BatchSell = 7,
+    MultiHopSell = 8,
 }
 export const multiplexTransformERC20Encoder = AbiEncoder.create([
     {
