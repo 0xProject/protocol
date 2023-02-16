@@ -1,108 +1,115 @@
 name: Continuous Integration
 on:
-  push:
-    branches:
-      - main
-      - development
-  pull_request:
+    push:
+        branches:
+            - main
+            - development
+    pull_request:
 
 jobs:
-  build:
-    name: Build and test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: recursive
-
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: "16"
-
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
-
-      - name: Build solution
-        run: yarn build
-
-      - name: Lint typescript
-        run: yarn lint:ts
-
-      - name: Lint solidity
-        run: yarn lint:contracts
-
-      - name: Run prettier
-        run: yarn prettier:ci
-
-      - name: Check dependent packages have consistent versions
-        run: yarn deps_versions:ci
-
-      - name: Check diff in docs
-        run: yarn diff_md_docs:ci
-
-      - name: Check for broken links in markdown files
-        run: yarn test:links
-
-      - name: Test doc generation
-        run: yarn test:generate_docs:ci
-
-      - name: Test @0x/contracts-*
-        run: |
-                yarn wsrun \
-                  -p @0x/contracts-multisig \
-                  -p @0x/contracts-utils \
-                  -p @0x/contracts-exchange-libs \
-                  -p @0x/contracts-erc20 \
-                  -p @0x/contracts-erc721 \
-                  -p @0x/contracts-erc1155 \
-                  -p @0x/contracts-asset-proxy \
-                  -p @0x/contracts-broker \
-                  -p @0x/contracts-zero-ex \
-                  -m --serial -c test:ci
-
-      - name: Test local @0x/contracts-*
-        run: |
-                yarn wsrun \
-                  -p @0x/contracts-test-utils \
-                  -p @0x/contract-addresses \
-                  -p @0x/contract-artifacts \
-                  -p @0x/contract-wrappers-test \
-                  -p @0x/order-utils \
-                  -m --serial -c test:ci
-
-      - name: Add foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
-
-      - name: Run Forge build
-        working-directory: contracts/zero-ex
-        run: |
-          forge --version
-          forge build --sizes
-
-      - name: Run Forge tests
-        working-directory: contracts/zero-ex
+    build:
+        name: Build and test
+        runs-on: ubuntu-latest
         env:
-          ARBITRUM_RPC_URL: ${{ secrets.ARBITRUM_RPC_URL }}
-          AVALANCHE_RPC_URL: ${{ secrets.AVALANCHE_RPC_URL }}
-          BSC_RPC_URL: ${{ secrets.BSC_RPC_URL }}
-          FANTOM_RPC_URL: ${{ secrets.FANTOM_RPC_URL }}
-          MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
-          OPTIMISM_RPC_URL: ${{ secrets.OPTIMISM_RPC_URL }}
-          POLYGON_RPC_URL: ${{ secrets.POLYGON_RPC_URL }}
-        run: |
-          forge test -vvv --gas-report
+            ARBITRUM_RPC_URL: ${{ secrets.ARBITRUM_RPC_URL }}
+            AVALANCHE_RPC_URL: ${{ secrets.AVALANCHE_RPC_URL }}
+            BSC_RPC_URL: ${{ secrets.BSC_RPC_URL }}
+            FANTOM_RPC_URL: ${{ secrets.FANTOM_RPC_URL }}
+            MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
+            OPTIMISM_RPC_URL: ${{ secrets.OPTIMISM_RPC_URL }}
+            POLYGON_RPC_URL: ${{ secrets.POLYGON_RPC_URL }}
+        steps:
+            - uses: actions/checkout@v3
+              with:
+                  submodules: recursive
 
-      - name: Run Forge coverage
-        working-directory: contracts/zero-ex
-        run: |
-          forge coverage --report lcov
+            - name: Setup Node
+              uses: actions/setup-node@v3
+              with:
+                  node-version: '16'
 
-      - name: Upload the coverage report to Coveralls
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          base-path: ./contracts/zero-ex/
-          path-to-lcov: ./contracts/zero-ex/lcov.info
+            - name: Install dependencies
+              run: yarn install --frozen-lockfile
+
+            - name: Build solution
+              run: yarn build
+
+            - name: Lint typescript
+              run: yarn lint:ts
+
+            - name: Lint solidity
+              run: yarn lint:contracts
+
+            - name: Run prettier
+              run: yarn prettier:ci
+
+            - name: Check dependent packages have consistent versions
+              run: yarn deps_versions:ci
+
+            - name: Check diff in docs
+              run: yarn diff_md_docs:ci
+
+            - name: Check for broken links in markdown files
+              run: yarn test:links
+
+            - name: Test doc generation
+              run: yarn test:generate_docs:ci
+
+            - name: Test @0x/contracts-*
+              run: |
+                  yarn wsrun \
+                    -p @0x/contracts-multisig \
+                    -p @0x/contracts-utils \
+                    -p @0x/contracts-exchange-libs \
+                    -p @0x/contracts-erc20 \
+                    -p @0x/contracts-erc721 \
+                    -p @0x/contracts-erc1155 \
+                    -p @0x/contracts-asset-proxy \
+                    -p @0x/contracts-broker \
+                    -p @0x/contracts-zero-ex \
+                    -m --serial -c test:ci
+
+            - name: Test local @0x/contracts-*
+              run: |
+                  yarn wsrun \
+                    -p @0x/contracts-test-utils \
+                    -p @0x/contract-addresses \
+                    -p @0x/contract-artifacts \
+                    -p @0x/contract-wrappers-test \
+                    -p @0x/order-utils \
+                    -m --serial -c test:ci
+
+            - name: Add foundry
+              uses: foundry-rs/foundry-toolchain@v1
+              with:
+                  version: nightly
+
+            - name: Run Forge build
+              working-directory: contracts/zero-ex
+              run: |
+                  forge --version
+                  forge build --sizes
+
+            - name: Run Forge tests
+              working-directory: contracts/zero-ex
+              run: |
+                  forge test -vvv --gas-report
+
+            - name: Run Forge coverage
+              working-directory: contracts/zero-ex
+              run: |
+                  forge coverage --report summary --report lcov
+
+            - name: Upload the coverage report to Coveralls
+              uses: coverallsapp/github-action@master
+              with:
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  base-path: ./contracts/zero-ex/
+                  path-to-lcov: ./contracts/zero-ex/lcov.info
+
+            - name: Check coverage threshold
+              uses: VeryGoodOpenSource/very_good_coverage@v2
+              with:
+                  path: ./contracts/zero-ex/lcov.info
+                  min_coverage: 6.98
+                  exclude: '**/tests'
