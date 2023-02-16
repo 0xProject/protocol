@@ -150,6 +150,7 @@ interface QuoteBase {
     estimatedPriceImpact: BigNumber | null;
     debugData?: {
         samplerGasUsage: number;
+        blockNumber: number;
     };
 }
 

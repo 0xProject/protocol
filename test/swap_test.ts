@@ -367,6 +367,7 @@ describe(SUITE_NAME, () => {
             expectCorrectQuoteResponse(response, {
                 debugData: {
                     samplerGasUsage: 130_000, // approximate: +- 50%
+                    blockNumber: 100, // approximate: +- 50%
                 },
             });
         });
@@ -640,11 +641,16 @@ function expectCorrectQuoteResponse(
         }
 
         if (prop === 'debugData') {
-            const { samplerGasUsage, ...rest } = quoteResponse[property];
-            const { samplerGasUsage: expectedSamplerGasUsage, ...expectedRest } = expectedResponse[property];
-            console.log(samplerGasUsage, expectedSamplerGasUsage);
+            const { samplerGasUsage, blockNumber, ...rest } = quoteResponse[property];
+            const {
+                samplerGasUsage: expectedSamplerGasUsage,
+                blockNumber: expectedBlockNumber,
+                ...expectedRest
+            } = expectedResponse[property];
             expect(samplerGasUsage).gt(expectedSamplerGasUsage * 0.5, 'samplerGasUsage is too low');
             expect(samplerGasUsage).lt(expectedSamplerGasUsage * 1.5, 'samplerGasUsage is too high');
+            expect(blockNumber).gt(expectedBlockNumber * 0.5, 'blockNumber is too low');
+            expect(blockNumber).lt(expectedBlockNumber * 1.5, 'blockNumber is too high');
             expect(rest).to.be.deep.eq(expectedRest);
             continue;
         }
