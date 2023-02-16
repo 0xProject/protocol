@@ -1,7 +1,6 @@
 // tslint:disable:max-file-line-count custom-no-magic-numbers
-import { SignatureType } from '@0x/asset-swapper';
 import { ContractAddresses } from '@0x/contract-addresses';
-import { ethSignHashWithKey, MetaTransaction, OtcOrder } from '@0x/protocol-utils';
+import { ethSignHashWithKey, MetaTransaction, OtcOrder, SignatureType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import Axios, { AxiosInstance } from 'axios';

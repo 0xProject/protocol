@@ -1,6 +1,5 @@
 import { ValidationError, ValidationErrorCodes } from '@0x/api-utils';
 import { MetaTransaction } from '@0x/protocol-utils';
-import { SwapQuoterError } from '@0x/asset-swapper';
 import { BigNumber } from '@0x/utils';
 import Axios, { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
@@ -671,7 +670,7 @@ describe('MetaTransactionClient', () => {
                         {
                             field: 'sellAmount',
                             code: ValidationErrorCodes.ValueOutOfRange,
-                            reason: SwapQuoterError.InsufficientAssetLiquidity,
+                            reason: 'INSUFFICIENT_ASSET_LIQUIDITY',
                         },
                     ]),
                 },

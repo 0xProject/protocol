@@ -64,8 +64,13 @@ describe('RefreshingQuoteRequestor', () => {
                 /* comparisonPrice */ undefined,
                 {
                     integrator: {
+                        allowedChainIds: [],
+                        apiKeys: [],
                         integratorId: 'uuid-integrator-id',
                         label: 'integrator',
+                        plp: false,
+                        rfqm: false,
+                        rfqt: true,
                     },
                     intentOnFilling: false,
                     isIndicative: true,
@@ -84,8 +89,13 @@ describe('RefreshingQuoteRequestor', () => {
                   undefined,
                   Object {
                     "integrator": Object {
+                      "allowedChainIds": Array [],
+                      "apiKeys": Array [],
                       "integratorId": "uuid-integrator-id",
                       "label": "integrator",
+                      "plp": false,
+                      "rfqm": false,
+                      "rfqt": true,
                     },
                     "intentOnFilling": false,
                     "isIndicative": true,
@@ -109,8 +119,13 @@ describe('RefreshingQuoteRequestor', () => {
                 /* comparisonPrice */ undefined,
                 {
                     integrator: {
+                        allowedChainIds: [],
+                        apiKeys: [],
                         integratorId: 'uuid-integrator-id',
                         label: 'integrator',
+                        plp: false,
+                        rfqm: false,
+                        rfqt: true,
                     },
                     intentOnFilling: true,
                     takerAddress: '0xtakeraddress',
@@ -128,8 +143,13 @@ describe('RefreshingQuoteRequestor', () => {
                   undefined,
                   Object {
                     "integrator": Object {
+                      "allowedChainIds": Array [],
+                      "apiKeys": Array [],
                       "integratorId": "uuid-integrator-id",
                       "label": "integrator",
+                      "plp": false,
+                      "rfqm": false,
+                      "rfqt": true,
                     },
                     "intentOnFilling": true,
                     "takerAddress": "0xtakeraddress",

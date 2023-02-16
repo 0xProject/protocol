@@ -3,9 +3,7 @@
 // tslint:disable:max-file-line-count
 
 import { pino } from '@0x/api-utils';
-import { QuoteRequestor, SignatureType } from '@0x/asset-swapper';
-import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
-import { OtcOrder } from '@0x/protocol-utils';
+import { OtcOrder, SignatureType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { expect } from 'chai';
 import { BigNumber as EthersBigNumber, providers } from 'ethers';
@@ -54,10 +52,8 @@ import {
 
 // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
 // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
-const NEVER_EXPIRES = new BigNumber(9999999999999999);
 const MOCK_WORKER_REGISTRY_ADDRESS = '0x1023331a469c6391730ff1E2749422CE8873EC38';
 const MOCK_GAS_PRICE = new BigNumber(100);
-const MOCK_MM_URI = 'https://mm-address';
 const TEST_RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS = 50;
 const WORKER_FULL_BALANCE_WEI = new BigNumber(1).shiftedBy(ETH_DECIMALS);
 let loggerSpy: pino.Logger;
@@ -76,28 +72,6 @@ const buildWorkerServiceForUnitTest = (
         enableAccessList?: boolean;
     } = {},
 ): WorkerService => {
-    const contractAddresses = getContractAddressesForChainOrThrow(1);
-    const quoteRequestorMock = mock(QuoteRequestor);
-    when(
-        quoteRequestorMock.requestRfqmIndicativeQuotesAsync(
-            anything(),
-            anything(),
-            anything(),
-            anything(),
-            anything(),
-            anything(),
-        ),
-    ).thenResolve([
-        {
-            makerToken: contractAddresses.zrxToken,
-            makerAmount: new BigNumber(101),
-            takerToken: contractAddresses.etherToken,
-            takerAmount: new BigNumber(100),
-            expiry: NEVER_EXPIRES,
-            makerUri: MOCK_MM_URI,
-        },
-    ]);
-
     const gasStationAttendantMock = mock(GasStationAttendantEthereum);
     when(gasStationAttendantMock.getExpectedTransactionGasRateAsync()).thenResolve(MOCK_GAS_PRICE);
     const gasStationAttendantInstance = instance(gasStationAttendantMock);

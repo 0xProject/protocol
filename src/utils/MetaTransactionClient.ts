@@ -1,5 +1,4 @@
 import { pino, ValidationError, ValidationErrorCodes, ValidationErrorItem } from '@0x/api-utils';
-import { SwapQuoterError } from '@0x/asset-swapper';
 import { MetaTransaction, MetaTransactionFields } from '@0x/protocol-utils';
 import { EIP712DomainWithDefaultSchema } from '@0x/types';
 import { BigNumber } from '@0x/utils';
@@ -11,7 +10,7 @@ import { META_TRANSACTION_SERVICE_RPC_URL } from '../config';
 import { ZERO } from '../core/constants';
 import { APIErrorCodes } from '../core/errors';
 import { rawFeesToFees } from '../core/meta_transaction_fee_utils';
-import { GaslessTypes } from '../core/types';
+import { GaslessTypes, SwapQuoterError } from '../core/types';
 import { FeeConfigs, Fees, RawFees } from '../core/types/meta_transaction_fees';
 import { GetQuote, GetQuoteResponse } from '../proto-ts/meta_transaction.pb';
 

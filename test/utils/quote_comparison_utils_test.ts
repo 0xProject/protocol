@@ -1,14 +1,11 @@
 // tslint:disable:custom-no-magic-numbers
 // tslint:disable:no-empty
 // tslint:disable:max-file-line-count
-
-import { SignatureType } from '@0x/asset-swapper';
-import { ONE_SECOND_MS } from '@0x/asset-swapper/lib/src/utils/market_operation_utils/constants';
-import { OtcOrder } from '@0x/protocol-utils';
+import { OtcOrder, SignatureType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { expect } from 'chai';
 
-import { DEFAULT_MIN_EXPIRY_DURATION_MS, ZERO } from '../../src/core/constants';
+import { DEFAULT_MIN_EXPIRY_DURATION_MS, ONE_SECOND_MS, ZERO } from '../../src/core/constants';
 import { FirmOtcQuote, IndicativeQuote } from '../../src/core/types';
 import { getBestQuote } from '../../src/utils/quote_comparison_utils';
 

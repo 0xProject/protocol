@@ -1,24 +1,14 @@
 // tslint:disable: max-file-line-count
-import {
-    AltQuoteModel,
-    AltRfqMakerAssetOfferings,
-    Integrator,
-    MarketOperation,
-    RfqmRequestOptions,
-    RfqPairType,
-    RfqRequestOpts,
-    SignedNativeOrder,
-    TypedMakerUrl,
-} from '@0x/asset-swapper/lib/src/types';
 import { schemas, SchemaValidator } from '@0x/json-schemas';
 import { FillQuoteTransformerOrderType, Signature } from '@0x/protocol-utils';
+import { MarketOperation } from '@0x/types';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import axios, { AxiosInstance } from 'axios';
 
-import { RFQ_PRICE_ENDPOINT_TIMEOUT_MS } from '../config';
+import { Integrator, RFQ_PRICE_ENDPOINT_TIMEOUT_MS } from '../config';
 import { ONE_SECOND_MS } from '../core/constants';
 import { toPairString } from '../core/pair_utils';
-import { Fee } from '../core/types';
+import { Fee, SignedNativeOrder } from '../core/types';
 import { logger } from '../logger';
 import {
     TakerRequestQueryParamsUnnested,
@@ -29,6 +19,7 @@ import {
 import { RfqMakerAssetOfferings } from '../utils/rfq_maker_manager';
 
 import { returnQuoteFromAltMMAsync } from './altMmImplementaionUtils';
+import { AltQuoteModel, AltRfqMakerAssetOfferings } from './altMmTypes';
 import { RfqMakerBlacklist } from './rfqMakerBlacklist';
 
 // Matches value at
@@ -56,6 +47,29 @@ const DISABLED_RFQT_V1_PAIRS_SET = new Set(
         DISABLED_RFQT_V1_TOKENS.filter((t) => t !== token).map((otherToken) => toPairString(token, otherToken)),
     ),
 );
+
+enum RfqPairType {
+    Standard = 'standard',
+    Alt = 'alt',
+}
+
+interface TypedMakerUrl {
+    url: string;
+    pairType: RfqPairType;
+}
+
+export interface RfqRequestOpts {
+    takerAddress: string;
+    txOrigin: string;
+    integrator: Integrator;
+    intentOnFilling: boolean;
+    isIndicative?: boolean;
+    makerEndpointMaxResponseTimeMs?: number;
+    nativeExclusivelyRFQ?: boolean;
+    altRfqAssetOfferings?: AltRfqMakerAssetOfferings;
+    isLastLook?: boolean;
+    fee?: Fee;
+}
 
 interface RfqQuote<T> {
     response: T;
@@ -247,7 +261,7 @@ export class QuoteRequestor {
      * @returns a list of TypedMakerUrl instances
      */
     public static getTypedMakerUrlsAndWhitelist(
-        options: Pick<RfqmRequestOptions, 'integrator' | 'altRfqAssetOfferings'>,
+        options: { integrator: Integrator; altRfqAssetOfferings?: AltRfqMakerAssetOfferings },
         assetOfferings: RfqMakerAssetOfferings,
     ): TypedMakerUrl[] {
         const standardUrls = Object.keys(assetOfferings).map((mm: string): TypedMakerUrl => {

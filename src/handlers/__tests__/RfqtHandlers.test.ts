@@ -1,5 +1,4 @@
 // tslint:disable: max-file-line-count
-import { SignedNativeOrder } from '@0x/asset-swapper/lib/src/types';
 import { ContractAddresses } from '@0x/contract-addresses';
 import { OtcOrder } from '@0x/protocol-utils';
 import { SignatureType } from '@0x/protocol-utils/lib/src/signature_utils';
@@ -16,7 +15,7 @@ import { QuoteRequestor, V4RFQIndicativeQuoteMM } from '../../quoteRequestor/Quo
 import { FeeService } from '../../services/fee_service';
 import { RfqtService } from '../../services/RfqtService';
 import { RfqMakerBalanceCacheService } from '../../services/rfq_maker_balance_cache_service';
-import { RfqtV2Price, RfqtV2Quote } from '../../core/types';
+import type { RfqtV2Price, RfqtV2Quote, SignedNativeOrder } from '../../core/types';
 import { ConfigManager } from '../../utils/config_manager';
 import { QuoteServerClient } from '../../utils/quote_server_client';
 import { RfqMakerManager } from '../../utils/rfq_maker_manager';

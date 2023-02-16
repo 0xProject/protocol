@@ -214,6 +214,7 @@ export enum OrderEventEndState {
     StoppedWatching = 'STOPPED_WATCHING',
 }
 
+export * from './assetSwapper';
 export * from './fees';
 
 // tslint:disable-line:max-file-line-count

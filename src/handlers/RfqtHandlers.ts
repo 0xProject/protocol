@@ -1,5 +1,4 @@
 // tslint:disable:max-file-line-count
-import { AltRfqMakerAssetOfferings, SignedNativeOrder } from '@0x/asset-swapper/lib/src/types';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import * as express from 'express';
@@ -11,9 +10,10 @@ import { logger } from '../logger';
 import { V4RFQIndicativeQuoteMM } from '../quoteRequestor/QuoteRequestor';
 import { RfqtService } from '../services/RfqtService';
 import { FirmQuoteContext, QuoteContext } from '../services/types';
-import { RfqtV2Price, RfqtV2Quote, RfqtV2Request } from '../core/types';
+import type { RfqtV2Price, RfqtV2Quote, RfqtV2Request, SignedNativeOrder } from '../core/types';
 import { ConfigManager } from '../utils/config_manager';
 import { RfqtServices } from '../utils/rfqtServiceBuilder';
+import type { AltRfqMakerAssetOfferings } from '../quoteRequestor/altMmTypes';
 
 const RFQT_V1_PRICE_REQUEST_SUCCEEDED = new Counter({
     name: 'rfqt_v1_price_request_succeeded_total',

@@ -1,6 +1,6 @@
 // tslint:disable:max-file-line-count
 import { TooManyRequestsError } from '@0x/api-utils';
-import { AssetSwapperContractAddresses, MarketOperation } from '@0x/asset-swapper';
+import { AssetSwapperContractAddresses } from '@0x/asset-swapper';
 import { OtcOrder, ZERO } from '@0x/protocol-utils';
 import {
     getTokenMetadataIfExists,
@@ -72,6 +72,7 @@ import {
     SubmitRfqmSignedQuoteWithApprovalResponse,
     TransactionDetails,
 } from './types';
+import { MarketOperation } from '@0x/types';
 
 const RFQM_QUOTE_INSERTED = new Counter({
     name: 'rfqm_quote_inserted',

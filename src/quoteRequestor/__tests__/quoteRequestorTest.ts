@@ -233,8 +233,13 @@ describe('QuoteRequestor', () => {
                         undefined,
                         {
                             integrator: {
+                                allowedChainIds: [],
+                                apiKeys: [],
                                 integratorId: apiKey,
                                 label: 'foo',
+                                plp: false,
+                                rfqm: false,
+                                rfqt: true,
                             },
                             takerAddress,
                             txOrigin: takerAddress,
@@ -360,8 +365,13 @@ describe('QuoteRequestor', () => {
                         undefined,
                         {
                             integrator: {
+                                allowedChainIds: [],
+                                apiKeys: [],
                                 integratorId: apiKey,
                                 label: 'foo',
+                                plp: false,
+                                rfqm: false,
+                                rfqt: true,
                             },
                             takerAddress,
                             txOrigin: takerAddress,
@@ -454,8 +464,13 @@ describe('QuoteRequestor', () => {
                         undefined,
                         {
                             integrator: {
+                                allowedChainIds: [],
+                                apiKeys: [],
                                 integratorId: apiKey,
                                 label: 'foo',
+                                plp: false,
+                                rfqm: false,
+                                rfqt: true,
                             },
                             takerAddress,
                             txOrigin: takerAddress,
@@ -519,6 +534,11 @@ describe('QuoteRequestor', () => {
                             integrator: {
                                 integratorId: apiKey,
                                 label: 'foo',
+                                apiKeys: [],
+                                allowedChainIds: [],
+                                rfqm: false,
+                                rfqt: true,
+                                plp: false,
                             },
                             takerAddress,
                             txOrigin: takerAddress,
@@ -541,8 +561,13 @@ describe('QuoteRequestor', () => {
                 const response = QuoteRequestor.getTypedMakerUrlsAndWhitelist(
                     {
                         integrator: {
+                            allowedChainIds: [],
+                            apiKeys: [],
                             integratorId: 'foo',
                             label: 'bar',
+                            plp: false,
+                            rfqm: false,
+                            rfqt: true,
                             whitelistIntegratorUrls: apiKeyWhitelist,
                         },
                         altRfqAssetOfferings: {},
@@ -789,8 +814,13 @@ describe('QuoteRequestor', () => {
                             undefined,
                             {
                                 integrator: {
+                                    allowedChainIds: [],
+                                    apiKeys: [],
                                     integratorId: apiKey,
                                     label: 'foo',
+                                    plp: false,
+                                    rfqm: false,
+                                    rfqt: true,
                                 },
                                 takerAddress,
                                 txOrigin,

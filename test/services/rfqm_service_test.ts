@@ -3,9 +3,14 @@
 // tslint:disable:max-file-line-count
 
 import { TooManyRequestsError } from '@0x/api-utils';
-import { QuoteRequestor, SignatureType } from '@0x/asset-swapper';
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
-import { eip712SignHashWithKey, ethSignHashWithKey, MetaTransaction, OtcOrder } from '@0x/protocol-utils';
+import {
+    eip712SignHashWithKey,
+    ethSignHashWithKey,
+    MetaTransaction,
+    OtcOrder,
+    SignatureType,
+} from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { expect } from 'chai';
 import { constants } from 'ethers';
@@ -86,27 +91,6 @@ const buildRfqmServiceForUnitTest = (
     } = {},
 ): RfqmService => {
     const contractAddresses = getContractAddressesForChainOrThrow(1);
-    const quoteRequestorMock = mock(QuoteRequestor);
-    when(
-        quoteRequestorMock.requestRfqmIndicativeQuotesAsync(
-            anything(),
-            anything(),
-            anything(),
-            anything(),
-            anything(),
-            anything(),
-        ),
-    ).thenResolve([
-        {
-            makerToken: contractAddresses.zrxToken,
-            makerAmount: new BigNumber(101),
-            takerToken: contractAddresses.etherToken,
-            takerAmount: new BigNumber(100),
-            expiry: NEVER_EXPIRES,
-            makerUri: MOCK_MM_URI,
-        },
-    ]);
-
     const feeServiceMock = mock(FeeService);
     when(feeServiceMock.getGasPriceEstimationAsync()).thenResolve(MOCK_GAS_PRICE);
     when(feeServiceMock.calculateFeeAsync(anything(), anything())).thenResolve({

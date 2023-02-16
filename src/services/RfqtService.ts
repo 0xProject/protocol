@@ -1,4 +1,4 @@
-import { AltRfqMakerAssetOfferings, AssetSwapperContractAddresses } from '@0x/asset-swapper/lib/src/types';
+import { AssetSwapperContractAddresses } from '@0x/asset-swapper/lib/src/types';
 import { OtcOrder } from '@0x/protocol-utils/lib/src/orders';
 import { Signature } from '@0x/protocol-utils/lib/src/signature_utils';
 import {
@@ -24,6 +24,7 @@ import {
     StoredFee,
 } from '../core/types';
 import { logger } from '../logger';
+import { AltRfqMakerAssetOfferings } from '../quoteRequestor/altMmTypes';
 import { QuoteRequestor, SignedNativeOrderMM, V4RFQIndicativeQuoteMM } from '../quoteRequestor/QuoteRequestor';
 import { CacheClient } from '../utils/cache_client';
 import { modulo } from '../utils/number_utils';

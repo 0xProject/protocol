@@ -1,12 +1,14 @@
-import { MarketOperation, RfqRequestOpts, SignedNativeOrder } from '@0x/asset-swapper/lib/src/types';
 import { Signature } from '@0x/protocol-utils';
+import type { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { AxiosInstance } from 'axios';
 
 import { ONE_SECOND_MS } from '../core/constants';
+import type { SignedNativeOrder } from '../core/types';
 import { RfqMakerManager } from '../utils/rfq_maker_manager';
 
 import { METRICS_PROXY } from './MetricsProxyImpl';
+import type { RfqRequestOpts } from './QuoteRequestor';
 import { MetricsProxy, QuoteRequestor, V4RFQIndicativeQuoteMM } from './QuoteRequestor';
 
 // This number should not be greater than 90s. Otherwise, the RFQt quotes from Jump and WM are likely to be filtered out
