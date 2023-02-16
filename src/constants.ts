@@ -44,13 +44,9 @@ export const META_TRANSACTION_DOCS_URL = 'https://0x.org/docs/api#meta_transacti
 
 export const DEFAULT_ZERO_EX_GAS_API_URL = 'https://gas.api.0x.org/source/median';
 
-export const ETH_DECIMALS = 18;
-
 // RFQ Quote Validator expiration threshold
 export const RFQ_FIRM_QUOTE_CACHE_EXPIRY = ONE_MINUTE_MS * 2;
 export const RFQ_ALLOWANCE_TARGET = '0xdef1c0ded9bec7f1a1670819833240f027b25eff';
-export const RFQM_MINIMUM_EXPIRY_DURATION_MS = ONE_MINUTE_MS;
-export const RFQM_TX_GAS_ESTIMATE = 165e3;
 export const RFQ_DYNAMIC_BLACKLIST_TTL = ONE_SECOND_MS * 30;
 
 // General cache control

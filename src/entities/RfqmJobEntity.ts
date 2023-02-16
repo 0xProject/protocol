@@ -59,7 +59,7 @@ enum RfqmJobStatus {
  * @deprecated
  * Kept here to ensure existing migrations type check
  */
-export enum RfqmOrderTypes {
+enum RfqmOrderTypes {
     V4Rfq = 'v4Rfq',
 }
 
