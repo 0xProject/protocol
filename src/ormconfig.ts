@@ -10,10 +10,6 @@ import {
     PersistentSignedOrderV4Entity,
     RfqMakerPairs,
     RfqMakerPairsUpdateTimeHash,
-    RfqmJobEntity,
-    RfqmQuoteEntity,
-    RfqmTransactionSubmissionEntity,
-    RfqmWorkerHeartbeatEntity,
     SignedOrderV4Entity,
 } from './entities';
 
@@ -26,10 +22,6 @@ const entities = [
     PersistentSignedOrderV4Entity,
     RfqMakerPairs,
     RfqMakerPairsUpdateTimeHash,
-    RfqmWorkerHeartbeatEntity,
-    RfqmQuoteEntity,
-    RfqmJobEntity,
-    RfqmTransactionSubmissionEntity,
     OrderWatcherSignedOrderEntity,
 ];
 
