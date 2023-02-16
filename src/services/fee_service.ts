@@ -13,6 +13,7 @@ import {
     IndicativeQuote,
     MarginBasedFeeDetailsDeprecated,
 } from '../core/types';
+import { logger } from '../logger';
 import { ConfigManager } from '../utils/config_manager';
 import { GasStationAttendant } from '../utils/GasStationAttendant';
 import { getBestQuote } from '../utils/quote_comparison_utils';
@@ -348,6 +349,17 @@ export class FeeService {
                       feeTokenBaseUnitPriceUsd,
                   )
                 : ZERO;
+
+        logger.info(
+            {
+                gasFee,
+                feeTokenBaseUnitPriceUsd,
+                tradeTokenBaseUnitPriceUsd,
+                zeroExFeeAmount,
+            },
+            'Gas fee, token prices and 0x fee amount in `_calculateFeeV1Async`',
+        );
+
         return {
             type: 'fixed',
             token: this._feeTokenMetadata.tokenAddress,

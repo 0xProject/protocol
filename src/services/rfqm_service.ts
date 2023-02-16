@@ -1103,6 +1103,12 @@ export class RfqmService {
             makerIdsInCooldown || null,
         );
 
+        logger.info(
+            {
+                otcOrderParams,
+            },
+            'otcOrderParams for `batchGetPriceV2Async`',
+        );
         const quotes = await this._quoteServerClient.batchGetPriceV2Async(
             otcOrderMakerUris,
             integrator,

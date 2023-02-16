@@ -148,7 +148,15 @@ export class QuoteServerClient {
             requestParamsWithBigNumbers.isLastLook = isLastLook.toString();
         }
 
+        logger.info({ fee }, 'fee parameter in `makeQueryParameters`');
         if (fee) {
+            logger.info(
+                {
+                    feeAmount: fee.amount,
+                    feeAmountString: fee.amount.toString(),
+                },
+                'fee amounts in `makeQueryParameters`',
+            );
             requestParamsWithBigNumbers.feeAmount = fee.amount.toString();
             requestParamsWithBigNumbers.feeToken = fee.token;
             requestParamsWithBigNumbers.feeType = fee.type;

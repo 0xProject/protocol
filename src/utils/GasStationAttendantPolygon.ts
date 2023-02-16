@@ -2,6 +2,7 @@ import { ProtocolFeeUtils } from '@0x/asset-swapper';
 import { BigNumber } from '@0x/utils';
 
 import { GWEI_DECIMALS, RFQM_TX_OTC_ORDER_GAS_ESTIMATE } from '../core/constants';
+import { logger } from '../logger';
 
 import { GasStationAttendant, Wei, WeiPerGas } from './GasStationAttendant';
 
@@ -93,6 +94,17 @@ export class GasStationAttendantPolygon implements GasStationAttendant {
         const baseFeePad = Math.pow(TEN_PERCENT_INCREASE, 1.5); // tslint:disable-line: custom-no-magic-numbers
         const paddedMaxPriorityFeePerGas = maxPriorityFeePerGas.times(baseFeePad);
         const gasRateWei = paddedMaxPriorityFeePerGas.plus(0); // Amortizing the base fee to 0
+
+        logger.info(
+            {
+                gasPriceEstimateWei,
+                maxPriorityFeePerGas,
+                baseFeePad,
+                paddedMaxPriorityFeePerGas,
+                gasRateWei,
+            },
+            'Gas variables in Ploygon `getExpectedTransactionGasRateAsync`',
+        );
 
         return gasRateWei.integerValue(BigNumber.ROUND_CEIL);
     }
