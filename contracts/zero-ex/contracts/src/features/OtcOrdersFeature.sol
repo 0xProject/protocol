@@ -15,7 +15,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/src/v06/IEtherTokenV06.sol";
+import "@0x/contracts-erc20/src/IEtherToken.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibMathV06.sol";
 import "../errors/LibNativeOrdersRichErrors.sol";
@@ -42,9 +42,9 @@ contract OtcOrdersFeature is IFeature, IOtcOrdersFeature, FixinCommon, FixinEIP7
     /// @dev ETH pseudo-token address.
     address private constant ETH_TOKEN_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     /// @dev The WETH token contract.
-    IEtherTokenV06 private immutable WETH;
+    IEtherToken private immutable WETH;
 
-    constructor(address zeroExAddress, IEtherTokenV06 weth) public FixinEIP712(zeroExAddress) {
+    constructor(address zeroExAddress, IEtherToken weth) public FixinEIP712(zeroExAddress) {
         WETH = weth;
     }
 

@@ -15,15 +15,15 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/src/v06/IEtherTokenV06.sol";
+import "@0x/contracts-erc20/src/IEtherToken.sol";
 
 contract TestStaking {
     mapping(address => bytes32) public poolForMaker;
     mapping(bytes32 => uint256) public balanceForPool;
 
-    IEtherTokenV06 immutable weth;
+    IEtherToken immutable weth;
 
-    constructor(IEtherTokenV06 _weth) public {
+    constructor(IEtherToken _weth) public {
         weth = _weth;
     }
 

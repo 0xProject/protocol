@@ -16,7 +16,7 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/src/IERC20Token.sol";
-import "@0x/contracts-erc20/src/v06/IEtherTokenV06.sol";
+import "@0x/contracts-erc20/src/IEtherToken.sol";
 import "../vendor/IUniswapV3Pool.sol";
 import "../migrations/LibMigrate.sol";
 import "../fixins/FixinCommon.sol";
@@ -31,7 +31,7 @@ contract UniswapV3Feature is IFeature, IUniswapV3Feature, FixinCommon, FixinToke
     /// @dev Version of this feature.
     uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 1, 0);
     /// @dev WETH contract.
-    IEtherTokenV06 private immutable WETH;
+    IEtherToken private immutable WETH;
     /// @dev UniswapV3 Factory contract address prepended with '0xff' and left-aligned.
     bytes32 private immutable UNI_FF_FACTORY_ADDRESS;
     /// @dev UniswapV3 pool init code hash.
@@ -57,7 +57,7 @@ contract UniswapV3Feature is IFeature, IUniswapV3Feature, FixinCommon, FixinToke
     /// @param weth The WETH contract.
     /// @param uniFactory The UniswapV3 factory contract.
     /// @param poolInitCodeHash The UniswapV3 pool init code hash.
-    constructor(IEtherTokenV06 weth, address uniFactory, bytes32 poolInitCodeHash) public {
+    constructor(IEtherToken weth, address uniFactory, bytes32 poolInitCodeHash) public {
         WETH = weth;
         UNI_FF_FACTORY_ADDRESS = bytes32((uint256(0xff) << 248) | (uint256(uniFactory) << 88));
         UNI_POOL_INIT_CODE_HASH = poolInitCodeHash;

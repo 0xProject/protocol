@@ -20,7 +20,7 @@ import "src/features/TransformERC20Feature.sol";
 import "src/external/TransformerDeployer.sol";
 import "src/transformers/WethTransformer.sol";
 import "src/transformers/FillQuoteTransformer.sol";
-import "@0x/contracts-erc20/src/v06/IEtherTokenV06.sol";
+import "@0x/contracts-erc20/src/IEtherToken.sol";
 import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "src/transformers/bridges/BridgeProtocols.sol";
 import "src/transformers/bridges/EthereumBridgeAdapter.sol";
@@ -85,7 +85,7 @@ struct TokenAddresses {
     IERC20Token DAI;
     IERC20Token USDC;
     IERC20Token USDT;
-    IEtherTokenV06 WrappedNativeToken;
+    IEtherToken WrappedNativeToken;
 }
 
 struct LiquiditySources {
@@ -253,7 +253,7 @@ contract ForkUtils is Test {
     }
 
     //creates the appropriate bridge adapter based on what chain the tests are currently executing on.
-    function createBridgeAdapter(IEtherTokenV06 weth) public returns (IBridgeAdapter bridgeAdapter) {
+    function createBridgeAdapter(IEtherToken weth) public returns (IBridgeAdapter bridgeAdapter) {
         uint chainId;
 
         assembly {
@@ -317,13 +317,13 @@ contract ForkUtils is Test {
     //deploy a new FillQuoteTransformer
     //executes in the context of the transformerDeployer
     function createNewFQT(
-        IEtherTokenV06 wrappedNativeToken,
+        IEtherToken wrappedNativeToken,
         address payable exchangeProxy,
         address transformerDeployer
     ) public {
         vm.startPrank(transformerDeployer);
         // deploy a new instance of the bridge adapter from the transformerDeployer
-        bridgeAdapter = createBridgeAdapter(IEtherTokenV06(wrappedNativeToken));
+        bridgeAdapter = createBridgeAdapter(IEtherToken(wrappedNativeToken));
         // deploy a new instance of the fill quote transformer from the transformerDeployer
         fillQuoteTransformer = new FillQuoteTransformer(IBridgeAdapter(bridgeAdapter), IZeroEx(exchangeProxy));
         vm.label(address(fillQuoteTransformer), "zeroEx/FillQuoteTransformer");

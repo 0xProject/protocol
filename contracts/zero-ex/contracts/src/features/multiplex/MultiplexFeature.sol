@@ -16,7 +16,7 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/src/IERC20Token.sol";
-import "@0x/contracts-erc20/src/v06/IEtherTokenV06.sol";
+import "@0x/contracts-erc20/src/IEtherToken.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../../external/ILiquidityProviderSandbox.sol";
 import "../../fixins/FixinCommon.sol";
@@ -54,11 +54,11 @@ contract MultiplexFeature is
     uint256 private constant LOWER_255_BITS = HIGH_BIT - 1;
 
     /// @dev The WETH token contract.
-    IEtherTokenV06 private immutable WETH;
+    IEtherToken private immutable WETH;
 
     constructor(
         address zeroExAddress,
-        IEtherTokenV06 weth,
+        IEtherToken weth,
         ILiquidityProviderSandbox sandbox,
         address uniswapFactory,
         address sushiswapFactory,

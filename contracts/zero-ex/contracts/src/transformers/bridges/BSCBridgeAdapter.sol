@@ -39,7 +39,7 @@ contract BSCBridgeAdapter is
     MixinWOOFi,
     MixinZeroExBridge
 {
-    constructor(IEtherTokenV06 weth) public MixinCurve(weth) MixinMooniswap(weth) {}
+    constructor(IEtherToken weth) public MixinCurve(weth) MixinMooniswap(weth) {}
 
     function _trade(
         BridgeOrder memory order,

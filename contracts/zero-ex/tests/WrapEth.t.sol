@@ -20,7 +20,7 @@ import "utils/TestUtils.sol";
 import "utils/DeployZeroEx.sol";
 import "forge-std/Test.sol";
 import "src/IZeroEx.sol";
-import "@0x/contracts-erc20/src/v06/IEtherTokenV06.sol";
+import "@0x/contracts-erc20/src/IEtherToken.sol";
 import "src/features/TransformERC20Feature.sol";
 import "src/external/TransformerDeployer.sol";
 import "src/transformers/WethTransformer.sol";

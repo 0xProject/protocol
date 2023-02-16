@@ -19,7 +19,7 @@ import "../src/fixins/FixinProtocolFees.sol";
 
 contract TestFixinProtocolFees is FixinProtocolFees {
     constructor(
-        IEtherTokenV06 weth,
+        IEtherToken weth,
         IStaking staking,
         FeeCollectorController feeCollectorController,
         uint32 protocolFeeMultiplier

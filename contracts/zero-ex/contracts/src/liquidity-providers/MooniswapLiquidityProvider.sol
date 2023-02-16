@@ -18,7 +18,7 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 import "@0x/contracts-erc20/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/src/IERC20Token.sol";
-import "@0x/contracts-erc20/src/v06/IEtherTokenV06.sol";
+import "@0x/contracts-erc20/src/IEtherToken.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../transformers/LibERC20Transformer.sol";
 import "../vendor/ILiquidityProvider.sol";
@@ -29,9 +29,9 @@ contract MooniswapLiquidityProvider is ILiquidityProvider {
     using LibSafeMathV06 for uint256;
     using LibRichErrorsV06 for bytes;
 
-    IEtherTokenV06 private immutable WETH;
+    IEtherToken private immutable WETH;
 
-    constructor(IEtherTokenV06 weth) public {
+    constructor(IEtherToken weth) public {
         WETH = weth;
     }
 

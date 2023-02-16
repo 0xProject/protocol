@@ -15,7 +15,7 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/src/v06/IEtherTokenV06.sol";
+import "@0x/contracts-erc20/src/IEtherToken.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibMathV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../../errors/LibNFTOrdersRichErrors.sol";
@@ -35,14 +35,14 @@ abstract contract NFTOrders is FixinCommon, FixinEIP712, FixinTokenSpender {
     /// @dev Native token pseudo-address.
     address internal constant NATIVE_TOKEN_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     /// @dev The WETH token contract.
-    IEtherTokenV06 internal immutable WETH;
+    IEtherToken internal immutable WETH;
 
     /// @dev The magic return value indicating the success of a `receiveZeroExFeeCallback`.
     bytes4 private constant FEE_CALLBACK_MAGIC_BYTES = IFeeRecipient.receiveZeroExFeeCallback.selector;
     /// @dev The magic return value indicating the success of a `zeroExTakerCallback`.
     bytes4 private constant TAKER_CALLBACK_MAGIC_BYTES = ITakerCallback.zeroExTakerCallback.selector;
 
-    constructor(address zeroExAddress, IEtherTokenV06 weth) public FixinEIP712(zeroExAddress) {
+    constructor(address zeroExAddress, IEtherToken weth) public FixinEIP712(zeroExAddress) {
         WETH = weth;
     }
 

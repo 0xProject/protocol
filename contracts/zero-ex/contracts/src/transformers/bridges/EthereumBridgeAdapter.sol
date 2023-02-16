@@ -66,7 +66,7 @@ contract EthereumBridgeAdapter is
     MixinZeroExBridge
 {
     constructor(
-        IEtherTokenV06 weth
+        IEtherToken weth
     )
         public
         MixinBancor(weth)

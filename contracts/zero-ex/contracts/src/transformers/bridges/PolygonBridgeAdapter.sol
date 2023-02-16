@@ -51,7 +51,7 @@ contract PolygonBridgeAdapter is
     MixinWOOFi,
     MixinZeroExBridge
 {
-    constructor(IEtherTokenV06 weth) public MixinCurve(weth) MixinAaveV3(false) {}
+    constructor(IEtherToken weth) public MixinCurve(weth) MixinAaveV3(false) {}
 
     function _trade(
         BridgeOrder memory order,

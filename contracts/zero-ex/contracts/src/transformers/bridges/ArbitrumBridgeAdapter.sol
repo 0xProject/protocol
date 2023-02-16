@@ -45,7 +45,7 @@ contract ArbitrumBridgeAdapter is
     MixinWOOFi,
     MixinZeroExBridge
 {
-    constructor(IEtherTokenV06 weth) public MixinCurve(weth) MixinAaveV3(true) {}
+    constructor(IEtherToken weth) public MixinCurve(weth) MixinAaveV3(true) {}
 
     function _trade(
         BridgeOrder memory order,

@@ -16,7 +16,7 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/src/IERC20Token.sol";
-import "@0x/contracts-erc20/src/v06/IEtherTokenV06.sol";
+import "@0x/contracts-erc20/src/IEtherToken.sol";
 import "../migrations/LibMigrate.sol";
 import "../fixins/FixinCommon.sol";
 import "./interfaces/IFeature.sol";
@@ -29,7 +29,7 @@ contract UniswapFeature is IFeature, IUniswapFeature, FixinCommon {
     /// @dev Version of this feature.
     uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 1, 2);
     /// @dev WETH contract.
-    IEtherTokenV06 private immutable WETH;
+    IEtherToken private immutable WETH;
 
     // 0xFF + address of the UniswapV2Factory contract.
     uint256 private constant FF_UNISWAP_FACTORY = 0xFF5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f0000000000000000000000;
@@ -75,7 +75,7 @@ contract UniswapFeature is IFeature, IUniswapFeature, FixinCommon {
 
     /// @dev Construct this contract.
     /// @param weth The WETH contract.
-    constructor(IEtherTokenV06 weth) public {
+    constructor(IEtherToken weth) public {
         WETH = weth;
     }
 
@@ -102,7 +102,7 @@ contract UniswapFeature is IFeature, IUniswapFeature, FixinCommon {
         require(tokens.length > 1, "UniswapFeature/InvalidTokensLength");
         {
             // Load immutables onto the stack.
-            IEtherTokenV06 weth = WETH;
+            IEtherToken weth = WETH;
 
             // Store some vars in memory to get around stack limits.
             assembly {

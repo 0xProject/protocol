@@ -17,7 +17,7 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
-import "@0x/contracts-erc20/src/v06/IEtherTokenV06.sol";
+import "@0x/contracts-erc20/src/IEtherToken.sol";
 import "../errors/LibTransformERC20RichErrors.sol";
 import "./Transformer.sol";
 import "./LibERC20Transformer.sol";
@@ -38,13 +38,13 @@ contract WethTransformer is Transformer {
     }
 
     /// @dev The WETH contract address.
-    IEtherTokenV06 public immutable weth;
+    IEtherToken public immutable weth;
     /// @dev Maximum uint256 value.
     uint256 private constant MAX_UINT256 = uint256(-1);
 
     /// @dev Construct the transformer and store the WETH address in an immutable.
     /// @param weth_ The weth token.
-    constructor(IEtherTokenV06 weth_) public Transformer() {
+    constructor(IEtherToken weth_) public Transformer() {
         weth = weth_;
     }
 
