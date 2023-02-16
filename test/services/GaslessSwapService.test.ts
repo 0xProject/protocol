@@ -1,6 +1,5 @@
 // tslint:disable: max-file-line-count
 import { ValidationError, ValidationErrorCodes } from '@0x/api-utils';
-import { AssetSwapperContractAddresses as ContractAddresses, SupportedProvider } from '@0x/asset-swapper';
 import { ethSignHashWithKey, MetaTransaction, OtcOrder, SignatureType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { AxiosInstance } from 'axios';
@@ -36,6 +35,8 @@ import { RfqMakerManager } from '../../src/utils/rfq_maker_manager';
 import { TokenMetadataManager } from '../../src/utils/TokenMetadataManager';
 import { GaslessTypes } from '../../src/core/types';
 import { Fees } from '../../src/core/types/meta_transaction_fees';
+import { ContractAddresses } from '@0x/contract-addresses';
+import { SupportedProvider } from 'ethereum-types';
 
 jest.mock('../../src/services/rfqm_service', () => {
     return {

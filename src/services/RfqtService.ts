@@ -1,4 +1,4 @@
-import { AssetSwapperContractAddresses } from '@0x/asset-swapper/lib/src/types';
+import { ContractAddresses } from '@0x/contract-addresses';
 import { OtcOrder } from '@0x/protocol-utils/lib/src/orders';
 import { Signature } from '@0x/protocol-utils/lib/src/signature_utils';
 import {
@@ -137,7 +137,7 @@ export class RfqtService {
         private readonly _minExpiryDurationMs: number,
         private readonly _blockchainUtils: RfqBlockchainUtils,
         private readonly _tokenMetadataManager: TokenMetadataManager,
-        private readonly _contractAddresses: AssetSwapperContractAddresses,
+        private readonly _contractAddresses: ContractAddresses,
         private readonly _feeService: FeeService,
         private readonly _feeModelVersion: FeeModelVersion,
         private readonly _rfqMakerBalanceCacheService: RfqMakerBalanceCacheService,

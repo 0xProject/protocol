@@ -1,7 +1,6 @@
 // tslint:disable custom-no-magic-numbers
 // tslint:disable await-promise
 // tslint:disable max-file-line-count
-import { artifacts as assetSwapperArtifacts, BalanceCheckerContract } from '@0x/asset-swapper';
 import { ChainId } from '@0x/contract-addresses';
 import { artifacts as erc20Artifacts, DummyERC20TokenContract } from '@0x/contracts-erc20';
 import { artifacts as zeroExArtifacts, fullMigrateAsync, IZeroExContract } from '@0x/contracts-zero-ex';
@@ -13,6 +12,8 @@ import { expect } from 'chai';
 import { Contract, providers, Wallet } from 'ethers';
 
 import { ONE_MINUTE_MS, ZERO } from '../src/core/constants';
+import { artifacts } from '../src/generated-artifacts/artifacts';
+import { BalanceCheckerContract } from '../src/generated-wrappers/balance_checker';
 import { BalanceChecker } from '../src/utils/balance_checker';
 import { RfqBlockchainUtils } from '../src/utils/rfq_blockchain_utils';
 
@@ -93,7 +94,7 @@ describe('RFQ Blockchain Utils', () => {
 
         // Deploy Balance Checker (only necessary for Ganache because ganache doesn't have overrides)
         const balanceCheckerContract = await BalanceCheckerContract.deployFrom0xArtifactAsync(
-            assetSwapperArtifacts.BalanceChecker,
+            artifacts.BalanceChecker,
             provider,
             { from: owner, gas: 10000000 },
             {},

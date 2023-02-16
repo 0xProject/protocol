@@ -543,7 +543,7 @@ export const HTTP_HEADERS_TIMEOUT = _.isEmpty(process.env.HTTP_HEADERS_TIMEOUT)
 
 // Default chain id to use when not specified
 export const CHAIN_ID: ChainId = _.isEmpty(process.env.CHAIN_ID)
-    ? ChainId.Kovan
+    ? ChainId.Mainnet
     : assertEnvVarType('CHAIN_ID', process.env.CHAIN_ID, EnvVarType.ChainId);
 
 export const KAFKA_BROKERS = _.isEmpty(process.env.KAFKA_BROKERS)

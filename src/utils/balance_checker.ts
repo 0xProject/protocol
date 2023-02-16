@@ -1,7 +1,7 @@
-import { BalanceCheckerContract } from '@0x/asset-swapper';
-import { artifacts } from '@0x/asset-swapper/lib/src/artifacts';
 import { BlockParamLiteral, SupportedProvider } from '@0x/dev-utils';
 import { BigNumber } from '@0x/utils';
+import { artifacts } from '../generated-artifacts/artifacts';
+import { BalanceCheckerContract } from '../generated-wrappers/balance_checker';
 
 // The eth_call will run out of gas if there are too many balance calls at once
 const BALANCE_CHECKER_GAS_LIMIT = 5500000;

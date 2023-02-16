@@ -1,4 +1,3 @@
-import { SupportedProvider } from '@0x/asset-swapper';
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { getTokenMetadataIfExists } from '@0x/token-metadata';
 import Axios, { AxiosRequestConfig } from 'axios';
@@ -79,7 +78,7 @@ export async function buildRfqtServicesAsync(
             const quoteServerClient = new QuoteServerClient(proxiedAxiosInstance);
             const contractAddresses = getContractAddressesForChainOrThrow(chainId);
             const ethersProvider = new providers.JsonRpcProvider(chain.rpcUrl, chainId);
-            const provider: SupportedProvider = providerUtils.createWeb3Provider(chain.rpcUrl);
+            const provider = providerUtils.createWeb3Provider(chain.rpcUrl);
 
             const balanceChecker = new BalanceChecker(provider);
             const rfqBlockchainUtils = new RfqBlockchainUtils(

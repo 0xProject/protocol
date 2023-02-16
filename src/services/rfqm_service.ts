@@ -1,6 +1,5 @@
 // tslint:disable:max-file-line-count
 import { TooManyRequestsError } from '@0x/api-utils';
-import { AssetSwapperContractAddresses } from '@0x/asset-swapper';
 import { OtcOrder, ZERO } from '@0x/protocol-utils';
 import {
     getTokenMetadataIfExists,
@@ -73,6 +72,7 @@ import {
     TransactionDetails,
 } from './types';
 import { MarketOperation } from '@0x/types';
+import { ContractAddresses } from '@0x/contract-addresses';
 
 const RFQM_QUOTE_INSERTED = new Counter({
     name: 'rfqm_quote_inserted',
@@ -221,7 +221,7 @@ export class RfqmService {
         private readonly _chainId: number,
         private readonly _feeService: FeeService,
         private readonly _feeModelVersion: FeeModelVersion,
-        private readonly _contractAddresses: AssetSwapperContractAddresses,
+        private readonly _contractAddresses: ContractAddresses,
         private readonly _registryAddress: string,
         private readonly _blockchainUtils: RfqBlockchainUtils,
         private readonly _dbUtils: RfqmDbUtils,

@@ -1,11 +1,5 @@
-import {
-    artifacts,
-    AssetSwapperContractAddresses,
-    ERC20BridgeSamplerContract,
-    SupportedProvider,
-} from '@0x/asset-swapper';
-import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
-import { PrivateKeyWalletSubprovider } from '@0x/subproviders';
+import { ChainId, ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
+import { PrivateKeyWalletSubprovider, SupportedProvider } from '@0x/subproviders';
 import { getTokenMetadataIfExists } from '@0x/token-metadata';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import Axios, { AxiosRequestConfig } from 'axios';
@@ -31,6 +25,8 @@ import {
     DEFAULT_WORKER_TRANSACTION_WATCHER_SLEEP_TIME_MS,
     KEEP_ALIVE_TTL,
 } from '../core/constants';
+import { artifacts } from '../generated-artifacts/artifacts';
+import { ERC20BridgeSamplerContract } from '../generated-wrappers/erc20_bridge_sampler';
 import { logger } from '../logger';
 import { FeeService } from '../services/fee_service';
 import { RfqmService } from '../services/rfqm_service';
@@ -133,7 +129,7 @@ async function deploySamplerContractAsync(
 export async function getContractAddressesForNetworkOrThrowAsync(
     provider: SupportedProvider,
     chainConfiguration: Pick<ChainConfiguration, 'chainId' | 'exchangeProxyContractAddressOverride'>,
-): Promise<AssetSwapperContractAddresses> {
+): Promise<ContractAddresses> {
     const { chainId, exchangeProxyContractAddressOverride } = chainConfiguration;
     // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
