@@ -200,15 +200,6 @@ contract ForkUtils is Test {
         }
     }
 
-    //gets a dummy signer to be used for an OTC order
-    function getSigner() public returns (address, uint) {
-        string memory mnemonic = "test test test test test test test test test test test junk";
-        uint256 privateKey = vm.deriveKey(mnemonic, 0);
-
-        vm.label(vm.addr(privateKey), "zeroEx/MarketMaker");
-        return (vm.addr(privateKey), privateKey);
-    }
-
     //read the uniswapV2 router addresses from file
     function readLiquiditySourceAddresses() internal returns (string memory) {
         string memory root = vm.projectRoot();
