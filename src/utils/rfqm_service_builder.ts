@@ -2,7 +2,6 @@ import {
     artifacts,
     AssetSwapperContractAddresses,
     ERC20BridgeSamplerContract,
-    ProtocolFeeUtils,
     SupportedProvider,
 } from '@0x/asset-swapper';
 import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
@@ -31,7 +30,6 @@ import {
     DEFAULT_MIN_EXPIRY_DURATION_MS,
     DEFAULT_WORKER_TRANSACTION_WATCHER_SLEEP_TIME_MS,
     KEEP_ALIVE_TTL,
-    PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
 } from '../core/constants';
 import { logger } from '../logger';
 import { FeeService } from '../services/fee_service';
@@ -180,11 +178,6 @@ export async function buildRfqmServiceAsync(
     const axiosInstance = Axios.create(getAxiosRequestConfig());
     const proxiedAxiosInstance = Axios.create(getAxiosRequestConfigWithProxy());
 
-    const protocolFeeUtils = ProtocolFeeUtils.getInstance(
-        PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
-        chain.gasStationUrl,
-    );
-
     const balanceChecker = new BalanceChecker(provider);
     const rfqBlockchainUtils = new RfqBlockchainUtils(
         provider,
@@ -205,7 +198,7 @@ export async function buildRfqmServiceAsync(
 
     const kafkaProducer = getKafkaProducer();
 
-    const gasStationAttendant = getGasStationAttendant(chain, axiosInstance, protocolFeeUtils);
+    const gasStationAttendant = getGasStationAttendant(chain, axiosInstance);
 
     const feeTokenMetadata = getTokenMetadataIfExists(contractAddresses.etherToken, chainId);
     if (feeTokenMetadata === undefined) {
@@ -290,11 +283,6 @@ export async function buildWorkerServiceAsync(
     const contractAddresses = await getContractAddressesForNetworkOrThrowAsync(provider, chain);
     const axiosInstance = Axios.create(getAxiosRequestConfigWithProxy());
 
-    const protocolFeeUtils = ProtocolFeeUtils.getInstance(
-        PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
-        chain.gasStationUrl,
-    );
-
     const balanceChecker = new BalanceChecker(provider);
     const rfqBlockchainUtils = new RfqBlockchainUtils(
         provider,
@@ -308,7 +296,7 @@ export async function buildWorkerServiceAsync(
 
     const cacheClient = new CacheClient(redis);
 
-    const gasStationAttendant = getGasStationAttendant(chain, axiosInstance, protocolFeeUtils);
+    const gasStationAttendant = getGasStationAttendant(chain, axiosInstance);
 
     const feeTokenMetadata = getTokenMetadataIfExists(contractAddresses.etherToken, chainId);
     if (feeTokenMetadata === undefined) {

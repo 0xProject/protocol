@@ -16,7 +16,6 @@ export const ONE_HOUR_S = ONE_MINUTE_S * 60;
 export const ONE_MINUTE_MS = ONE_SECOND_MS * 60;
 export const TEN_MINUTES_MS = ONE_MINUTE_MS * 10;
 export const HEX_BASE = 16;
-export const PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS = 6000;
 
 // Constant to convert number of bps to ratio. E.g. 5 bps = 5 * 0.0001
 export const BPS_TO_RATIO = 0.0001;

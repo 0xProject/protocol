@@ -1,4 +1,5 @@
 import { BigNumber } from '@0x/utils';
+import { logger } from '../logger';
 
 import { GasOracleType2 } from './GasOracleType2';
 import { GasStationAttendant, Wei, WeiPerGas } from './GasStationAttendant';
@@ -33,6 +34,10 @@ export class GasStationAttendantEthereum implements GasStationAttendant {
     public async getWorkerBalanceForTradeAsync(): Promise<WeiPerGas> {
         const baseFee = await this._gasOracle.getBaseFeePerGasWeiAsync();
         const instantTip = await this._gasOracle.getMaxPriorityFeePerGasWeiAsync('instant');
+        logger.info(
+            { baseFee: baseFee.toString(), instantTip: instantTip.toString() },
+            'Base fee and instant tip for gas rate',
+        );
 
         // Pad the baseFee for 6 10% increases
         const baseFeePad = Math.pow(1.1, 6); // tslint:disable-line: custom-no-magic-numbers
@@ -56,6 +61,7 @@ export class GasStationAttendantEthereum implements GasStationAttendant {
      */
     public async getExpectedTransactionGasRateAsync(): Promise<WeiPerGas> {
         const baseFee = await this._gasOracle.getBaseFeePerGasWeiAsync();
+        logger.info({ baseFee: baseFee.toString() }, 'Base fee for gas rate calculation');
         // Currently we submit a 2 GWEI tip then multiply it by 1.5 per submission
         // Trades take ~1.5 submissions on average, so that's 2.75 GWEI
         const avgMaxPriorityFeePerGasRate = 2750000000;

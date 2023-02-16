@@ -1,8 +1,8 @@
-import { ProtocolFeeUtils } from '@0x/asset-swapper';
 import { BigNumber } from '@0x/utils';
 
 import { GWEI_DECIMALS, RFQM_TX_OTC_ORDER_GAS_ESTIMATE } from '../core/constants';
 import { logger } from '../logger';
+import { GasOracleType0 } from './GasOracleType0';
 
 import { GasStationAttendant, Wei, WeiPerGas } from './GasStationAttendant';
 
@@ -25,10 +25,10 @@ const TEN_PERCENT_INCREASE = 1.1;
  * the Polygon base fee is always essentially zero as of April 2022.
  */
 export class GasStationAttendantPolygon implements GasStationAttendant {
-    private readonly _protocolFeeUtils: ProtocolFeeUtils;
+    private readonly _gasOracleType0: GasOracleType0;
 
-    constructor(protocolFeeUtils: ProtocolFeeUtils) {
-        this._protocolFeeUtils = protocolFeeUtils;
+    constructor(gasOracleType0: GasOracleType0) {
+        this._gasOracleType0 = gasOracleType0;
     }
 
     /**
@@ -56,7 +56,8 @@ export class GasStationAttendantPolygon implements GasStationAttendant {
     public async getWorkerBalanceForTradeAsync(): Promise<WeiPerGas> {
         // TODO (rhinodavid): Once the 0x gas oracle can give EIP-1559 data for Polygon
         // use that instead of the legacy fast gas price.
-        const gasPriceEstimateWei = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
+        const gasPriceEstimateWei = await this._gasOracleType0.getGasWeiAsync('fast');
+        logger.info({ gasPriceEstimateWei: gasPriceEstimateWei.toString() }, 'Polygon fast gas price estimate (wei)');
 
         // Since the base fee is basically nothing, use this for our initial max priority fee
         const maxPriorityFeePerGas = gasPriceEstimateWei;
@@ -81,11 +82,8 @@ export class GasStationAttendantPolygon implements GasStationAttendant {
      * TODO (rhinodavid): Update this once we have more historical data
      */
     public async getExpectedTransactionGasRateAsync(): Promise<WeiPerGas> {
-        // use that instead of the legacy fast gas price.
-        // `@0x/asset-swapper ProtocolFeeUtils::getGasPriceEstimationOrThrowAsync
-        // returns WEI even though it's not documented anywhere in our public open source library
-        // we intend other developers to use.
-        const gasPriceEstimateWei = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
+        const gasPriceEstimateWei = await this._gasOracleType0.getGasWeiAsync('fast');
+        logger.info({ gasPriceEstimateWei: gasPriceEstimateWei.toString() }, 'Polygon fast gas price estimate (wei)');
 
         // Since the base fee is basically nothing, use this for our initial max priority fee
         const maxPriorityFeePerGas = gasPriceEstimateWei;

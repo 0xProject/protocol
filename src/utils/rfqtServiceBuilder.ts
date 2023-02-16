@@ -1,4 +1,4 @@
-import { ProtocolFeeUtils, SupportedProvider } from '@0x/asset-swapper';
+import { SupportedProvider } from '@0x/asset-swapper';
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { getTokenMetadataIfExists } from '@0x/token-metadata';
 import Axios, { AxiosRequestConfig } from 'axios';
@@ -19,11 +19,7 @@ import {
     RFQ_PROXY_PORT,
     ZERO_EX_API_KEY,
 } from '../config';
-import {
-    DEFAULT_MIN_EXPIRY_DURATION_MS,
-    KEEP_ALIVE_TTL,
-    PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
-} from '../core/constants';
+import { DEFAULT_MIN_EXPIRY_DURATION_MS, KEEP_ALIVE_TTL } from '../core/constants';
 import { RefreshingQuoteRequestor } from '../quoteRequestor/RefreshingQuoteRequestor';
 import { FeeService } from '../services/fee_service';
 import { RfqtService } from '../services/RfqtService';
@@ -105,11 +101,7 @@ export async function buildRfqtServicesAsync(
                 throw new Error(`Fee token ${contractAddresses.etherToken} on chain ${chainId} could not be found!`);
             }
 
-            const protocolFeeUtils = ProtocolFeeUtils.getInstance(
-                PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
-                chain.gasStationUrl,
-            );
-            const gasStationAttendant = getGasStationAttendant(chain, axiosInstance, protocolFeeUtils);
+            const gasStationAttendant = getGasStationAttendant(chain, axiosInstance);
             const tokenPriceOracle = new TokenPriceOracle(axiosInstance, DEFINED_FI_API_KEY, DEFINED_FI_ENDPOINT);
             const zeroExApiClient = new ZeroExApiClient(Axios.create(), ZERO_EX_API_KEY, chain);
             const feeService = new FeeService(
