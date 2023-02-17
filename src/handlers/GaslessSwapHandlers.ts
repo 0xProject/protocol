@@ -80,7 +80,7 @@ export class GaslessSwapHandlers {
      */
     public async getPriceAsync(req: express.Request, res: express.Response): Promise<void> {
         const metaTransactionType = getMetaTransactionType(req.baseUrl);
-        const { chainId, params } = await this._parsePriceParamsAsync(req, metaTransactionType);
+        const { chainId, params } = await this._parsePriceParamsAsync(req);
         // Consistent with `rfqm_handlers`: not all requests are emitted if they fail parsing
         ZEROG_GASLESS_SWAP_REQUEST.inc({
             chainId,
@@ -113,7 +113,7 @@ export class GaslessSwapHandlers {
     public async getQuoteAsync(req: express.Request, res: express.Response): Promise<void> {
         const metaTransactionType = getMetaTransactionType(req.baseUrl);
         // Parse request
-        const { chainId, params } = await this._parseFetchFirmQuoteParamsAsync(req, metaTransactionType);
+        const { chainId, params } = await this._parseFetchFirmQuoteParamsAsync(req);
         // Consistent with `rfqm_handlers`: not all requests are emitted if they fail parsing
         ZEROG_GASLESS_SWAP_REQUEST.inc({
             chainId,
@@ -210,14 +210,13 @@ export class GaslessSwapHandlers {
 
     private async _parseFetchFirmQuoteParamsAsync(
         req: express.Request,
-        metaTransactionType: GaslessTypes,
     ): Promise<{ chainId: number; params: FetchFirmQuoteParams }> {
         // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         schemaUtils.validateSchema(req.query, schemas.firmQuoteRequestSchema as any);
         const takerAddress = req.query.takerAddress;
         const shouldCheckApproval = req.query.checkApproval === 'true' ? true : false;
-        const { chainId, params } = await this._parseIndicativeAndFirmQuoteSharedParamsAsync(req, metaTransactionType);
+        const { chainId, params } = await this._parseIndicativeAndFirmQuoteSharedParamsAsync(req);
         if (!addressUtils.isAddress(takerAddress as string)) {
             throw new ValidationError([
                 {
@@ -271,13 +270,12 @@ export class GaslessSwapHandlers {
 
     private async _parsePriceParamsAsync(
         req: express.Request,
-        metaTransactionType: GaslessTypes,
     ): Promise<{ chainId: number; params: FetchIndicativeQuoteParams }> {
         // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         schemaUtils.validateSchema(req.query, schemas.indicativeQuoteRequestSchema as any);
         const { takerAddress } = req.query;
-        const { chainId, params } = await this._parseIndicativeAndFirmQuoteSharedParamsAsync(req, metaTransactionType);
+        const { chainId, params } = await this._parseIndicativeAndFirmQuoteSharedParamsAsync(req);
 
         return {
             chainId,
@@ -293,7 +291,6 @@ export class GaslessSwapHandlers {
      */
     private async _parseIndicativeAndFirmQuoteSharedParamsAsync(
         req: express.Request,
-        metaTransactionType: GaslessTypes,
     ): Promise<{ chainId: number; params: FetchQuoteParamsBase }> {
         const chainId = extractChainId(req, this._gaslessSwapServices);
         const { integrator } = this._validateApiKey(req.header('0x-api-key'), chainId);
@@ -352,71 +349,58 @@ export class GaslessSwapHandlers {
         let feeSellTokenPercentage: BigNumber | undefined;
         let feeRecipient: string | undefined;
 
-        if (metaTransactionType === GaslessTypes.MetaTransaction) {
-            if (slippagePercentage?.lt(MIN_ALLOWED_SLIPPAGE) || slippagePercentage?.gt(1)) {
+        if (slippagePercentage?.lt(MIN_ALLOWED_SLIPPAGE) || slippagePercentage?.gt(1)) {
+            throw new ValidationError([
+                {
+                    field: 'slippagePercentage',
+                    code: ValidationErrorCodes.ValueOutOfRange,
+                    reason: `slippagePercentage ${slippagePercentage} is out of range`,
+                },
+            ]);
+        }
+
+        if (req.query.feeType) {
+            if (req.query.feeType !== 'volume') {
                 throw new ValidationError([
                     {
-                        field: 'slippagePercentage',
-                        code: ValidationErrorCodes.ValueOutOfRange,
-                        reason: `slippagePercentage ${slippagePercentage} is out of range`,
+                        field: 'feeType',
+                        code: ValidationErrorCodes.IncorrectFormat,
+                        reason: `feeType ${req.query.feeType} is of wrong format`,
                     },
                 ]);
             }
-        } else if (metaTransactionType === GaslessTypes.MetaTransactionV2) {
-            // slippage percentage of tx relay v1 is on scale of 100 which is what percentage means (a fix from zero-g)
-            if (slippagePercentage?.lt(MIN_ALLOWED_SLIPPAGE * 100) || slippagePercentage?.gt(100)) {
+
+            feeType = 'volume';
+            if (req.query.feeSellTokenPercentage === undefined) {
                 throw new ValidationError([
                     {
-                        field: 'slippagePercentage',
+                        field: 'feeSellTokenPercentage',
+                        code: ValidationErrorCodes.RequiredField,
+                        reason: `feeSellTokenPercentage is a required field when feeType ${feeType} is specified`,
+                    },
+                ]);
+            }
+            feeSellTokenPercentage = new BigNumber(req.query.feeSellTokenPercentage as string);
+            if (feeSellTokenPercentage.lt(0) || feeSellTokenPercentage.gte(1)) {
+                throw new ValidationError([
+                    {
+                        field: 'feeSellTokenPercentage',
                         code: ValidationErrorCodes.ValueOutOfRange,
-                        reason: `slippagePercentage ${slippagePercentage} is out of range`,
+                        reason: `feeSellTokenPercentage ${feeSellTokenPercentage} is out of range`,
                     },
                 ]);
             }
 
-            if (req.query.feeType) {
-                if (req.query.feeType !== 'volume') {
-                    throw new ValidationError([
-                        {
-                            field: 'feeType',
-                            code: ValidationErrorCodes.IncorrectFormat,
-                            reason: `feeType ${req.query.feeType} is of wrong format`,
-                        },
-                    ]);
-                }
-
-                feeType = 'volume';
-                if (req.query.feeSellTokenPercentage === undefined) {
-                    throw new ValidationError([
-                        {
-                            field: 'feeSellTokenPercentage',
-                            code: ValidationErrorCodes.RequiredField,
-                            reason: `feeSellTokenPercentage is a required field when feeType ${feeType} is specified`,
-                        },
-                    ]);
-                }
-                feeSellTokenPercentage = new BigNumber(req.query.feeSellTokenPercentage as string);
-                if (feeSellTokenPercentage.lt(0) || feeSellTokenPercentage.gte(100)) {
-                    throw new ValidationError([
-                        {
-                            field: 'feeSellTokenPercentage',
-                            code: ValidationErrorCodes.ValueOutOfRange,
-                            reason: `feeSellTokenPercentage ${feeSellTokenPercentage} is out of range`,
-                        },
-                    ]);
-                }
-
-                if (req.query.feeRecipient === undefined) {
-                    throw new ValidationError([
-                        {
-                            field: 'feeRecipient',
-                            code: ValidationErrorCodes.RequiredField,
-                            reason: `feeRecipient is a required field when feeType ${feeType} is specified`,
-                        },
-                    ]);
-                }
-                feeRecipient = req.query.feeRecipient as string;
+            if (req.query.feeRecipient === undefined) {
+                throw new ValidationError([
+                    {
+                        field: 'feeRecipient',
+                        code: ValidationErrorCodes.RequiredField,
+                        reason: `feeRecipient is a required field when feeType ${feeType} is specified`,
+                    },
+                ]);
             }
+            feeRecipient = req.query.feeRecipient as string;
         }
 
         return {

@@ -212,7 +212,7 @@ describe('GaslessSwapHandlers', () => {
                         sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
                         buyAmount: 1000,
                         takerAddress,
-                        slippagePercentage: 101,
+                        slippagePercentage: 1.01,
                     });
 
                 expect(response.body.validationErrors[0].code).toEqual(ValidationErrorCodes.ValueOutOfRange);
@@ -230,7 +230,7 @@ describe('GaslessSwapHandlers', () => {
                         sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
                         buyAmount: 1000,
                         takerAddress,
-                        slippagePercentage: 0.001,
+                        slippagePercentage: 0,
                     });
 
                 expect(response.body.validationErrors[0].code).toEqual(ValidationErrorCodes.ValueOutOfRange);
@@ -266,9 +266,9 @@ describe('GaslessSwapHandlers', () => {
                         sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
                         buyAmount: 1000,
                         takerAddress,
-                        slippagePercentage: 10,
+                        slippagePercentage: 0.1,
                         feeType: 'invalid',
-                        feeSellTokenPercentage: 10,
+                        feeSellTokenPercentage: 0.1,
                         feeRecipient,
                     });
 
@@ -287,7 +287,7 @@ describe('GaslessSwapHandlers', () => {
                         sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
                         buyAmount: 1000,
                         takerAddress,
-                        slippagePercentage: 10,
+                        slippagePercentage: 0.01,
                         feeType: 'volume',
                         feeRecipient,
                     });
@@ -307,9 +307,9 @@ describe('GaslessSwapHandlers', () => {
                         sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
                         buyAmount: 1000,
                         takerAddress,
-                        slippagePercentage: 10,
+                        slippagePercentage: 0.1,
                         feeType: 'volume',
-                        feeSellTokenPercentage: 101,
+                        feeSellTokenPercentage: 1.01,
                         feeRecipient,
                     });
 
@@ -328,9 +328,9 @@ describe('GaslessSwapHandlers', () => {
                         sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
                         buyAmount: 1000,
                         takerAddress,
-                        slippagePercentage: 10,
+                        slippagePercentage: 0.1,
                         feeType: 'volume',
-                        feeSellTokenPercentage: 101,
+                        feeSellTokenPercentage: 1.01,
                         feeRecipient,
                     });
 
@@ -349,9 +349,9 @@ describe('GaslessSwapHandlers', () => {
                         sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
                         buyAmount: 1000,
                         takerAddress,
-                        slippagePercentage: 10,
+                        slippagePercentage: 0.1,
                         feeType: 'volume',
-                        feeSellTokenPercentage: 5,
+                        feeSellTokenPercentage: 0.05,
                     });
 
                 expect(response.body.validationErrors[0].code).toEqual(ValidationErrorCodes.RequiredField);
@@ -516,7 +516,7 @@ describe('GaslessSwapHandlers', () => {
                         intentOnFilling: 'false',
                         skipValidation: 'true',
                         feeType: 'volume',
-                        feeSellTokenPercentage: 10,
+                        feeSellTokenPercentage: 0.1,
                         feeRecipient,
                     });
 
@@ -528,7 +528,7 @@ describe('GaslessSwapHandlers', () => {
                         "buyToken": "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
                         "buyTokenDecimals": 18,
                         "feeRecipient": "${feeRecipient}",
-                        "feeSellTokenPercentage": "10",
+                        "feeSellTokenPercentage": "0.1",
                         "feeType": "volume",
                         "integrator": Object {
                           "allowedChainIds": Array [
@@ -787,7 +787,7 @@ describe('GaslessSwapHandlers', () => {
                         intentOnFilling: 'false',
                         skipValidation: 'true',
                         feeType: 'volume',
-                        feeSellTokenPercentage: 10,
+                        feeSellTokenPercentage: 0.1,
                         feeRecipient,
                     });
 
@@ -800,7 +800,7 @@ describe('GaslessSwapHandlers', () => {
                         "buyTokenDecimals": 18,
                         "checkApproval": false,
                         "feeRecipient": "${feeRecipient}",
-                        "feeSellTokenPercentage": "10",
+                        "feeSellTokenPercentage": "0.1",
                         "feeType": "volume",
                         "integrator": Object {
                           "allowedChainIds": Array [
