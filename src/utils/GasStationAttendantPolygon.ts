@@ -93,17 +93,6 @@ export class GasStationAttendantPolygon implements GasStationAttendant {
         const paddedMaxPriorityFeePerGas = maxPriorityFeePerGas.times(baseFeePad);
         const gasRateWei = paddedMaxPriorityFeePerGas.plus(0); // Amortizing the base fee to 0
 
-        logger.info(
-            {
-                gasPriceEstimateWei,
-                maxPriorityFeePerGas,
-                baseFeePad,
-                paddedMaxPriorityFeePerGas,
-                gasRateWei,
-            },
-            'Gas variables in Ploygon `getExpectedTransactionGasRateAsync`',
-        );
-
         return gasRateWei.integerValue(BigNumber.ROUND_CEIL);
     }
 }

@@ -101,13 +101,6 @@ export class TokenPriceOracle {
             );
 
             const priceInUsd = data?.data?.getPrice?.priceUsd || null;
-            logger.info(
-                {
-                    priceInUsd,
-                    params,
-                },
-                'price and params in `_fetchTokenPriceAsync`',
-            );
             if (!priceInUsd) {
                 throw new Error(`Got 200 but without price value. Response body: ${JSON.stringify(data)}`);
             }
