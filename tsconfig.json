@@ -4,7 +4,7 @@
         "module": "commonjs",
         "lib": ["es2020", "dom"],
         "target": "es2019",
-        "outDir": "lib",
+        "outDir": "__build__",
         "strict": true,
         "downlevelIteration": true,
         "noUnusedLocals": false,

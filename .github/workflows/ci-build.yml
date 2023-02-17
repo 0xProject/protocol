@@ -41,5 +41,5 @@ jobs:
     - name: Save build artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: lib
-        path: lib
+        name: __build__
+        path: __build__
