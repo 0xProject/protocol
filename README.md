@@ -25,14 +25,78 @@ been added, run:
 yarn turbo login
 yarn turbo link
 ```
+
 > ℹ️ Tip: after the `link` script asks "Would you like to enable Remote Caching for ~/0x-labs?", make sure to
 > select the `0x-eng` team, _not_ your personal account.
-
 
 ## Depending on shared code
 
 See the [Internal Packages](https://turbo.build/repo/docs/handbook/sharing-code/internal-packages) section of the Turborepo
 Monorepo Handbook.
+
+## Working with workspaces
+
+If you're only dealing with one workspace, _and_ all its dependencies have been built,
+you can `cd` into the workspace root and mostly ignore that you're in a monorepo:
+
+```sh
+cd node-apps/swap-api
+yarn install
+yarn build
+yarn test
+```
+
+> 👆🏾 Note: Working in a specific workspace this way won't get you any of the
+> caching benefits of Turborepo.
+
+Working from the repository root allows you perform actions on some or all
+workspaces.
+
+Use [`yarn workspace <workspace_name> <command>`](https://classic.yarnpkg.com/en/docs/cli/workspace#toc-yarn-workspace)
+to run a command in a specific workspace:
+
+```bash
+pwd # ~/0x-labs
+yarn workspace swap-api add -D ts-node
+```
+
+Use [`yarn workspaces <command>`](https://classic.yarnpkg.com/en/docs/cli/workspaces#toc-yarn-workspaces-info)
+to run a script in _every_ workspace, if it is defined:
+
+```bash
+pwd # ~/0x-labs
+yarn workspaces fix
+```
+
+To perform complex actions across workspaces, we use Turborepo
+[pipelines](https://turbo.build/repo/docs/core-concepts/monorepos/running-tasks).
+Turborepo pipelines are cached for speed and allow dependencies between pipelines
+to be specified. For example:
+
+- "run `test` in every workspace that has one, but run `build` in each of those workspaces first"
+- "`build` each workspace, but make sure `build` is first run on any [dependencies](#depending-on-shared-code) within the repository"
+
+Pipelines are specified in `turbo.json`. Each pipeline can be run with `yarn <pipeline name>` via the
+scripts defined in the root `package.json`.
+
+For example, the `test:ci` pipeline first ensures each workspace under test has been built,
+then runs the `test:ci` script in each workspace that has one defined:
+
+```bash
+pwd # ~/0x-labs
+yarn test:ci # runs script `turbo run test:ci`
+```
+
+To run a Turbo pipeline on a single workspace, use the `--filter` flag:
+
+```bash
+pwd # ~/0x-labs
+yarn build --filter=swap-api # Builds workspace "swap-api" and its dependencies
+```
+
+> ℹ️ Tip: The `--filter` flag has syntax to match on a number of dimensions. See
+> ["Filtering Workspaces"](https://turbo.build/repo/docs/core-concepts/monorepos/filtering)
+> for more.
 
 # Structure
 
@@ -139,12 +203,12 @@ special check in CI, make sure to run it as part of one of the CI checks:
 
 ```json
 {
-    "scripts": {
-        "circular": "madge --circular --extensions ts ./",
-        "lint": "eslint .",
-        "format": "prettier --list-different --config .prettierrc",
-        "lint:ci": "yarn circular && yarn format && yarn lint"
-    }
+  "scripts": {
+    "circular": "madge --circular --extensions ts ./",
+    "lint": "eslint .",
+    "format": "prettier --list-different --config .prettierrc",
+    "lint:ci": "yarn circular && yarn format && yarn lint"
+  }
 }
 ```
 
@@ -158,13 +222,8 @@ the build directory to the `outputs` field of the `build` pipeline in `turbo.jso
   "pipeline": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [
-        "__build__/**",
-        "dist/**",
-        "out/**",
-        "other-build-folder/**"
-      ]
-    },
+      "outputs": ["__build__/**", "dist/**", "out/**", "other-build-folder/**"]
+    }
   }
 }
 ```
@@ -201,9 +260,9 @@ Consider the scenario where a project wishes to run Foundry tests in CI.
 
 ```json
 {
-    "scripts": {
-        "test:ci": "forge test -vvv"
-    }
+  "scripts": {
+    "test:ci": "forge test -vvv"
+  }
 }
 ```
 
@@ -285,15 +344,13 @@ to learn more about how environment variables affect the pipeline.
   "pipeline": {
     "foundry-demo#build": {
       "dependsOn": ["^build"],
-      "outputs": [
-        "out/**"
-      ],
+      "outputs": ["out/**"],
       "env": ["TURBO_VERSION_FORGE"]
     },
     "foundry-demo#test:ci": {
       "dependsOn": ["build"],
       "env": ["TURBO_VERSION_FORGE"]
-    },
+    }
   }
 }
 ```
@@ -310,6 +367,49 @@ to learn more about how environment variables affect the pipeline.
 # Migrating existing repositories
 
 See the [notes in Notion](https://www.notion.so/zeroex/Repository-consolidation-d5214657110841758e49d0aa5e032e0d?pvs=4#71e18cb0c3434e40a70cd336de3b25b4).
+
+# Troubleshooting
+
+## End of line sequences (CLRF, LF)
+
+While we're on the verge of creating machines who surpass humans in intelligence,
+we still haven't decided upon a single method to represent the end of a line in text files.
+
+If you're having issues running commands, or `git status` lists file changes not staged
+for commit which then go away when you `git add` them to stage, then you likely have files
+with line endings which don't match your OS.
+
+For example, this output of `yarn build` indicates the incorrect line ending
+in `turbo-prerun.sh`:
+
+```bash
+$ . ./turbo-prerun.sh && turbo run build
+: command not foundline 2:
+: command not foundline 62:
+'/turbo-prerun.sh: line 63: syntax error near unexpected token `{
+'/turbo-prerun.sh: line 63: `set_binary_version() {
+error Command failed with exit code 1.
+```
+
+These errors also show up in the logs as `^M` at the end of lines.
+
+To understand the problem and how to configure `git` to avoid it,
+see
+["CRLF vs. LF: Normalizing Line Endings in Git"](https://www.aleksandrhovhannisyan.com/blog/crlf-vs-lf-normalizing-line-endings-in-git/).
+
+To quickly fix individual files in VSCode, run "Change End of Line Sequence" in
+the command pallet.
+
+To bulk fix files, consider [`dos2unix`](https://stackoverflow.com/a/61030524/5840249).
+
+## Caching issues
+
+If you suspect a problem with Turborepo caching, you can disable it with the
+[`--force` flag](https://turbo.build/repo/docs/reference/command-line-reference#--force):
+
+```bash
+yarn build --force
+```
 
 # Repo maintenance
 
