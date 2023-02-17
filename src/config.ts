@@ -802,17 +802,6 @@ function transformIntegratorsAcl(
 }
 
 /**
- * RPC
- */
-export const META_TRANSACTION_SERVICE_RPC_URL: string = _.isEmpty(process.env.META_TRANSACTION_SERVICE_RPC_URL)
-    ? ''
-    : assertEnvVarType(
-          'META_TRANSACTION_SERVICE_RPC_URL',
-          process.env.META_TRANSACTION_SERVICE_RPC_URL,
-          EnvVarType.Url,
-      );
-
-/**
  * Resolves a config of type T for an Enviornment Variable. Checks:
  *  - If the env variable is undefined, use the hardcoded fallback
  *  - If the env variable points to a filepath, resolve it

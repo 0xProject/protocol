@@ -1,6 +1,6 @@
 module.exports = {
     root: true,
-    ignorePatterns: ['node_modules/**/*', 'lib/**/*', 'src/proto-ts/**/*'],
+    ignorePatterns: ['node_modules/**/*', 'lib/**/*'],
     parser: '@typescript-eslint/parser',
     plugins: ['@typescript-eslint', 'eslint-plugin-jest', 'eslint-plugin-import'],
     extends: [

@@ -1,18 +1,11 @@
-import { ValidationError, ValidationErrorCodes } from '@0x/api-utils';
-import { MetaTransaction } from '@0x/protocol-utils';
+import { ValidationError } from '@0x/api-utils';
 import { BigNumber } from '@0x/utils';
 import Axios, { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { BAD_REQUEST, NOT_ACCEPTABLE, OK } from 'http-status-codes';
-import { TwirpError } from 'twirpscript';
 import { APIErrorCodes, apiErrorCodesToReasons } from '../../src/core/errors';
-import { GetQuote, GetQuoteResponse } from '../../src/proto-ts/meta_transaction.pb';
-import { getV1QuoteAsync, getQuoteRpc, getV2QuoteAsync } from '../../src/utils/MetaTransactionClient';
-import { bigNumberToProto, protoToBigNumber } from '../../src/utils/ProtoUtils';
+import { getV1QuoteAsync, getV2QuoteAsync } from '../../src/utils/MetaTransactionClient';
 import { GaslessTypes } from '../../src/core/types';
-
-jest.mock('../../src/proto-ts/meta_transaction.pb');
-const mockGetQuote = jest.mocked(GetQuote);
 
 let axiosClient: AxiosInstance;
 let axiosMock: AxiosMockAdapter;
@@ -571,156 +564,6 @@ describe('MetaTransactionClient', () => {
                     takerAddress: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
                 }),
             ).rejects.toThrow();
-        });
-    });
-
-    describe('getQuoteRpc', () => {
-        it('gets a quote', async () => {
-            const mockResponse: GetQuoteResponse = {
-                metaTransaction: {
-                    callData:
-                        '0x415565b00000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f6190000000000000000000000002791bca1f2de4661ed88a30c99a7a9449aa8417400000000000000000000000000000000000000000000003635c9adc5dea000000000000000000000000000000000000000000000000000000000019eeab6030b00000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000940000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000008a0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f6190000000000000000000000002791bca1f2de4661ed88a30c99a7a9449aa8417400000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000000000000860000000000000000000000000000000000000000000000000000000000000086000000000000000000000000000000000000000000000000000000000000007c000000000000000000000000000000000000000000000003635c9adc5dea000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000500000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000001e000000000000000000000000000000000000000000000000000000000000003400000000000000000000000000000000000000000000000000000000000000420000000000000000000000000000000000000000000000000000000000000052000000000000000000000000000000002517569636b5377617000000000000000000000000000000000000000000000000000000000000008570b55cfac1897880000000000000000000000000000000000000000000000000000003f47a215c5000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000a5e0829caced8ffdd4de3c43696c57f7d7a678ff000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000020000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f6190000000000000000000000002791bca1f2de4661ed88a30c99a7a9449aa8417400000000000000000000000000000002517569636b53776170000000000000000000000000000000000000000000000000000000000000042b85aae7d60c4bc40000000000000000000000000000000000000000000000000000001f2c6f738e000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000a5e0829caced8ffdd4de3c43696c57f7d7a678ff000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000030000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f6190000000000000000000000000d500b1d8e8ef31e21c99d1db9a6444d3adf12700000000000000000000000002791bca1f2de4661ed88a30c99a7a9449aa841740000000000000000000000000000000b446f646f5632000000000000000000000000000000000000000000000000000000000000000000042b85aae7d60c4bc40000000000000000000000000000000000000000000000000000001f811895a7000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000400000000000000000000000005333eb1e32522f1893b7c9fea3c263807a02d561000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000012556e697377617056330000000000000000000000000000000000000000000000000000000000001d30a7ac56da56396a000000000000000000000000000000000000000000000000000000e10b7768e500000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000060000000000000000000000000e592427a0aece92de3edee1f18e0157c058615640000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000012556e6973776170563300000000000000000000000000000000000000000000000000000000000008570b55cfac1897880000000000000000000000000000000000000000000000000000003fea147b29000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000e592427a0aece92de3edee1f18e0157c05861564000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000427ceb23fd6bc0add59e62ac25578270cff1b9f6190001f41bfd67037b42cf73acf2047067bd4f2c47d9bfd6000bb82791bca1f2de4661ed88a30c99a7a9449aa841740000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000e00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000020000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f619000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee0000000000000000000000000000000000000000000000000000000000000000869584cd0000000000000000000000008c611defbd838a13de3a5923693c58a7c1807c630000000000000000000000000000000000000000000000f789bac21b62fed5ef',
-                    chainId: 137,
-                    expirationTimeSeconds: bigNumberToProto(new BigNumber('1660868679')),
-                    feeAmount: bigNumberToProto(new BigNumber('0')),
-                    feeTokenAddress: '0x0000000000000000000000000000000000000000',
-                    maxGasPrice: bigNumberToProto(new BigNumber('4294967296')),
-                    minGasPrice: bigNumberToProto(new BigNumber('1')),
-                    salt: bigNumberToProto(
-                        new BigNumber('32606650794224189614795510724011106220035660490560169776986607186708081701146'),
-                    ),
-                    senderAddress: '0x0000000000000000000000000000000000000000',
-                    signerAddress: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
-                    value: bigNumberToProto(new BigNumber('0')),
-                    verifyingContract: '0xdef1c0ded9bec7f1a1670819833240f027b25eff',
-                },
-                quote: {
-                    allowanceTarget: '0xdef1c0ded9bec7f1a1670819833240f027b25eff',
-                    buyAmount: bigNumberToProto(new BigNumber('1800054805473')),
-                    buyTokenAddress: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
-                    buyTokenToNativeTokenRate: bigNumberToProto(new BigNumber('0.851202')),
-                    chainId: 137,
-                    estimatedGas: bigNumberToProto(new BigNumber('1043459')),
-                    estimatedPriceImpact: bigNumberToProto(new BigNumber('1.6301')),
-                    gas: bigNumberToProto(new BigNumber('1043459')),
-                    gasPrice: bigNumberToProto(new BigNumber('115200000000')),
-                    liquiditySources: [
-                        {
-                            hops: [],
-                            name: 'SushiSwap',
-                            proportion: bigNumberToProto(new BigNumber('0')),
-                        },
-                        {
-                            hops: [],
-                            name: 'QuickSwap',
-                            proportion: bigNumberToProto(new BigNumber('0.2308')),
-                        },
-                        {
-                            hops: [],
-                            name: 'DODO_V2',
-                            proportion: bigNumberToProto(new BigNumber('0.07692')),
-                        },
-                        {
-                            hops: [],
-                            name: 'Uniswap_V3',
-                            proportion: bigNumberToProto(new BigNumber('0.6923')),
-                        },
-                    ],
-                    minimumProtocolFee: bigNumberToProto(new BigNumber('0')),
-                    price: bigNumberToProto(new BigNumber('1800.054805')),
-                    protocolFee: bigNumberToProto(new BigNumber('0')),
-                    sellAmount: bigNumberToProto(new BigNumber('1000000000000000000000')),
-                    sellTokenAddress: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
-                    sellTokenToNativeTokenRate: bigNumberToProto(new BigNumber('0.000465167371348443')),
-                    value: bigNumberToProto(new BigNumber('0')),
-                },
-            };
-            mockGetQuote.mockResolvedValue(mockResponse);
-
-            const response = await getQuoteRpc({
-                buyToken: 'USDC',
-                chainId: 137,
-                integratorId: 'integrator-id',
-                sellToken: 'WETH',
-                sellAmount: new BigNumber(1000000000000000000000),
-                takerAddress: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
-            });
-
-            expect(response?.metaTransaction).toBeInstanceOf(MetaTransaction);
-            expect(response?.metaTransaction.callData).toEqual(mockResponse.metaTransaction.callData);
-            expect(response?.metaTransaction.expirationTimeSeconds.toNumber()).toEqual(1660868679);
-            expect(response?.metaTransaction.maxGasPrice.toNumber()).toEqual(4294967296);
-
-            expect(response?.price.buyAmount.toNumber()).toEqual(
-                protoToBigNumber(mockResponse.quote.buyAmount).toNumber(),
-            );
-            expect(response?.price.sellAmount.toNumber()).toEqual(
-                protoToBigNumber(mockResponse.quote.sellAmount).toNumber(),
-            );
-            expect(response?.price.buyTokenAddress).toEqual(mockResponse.quote.buyTokenAddress);
-            expect(response?.price.sellTokenAddress).toEqual(mockResponse.quote.sellTokenAddress);
-        });
-
-        it('returns `null` when no liquidity is available', async () => {
-            const noLiquidityError: TwirpError = {
-                code: 'not_found',
-                msg: 'No liquidity exists',
-                meta: {
-                    validationErrors: JSON.stringify([
-                        {
-                            field: 'sellAmount',
-                            code: ValidationErrorCodes.ValueOutOfRange,
-                            reason: 'INSUFFICIENT_ASSET_LIQUIDITY',
-                        },
-                    ]),
-                },
-            };
-            mockGetQuote.mockRejectedValue(noLiquidityError);
-
-            const response = await getQuoteRpc({
-                buyToken: 'USDC',
-                chainId: 137,
-                integratorId: 'integrator-id',
-                sellToken: '0x0000000000000000000000000000000000000000',
-                sellAmount: new BigNumber(1000000000000000000000),
-                takerAddress: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
-                slippagePercentage: new BigNumber(0.2),
-            });
-
-            expect(response).toBeNull();
-        });
-
-        it('should throw validation error when meta-transaction server returns the insufficient fund error', async () => {
-            const exampleInsufficientFundError: TwirpError = {
-                code: 'failed_precondition',
-                msg: apiErrorCodesToReasons[APIErrorCodes.InsufficientFundsError],
-                meta: { zeroexErrorCode: APIErrorCodes.InsufficientFundsError.toString() },
-            };
-            mockGetQuote.mockRejectedValue(exampleInsufficientFundError);
-
-            await expect(() =>
-                getQuoteRpc({
-                    buyToken: 'USDC',
-                    chainId: 137,
-                    integratorId: 'integrator-id',
-                    sellToken: '0x0000000000000000000000000000000000000000',
-                    sellAmount: new BigNumber(1000000000000000000000),
-                    takerAddress: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
-                    slippagePercentage: new BigNumber(0.2),
-                }),
-            ).rejects.toThrow(ValidationError);
-
-            await expect(() =>
-                getQuoteRpc({
-                    buyToken: 'USDC',
-                    chainId: 137,
-                    integratorId: 'integrator-id',
-                    sellToken: '0x0000000000000000000000000000000000000000',
-                    buyAmount: new BigNumber(1000000000000000000000),
-                    takerAddress: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
-                    slippagePercentage: new BigNumber(0.2),
-                }),
-            ).rejects.toThrow(ValidationError);
         });
     });
 });
