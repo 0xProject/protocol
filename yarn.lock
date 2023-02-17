@@ -262,13 +262,13 @@
     lodash "^4.17.21"
     web3-provider-engine "16.0.4"
 
-"@0x/fast-abi@^0.0.5":
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/@0x/fast-abi/-/fast-abi-0.0.5.tgz#f87265c8293df7930c94e0d65c0f98a583bf9901"
-  integrity sha512-mb+CSeLi73N98sCS/Wn250emgt1VeON91NFlI0oVakHuzzvWWfvn83294wPRYAmoin0IHFXkBsj3OwQA9hCLqw==
+"@0x/fast-abi@^0.0.8":
+  version "0.0.8"
+  resolved "https://registry.yarnpkg.com/@0x/fast-abi/-/fast-abi-0.0.8.tgz#a862e1dd698ee1649d59b497263265e2a3262a97"
+  integrity sha512-X8aQh4bDHYoPyFktdrcnqrfgh7bXDJjg2SE0w5EIT1b/8kZNMEr1sPb5XN4krPCMEw4S9wmvVHuzB2qz30FiTQ==
   dependencies:
-    "@mapbox/node-pre-gyp" "^1.0.4"
-    cargo-cp-artifact "^0.1.6"
+    "@mapbox/node-pre-gyp" "^1.0.10"
+    cargo-cp-artifact "^0.1.7"
     uuid "^8.3.2"
 
 "@0x/json-schemas@^5.4.1":
@@ -1599,14 +1599,15 @@
   resolved "https://registry.yarnpkg.com/@ledgerhq/logs/-/logs-5.50.0.tgz#29c6419e8379d496ab6d0426eadf3c4d100cd186"
   integrity sha512-swKHYCOZUGyVt4ge0u8a7AwNcA//h4nx5wIi0sruGye1IJ5Cva0GyK9L2/WdX+kWVTKp92ZiEo1df31lrWGPgA==
 
-"@mapbox/node-pre-gyp@^1.0.4":
-  version "1.0.8"
-  resolved "https://registry.yarnpkg.com/@mapbox/node-pre-gyp/-/node-pre-gyp-1.0.8.tgz#32abc8a5c624bc4e46c43d84dfb8b26d33a96f58"
+"@mapbox/node-pre-gyp@^1.0.10":
+  version "1.0.10"
+  resolved "https://registry.yarnpkg.com/@mapbox/node-pre-gyp/-/node-pre-gyp-1.0.10.tgz#8e6735ccebbb1581e5a7e652244cadc8a844d03c"
+  integrity sha512-4ySo4CjzStuprMwk35H5pPbkymjv1SF3jGLj6rAHp/xT/RF7TL7bd9CTm1xDY49K2qF7jmR/g7k+SkLETP6opA==
   dependencies:
-    detect-libc "^1.0.3"
+    detect-libc "^2.0.0"
     https-proxy-agent "^5.0.0"
     make-dir "^3.1.0"
-    node-fetch "^2.6.5"
+    node-fetch "^2.6.7"
     nopt "^5.0.0"
     npmlog "^5.0.1"
     rimraf "^3.0.2"
@@ -3845,9 +3846,10 @@ capture-stack-trace@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/capture-stack-trace/-/capture-stack-trace-1.0.1.tgz#a6c0bbe1f38f3aa0b92238ecb6ff42c344d4135d"
 
-cargo-cp-artifact@^0.1.6:
-  version "0.1.6"
-  resolved "https://registry.yarnpkg.com/cargo-cp-artifact/-/cargo-cp-artifact-0.1.6.tgz#df1bc9dad036ae0f4230639a869182e1d5850f89"
+cargo-cp-artifact@^0.1.7:
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/cargo-cp-artifact/-/cargo-cp-artifact-0.1.7.tgz#1181b9d6e71f00f17c068c05e3cd1b0864783341"
+  integrity sha512-pxEV9p1on8vu3BOKstVisF9TwMyGKCBRvzaVpQHuU2sLULCKrn3MJWx/4XlNzmG6xNCTPf78DJ7WCGgr2mOzjg==
 
 caseless@~0.12.0:
   version "0.12.0"
@@ -9135,7 +9137,7 @@ node-fetch@^1.0.1, node-fetch@~1.7.1:
     encoding "^0.1.11"
     is-stream "^1.0.1"
 
-node-fetch@^2.6.0, node-fetch@^2.6.1, node-fetch@^2.6.5, node-fetch@^2.6.7:
+node-fetch@^2.6.0, node-fetch@^2.6.1, node-fetch@^2.6.7:
   version "2.6.7"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.7.tgz#24de9fba827e3b4ae44dc8b20256a379160052ad"
   integrity sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==

@@ -1,5 +1,5 @@
 # Stage 1
-FROM node:16-alpine as yarn-install
+FROM node:18-alpine as yarn-install
 WORKDIR /usr/src/app
 # Install app dependencies
 COPY package.json yarn.lock ./
@@ -11,7 +11,7 @@ RUN apk update && \
     yarn cache clean
 
 # Runtime container with minimal dependencies
-FROM node:16-alpine
+FROM node:18-alpine
 
 RUN apk update && \
     apk upgrade && \
