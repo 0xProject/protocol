@@ -1,10 +1,10 @@
 # Inspired by https://turbo.build/repo/docs/handbook/deploying-with-docker#the-problem
-FROM node:16-alpine AS builder
+FROM node:18-alpine AS builder
 
 ARG WORKSPACE_NAME
 ENV WORKSPACE_NAME=$WORKSPACE_NAME
 
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc8-compat
 RUN apk update
 
 WORKDIR /app
@@ -43,7 +43,7 @@ RUN yarn turbo run build --filter=${WORKSPACE_NAME}...
 
 RUN yarn cache clean
 
-FROM node:16-alpine AS runner
+FROM node:18-alpine AS runner
 
 RUN apk update && \
     apk upgrade && \
@@ -61,5 +61,4 @@ COPY --from=installer /app/ .
 # TODO (rhinodavid): We could add enhancements here to only
 # copy the build files
 
-# Expect this to be overridden by 0x-main-infra
-CMD yarn turbo start --filter=$WORKSPACE_NAME
+CMD echo "use docker cli to choose start command"
