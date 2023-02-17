@@ -157,7 +157,7 @@ const mockPoolsCache = new MockPoolsCache((_takerToken: string, _makerToken: str
             swapFee: new BigNumber('0.008'),
             spotPrice: new BigNumber(596.92685),
         },
-    ];
+    ] as unknown as Pool[];
 });
 
 describe('MarketOperationUtils tests', () => {

@@ -8,12 +8,12 @@ import { ChainId } from '../asset-swapper';
  * Checks top level attributes of an object for values matching an ETH address
  * and normalizes the address by turning it to lowercase
  */
-export const objectETHAddressNormalizer = <T>(obj: T) => {
+export const objectETHAddressNormalizer = (obj: Record<string, string>) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
     const normalized: { [key: string]: any } = {};
     for (const [key, value] of Object.entries(obj)) {
-        if (value && addressUtils.isAddress(value as string)) {
-            normalized[key] = (value as string).toLowerCase();
+        if (value && addressUtils.isAddress(value)) {
+            normalized[key] = value.toLowerCase();
         }
     }
 
