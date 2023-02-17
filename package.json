@@ -1,6 +1,6 @@
 {
-    "name": "0x-api",
-    "version": "1.15.0",
+    "name": "api",
+    "version": "0.0.0",
     "description": "0x API",
     "repository": "git@github.com:0xProject/0x-api.git",
     "author": "Francesco Agosti <francesco@0x.org>",
