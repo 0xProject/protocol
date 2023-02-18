@@ -421,3 +421,13 @@ token is tied to specific user's account. If that person leaves the Vercel "0x-e
 organization, a new token must be generated.
 
 See the [Turborepo GitHub Actions CI Recipe for more](https://turbo.build/repo/docs/ci/github-actions#remote-caching).
+
+## GitHub Personal Access Token
+
+Some GitHub Actions, such as "Deploy" actions which publish PRs in other repositories, require a
+[Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
+stored in the repository secrets as `PAT`.
+
+The current PAT is for the [0xEng](https://github.com/0xEng) account.
+
+**The PAT expires on February 16th, 2024**
