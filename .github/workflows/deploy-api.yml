@@ -133,7 +133,7 @@ jobs:
           author: ${{ github.event.sender.login }} <${{ github.event.sender.login }}@users.noreply.github.com>
           commit-message: "api/${{ env.chain }}/${{ env.folder_env }}: Deploy ${{ inputs.image_identifier }}"
           title: "[api][${{ env.chain }}][${{ env.folder_env }}] Deploy ${{ inputs.image_identifier }}"
-          branch: "api/${{ env.chain }}/${{ env.folder_env }}/${{ inputs.image_identifier }}"
+          branch: "0xApi/${{ env.chain }}/${{ env.folder_env }}/${{ inputs.image_identifier }//[:_]/}"
           body: |
             ## Automated deploy action for the workspace: API
             Triggered by @${{ github.event.sender.login }}
