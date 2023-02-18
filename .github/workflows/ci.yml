@@ -63,15 +63,21 @@ jobs:
       - name: Test
         run: yarn test:ci
 
+      - name: Get Turbo info
+        id: turbo-info
+        uses: ./packages/turbo-dry-run-action
+
       - name: Comment commit with workspace hashes
         uses: ./packages/workspace-commit-comment-action
         with:
+          dry-run-result: ${{ steps.turbo-info.outputs.dry-run-output }}
           require-consistent-names: "true"
 
       - name: Get app hashes
         id: app-hashes
         uses: ./packages/workspace-hash-action
         with:
+          dry-run-result: ${{ steps.turbo-info.outputs.dry-run-output }}
           dir: apps-node
     outputs:
       matrix: ${{ steps.app-hashes.outputs.workspace-hashes }}

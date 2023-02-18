@@ -80,6 +80,7 @@ function areNamesConsistent(dryRunOutput: DryRunOutput): boolean {
 
 async function run(): Promise<void> {
   const inputs = {
+    dryRunResult: core.getInput("dry-run-result"),
     token: core.getInput("token"),
     requireConsistentNames: core.getBooleanInput("require-consistent-names"),
   };
@@ -99,22 +100,7 @@ async function run(): Promise<void> {
   }
 
   try {
-    let dryRunOutput = "";
-    await exec(
-      '"./node_modules/.bin/turbo"',
-      ["run", "build", "--dry-run=json"],
-      {
-        silent: true,
-        listeners: {
-          stdout: (data: Buffer) => {
-            dryRunOutput += data.toString();
-          },
-        },
-      }
-    );
-
-    const turboInfo: DryRunOutput = JSON.parse(dryRunOutput);
-    core.debug(`Turbo dry run output: ${inspect(dryRunOutput)}`);
+    const turboInfo: DryRunOutput = JSON.parse(inputs.dryRunResult);
 
     if (inputs.requireConsistentNames) {
       if (!areNamesConsistent(turboInfo)) {

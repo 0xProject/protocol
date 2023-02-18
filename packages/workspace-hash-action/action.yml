@@ -2,6 +2,9 @@ name: "Turborepo Workspace Hashes"
 description: "Extract workspaces and their hashes from your turborepo"
 author: "0x Labs"
 inputs:
+  dry-run-result:
+    description: "The JSON result of the Turborepo dry run"
+    required: true
   dir:
     required: false
     description: "Only return workspaces in this directory"

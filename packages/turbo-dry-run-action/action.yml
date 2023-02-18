@@ -1,0 +1,13 @@
+name: "Turborepo Dry Run Action"
+description: "GitHub Action which outputs the result of a Turborepo --dry-run command"
+author: "0x Labs"
+inputs:
+  pipeline:
+    description: "The Turborepo pipeline to dry run"
+    default: "build"
+outputs:
+  dry-run-output:
+    description: 'The JSON output of the Turborepo dry run'
+runs:
+  using: "node16"
+  main: "action/index.js"
