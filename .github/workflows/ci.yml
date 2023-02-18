@@ -15,7 +15,6 @@ jobs:
       id-token: write
       contents: write
       pull-requests: write
-    # To use Remote Caching, uncomment the next lines and follow the steps below.
     env:
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
       TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
@@ -166,3 +165,38 @@ jobs:
             `${{ env.REPOSITORY_URI }}:${{ env.WORKSPACE_NAME }}__${{ env.WORKSPACE_HASH }}`
             or
             `${{ env.REPOSITORY_URI }}:${{ env.WORKSPACE_NAME }}_${{ github.sha }}`
+
+  summarize_images:
+    env:
+      REPOSITORY_URI: 883408475785.dkr.ecr.us-east-1.amazonaws.com/apps
+    permissions:
+      id-token: write
+      contents: write
+      pull-requests: write
+    # TODO (rhinodavid): Consider separating this into a reusable workflow
+    # https://docs.github.com/en/actions/using-workflows/reusing-workflows#creating-a-reusable-workflow
+    name: Summarize Images
+    needs: [build_and_test, build_images]
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::883408475785:role/github-actions
+          aws-region: us-east-1
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Summarize images for apps-node
+        id: summarize-images
+        uses: ./packages/image-summary-action
+        with:
+          dry-run-result: ${{ needs.build_and_test.outputs.turbo_info }}
+          dir: apps-node
+          uri-base: ${{ env.REPOSITORY_URI }}

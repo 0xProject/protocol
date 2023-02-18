@@ -1,0 +1,30 @@
+{
+  "name": "image-summary-action",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Prints out the tags of deployed images related to a commit",
+  "main": "__build__/main.js",
+  "scripts": {
+    "build": "tsc",
+    "build:no-diff": "yarn package",
+    "format": "prettier --write '**/*.ts'",
+    "format-check": "prettier --check '**/*.ts'",
+    "package": "ncc build --source-map -o action"
+  },
+  "author": "0x Labs",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@actions/core": "^1.10.0",
+    "@actions/exec": "^1.1.1",
+    "@actions/github": "^5.1.1"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.4.0",
+    "@types/node": "^18.11.0",
+    "@typescript-eslint/parser": "^4.33.0",
+    "@vercel/ncc": "^0.36.1",
+    "js-yaml": "^4.1.0",
+    "prettier": "2.5.1",
+    "typescript": "^4.4.4"
+  }
+}

@@ -45,7 +45,9 @@ function hashmoji(input: string): GithubEmoji {
     return a & a;
   }, 0);
   const index = Math.abs(hash) % gitEmoji.length;
-  return `:${gitEmoji[index]}:`;
+  const result = `:${gitEmoji[index]}:`;
+  core.debug(`Hashmoji for ${input} is ${result}`);
+  return result;
 }
 
 function createDirectoryTable(directoryName: string, tasks: Task[]): string {

@@ -1,0 +1,20 @@
+name: "Image Summary Action"
+description: "Prints out the tags of deployed images related to a commit"
+author: "0x Labs"
+inputs:
+  dry-run-result:
+    description: "The JSON result of the Turborepo dry run"
+    required: true
+  token:
+    description: "The GitHub authentication token"
+    default: ${{ github.token }}
+  dir:
+    required: false
+    description: "Only return workspaces in this directory"
+  uri-base:
+    required: false
+    description: "The base URI of the image repository"
+  # TODO (rhinodavid): Make this thing spit out markdown, then you can use other actions to post in in PRs and commits
+runs:
+  using: "node16"
+  main: "action/index.js"
