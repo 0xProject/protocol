@@ -63,6 +63,7 @@ jobs:
         uses: ./packages/workspace-commit-comment-action
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          require-consistent-names: "true"
 
       - name: Get app hashes
         id: app-hashes

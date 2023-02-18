@@ -13,12 +13,8 @@ Emoji list sourced from the [GitHub API](https://api.github.com/emojis).
 
 default: `${{ github.token }}`
 
-## Example usage
+### `require-consistent-names`
 
-```yaml
-- name: Get workspace hashes
-  uses: workspace-hash-action
-  with:
-    dir: "apps"
-    separator: "$"
-```
+**Optional** Fail if a workspace's name does not match it's top-level directory name.
+
+default: `false`

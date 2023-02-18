@@ -3,8 +3,11 @@ description: "Comments on a commit with a list of workspaces and their turbo has
 author: "0x Labs"
 inputs:
   token:
-    description: 'The GitHub authentication token'
+    description: "The GitHub authentication token"
     default: ${{ github.token }}
+  require-consistent-names:
+    description: "Fail if any workspace's name doesn't match its directory name"
+    default: "false"
 runs:
   using: "node16"
   main: "action/index.js"

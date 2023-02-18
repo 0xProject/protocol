@@ -60,9 +60,27 @@ function createDirectoryTable(directoryName: string, tasks: Task[]): string {
   return `\n${result}`;
 }
 
+function areNamesConsistent(dryRunOutput: DryRunOutput): boolean {
+  const { tasks } = dryRunOutput;
+  return tasks
+    .map((task) => {
+      const pathMembers = task.directory.split("/");
+      const directoryName = pathMembers[pathMembers.length - 1];
+      const isConsistent = directoryName === task.package;
+      if (!isConsistent) {
+        core.warning(
+          `Workspace name "${task.package}" does not match directory "${directoryName}" in ${task.directory}`
+        );
+      }
+      return isConsistent;
+    })
+    .every((isConsistent) => isConsistent);
+}
+
 async function run(): Promise<void> {
   const inputs = {
     token: core.getInput("token"),
+    requireConsistentNames: core.getBooleanInput("require-consistent-names"),
   };
   core.debug(`Inputs: ${inspect(inputs)}`);
 
@@ -82,9 +100,15 @@ async function run(): Promise<void> {
 
     const turboInfo: DryRunOutput = JSON.parse(dryRunOutput);
 
+    if (inputs.requireConsistentNames) {
+      if (!areNamesConsistent(turboInfo)) {
+        core.setFailed("Workspace names are not consistent with package names");
+      }
+    }
+
     const topLevelPaths = turboInfo.tasks.reduce((result, { directory }) => {
-      const topLevedPath = directory.split("/")[0];
-      result.add(topLevedPath);
+      const topLevelPath = directory.split("/")[0];
+      result.add(topLevelPath);
       return result;
     }, new Set<string>());
 
