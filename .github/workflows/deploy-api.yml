@@ -127,9 +127,12 @@ jobs:
           sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ inputs.git_commit_id }}"/g' env/0x-api/${{ env.folder_env }}/apis/optimism/*.yml
 
       # Remove special characters from the image identifier so it can be used as a branch name
-      - run: echo "clean_image_id=${${{ inputs.image_identifier}}//[:_]/}" >> $GITHUB_ENV
-        id: get_clean_image_id
-
+      - uses: yeouchien/sanitize-branch-name-action@v1
+        name: Sanitize branch name
+        id: branch
+        with:
+          branch-name: "${{ inputs.image_identifier }}"
+          
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
         with:
@@ -137,7 +140,7 @@ jobs:
           author: ${{ github.event.sender.login }} <${{ github.event.sender.login }}@users.noreply.github.com>
           commit-message: "api/${{ env.chain }}/${{ env.folder_env }}: Deploy ${{ inputs.image_identifier }}"
           title: "[api][${{ env.chain }}][${{ env.folder_env }}] Deploy ${{ inputs.image_identifier }}"
-          branch: "0xApi/${{ env.chain }}/${{ env.folder_env }}/${{ env.clean_image_id }}"
+          branch: "0xApi/${{ env.chain }}/${{ env.folder_env }}/${{ steps.branch.outputs.sanitized-branch-name }}"
           body: |
             ## Automated deploy action for the workspace: API
             Triggered by @${{ github.event.sender.login }}
