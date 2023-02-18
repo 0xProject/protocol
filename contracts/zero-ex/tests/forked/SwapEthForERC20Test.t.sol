@@ -52,7 +52,7 @@ contract SwapEthForERC20Test is Test, ForkUtils, TestUtils {
             swapOnUniswap(getTokens(i), getContractAddresses(i), getLiquiditySourceAddresses(i));
         }
     }
-    
+
     function test_swapEthForERC20OnKyberElastic() public {
         log_string("SwapEthForERC20OnKyberElastic");
         for (uint256 i = 0; i < chains.length; i++) {
@@ -73,6 +73,7 @@ contract SwapEthForERC20Test is Test, ForkUtils, TestUtils {
             swapOnKyberElastic(getTokens(i), getContractAddresses(i), getLiquiditySourceAddresses(i));
         }
     }
+
     function swapOnKyberElastic(
         TokenAddresses memory tokens,
         ContractAddresses memory addresses,
@@ -86,27 +87,22 @@ contract SwapEthForERC20Test is Test, ForkUtils, TestUtils {
             emit log_string("Kyber Elastic Router not available on this chain");
             return;
         }
-        
-        ITransformERC20Feature.Transformation[]
-            memory transformations = new ITransformERC20Feature.Transformation[](2);
+
+        ITransformERC20Feature.Transformation[] memory transformations = new ITransformERC20Feature.Transformation[](2);
 
         transformations[0].deploymentNonce = _findTransformerNonce(
             address(addresses.transformers.wethTransformer),
             address(addresses.exchangeProxyTransformerDeployer)
         );
         emit log_named_uint("           WethTransformer nonce", transformations[0].deploymentNonce);
-        createNewFQT(
-            tokens.WrappedNativeToken,
-            addresses.exchangeProxy,
-            addresses.exchangeProxyTransformerDeployer
-        );
+        createNewFQT(tokens.WrappedNativeToken, addresses.exchangeProxy, addresses.exchangeProxyTransformerDeployer);
         transformations[0].data = abi.encode(LibERC20Transformer.ETH_TOKEN_ADDRESS, 1e18);
         transformations[1].deploymentNonce = _findTransformerNonce(
             address(fillQuoteTransformer),
             address(addresses.exchangeProxyTransformerDeployer)
         );
         emit log_named_uint("           FillQuoteTransformer nonce", transformations[1].deploymentNonce);
-        
+
         FillQuoteTransformer.TransformData memory fqtData;
         fqtData.side = FillQuoteTransformer.Side.Sell;
         fqtData.sellToken = IERC20TokenV06(address(tokens.WrappedNativeToken));
@@ -158,7 +154,7 @@ contract SwapEthForERC20Test is Test, ForkUtils, TestUtils {
         assert(IERC20TokenV06(tokens.USDT).balanceOf(address(this)) > 0);
     }
 
-    function sampleKyberElastic (
+    function sampleKyberElastic(
         uint256 amount,
         address takerToken,
         address makerToken,
@@ -171,8 +167,9 @@ contract SwapEthForERC20Test is Test, ForkUtils, TestUtils {
         IKyberElasticQuoter kyberQuoter = IKyberElasticQuoter(quoter);
         IKyberElasticPool[] memory poolPath = new IKyberElasticPool[](1);
         poolPath[0] = IKyberElasticPool(0x7d697d789ee19bc376474E0167BADe9535A28CF4);
-        path = _toKyberElasticPath(tokenPath, poolPath);(tokenPath, poolPath);
-        (uint256 amountOut, , ,) = kyberQuoter.quoteExactInput(path, amount);
+        path = _toKyberElasticPath(tokenPath, poolPath);
+        (tokenPath, poolPath);
+        (uint256 amountOut, , , ) = kyberQuoter.quoteExactInput(path, amount);
 
         log_string("       Sampling KyberElastic for tokens");
         log_named_address("        ", takerToken);
@@ -180,7 +177,6 @@ contract SwapEthForERC20Test is Test, ForkUtils, TestUtils {
         log_named_address("        ", makerToken);
         return (amountOut, path);
     }
-
 
     /* solhint-disable function-max-lines */
     function swapOnUniswap(

@@ -117,6 +117,7 @@ interface IKyberElasticPool {
     function token0() external view returns (address);
 
     function token1() external view returns (address);
+
     function swapFeeUnits() external view returns (uint24);
 }
 
@@ -738,7 +739,10 @@ contract ForkUtils is Test {
         }
     }
 
-    function _toKyberElasticPath(address[] memory tokenPath, IKyberElasticPool[] memory poolPath) internal view returns (bytes memory path) {
+    function _toKyberElasticPath(
+        address[] memory tokenPath,
+        IKyberElasticPool[] memory poolPath
+    ) internal view returns (bytes memory path) {
         require(tokenPath.length >= 2 && tokenPath.length == poolPath.length + 1, "invalid path lengths");
         // paths are tightly packed as:
         // [token0, token0token1PairFee, token1, token1Token2PairFee, token2, ...]
@@ -762,6 +766,7 @@ contract ForkUtils is Test {
             }
         }
     }
+
     modifier onlyForked() {
         if (block.number >= 15000000) {
             _;
