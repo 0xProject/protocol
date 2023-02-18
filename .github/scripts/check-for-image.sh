@@ -1,16 +1,8 @@
-# Checks if an image exists in ECR
-# and sets the output variable image-exists to true or false
+# Checks if an image with the tag $ECR_IMAGE_TAG exists in ECR
+# and sets the output variable image-exists to true or false.
 
 # https://stackoverflow.com/a/22010339/5840249
-# {
-#     aws ecr describe-images --repository-name apps --image-ids imageTag=${WORKSPACE_NAME}__${WORKSPACE_HASH} &&
-#         echo "image-exists=true" >>$GITHUB_OUTPUT
-
-# } || {
-#     echo "image-exists=false" >>$GITHUB_OUTPUT
-# }
-
-cmd="aws ecr describe-images --repository-name apps --image-ids imageTag=${WORKSPACE_NAME}__${WORKSPACE_HASH}"
+cmd="aws ecr describe-images --repository-name apps --image-ids imageTag=${ECR_IMAGE_TAG}"
 $cmd
 status=$?
 

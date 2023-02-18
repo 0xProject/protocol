@@ -98,6 +98,8 @@ jobs:
         run: |
           echo "WORKSPACE_NAME=$(echo '${{ matrix.package-id }}' | cut -d '@' -f 1)" >> $GITHUB_ENV
           echo "WORKSPACE_HASH=$(echo '${{ matrix.package-id }}' | cut -d '@' -f 2)" >> $GITHUB_ENV
+      - name: Set ECR image tag
+        run: echo "ECR_IMAGE_TAG=${{ env.WORKSPACE_NAME }}__${{ env.WORKSPACE_HASH }}" >> $GITHUB_ENV
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:

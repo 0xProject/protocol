@@ -30,30 +30,27 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      # - name: Configure AWS credentials
-      #   uses: aws-actions/configure-aws-credentials@v1
-      #   with:
-      #     role-to-assume: arn:aws:iam::883408475785:role/github-actions
-      #     aws-region: us-east-1
-
-      # - name: Login to Amazon ECR
-      #   id: login-ecr
-      #   uses: aws-actions/amazon-ecr-login@v1
-
-      #   - name: Check that the image exists
-      #     id: check-for-image
-      #     run: |
-      #       echo "WORKSPACE_NAME=api"
-      #       echo "WORKSPACE_HASH=${{ inputs.image_identifier }}"
-      #       ./.github/scripts/check-for-image.sh
-      #     shell: bash
-
-      # - if: ${{ steps.check-for-image.outputs.image-exists == false }}
-      #   name: Exit
-      #   run: |
-      #     echo "Image for API at ${{ inputs.image_identifier }} does not exist"
-      #     exit 1
-      #   shell: bash
+      # First, make sure the image we're attempting to deploy exists
+      - name: Set ECR image tag
+        run: echo "ECR_IMAGE_TAG=${{ inputs.image_identifier }}" >> $GITHUB_ENV
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::883408475785:role/github-actions
+          aws-region: us-east-1
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+      - name: Check for existing images
+        id: check-for-image
+        run: ./.github/scripts/check-for-image.sh
+        shell: bash
+      - if: ${{ steps.check-for-image.outputs.image-exists == false }}
+        name: Missing image
+        run: |
+          echo "Image with tag ${{ inputs.image_identifier }} does not exist"
+          exit 1
+        shell: bash
 
       - name: Create configuration
         uses: rishabhgupta/split-by@v1
@@ -132,7 +129,7 @@ jobs:
         id: branch
         with:
           branch-name: "${{ inputs.image_identifier }}"
-          
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
         with:
