@@ -10992,7 +10992,7 @@ function run() {
                 result.add(topLevelPath);
                 return result;
             }, new Set());
-            let comment = `# Packages in this commit\n\n`;
+            let comment = `# Workspaces in this commit\n\n`;
             Array.from(topLevelPaths)
                 .sort()
                 .forEach((topLevelPath) => {

@@ -128,7 +128,7 @@ async function run(): Promise<void> {
       return result;
     }, new Set<string>());
 
-    let comment = `# Packages in this commit\n\n`;
+    let comment = `# Workspaces in this commit\n\n`;
     Array.from(topLevelPaths)
       .sort()
       .forEach((topLevelPath) => {
