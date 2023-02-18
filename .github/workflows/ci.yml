@@ -73,7 +73,7 @@ jobs:
           dry-run-result: ${{ steps.turbo-info.outputs.dry-run-output }}
           require-consistent-names: "true"
 
-      - name: Get app hashes
+      - name: Get node app hashes
         id: app-hashes
         uses: ./packages/workspace-hash-action
         with:
