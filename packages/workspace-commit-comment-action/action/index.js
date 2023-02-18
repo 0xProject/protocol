@@ -10958,9 +10958,22 @@ function run() {
             requireConsistentNames: core.getBooleanInput("require-consistent-names"),
         };
         core.debug(`Inputs: ${(0, node_util_1.inspect)(inputs)}`);
+        let sha;
+        if (github.context.eventName === "pull_request") {
+            const pullRequestPayload = github.context.payload;
+            const prSha = pullRequestPayload.pull_request.head.sha;
+            sha = prSha;
+            core.info(`Pull request commit is: ${prSha}`);
+        }
+        else {
+            const contextSha = github.context.sha;
+            sha = contextSha;
+            core.info(`Ran because of event ${github.context.eventName}, sha: ${sha}`);
+        }
         try {
             let dryRunOutput = "";
             yield (0, exec_1.exec)('"./node_modules/.bin/turbo"', ["run", "build", "--dry-run=json"], {
+                silent: true,
                 listeners: {
                     stdout: (data) => {
                         dryRunOutput += data.toString();
@@ -10968,6 +10981,7 @@ function run() {
                 },
             });
             const turboInfo = JSON.parse(dryRunOutput);
+            core.debug(`Turbo dry run output: ${(0, node_util_1.inspect)(dryRunOutput)}`);
             if (inputs.requireConsistentNames) {
                 if (!areNamesConsistent(turboInfo)) {
                     core.setFailed("Workspace names are not consistent with package names");
@@ -10995,11 +11009,10 @@ function run() {
             const octokit = github.getOctokit(inputs.token);
             const owner = github.context.repo.owner;
             const repo = github.context.repo.repo;
-            const commitSha = github.context.sha;
-            core.debug((0, node_util_1.inspect)({ owner, repo, commitSha, comment }));
+            core.debug((0, node_util_1.inspect)({ owner, repo, sha, comment }));
             yield octokit.rest.repos.createCommitComment({
                 body: comment,
-                commit_sha: commitSha,
+                commit_sha: sha,
                 owner,
                 repo,
             });

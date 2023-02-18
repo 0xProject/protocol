@@ -2,6 +2,7 @@ import { exec } from "@actions/exec";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { inspect } from "node:util";
+import { PullRequestEvent } from "@octokit/webhooks-definitions/schema";
 
 import gitEmoji from "./gitEmoji.json";
 
@@ -84,12 +85,26 @@ async function run(): Promise<void> {
   };
   core.debug(`Inputs: ${inspect(inputs)}`);
 
+  let sha: string;
+
+  if (github.context.eventName === "pull_request") {
+    const pullRequestPayload = github.context.payload as PullRequestEvent;
+    const prSha = pullRequestPayload.pull_request.head.sha;
+    sha = prSha;
+    core.info(`Pull request commit is: ${prSha}`);
+  } else {
+    const contextSha = github.context.sha;
+    sha = contextSha;
+    core.info(`Ran because of event ${github.context.eventName}, sha: ${sha}`);
+  }
+
   try {
     let dryRunOutput = "";
     await exec(
       '"./node_modules/.bin/turbo"',
       ["run", "build", "--dry-run=json"],
       {
+        silent: true,
         listeners: {
           stdout: (data: Buffer) => {
             dryRunOutput += data.toString();
@@ -99,6 +114,7 @@ async function run(): Promise<void> {
     );
 
     const turboInfo: DryRunOutput = JSON.parse(dryRunOutput);
+    core.debug(`Turbo dry run output: ${inspect(dryRunOutput)}`);
 
     if (inputs.requireConsistentNames) {
       if (!areNamesConsistent(turboInfo)) {
@@ -134,13 +150,12 @@ async function run(): Promise<void> {
 
     const owner = github.context.repo.owner;
     const repo = github.context.repo.repo;
-    const commitSha = github.context.sha;
 
-    core.debug(inspect({ owner, repo, commitSha, comment }));
+    core.debug(inspect({ owner, repo, sha, comment }));
 
     await octokit.rest.repos.createCommitComment({
       body: comment,
-      commit_sha: commitSha,
+      commit_sha: sha,
       owner,
       repo,
     });

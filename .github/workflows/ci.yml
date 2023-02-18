@@ -11,6 +11,10 @@ jobs:
     name: Build, Lint, and Test
     timeout-minutes: 15
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+      pull-requests: write
     # To use Remote Caching, uncomment the next lines and follow the steps below.
     env:
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
@@ -62,7 +66,6 @@ jobs:
       - name: Comment commit with workspace hashes
         uses: ./packages/workspace-commit-comment-action
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
           require-consistent-names: "true"
 
       - name: Get app hashes
@@ -83,6 +86,7 @@ jobs:
     # https://docs.github.com/en/actions/using-workflows/reusing-workflows#creating-a-reusable-workflow
     name: Build image ${{ matrix.package-id }}
     needs: build_and_test
+    if: ${{ needs.build_and_test.outputs.matrix != '[]' && needs.build_and_test.outputs.matrix != '' }}
 
     runs-on: ubuntu-latest
     strategy:
