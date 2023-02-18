@@ -19,18 +19,26 @@
     },
     "43114": {
         "UniswapV2Router": "0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10",
-        "UniswapV3Router": "0x0000000000000000000000000000000000000000"
+        "UniswapV3Router": "0x0000000000000000000000000000000000000000",
+        "KyberElasticQuoter": "0x0D125c15D54cA1F8a813C74A81aEe34ebB508C1f",
+        "KyberElasticRouter": "0xc1e7dfe73e1598e3910ef4c7845b68a9ab6f4c83"
     },
     "250": {
         "UniswapV2Router": "0x1b02da8cb0d097eb8d57a175b88c7d8b47997506",
-        "UniswapV3Router": "0x0000000000000000000000000000000000000000"
+        "UniswapV3Router": "0x0000000000000000000000000000000000000000",
+        "KyberElasticQuoter": "0x0D125c15D54cA1F8a813C74A81aEe34ebB508C1f",
+        "KyberElasticRouter": "0xc1e7dfe73e1598e3910ef4c7845b68a9ab6f4c83"
     },
     "10": {
         "UniswapV2Router": "0x0000000000000000000000000000000000000000",
-        "UniswapV3Router": "0x61ffe014ba17989e743c5f6cb21bf9697530b21e"
+        "UniswapV3Router": "0x61ffe014ba17989e743c5f6cb21bf9697530b21e",
+        "KyberElasticQuoter": "0x0D125c15D54cA1F8a813C74A81aEe34ebB508C1f",
+        "KyberElasticRouter": "0xc1e7dfe73e1598e3910ef4c7845b68a9ab6f4c83"
     },
     "42161": {
         "UniswapV2Router": "0x1b02da8cb0d097eb8d57a175b88c7d8b47997506",
-        "UniswapV3Router": "0x0000000000000000000000000000000000000000"
+        "UniswapV3Router": "0x0000000000000000000000000000000000000000",
+        "KyberElasticQuoter": "0x0D125c15D54cA1F8a813C74A81aEe34ebB508C1f",
+        "KyberElasticRouter": "0xc1e7dfe73e1598e3910ef4c7845b68a9ab6f4c83"
     }
 }
