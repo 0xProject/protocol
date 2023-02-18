@@ -33,6 +33,10 @@ jobs:
       id-token: write
       contents: read
     steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
       # First, make sure the image we're attempting to deploy exists
       - name: Set ECR image tag
         run: echo "ECR_IMAGE_TAG=${{ inputs.image_identifier }}" >> $GITHUB_ENV
