@@ -212,34 +212,12 @@ special check in CI, make sure to run it as part of one of the CI checks:
 }
 ```
 
-If, for some reason, you absolutely, positively, cannot write the outputs of
-your `build` script to the `__build__`, `dist`, or `out` directory, make sure to add
-the build directory to the `outputs` field of the `build` pipeline in `turbo.json`:
-
-```json
-{
-  "$schema": "https://turbo.build/schema.json",
-  "pipeline": {
-    "build": {
-      "dependsOn": ["^build"],
-      "outputs": ["__build__/**", "dist/**", "out/**", "other-build-folder/**"]
-    }
-  }
-}
-```
-
-Alternatively, consider creating a [specific workspace-task](https://turbo.build/repo/docs/core-concepts/monorepos/running-tasks#specific-workspace-tasks).
-
-Failure to add the directory to the turbo pipeline configuration will cause caching problems.
-Specifically, if there is a cache hit on the `build` pipeline the pipeline won't run _and_ the
-build artifacts won't be replayed.
+If your workspace needs to deviate from the conventions above, see
+["Configuring Workspaces"](https://turbo.build/repo/docs/core-concepts/monorepos/configuring-workspaces)
 
 > ⛔️ Warning: some 0x projects write their build outputs to `lib`. This collides with conventions
 > of many frameworks (i.e. Foundry, SvelteKit, Rust). Make sure to change the build target from `lib`
 > before migrating the project into `0x-labs`.
-
-> ⛔️ Warning: adding a directory to the `turbo.json` `outputs` which contains source files in any
-> workspace will make you a sad panda.
 
 ## Websites
 
@@ -300,7 +278,7 @@ are installed.
 
 1. Create script in workspace `package.json`
 2. Add binary to `turbo-prerun.sh`
-3. Create [specific workspace-task](https://turbo.build/repo/docs/core-concepts/monorepos/running-tasks#specific-workspace-tasks) with the appropriate environment variables
+3. Create Turbo [workspace configuration](https://turbo.build/repo/docs/core-concepts/monorepos/configuring-workspaces) with the appropriate environment variables
 4. Add the binary to the CI setup
 
 As an example, we'll add scripts requiring `forge` to a `foundry-demo` workspace:
@@ -334,20 +312,22 @@ check for `forge`:
 set_binary_version forge
 ```
 
-(3) In `turbo.json`, we create workspace specific tasks which include
-the environment variable for the `forge` binary. See the
+(3) In the workspace root, add a `turbo.json` to extend the root Turbo configuration.
+In this configuration file, modify the pipeline tasks to include the environment variable for the `forge` binary. See the
 [Turborepo docs: Altering Caching Based on Environment Variables](https://turbo.build/repo/docs/core-concepts/caching#altering-caching-based-on-environment-variables)
 to learn more about how environment variables affect the pipeline.
 
-```json
+```jsonc
+// apps/foundry-demo/turbo.json
 {
+  "extends": ["//"],
   "pipeline": {
-    "foundry-demo#build": {
+    "build": {
       "dependsOn": ["^build"],
       "outputs": ["out/**"],
       "env": ["TURBO_VERSION_FORGE"]
     },
-    "foundry-demo#test:ci": {
+    "test:ci": {
       "dependsOn": ["build"],
       "env": ["TURBO_VERSION_FORGE"]
     }
