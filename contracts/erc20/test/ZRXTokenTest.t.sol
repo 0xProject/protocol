@@ -20,8 +20,8 @@ import "../src/IERC20Token.sol";
 contract ZRXTokenTest is Test {
     address payable internal owner = payable(vm.addr(1));
     address payable internal user = payable(vm.addr(2));
+    address payable internal anotherUser = payable(vm.addr(3));
     uint256 internal totalSupply = 1_000_000_000 * 1e18;
-    uint256 internal constant MAX_UINT = 2 ^ (256 - 1);
     IERC20Token zrxToken;
 
     function setUp() public {
@@ -29,7 +29,7 @@ contract ZRXTokenTest is Test {
         vm.deal(user, 1e20);
 
         vm.prank(owner);
-        bytes memory _bytecode = abi.encodePacked(vm.getCode("./out/ZRXToken.sol/ZRXToken.json"));
+        bytes memory _bytecode = vm.getCode("./out/ZRXToken.sol/ZRXToken.json");
         address _address;
         assembly {
             _address := create(0, add(_bytecode, 0x20), mload(_bytecode))
@@ -61,7 +61,13 @@ contract ZRXTokenTest is Test {
     function testShouldReturnTrueOnAZeroValueTransfer() public {
         vm.prank(owner);
         bool success = zrxToken.transfer(user, 0);
-        assertEq(success, true);
+        assertTrue(success);
+    }
+
+    function testShouldReturnTrueOnAZeroValueTransferByUserWithZeroBalance() public {
+        vm.prank(anotherUser);
+        bool success = zrxToken.transfer(user, 0);
+        assertTrue(success);
     }
 
     function testShouldReturnFalseIfSenderHasInsufficientBalance() public {
@@ -90,11 +96,11 @@ contract ZRXTokenTest is Test {
 
     function testShouldNotModifySenderAllowanceIfSetToUINT256Max() public {
         vm.prank(owner);
-        zrxToken.approve(user, MAX_UINT);
+        zrxToken.approve(user, type(uint256).max);
         vm.stopPrank();
 
         zrxToken.transferFrom(owner, user, 100);
-        assertEq(zrxToken.allowance(owner, user), MAX_UINT);
+        assertEq(zrxToken.allowance(owner, user), type(uint256).max);
     }
 
     function testShouldTransferCorrectlyWhenSufficientAllowance() public {
