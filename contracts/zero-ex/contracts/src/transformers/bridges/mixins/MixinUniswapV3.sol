@@ -15,8 +15,8 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/v06/LibERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "../IBridgeAdapter.sol";
 
 interface IUniswapV3Router {
@@ -32,10 +32,10 @@ interface IUniswapV3Router {
 }
 
 contract MixinUniswapV3 {
-    using LibERC20TokenV06 for IERC20TokenV06;
+    using LibERC20TokenV06 for IERC20Token;
 
     function _tradeUniswapV3(
-        IERC20TokenV06 sellToken,
+        IERC20Token sellToken,
         uint256 sellAmount,
         bytes memory bridgeData
     ) internal returns (uint256 boughtAmount) {

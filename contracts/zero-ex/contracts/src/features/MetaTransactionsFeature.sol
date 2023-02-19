@@ -63,8 +63,8 @@ contract MetaTransactionsFeature is
 
     /// @dev Arguments for a `TransformERC20.transformERC20()` call.
     struct ExternalTransformERC20Args {
-        IERC20TokenV06 inputToken;
-        IERC20TokenV06 outputToken;
+        IERC20Token inputToken;
+        IERC20Token outputToken;
         uint256 inputTokenAmount;
         uint256 minOutputTokenAmount;
         ITransformERC20Feature.Transformation[] transformations;

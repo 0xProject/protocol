@@ -21,7 +21,7 @@ import "./TestFeeCollectorController.sol";
 contract TestNativeOrdersFeature is NativeOrdersFeature {
     constructor(
         address zeroExAddress,
-        IEtherTokenV06 weth,
+        IEtherToken weth,
         IStaking staking,
         FeeCollectorController _feeCollectorController, // Unused but necessary for artifact compatibility.
         uint32 protocolFeeMultiplier

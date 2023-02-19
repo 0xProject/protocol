@@ -15,15 +15,15 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "../../vendor/ILiquidityProvider.sol";
 
 /// @dev Feature to swap directly with an on-chain liquidity provider.
 interface ILiquidityProviderFeature {
     /// @dev Event for data pipeline.
     event LiquidityProviderSwap(
-        IERC20TokenV06 inputToken,
-        IERC20TokenV06 outputToken,
+        IERC20Token inputToken,
+        IERC20Token outputToken,
         uint256 inputTokenAmount,
         uint256 outputTokenAmount,
         ILiquidityProvider provider,
@@ -44,8 +44,8 @@ interface ILiquidityProviderFeature {
     /// @param auxiliaryData Auxiliary data supplied to the `provider` contract.
     /// @return boughtAmount The amount of `outputToken` bought.
     function sellToLiquidityProvider(
-        IERC20TokenV06 inputToken,
-        IERC20TokenV06 outputToken,
+        IERC20Token inputToken,
+        IERC20Token outputToken,
         ILiquidityProvider provider,
         address recipient,
         uint256 sellAmount,

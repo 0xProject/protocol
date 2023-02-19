@@ -13,7 +13,7 @@ The 0x Protocol is equipped with a highly optimized `UniswapV2 Router <https://u
     /// @param isSushi Use sushiswap if true.
     /// @return buyAmount Amount of `tokens[-1]` bought.
     function sellToUniswap(
-        IERC20TokenV06[] calldata tokens,
+        IERC20Token[] calldata tokens,
         uint256 sellAmount,
         uint256 minBuyAmount,
         bool isSushi

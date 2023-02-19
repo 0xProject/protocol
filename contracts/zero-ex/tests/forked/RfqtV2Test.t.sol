@@ -19,7 +19,7 @@ pragma experimental ABIEncoderV2;
 import "../utils/ForkUtils.sol";
 import "../utils/TestUtils.sol";
 import "src/IZeroEx.sol";
-import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
+import "@0x/contracts-erc20/src/IEtherToken.sol";
 import "src/features/TransformERC20Feature.sol";
 import "src/external/TransformerDeployer.sol";
 import "src/transformers/WethTransformer.sol";
@@ -83,7 +83,7 @@ contract RfqtV2Test is Test, ForkUtils, TestUtils {
         // Set up the FillQuoteTransformer data
         FillQuoteTransformer.TransformData memory fqtData;
         fqtData.side = FillQuoteTransformer.Side.Sell;
-        fqtData.sellToken = IERC20TokenV06(address(tokens.WrappedNativeToken));
+        fqtData.sellToken = IERC20Token(address(tokens.WrappedNativeToken));
         fqtData.buyToken = tokens.USDC;
         // the FQT has a sequence, e.g first RFQ then Limit then Bridge
         // since solidity doesn't support arrays of different types, this is one simple solution
@@ -106,7 +106,7 @@ contract RfqtV2Test is Test, ForkUtils, TestUtils {
         (order.maker, privateKey) = getSigner();
         deal(address(order.makerToken), order.maker, 1e20);
         vm.prank(order.maker);
-        IERC20TokenV06(tokens.USDC).approve(address(addresses.exchangeProxy), 1e20);
+        IERC20Token(tokens.USDC).approve(address(addresses.exchangeProxy), 1e20);
         vm.prank(order.maker);
 
         order.taker = address(0);
@@ -133,7 +133,7 @@ contract RfqtV2Test is Test, ForkUtils, TestUtils {
         log_string("        Successful fill, makerTokens bought");
         IZERO_EX.transformERC20{value: 1e18}(
             // input token
-            IERC20TokenV06(LibERC20Transformer.ETH_TOKEN_ADDRESS),
+            IERC20Token(LibERC20Transformer.ETH_TOKEN_ADDRESS),
             // output token
             tokens.USDC,
             // input token amount

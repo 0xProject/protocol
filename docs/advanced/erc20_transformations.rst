@@ -25,8 +25,8 @@ Anyone can run transformations using the ``transformERC20`` Exchange function.
     ///        in sequence.
     /// @return outputTokenAmount The amount of `outputToken` received by the sender.
     function transformERC20(
-        IERC20TokenV06 inputToken,
-        IERC20TokenV06 outputToken,
+        IERC20Token inputToken,
+        IERC20Token outputToken,
         uint256 inputTokenAmount,
         uint256 minOutputTokenAmount,
         Transformation[] memory transformations
@@ -76,10 +76,10 @@ Below are just a few of the Supported DEX's on Ethereum:
 
 This transformation is implemented by the `FillQuoteTransformer <../architecture/transformers.html>`_. Abi-Encode the following struct to get the ``data``:
 
-.. warning:: 
+.. warning::
     An upgrade is pending to this transformation. This currently uses Exchange V3 Orders, but will soon be updated to use `V4 Orders <../basics/orders.html>`_. - 11/26/2020
 
-.. code-block:: solidity 
+.. code-block:: solidity
 
     /// @dev Transform data to ABI-encode and pass into `transform()`.
     struct TransformData {
@@ -87,10 +87,10 @@ This transformation is implemented by the `FillQuoteTransformer <../architecture
         Side side;
         // The token being sold.
         // This should be an actual token, not the ETH pseudo-token.
-        IERC20TokenV06 sellToken;
+        IERC20Token sellToken;
         // The token being bought.
         // This should be an actual token, not the ETH pseudo-token.
-        IERC20TokenV06 buyToken;
+        IERC20Token buyToken;
         // The orders to fill.
         IExchange.Order[] orders;
         // Signatures for each respective order in `orders`.
@@ -128,7 +128,7 @@ This transformation is implemented by the `WethTransformer <../architecture/tran
     /// @dev Transform data to ABI-encode and pass into `transform()`.
     struct TransformData {
         // The token to wrap/unwrap. Must be either ETH or WETH.
-        IERC20TokenV06 token;
+        IERC20Token token;
         // Amount of `token` to wrap or unwrap.
         // `uint(-1)` will unwrap the entire balance.
         uint256 amount;
@@ -146,7 +146,7 @@ This transformation is implemented by the `AffiliateFeeTransformer <../architect
     /// @dev Information for a single fee.
     struct TokenFee {
         // The token to transfer to `recipient`.
-        IERC20TokenV06 token;
+        IERC20Token token;
         // Amount of each `token` to transfer to `recipient`.
         // If `amount == uint256(-1)`, the entire balance of `token` will be
         // transferred.
@@ -167,7 +167,7 @@ This transformation is implemented by the `PayTakerTransformer <../architecture/
     /// @dev Transform data to ABI-encode and pass into `transform()`.
     struct TransformData {
         // The tokens to transfer to the taker.
-        IERC20TokenV06[] tokens;
+        IERC20Token[] tokens;
         // Amount of each token in `tokens` to transfer to the taker.
         // `uint(-1)` will transfer the entire balance.
         uint256[] amounts;

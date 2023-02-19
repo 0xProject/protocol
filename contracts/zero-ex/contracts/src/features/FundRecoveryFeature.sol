@@ -15,7 +15,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "../migrations/LibMigrate.sol";
 import "../fixins/FixinCommon.sol";
 import "./interfaces/IFeature.sol";
@@ -41,7 +41,7 @@ contract FundRecoveryFeature is IFeature, IFundRecoveryFeature, FixinCommon {
     /// @param amountOut Amount of tokens to withdraw.
     /// @param recipientWallet Recipient wallet address.
     function transferTrappedTokensTo(
-        IERC20TokenV06 erc20,
+        IERC20Token erc20,
         uint256 amountOut,
         address payable recipientWallet
     ) external override onlyOwner {

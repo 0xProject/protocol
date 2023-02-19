@@ -15,7 +15,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 
 /// @dev Feature that allows spending token allowances.
 interface ITokenSpenderFeature {
@@ -25,14 +25,14 @@ interface ITokenSpenderFeature {
     /// @param owner The owner of the tokens.
     /// @param to The recipient of the tokens.
     /// @param amount The amount of `token` to transfer.
-    function _spendERC20Tokens(IERC20TokenV06 token, address owner, address to, uint256 amount) external;
+    function _spendERC20Tokens(IERC20Token token, address owner, address to, uint256 amount) external;
 
     /// @dev Gets the maximum amount of an ERC20 token `token` that can be
     ///      pulled from `owner`.
     /// @param token The token to spend.
     /// @param owner The owner of the tokens.
     /// @return amount The amount of tokens that can be pulled.
-    function getSpendableERC20BalanceOf(IERC20TokenV06 token, address owner) external view returns (uint256 amount);
+    function getSpendableERC20BalanceOf(IERC20Token token, address owner) external view returns (uint256 amount);
 
     /// @dev Get the address of the allowance target.
     /// @return target The target of token allowances.

@@ -15,15 +15,15 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
+import "@0x/contracts-erc20/src/v06/LibERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
+import "@0x/contracts-erc20/src/IEtherToken.sol";
 import "../IBridgeAdapter.sol";
 
 interface IUniswapExchangeFactory {
     /// @dev Get the exchange for a token.
     /// @param token The token contract.
-    function getExchange(IERC20TokenV06 token) external view returns (IUniswapExchange exchange);
+    function getExchange(IERC20Token token) external view returns (IUniswapExchange exchange);
 }
 
 interface IUniswapExchange {
@@ -65,7 +65,7 @@ interface IUniswapExchange {
         uint256 minEthBought,
         uint256 deadline,
         address recipient,
-        IERC20TokenV06 buyToken
+        IERC20Token buyToken
     ) external returns (uint256 tokensBought);
 
     /// @dev Buys at least `minTokensBought` tokens with the exchange token.
@@ -80,24 +80,24 @@ interface IUniswapExchange {
         uint256 minTokensBought,
         uint256 minEthBought,
         uint256 deadline,
-        IERC20TokenV06 buyToken
+        IERC20Token buyToken
     ) external returns (uint256 tokensBought);
 }
 
 contract MixinUniswap {
-    using LibERC20TokenV06 for IERC20TokenV06;
+    using LibERC20TokenV06 for IERC20Token;
 
     /// @dev Mainnet address of the WETH contract.
-    IEtherTokenV06 private immutable WETH;
+    IEtherToken private immutable WETH;
 
-    constructor(IEtherTokenV06 weth) public {
+    constructor(IEtherToken weth) public {
         WETH = weth;
     }
 
     //·solhint-disable-next-line·function-max-lines
     function _tradeUniswap(
-        IERC20TokenV06 sellToken,
-        IERC20TokenV06 buyToken,
+        IERC20Token sellToken,
+        IERC20Token buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
     ) internal returns (uint256 boughtAmount) {
@@ -166,8 +166,8 @@ contract MixinUniswap {
     /// @return exchange The uniswap exchange.
     function _getUniswapExchangeForTokenPair(
         IUniswapExchangeFactory exchangeFactory,
-        IERC20TokenV06 sellToken,
-        IERC20TokenV06 buyToken
+        IERC20Token sellToken,
+        IERC20Token buyToken
     ) private view returns (IUniswapExchange exchange) {
         // Whichever isn't WETH is the exchange token.
         exchange = sellToken == WETH ? exchangeFactory.getExchange(buyToken) : exchangeFactory.getExchange(sellToken);

@@ -18,7 +18,7 @@ import "../src/features/UniswapV3Feature.sol";
 
 contract TestUniswapV3Feature is UniswapV3Feature {
     constructor(
-        IEtherTokenV06 weth,
+        IEtherToken weth,
         address uniFactory,
         bytes32 poolInitCodeHash
     ) public UniswapV3Feature(weth, uniFactory, poolInitCodeHash) {}

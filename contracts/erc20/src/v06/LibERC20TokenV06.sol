@@ -21,50 +21,50 @@ pragma solidity ^0.6.5;
 
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibBytesV06.sol";
-import "./IERC20TokenV06.sol";
+import "../IERC20Token.sol";
 
 library LibERC20TokenV06 {
     bytes private constant DECIMALS_CALL_DATA = hex"313ce567";
 
-    /// @dev Calls `IERC20TokenV06(token).approve()`.
+    /// @dev Calls `IERC20Token(token).approve()`.
     ///      Reverts if the return data is invalid or the call reverts.
     /// @param token The address of the token contract.
     /// @param spender The address that receives an allowance.
     /// @param allowance The allowance to set.
-    function compatApprove(IERC20TokenV06 token, address spender, uint256 allowance) internal {
+    function compatApprove(IERC20Token token, address spender, uint256 allowance) internal {
         bytes memory callData = abi.encodeWithSelector(token.approve.selector, spender, allowance);
         _callWithOptionalBooleanResult(address(token), callData);
     }
 
-    /// @dev Calls `IERC20TokenV06(token).approve()` and sets the allowance to the
+    /// @dev Calls `IERC20Token(token).approve()` and sets the allowance to the
     ///      maximum if the current approval is not already >= an amount.
     ///      Reverts if the return data is invalid or the call reverts.
     /// @param token The address of the token contract.
     /// @param spender The address that receives an allowance.
     /// @param amount The minimum allowance needed.
-    function approveIfBelow(IERC20TokenV06 token, address spender, uint256 amount) internal {
+    function approveIfBelow(IERC20Token token, address spender, uint256 amount) internal {
         if (token.allowance(address(this), spender) < amount) {
             compatApprove(token, spender, uint256(-1));
         }
     }
 
-    /// @dev Calls `IERC20TokenV06(token).transfer()`.
+    /// @dev Calls `IERC20Token(token).transfer()`.
     ///      Reverts if the return data is invalid or the call reverts.
     /// @param token The address of the token contract.
     /// @param to The address that receives the tokens
     /// @param amount Number of tokens to transfer.
-    function compatTransfer(IERC20TokenV06 token, address to, uint256 amount) internal {
+    function compatTransfer(IERC20Token token, address to, uint256 amount) internal {
         bytes memory callData = abi.encodeWithSelector(token.transfer.selector, to, amount);
         _callWithOptionalBooleanResult(address(token), callData);
     }
 
-    /// @dev Calls `IERC20TokenV06(token).transferFrom()`.
+    /// @dev Calls `IERC20Token(token).transferFrom()`.
     ///      Reverts if the return data is invalid or the call reverts.
     /// @param token The address of the token contract.
     /// @param from The owner of the tokens.
     /// @param to The address that receives the tokens
     /// @param amount Number of tokens to transfer.
-    function compatTransferFrom(IERC20TokenV06 token, address from, address to, uint256 amount) internal {
+    function compatTransferFrom(IERC20Token token, address from, address to, uint256 amount) internal {
         bytes memory callData = abi.encodeWithSelector(token.transferFrom.selector, from, to, amount);
         _callWithOptionalBooleanResult(address(token), callData);
     }
@@ -73,7 +73,7 @@ library LibERC20TokenV06 {
     ///      Returns `18` if the call reverts.
     /// @param token The address of the token contract.
     /// @return tokenDecimals The number of decimals places for the token.
-    function compatDecimals(IERC20TokenV06 token) internal view returns (uint8 tokenDecimals) {
+    function compatDecimals(IERC20Token token) internal view returns (uint8 tokenDecimals) {
         tokenDecimals = 18;
         (bool didSucceed, bytes memory resultData) = address(token).staticcall(DECIMALS_CALL_DATA);
         if (didSucceed && resultData.length >= 32) {
@@ -88,7 +88,7 @@ library LibERC20TokenV06 {
     /// @param spender The address the spender.
     /// @return allowance_ The allowance for a token, owner, and spender.
     function compatAllowance(
-        IERC20TokenV06 token,
+        IERC20Token token,
         address owner,
         address spender
     ) internal view returns (uint256 allowance_) {
@@ -105,7 +105,7 @@ library LibERC20TokenV06 {
     /// @param token The address of the token contract.
     /// @param owner The owner of the tokens.
     /// @return balance The token balance of an owner.
-    function compatBalanceOf(IERC20TokenV06 token, address owner) internal view returns (uint256 balance) {
+    function compatBalanceOf(IERC20Token token, address owner) internal view returns (uint256 balance) {
         (bool didSucceed, bytes memory resultData) = address(token).staticcall(
             abi.encodeWithSelector(token.balanceOf.selector, owner)
         );

@@ -20,7 +20,7 @@ import "../utils/TestUtils.sol";
 import "../utils/DeployZeroEx.sol";
 import "forge-std/Test.sol";
 import "src/IZeroEx.sol";
-import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
+import "@0x/contracts-erc20/src/IEtherToken.sol";
 import "src/features/TransformERC20Feature.sol";
 import "src/external/TransformerDeployer.sol";
 import "src/transformers/WethTransformer.sol";
@@ -61,9 +61,9 @@ contract WrapEthTest is Test, ForkUtils, TestUtils {
         uint256 balanceWETHBefore = zeroExDeployed.weth.balanceOf(address(this));
         zeroExDeployed.zeroEx.transformERC20{value: 1e18}(
             // input token
-            IERC20TokenV06(LibERC20Transformer.ETH_TOKEN_ADDRESS),
+            IERC20Token(LibERC20Transformer.ETH_TOKEN_ADDRESS),
             // output token
-            IERC20TokenV06(address(zeroExDeployed.weth)),
+            IERC20Token(address(zeroExDeployed.weth)),
             // input token amount
             1e18,
             // min output token amount

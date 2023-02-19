@@ -39,12 +39,12 @@ contract BSCBridgeAdapter is
     MixinWOOFi,
     MixinZeroExBridge
 {
-    constructor(IEtherTokenV06 weth) public MixinCurve(weth) MixinMooniswap(weth) {}
+    constructor(IEtherToken weth) public MixinCurve(weth) MixinMooniswap(weth) {}
 
     function _trade(
         BridgeOrder memory order,
-        IERC20TokenV06 sellToken,
-        IERC20TokenV06 buyToken,
+        IERC20Token sellToken,
+        IERC20Token buyToken,
         uint256 sellAmount,
         bool dryRun
     ) internal override returns (uint256 boughtAmount, bool supportedSource) {

@@ -15,8 +15,8 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
+import "@0x/contracts-erc20/src/IEtherToken.sol";
 import "../migrations/LibMigrate.sol";
 import "../fixins/FixinCommon.sol";
 import "./interfaces/IFeature.sol";
@@ -29,7 +29,7 @@ contract PancakeSwapFeature is IFeature, IPancakeSwapFeature, FixinCommon {
     /// @dev Version of this feature.
     uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 2);
     /// @dev WBNB contract.
-    IEtherTokenV06 private immutable WBNB;
+    IEtherToken private immutable WBNB;
 
     // 0xFF + address of the PancakeSwap factory contract.
     uint256 private constant FF_PANCAKESWAP_FACTORY =
@@ -112,7 +112,7 @@ contract PancakeSwapFeature is IFeature, IPancakeSwapFeature, FixinCommon {
 
     /// @dev Construct this contract.
     /// @param wbnb The WBNB contract.
-    constructor(IEtherTokenV06 wbnb) public {
+    constructor(IEtherToken wbnb) public {
         WBNB = wbnb;
     }
 
@@ -131,7 +131,7 @@ contract PancakeSwapFeature is IFeature, IPancakeSwapFeature, FixinCommon {
     /// @param fork The protocol fork to use.
     /// @return buyAmount Amount of `tokens[-1]` bought.
     function sellToPancakeSwap(
-        IERC20TokenV06[] calldata tokens,
+        IERC20Token[] calldata tokens,
         uint256 sellAmount,
         uint256 minBuyAmount,
         ProtocolFork fork
@@ -139,7 +139,7 @@ contract PancakeSwapFeature is IFeature, IPancakeSwapFeature, FixinCommon {
         require(tokens.length > 1, "PancakeSwapFeature/InvalidTokensLength");
         {
             // Load immutables onto the stack.
-            IEtherTokenV06 wbnb = WBNB;
+            IEtherToken wbnb = WBNB;
 
             // Store some vars in memory to get around stack limits.
             assembly {

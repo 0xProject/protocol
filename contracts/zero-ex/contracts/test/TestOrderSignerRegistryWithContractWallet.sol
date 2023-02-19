@@ -16,7 +16,7 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/OwnableV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "../src/IZeroEx.sol";
 
 contract TestOrderSignerRegistryWithContractWallet is OwnableV06 {
@@ -30,7 +30,7 @@ contract TestOrderSignerRegistryWithContractWallet is OwnableV06 {
         zeroex.registerAllowedOrderSigner(signer, allowed);
     }
 
-    function approveERC20(IERC20TokenV06 token, address spender, uint256 value) external onlyOwner {
+    function approveERC20(IERC20Token token, address spender, uint256 value) external onlyOwner {
         token.approve(spender, value);
     }
 }

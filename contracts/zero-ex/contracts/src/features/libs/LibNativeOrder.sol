@@ -15,7 +15,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../../errors/LibNativeOrdersRichErrors.sol";
@@ -35,8 +35,8 @@ library LibNativeOrder {
 
     /// @dev A standard OTC or OO limit order.
     struct LimitOrder {
-        IERC20TokenV06 makerToken;
-        IERC20TokenV06 takerToken;
+        IERC20Token makerToken;
+        IERC20Token takerToken;
         uint128 makerAmount;
         uint128 takerAmount;
         uint128 takerTokenFeeAmount;
@@ -51,8 +51,8 @@ library LibNativeOrder {
 
     /// @dev An RFQ limit order.
     struct RfqOrder {
-        IERC20TokenV06 makerToken;
-        IERC20TokenV06 takerToken;
+        IERC20Token makerToken;
+        IERC20Token takerToken;
         uint128 makerAmount;
         uint128 takerAmount;
         address maker;
@@ -65,8 +65,8 @@ library LibNativeOrder {
 
     /// @dev An OTC limit order.
     struct OtcOrder {
-        IERC20TokenV06 makerToken;
-        IERC20TokenV06 takerToken;
+        IERC20Token makerToken;
+        IERC20Token takerToken;
         uint128 makerAmount;
         uint128 takerAmount;
         address maker;

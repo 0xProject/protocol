@@ -29,7 +29,7 @@ contract NativeOrdersFeature is IFeature, NativeOrdersSettlement {
 
     constructor(
         address zeroExAddress,
-        IEtherTokenV06 weth,
+        IEtherToken weth,
         IStaking staking,
         FeeCollectorController feeCollectorController,
         uint32 protocolFeeMultiplier

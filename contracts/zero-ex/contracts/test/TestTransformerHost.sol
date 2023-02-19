@@ -16,12 +16,12 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "../src/transformers/IERC20Transformer.sol";
 import "../src/transformers/LibERC20Transformer.sol";
 
 contract TestTransformerHost {
-    using LibERC20Transformer for IERC20TokenV06;
+    using LibERC20Transformer for IERC20Token;
     using LibRichErrorsV06 for bytes;
 
     function rawExecuteTransform(
