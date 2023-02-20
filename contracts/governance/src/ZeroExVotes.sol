@@ -134,10 +134,10 @@ contract ZeroExVotes is IZeroExVotes {
 
                 _writeCheckpoint(_checkpoints[srcDelegatee], newLinearBalance, newQuadraticBalance);
 
-                emit DelegateVotesChanged(
+                emit DelegateVotesChanged(srcDelegatee, oldCkptSrcDelegate.votes, newLinearBalance);
+
+                emit DelegateQuadraticVotesChanged(
                     srcDelegatee,
-                    oldCkptSrcDelegate.votes,
-                    newLinearBalance,
                     oldCkptSrcDelegate.quadraticVotes,
                     newQuadraticBalance
                 );
@@ -154,10 +154,10 @@ contract ZeroExVotes is IZeroExVotes {
 
                 _writeCheckpoint(_checkpoints[dstDelegatee], newLinearBalance, newQuadraticBalance);
 
-                emit DelegateVotesChanged(
+                emit DelegateVotesChanged(dstDelegatee, oldCkptDstDelegate.votes, newLinearBalance);
+
+                emit DelegateQuadraticVotesChanged(
                     dstDelegatee,
-                    oldCkptDstDelegate.votes,
-                    newLinearBalance,
                     oldCkptDstDelegate.quadraticVotes,
                     newQuadraticBalance
                 );
@@ -192,10 +192,10 @@ contract ZeroExVotes is IZeroExVotes {
 
                 _writeCheckpoint(_checkpoints[srcDelegatee], newLinearBalance, newQuadraticBalance);
 
-                emit DelegateVotesChanged(
+                emit DelegateVotesChanged(srcDelegatee, oldCkptSrcDelegate.votes, newLinearBalance);
+
+                emit DelegateQuadraticVotesChanged(
                     srcDelegatee,
-                    oldCkptSrcDelegate.votes,
-                    newLinearBalance,
                     oldCkptSrcDelegate.quadraticVotes,
                     newQuadraticBalance
                 );
@@ -217,10 +217,10 @@ contract ZeroExVotes is IZeroExVotes {
 
                 _writeCheckpoint(_checkpoints[dstDelegatee], newLinearBalance, newQuadraticBalance);
 
-                emit DelegateVotesChanged(
+                emit DelegateVotesChanged(dstDelegatee, oldCkptDstDelegate.votes, newLinearBalance);
+
+                emit DelegateQuadraticVotesChanged(
                     dstDelegatee,
-                    oldCkptDstDelegate.votes,
-                    newLinearBalance,
                     oldCkptDstDelegate.quadraticVotes,
                     newQuadraticBalance
                 );

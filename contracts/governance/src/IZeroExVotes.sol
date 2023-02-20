@@ -27,15 +27,19 @@ interface IZeroExVotes {
     }
 
     /**
-     * @dev Emitted when a token transfer or delegate change results in changes to a delegate's number of votes.
+     * @dev Emitted when a token transfer or delegate change,
+     * results in changes to a delegate's quadratic number of votes.
      */
-    event DelegateVotesChanged(
+    event DelegateQuadraticVotesChanged(
         address indexed delegate,
-        uint256 previousLinearBalance,
-        uint256 newLinearBalance,
         uint256 previousQuadraticBalance,
         uint256 newQuadraticBalance
     );
+
+    /**
+     * @dev Emitted when a token transfer or delegate change, results in changes to a delegate's number of votes.
+     */
+    event DelegateVotesChanged(address indexed delegate, uint256 previousBalance, uint256 newBalance);
 
     /**
      * @dev Get the `pos`-th checkpoint for `account`.
