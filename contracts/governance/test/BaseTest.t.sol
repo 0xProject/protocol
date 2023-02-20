@@ -45,34 +45,51 @@ contract BaseTest is Test {
 
     function setupGovernance()
         internal
-        returns (IERC20, ZRXWrappedToken, ZeroExVotes, ZeroExTimelock, ZeroExProtocolGovernor, ZeroExTreasuryGovernor)
+        returns (
+            IERC20,
+            ZRXWrappedToken,
+            ZeroExVotes,
+            ZeroExTimelock,
+            ZeroExTimelock,
+            ZeroExProtocolGovernor,
+            ZeroExTreasuryGovernor
+        )
     {
+        (IERC20 zrxToken, ZRXWrappedToken token, ZeroExVotes votes) = setupZRXWrappedToken();
+
+        address[] memory proposers = new address[](0);
+        address[] memory executors = new address[](0);
+
+        ZeroExTimelock protocolTimelock = new ZeroExTimelock(3 days, proposers, executors, account1);
+        ZeroExProtocolGovernor protocolGovernor = new ZeroExProtocolGovernor(IVotes(address(votes)), protocolTimelock);
+        protocolTimelock.grantRole(protocolTimelock.PROPOSER_ROLE(), address(protocolGovernor));
+        protocolTimelock.grantRole(protocolTimelock.EXECUTOR_ROLE(), address(protocolGovernor));
+
+        ZeroExTimelock treasuryTimelock = new ZeroExTimelock(2 days, proposers, executors, account1);
+        ZeroExTreasuryGovernor treasuryGovernor = new ZeroExTreasuryGovernor(IVotes(address(votes)), treasuryTimelock);
+
+        treasuryTimelock.grantRole(treasuryTimelock.PROPOSER_ROLE(), address(treasuryGovernor));
+        treasuryTimelock.grantRole(treasuryTimelock.EXECUTOR_ROLE(), address(treasuryGovernor));
+
+        return (zrxToken, token, votes, protocolTimelock, treasuryTimelock, protocolGovernor, treasuryGovernor);
+    }
+
+    function setupZRXWrappedToken() internal returns (IERC20, ZRXWrappedToken, ZeroExVotes) {
         bytes memory _bytecode = vm.getCode("./ZRXToken.json");
         address _address;
         assembly {
             _address := create(0, add(_bytecode, 0x20), mload(_bytecode))
         }
 
+        IERC20 zrxToken = IERC20(address(_address));
+
         ZeroExVotes votes = new ZeroExVotes();
         ERC1967Proxy votesProxy = new ERC1967Proxy(address(votes), new bytes(0));
         votes = ZeroExVotes(address(votesProxy));
 
-        ZRXWrappedToken token = new ZRXWrappedToken(IERC20(address(_address)), IZeroExVotes(address(votesProxy)));
+        ZRXWrappedToken token = new ZRXWrappedToken(zrxToken, IZeroExVotes(address(votesProxy)));
         votes.initialize(address(token));
 
-        address[] memory proposers = new address[](0);
-        address[] memory executors = new address[](0);
-
-        ZeroExTimelock protocolTimelock = new ZeroExTimelock(2 days, proposers, executors, account1);
-        ZeroExProtocolGovernor protocolGovernor = new ZeroExProtocolGovernor(
-            IVotes(address(votesProxy)),
-            protocolTimelock
-        );
-
-        protocolTimelock.grantRole(protocolTimelock.PROPOSER_ROLE(), address(protocolGovernor));
-        protocolTimelock.grantRole(protocolTimelock.EXECUTOR_ROLE(), address(protocolGovernor));
-
-        ZeroExTreasuryGovernor treasuryGovernor = new ZeroExTreasuryGovernor(IVotes(address(votes)));
-        return (IERC20(address(_address)), token, votes, protocolTimelock, protocolGovernor, treasuryGovernor);
+        return (zrxToken, token, votes);
     }
 }

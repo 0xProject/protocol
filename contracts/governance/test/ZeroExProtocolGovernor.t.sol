@@ -35,7 +35,7 @@ contract ZeroExProtocolGovernorTest is BaseTest {
 
     function setUp() public {
         vm.startPrank(account1);
-        (token, wToken, votes, timelock, governor, ) = setupGovernance();
+        (token, wToken, votes, timelock, , governor, ) = setupGovernance();
         token.transfer(account2, 10000000e18);
         token.transfer(account3, 2000000e18);
         token.transfer(account4, 3000000e18);

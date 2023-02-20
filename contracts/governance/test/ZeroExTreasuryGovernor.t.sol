@@ -30,12 +30,12 @@ contract ZeroExTreasuryGovernorTest is BaseTest {
     ZRXWrappedToken internal wToken;
     ZeroExVotes internal votes;
     ZeroExTimelock internal timelock;
-    ZeroExTreasuryGovernor internal governor;
+    ZeroExTreasuryGovernor internal treasuryGovernor;
     CallReceiverMock internal callReceiverMock;
 
     function setUp() public {
         vm.startPrank(account1);
-        (token, wToken, votes, timelock, , governor) = setupGovernance();
+        (token, wToken, votes, , timelock, , treasuryGovernor) = setupGovernance();
         // quorum 5000000e18
         // proposal threshold 250000e18 = sqrt(6.25e46) 5e11
         token.transfer(account2, 10000000e18);
@@ -66,27 +66,27 @@ contract ZeroExTreasuryGovernorTest is BaseTest {
     }
 
     function testShouldReturnCorrectName() public {
-        assertEq(governor.name(), "ZeroExTreasuryGovernor");
+        assertEq(treasuryGovernor.name(), "ZeroExTreasuryGovernor");
     }
 
     function testShouldReturnCorrectVotingDelay() public {
-        assertEq(governor.votingDelay(), 14400);
+        assertEq(treasuryGovernor.votingDelay(), 14400);
     }
 
     function testShouldReturnCorrectVotingPeriod() public {
-        assertEq(governor.votingPeriod(), 50400);
+        assertEq(treasuryGovernor.votingPeriod(), 50400);
     }
 
     function testShouldReturnCorrectProposalThreshold() public {
-        assertEq(governor.proposalThreshold(), 5e11);
+        assertEq(treasuryGovernor.proposalThreshold(), 5e11);
     }
 
     function testShouldReturnCorrectQuorum() public {
-        assertEq(governor.quorum(block.number), 23e11);
+        assertEq(treasuryGovernor.quorum(block.number), 23e11);
     }
 
     function testShouldReturnCorrectToken() public {
-        assertEq(address(governor.token()), address(votes));
+        assertEq(address(treasuryGovernor.token()), address(votes));
     }
 
     function testShouldBeAbleToExecuteASuccessfulProposal() public {
@@ -102,139 +102,165 @@ contract ZeroExTreasuryGovernorTest is BaseTest {
 
         vm.roll(2);
         vm.startPrank(account2);
-        uint256 proposalId = governor.propose(targets, values, calldatas, "Proposal description");
+        uint256 proposalId = treasuryGovernor.propose(targets, values, calldatas, "Proposal description");
         vm.stopPrank();
 
         // Fast forward to after vote start
-        vm.roll(governor.proposalSnapshot(proposalId) + 1);
+        vm.roll(treasuryGovernor.proposalSnapshot(proposalId) + 1);
 
         // Vote
         vm.prank(account2);
-        governor.castVote(proposalId, 1); // Vote "for"
+        treasuryGovernor.castVote(proposalId, 1); // Vote "for"
         vm.stopPrank();
         vm.prank(account3);
-        governor.castVote(proposalId, 0); // Vote "against"
+        treasuryGovernor.castVote(proposalId, 0); // Vote "against"
         vm.stopPrank();
         vm.prank(account4);
-        governor.castVote(proposalId, 2); // Vote "abstain"
+        treasuryGovernor.castVote(proposalId, 2); // Vote "abstain"
         vm.stopPrank();
 
         // Fast forward to vote end
-        vm.roll(governor.proposalDeadline(proposalId) + 1);
+        vm.roll(treasuryGovernor.proposalDeadline(proposalId) + 1);
 
         // Get vote results
-        (uint256 votesAgainst, uint256 votesFor, uint256 votesAbstain) = governor.proposalVotes(proposalId);
+        (uint256 votesAgainst, uint256 votesFor, uint256 votesAbstain) = treasuryGovernor.proposalVotes(proposalId);
         assertEq(votesFor, Math.sqrt(10000000e18));
         assertEq(votesAgainst, Math.sqrt(2000000e18));
         assertEq(votesAbstain, Math.sqrt(3000000e18));
 
-        IGovernor.ProposalState state = governor.state(proposalId);
+        IGovernor.ProposalState state = treasuryGovernor.state(proposalId);
         assertEq(uint256(state), uint256(IGovernor.ProposalState.Succeeded));
 
-        governor.execute(targets, values, calldatas, keccak256("Proposal description"));
-        state = governor.state(proposalId);
+        // Queue proposal
+        treasuryGovernor.queue(targets, values, calldatas, keccak256(bytes("Proposal description")));
+        vm.warp(treasuryGovernor.proposalEta(proposalId) + 1);
+
+        treasuryGovernor.execute(targets, values, calldatas, keccak256("Proposal description"));
+        state = treasuryGovernor.state(proposalId);
         assertEq(uint256(state), uint256(IGovernor.ProposalState.Executed));
     }
 
     function testCanUpdateVotingDelaySetting() public {
         // Create a proposal
         address[] memory targets = new address[](1);
-        targets[0] = address(governor);
+        targets[0] = address(treasuryGovernor);
 
         uint256[] memory values = new uint256[](1);
         values[0] = 0;
 
         bytes[] memory calldatas = new bytes[](1);
-        calldatas[0] = abi.encodeWithSelector(governor.setVotingDelay.selector, 3 days);
+        calldatas[0] = abi.encodeWithSelector(treasuryGovernor.setVotingDelay.selector, 3 days);
 
         vm.roll(2);
         vm.startPrank(account2);
-        uint256 proposalId = governor.propose(targets, values, calldatas, "Increase voting delay to 3 days");
+        uint256 proposalId = treasuryGovernor.propose(targets, values, calldatas, "Increase voting delay to 3 days");
         vm.stopPrank();
 
         // Fast forward to after vote start
-        vm.roll(governor.proposalSnapshot(proposalId) + 1);
+        vm.roll(treasuryGovernor.proposalSnapshot(proposalId) + 1);
 
         // Vote
         vm.prank(account2);
-        governor.castVote(proposalId, 1); // Vote "for"
+        treasuryGovernor.castVote(proposalId, 1); // Vote "for"
         vm.stopPrank();
 
         // Fast forward to vote end
-        vm.roll(governor.proposalDeadline(proposalId) + 1);
+        vm.roll(treasuryGovernor.proposalDeadline(proposalId) + 1);
+
+        // Queue proposal
+        treasuryGovernor.queue(targets, values, calldatas, keccak256(bytes("Increase voting delay to 3 days")));
+        vm.warp(treasuryGovernor.proposalEta(proposalId) + 1);
 
         // Execute proposal
-        governor.execute(targets, values, calldatas, keccak256("Increase voting delay to 3 days"));
+        treasuryGovernor.execute(targets, values, calldatas, keccak256("Increase voting delay to 3 days"));
 
-        uint256 votingDelay = governor.votingDelay();
+        uint256 votingDelay = treasuryGovernor.votingDelay();
         assertEq(votingDelay, 3 days);
     }
 
     function testCanUpdateVotingPeriodSetting() public {
         // Create a proposal
         address[] memory targets = new address[](1);
-        targets[0] = address(governor);
+        targets[0] = address(treasuryGovernor);
 
         uint256[] memory values = new uint256[](1);
         values[0] = 0;
 
         bytes[] memory calldatas = new bytes[](1);
-        calldatas[0] = abi.encodeWithSelector(governor.setVotingPeriod.selector, 14 days);
+        calldatas[0] = abi.encodeWithSelector(treasuryGovernor.setVotingPeriod.selector, 14 days);
 
         vm.roll(2);
         vm.startPrank(account2);
-        uint256 proposalId = governor.propose(targets, values, calldatas, "Increase voting period to 14 days");
+        uint256 proposalId = treasuryGovernor.propose(targets, values, calldatas, "Increase voting period to 14 days");
         vm.stopPrank();
 
         // Fast forward to after vote start
-        vm.roll(governor.proposalSnapshot(proposalId) + 1);
+        vm.roll(treasuryGovernor.proposalSnapshot(proposalId) + 1);
 
         // Vote
         vm.prank(account2);
-        governor.castVote(proposalId, 1); // Vote "for"
+        treasuryGovernor.castVote(proposalId, 1); // Vote "for"
         vm.stopPrank();
 
         // Fast forward to vote end
-        vm.roll(governor.proposalDeadline(proposalId) + 1);
+        vm.roll(treasuryGovernor.proposalDeadline(proposalId) + 1);
+
+        // Queue proposal
+        treasuryGovernor.queue(targets, values, calldatas, keccak256(bytes("Increase voting period to 14 days")));
+        vm.warp(treasuryGovernor.proposalEta(proposalId) + 1);
 
         // Execute proposal
-        governor.execute(targets, values, calldatas, keccak256("Increase voting period to 14 days"));
+        treasuryGovernor.execute(targets, values, calldatas, keccak256("Increase voting period to 14 days"));
 
-        uint256 votingPeriod = governor.votingPeriod();
+        uint256 votingPeriod = treasuryGovernor.votingPeriod();
         assertEq(votingPeriod, 14 days);
     }
 
     function testCanUpdateProposalThresholdSetting() public {
         // Create a proposal
         address[] memory targets = new address[](1);
-        targets[0] = address(governor);
+        targets[0] = address(treasuryGovernor);
 
         uint256[] memory values = new uint256[](1);
         values[0] = 0;
 
         bytes[] memory calldatas = new bytes[](1);
-        calldatas[0] = abi.encodeWithSelector(governor.setProposalThreshold.selector, 2000000e18);
+        calldatas[0] = abi.encodeWithSelector(treasuryGovernor.setProposalThreshold.selector, 2000000e18);
 
         vm.roll(2);
         vm.startPrank(account2);
-        uint256 proposalId = governor.propose(targets, values, calldatas, "Increase proposal threshold to 2000000e18");
+        uint256 proposalId = treasuryGovernor.propose(
+            targets,
+            values,
+            calldatas,
+            "Increase proposal threshold to 2000000e18"
+        );
         vm.stopPrank();
 
         // Fast forward to after vote start
-        vm.roll(governor.proposalSnapshot(proposalId) + 1);
+        vm.roll(treasuryGovernor.proposalSnapshot(proposalId) + 1);
 
         // Vote
         vm.prank(account2);
-        governor.castVote(proposalId, 1); // Vote "for"
+        treasuryGovernor.castVote(proposalId, 1); // Vote "for"
         vm.stopPrank();
 
         // Fast forward to vote end
-        vm.roll(governor.proposalDeadline(proposalId) + 1);
+        vm.roll(treasuryGovernor.proposalDeadline(proposalId) + 1);
+
+        // Queue proposal
+        treasuryGovernor.queue(
+            targets,
+            values,
+            calldatas,
+            keccak256(bytes("Increase proposal threshold to 2000000e18"))
+        );
+        vm.warp(treasuryGovernor.proposalEta(proposalId) + 1);
 
         // Execute proposal
-        governor.execute(targets, values, calldatas, keccak256("Increase proposal threshold to 2000000e18"));
+        treasuryGovernor.execute(targets, values, calldatas, keccak256("Increase proposal threshold to 2000000e18"));
 
-        uint256 proposalThreshold = governor.proposalThreshold();
+        uint256 proposalThreshold = treasuryGovernor.proposalThreshold();
         assertEq(proposalThreshold, 2000000e18);
     }
 }
