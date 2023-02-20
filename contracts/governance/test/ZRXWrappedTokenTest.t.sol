@@ -139,6 +139,18 @@ contract ZRXWrappedTokenTest is BaseTest {
         assertEq(votes.getPastQuadraticTotalSupply(0), 0);
     }
 
+    function testShouldBeAbleToTransferCorrectly() public {
+        assertEq(wToken.balanceOf(account4), 0);
+
+        vm.startPrank(account2);
+        token.approve(address(wToken), 1e18);
+        wToken.depositFor(account2, 1e18);
+        wToken.transfer(account4, 1e17);
+        vm.stopPrank();
+
+        assertEq(wToken.balanceOf(account4), 1e17);
+    }
+
     function testShouldNotBeAbleToReinitialiseTheZeroExVotes() public {
         vm.expectRevert("ZeroExVotes: Already initialized");
         votes.initialize(account2);
