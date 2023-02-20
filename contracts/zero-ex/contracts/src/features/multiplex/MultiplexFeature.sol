@@ -331,9 +331,7 @@ contract MultiplexFeature is
             );
     }
 
-    /// @dev Executes a multi-hop sell and checks that at least
-    ///      `minBuyAmount` of output tokens were bought. Internal
-    ///      variant.
+    /// @dev Executes a multi-hop sell. Internal variant.
     /// @param params Multi-hop sell parameters.
     /// @param minBuyAmount The minimum amount of output tokens that
     ///        must be bought for this function to not revert.
