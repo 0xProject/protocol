@@ -325,7 +325,10 @@ contract ZeroExProtocolGovernorTest is BaseTest {
 
         // Cancel the proposal
         vm.warp(governor.proposalEta(proposalId));
+
+        vm.prank(securityCouncil);
         governor.cancel(targets, values, calldatas, keccak256(bytes("Proposal description")));
+        vm.stopPrank();
 
         state = governor.state(proposalId);
         assertEq(uint256(state), uint256(IGovernor.ProposalState.Canceled));

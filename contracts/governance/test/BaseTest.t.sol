@@ -63,13 +63,21 @@ contract BaseTest is Test {
         address[] memory executors = new address[](0);
 
         ZeroExTimelock protocolTimelock = new ZeroExTimelock(3 days, proposers, executors, account1);
-        ZeroExProtocolGovernor protocolGovernor = new ZeroExProtocolGovernor(IVotes(address(votes)), protocolTimelock);
+        ZeroExProtocolGovernor protocolGovernor = new ZeroExProtocolGovernor(
+            IVotes(address(votes)),
+            protocolTimelock,
+            securityCouncil
+        );
         protocolTimelock.grantRole(protocolTimelock.PROPOSER_ROLE(), address(protocolGovernor));
         protocolTimelock.grantRole(protocolTimelock.EXECUTOR_ROLE(), address(protocolGovernor));
         protocolTimelock.grantRole(protocolTimelock.CANCELLER_ROLE(), address(protocolGovernor));
 
         ZeroExTimelock treasuryTimelock = new ZeroExTimelock(2 days, proposers, executors, account1);
-        ZeroExTreasuryGovernor treasuryGovernor = new ZeroExTreasuryGovernor(IVotes(address(votes)), treasuryTimelock);
+        ZeroExTreasuryGovernor treasuryGovernor = new ZeroExTreasuryGovernor(
+            IVotes(address(votes)),
+            treasuryTimelock,
+            securityCouncil
+        );
 
         treasuryTimelock.grantRole(treasuryTimelock.PROPOSER_ROLE(), address(treasuryGovernor));
         treasuryTimelock.grantRole(treasuryTimelock.EXECUTOR_ROLE(), address(treasuryGovernor));

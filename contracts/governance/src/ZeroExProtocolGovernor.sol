@@ -31,15 +31,20 @@ contract ZeroExProtocolGovernor is
     GovernorVotes,
     GovernorTimelockControl
 {
+    address public securityCouncil;
+
     constructor(
         IVotes _token,
-        TimelockController _timelock
+        TimelockController _timelock,
+        address _securityCouncil
     )
         Governor("ZeroExProtocolGovernor")
         GovernorSettings(14400 /* 2 days */, 50400 /* 7 days */, 1000000e18)
         GovernorVotes(_token)
         GovernorTimelockControl(_timelock)
-    {}
+    {
+        securityCouncil = _securityCouncil;
+    }
 
     function quorum(uint256 blockNumber) public pure override returns (uint256) {
         return 10000000e18;
@@ -78,6 +83,7 @@ contract ZeroExProtocolGovernor is
         bytes[] memory calldatas,
         bytes32 descriptionHash
     ) public {
+        require(msg.sender == securityCouncil, "ZeroExProtocolGovernor: Only security council allowed");
         _cancel(targets, values, calldatas, descriptionHash);
     }
 

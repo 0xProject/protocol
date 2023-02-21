@@ -299,7 +299,9 @@ contract ZeroExTreasuryGovernorTest is BaseTest {
 
         // Cancel the proposal
         vm.warp(treasuryGovernor.proposalEta(proposalId));
+        vm.prank(securityCouncil);
         treasuryGovernor.cancel(targets, values, calldatas, keccak256(bytes("Proposal description")));
+        vm.stopPrank();
 
         state = treasuryGovernor.state(proposalId);
         assertEq(uint256(state), uint256(IGovernor.ProposalState.Canceled));
