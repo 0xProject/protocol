@@ -80,6 +80,7 @@ jobs:
           dir: apps-node
     outputs:
       matrix: ${{ steps.app-hashes.outputs.workspace-hashes }}
+      turbo_info: ${{ steps.turbo-info.outputs.dry-run-output }}
   build_images:
     env:
       REPOSITORY_URI: 883408475785.dkr.ecr.us-east-1.amazonaws.com/apps

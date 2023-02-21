@@ -11,5 +11,8 @@
   "devDependencies": {
     "jest": "^29.4.2",
     "prisma": "^4.8.1"
+  },
+  "dependencies": {
+    "@prisma/client": "^4.10.1"
   }
 }
