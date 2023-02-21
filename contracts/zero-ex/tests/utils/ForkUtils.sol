@@ -89,12 +89,39 @@ struct TokenAddresses {
 }
 
 struct LiquiditySources {
+    address KyberElasticPool;
+    address KyberElasticQuoter;
+    address KyberElasticRouter;
     address UniswapV2Router;
     address UniswapV3Router;
 }
 
 interface IFQT {
     function bridgeAdapter() external returns (address);
+}
+
+interface IKyberElasticQuoter {
+    function quoteExactInput(
+        bytes memory path,
+        uint256 amountIn
+    )
+        external
+        returns (
+            uint256 amountOut,
+            uint160[] memory afterSqrtPList,
+            uint32[] memory initializedTicksCrossedList,
+            uint256 gasEstimate
+        );
+}
+
+interface IKyberElasticPool {
+    function token0() external view returns (address);
+
+    function token1() external view returns (address);
+
+    /// @notice The fee to be charged for a swap in basis points
+    /// @return The swap fee in basis points
+    function swapFeeUnits() external view returns (uint24);
 }
 
 interface IUniswapV2Router01 {
@@ -715,11 +742,43 @@ contract ForkUtils is Test {
         }
     }
 
+    function _toKyberElasticPath(
+        address[] memory tokenPath,
+        address[] memory poolPath
+    ) internal returns (bytes memory path) {
+        require(tokenPath.length >= 2 && tokenPath.length == poolPath.length + 1, "invalid path lengths");
+        // paths are tightly packed as:
+        // [token0, token0token1PairFee, token1, token1Token2PairFee, token2, ...]
+        path = new bytes(tokenPath.length * 20 + poolPath.length * 3);
+        uint256 o;
+        assembly {
+            o := add(path, 32)
+        }
+        for (uint256 i = 0; i < tokenPath.length; ++i) {
+            if (i > 0) {
+                uint24 poolFee = IKyberElasticPool(poolPath[i - 1]).swapFeeUnits();
+                assembly {
+                    mstore(o, shl(232, poolFee))
+                    o := add(o, 3)
+                }
+            }
+            address token = tokenPath[i];
+            assembly {
+                mstore(o, shl(96, token))
+                o := add(o, 20)
+            }
+        }
+    }
+
     modifier onlyForked() {
         if (block.number >= 15000000) {
             _;
         } else {
             revert("Requires fork mode");
         }
+    }
+
+    function writeTokenBalance(address who, address token, uint256 amt) internal {
+        stdstore.target(token).sig(IERC20Token(token).balanceOf.selector).with_key(who).checked_write(amt);
     }
 }
