@@ -617,14 +617,16 @@ function getBestUniswapV3PathAmountForInputAmount(
     if (fillData.pathAmounts.length === 0) {
         throw new Error(`No Uniswap V3 paths`);
     }
+    const pathAmounts = fillData.pathAmounts.filter((p) => p.path != '0x');
+
     // Find the best path that can satisfy `inputAmount`.
     // Assumes `fillData.pathAmounts` is sorted ascending.
-    for (const pathAmount of fillData.pathAmounts) {
+    for (const pathAmount of pathAmounts) {
         if (pathAmount.inputAmount.gte(inputAmount)) {
             return pathAmount;
         }
     }
-    return fillData.pathAmounts[fillData.pathAmounts.length - 1];
+    return pathAmounts[pathAmounts.length - 1];
 }
 
 export function getMakerTakerTokens(pathContext: PathContext): {
