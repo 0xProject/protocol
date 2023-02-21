@@ -1,8 +1,16 @@
+import { Counter } from 'prom-client';
 import { FillQuoteTransformerOrderType, Orderbook, SignedLimitOrder } from '../asset-swapper';
+import { PROMETHEUS_LABEL_STATUS_ERROR, PROMETHEUS_LABEL_STATUS_OK } from '../config';
 import { DEFAULT_PAGE, DEFAULT_PER_PAGE } from '../constants';
 import { logger } from '../logger';
 import { OrderBookService } from '../services/orderbook_service';
 import { SRAOrder } from '../types';
+
+const ORDERBOOK_REQUESTS = new Counter({
+    name: 'orderbook_requests',
+    help: 'The count of orderbook requests',
+    labelNames: ['status'],
+});
 
 export class AssetSwapperOrderbook extends Orderbook {
     constructor(public readonly orderbookService: OrderBookService) {
@@ -30,6 +38,7 @@ export class AssetSwapperOrderbook extends Orderbook {
                 {},
             )
             .catch((err) => {
+                ORDERBOOK_REQUESTS.labels(PROMETHEUS_LABEL_STATUS_ERROR).inc();
                 logger.warn(
                     {
                         takerToken,
@@ -38,12 +47,12 @@ export class AssetSwapperOrderbook extends Orderbook {
                     },
                     'Request to OrderBookService failed',
                 );
-
                 return {
                     records: [],
                 };
             });
 
+        ORDERBOOK_REQUESTS.labels(PROMETHEUS_LABEL_STATUS_OK).inc();
         const orders = apiOrders.records.map(apiOrderToOrderbookOrder);
         const result = pruneFn ? orders.filter(pruneFn) : orders;
         return result;
