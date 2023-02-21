@@ -779,6 +779,6 @@ contract ForkUtils is Test {
     }
 
     function writeTokenBalance(address who, address token, uint256 amt) internal {
-        stdstore.target(token).sig(IERC20TokenV06(token).balanceOf.selector).with_key(who).checked_write(amt);
+        stdstore.target(token).sig(IERC20Token(token).balanceOf.selector).with_key(who).checked_write(amt);
     }
 }

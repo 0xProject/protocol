@@ -88,8 +88,8 @@ contract SwapERC20ForERC20Test is Test, ForkUtils, TestUtils {
 
         FillQuoteTransformer.TransformData memory fqtData;
         fqtData.side = FillQuoteTransformer.Side.Sell;
-        fqtData.sellToken = IERC20TokenV06(address(tokens.USDC));
-        fqtData.buyToken = IERC20TokenV06(address(tokens.USDT));
+        fqtData.sellToken = IERC20Token(address(tokens.USDC));
+        fqtData.buyToken = IERC20Token(address(tokens.USDT));
         fqtData.fillSequence = new FillQuoteTransformer.OrderType[](1);
         fqtData.fillSequence[0] = FillQuoteTransformer.OrderType.Bridge;
         fqtData.fillAmount = 1e6;
@@ -115,18 +115,18 @@ contract SwapERC20ForERC20Test is Test, ForkUtils, TestUtils {
 
         vm.deal(address(this), 1e18);
         uint256 balanceETHBefore = address(this).balance;
-        uint256 balanceERC20Before = IERC20TokenV06(tokens.USDT).balanceOf(address(this));
+        uint256 balanceERC20Before = IERC20Token(tokens.USDT).balanceOf(address(this));
 
         writeTokenBalance(address(this), address(tokens.USDC), 1e16);
-        uint256 balanceUSDCbefore = IERC20TokenV06(tokens.USDC).balanceOf(address(this));
+        uint256 balanceUSDCbefore = IERC20Token(tokens.USDC).balanceOf(address(this));
 
-        IERC20TokenV06(address(tokens.USDC)).approve(addresses.exchangeProxy, 1e16);
+        IERC20Token(address(tokens.USDC)).approve(addresses.exchangeProxy, 1e16);
 
         IZeroEx(payable(addresses.exchangeProxy)).transformERC20{value: 1e18}(
             // input token
-            IERC20TokenV06(address(tokens.USDC)),
+            IERC20Token(address(tokens.USDC)),
             // output token
-            IERC20TokenV06(address(tokens.USDT)),
+            IERC20Token(address(tokens.USDT)),
             // input token amount
             1e6,
             // min output token amount
@@ -139,10 +139,10 @@ contract SwapERC20ForERC20Test is Test, ForkUtils, TestUtils {
         log_named_uint("ERC-20 balance before", balanceERC20Before);
         log_named_uint("NativeAsset balance after", balanceETHBefore - address(this).balance);
         log_named_uint("ERC-20 balance after", 
-            IERC20TokenV06(tokens.USDT).balanceOf(address(this)) - balanceERC20Before);
+            IERC20Token(tokens.USDT).balanceOf(address(this)) - balanceERC20Before);
         log_named_uint("USDC balance before", balanceUSDCbefore);
-        log_named_uint("USDC balance after", IERC20TokenV06(tokens.USDT).balanceOf(address(tokens.USDC)));
-        assert(IERC20TokenV06(tokens.USDT).balanceOf(address(this)) > 0);
+        log_named_uint("USDC balance after", IERC20Token(tokens.USDT).balanceOf(address(tokens.USDC)));
+        assert(IERC20Token(tokens.USDT).balanceOf(address(this)) > 0);
     }
 
     function sampleKyberElastic(
