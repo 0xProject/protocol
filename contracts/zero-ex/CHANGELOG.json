@@ -1,5 +1,13 @@
 [
     {
+        "version": "0.39.0",
+        "changes": [
+            {
+                "note": "Add KyberElastic mixin for Ethereum, Polygon, Arbitrum, Avalanche"
+            }
+        ]
+    },
+    {
         "timestamp": 1675210931,
         "version": "0.38.6",
         "changes": [
