@@ -18,7 +18,6 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-erc20/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/src/IERC20Token.sol";
 
-
 interface IKyberElasticRouter {
     struct ExactInputParams {
         bytes path;
