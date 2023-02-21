@@ -19,11 +19,6 @@ pragma experimental ABIEncoderV2;
 import "../utils/ForkUtils.sol";
 import "../utils/TestUtils.sol";
 
-// import "../../contracts/src/IZeroEx.sol";
-// import "../../contracts/src/features/TransformERC20Feature.sol";
-// import "../../contracts/src/transformers/FillQuoteTransformer.sol";
-// import "../../contracts/src/transformers/bridges/BridgeProtocols.sol";
-
 contract SwapERC20ForERC20Test is Test, ForkUtils, TestUtils {
     function setUp() public {
         string memory root = vm.projectRoot();
@@ -82,14 +77,14 @@ contract SwapERC20ForERC20Test is Test, ForkUtils, TestUtils {
             address(addresses.transformers.wethTransformer),
             address(addresses.exchangeProxyTransformerDeployer)
         );
-        emit log_named_uint("           WethTransformer nonce", transformations[0].deploymentNonce);
+        emit log_named_uint("WethTransformer nonce", transformations[0].deploymentNonce);
         createNewFQT(tokens.WrappedNativeToken, addresses.exchangeProxy, addresses.exchangeProxyTransformerDeployer);
         transformations[0].data = abi.encode(LibERC20Transformer.ETH_TOKEN_ADDRESS, 1e18);
         transformations[1].deploymentNonce = _findTransformerNonce(
             address(fillQuoteTransformer),
             address(addresses.exchangeProxyTransformerDeployer)
         );
-        emit log_named_uint("           FillQuoteTransformer nonce", transformations[1].deploymentNonce);
+        emit log_named_uint("FillQuoteTransformer nonce", transformations[1].deploymentNonce);
 
         FillQuoteTransformer.TransformData memory fqtData;
         fqtData.side = FillQuoteTransformer.Side.Sell;
@@ -140,15 +135,13 @@ contract SwapERC20ForERC20Test is Test, ForkUtils, TestUtils {
             transformations
         );
 
-        log_named_uint("        NativeAsset balance before", balanceETHBefore);
-        log_named_uint("        ERC-20 balance before", balanceERC20Before);
-        log_named_uint("        NativeAsset balance after", balanceETHBefore - address(this).balance);
-        log_named_uint(
-            "        ERC-20 balance after",
-            IERC20TokenV06(tokens.USDT).balanceOf(address(this)) - balanceERC20Before
-        );
-        log_named_uint("        USDC balance before", balanceUSDCbefore);
-        log_named_uint("        USDC balance after", IERC20TokenV06(tokens.USDT).balanceOf(address(tokens.USDC)));
+        log_named_uint("NativeAsset balance before", balanceETHBefore);
+        log_named_uint("ERC-20 balance before", balanceERC20Before);
+        log_named_uint("NativeAsset balance after", balanceETHBefore - address(this).balance);
+        log_named_uint("ERC-20 balance after", 
+            IERC20TokenV06(tokens.USDT).balanceOf(address(this)) - balanceERC20Before);
+        log_named_uint("USDC balance before", balanceUSDCbefore);
+        log_named_uint("USDC balance after", IERC20TokenV06(tokens.USDT).balanceOf(address(tokens.USDC)));
         assert(IERC20TokenV06(tokens.USDT).balanceOf(address(this)) > 0);
     }
 
