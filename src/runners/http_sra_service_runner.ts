@@ -85,6 +85,7 @@ async function runHttpServiceAsync(
             autoregister: false,
             includeStatusCode: true,
             includePath: true,
+            includeMethod: true,
             customLabels: { chainId: undefined },
             normalizePath: [['/order/.*', '/order/#orderHash']],
             transformLabels: (labels, req, _res) => {
