@@ -138,8 +138,7 @@ contract SwapERC20ForERC20Test is Test, ForkUtils, TestUtils {
         log_named_uint("NativeAsset balance before", balanceETHBefore);
         log_named_uint("ERC-20 balance before", balanceERC20Before);
         log_named_uint("NativeAsset balance after", balanceETHBefore - address(this).balance);
-        log_named_uint("ERC-20 balance after", 
-            IERC20Token(tokens.USDT).balanceOf(address(this)) - balanceERC20Before);
+        log_named_uint("ERC-20 balance after", IERC20Token(tokens.USDT).balanceOf(address(this)) - balanceERC20Before);
         log_named_uint("USDC balance before", balanceUSDCbefore);
         log_named_uint("USDC balance after", IERC20Token(tokens.USDT).balanceOf(address(tokens.USDC)));
         assert(IERC20Token(tokens.USDT).balanceOf(address(this)) > 0);
