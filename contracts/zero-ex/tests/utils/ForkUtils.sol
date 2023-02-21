@@ -89,6 +89,7 @@ struct TokenAddresses {
 }
 
 struct LiquiditySources {
+    address KyberElasticPool;
     address KyberElasticQuoter;
     address KyberElasticRouter;
     address UniswapV2Router;
@@ -118,6 +119,8 @@ interface IKyberElasticPool {
 
     function token1() external view returns (address);
 
+    /// @notice The fee to be charged for a swap in basis points
+    /// @return The swap fee in basis points
     function swapFeeUnits() external view returns (uint24);
 }
 
@@ -741,8 +744,8 @@ contract ForkUtils is Test {
 
     function _toKyberElasticPath(
         address[] memory tokenPath,
-        IKyberElasticPool[] memory poolPath
-    ) internal view returns (bytes memory path) {
+        address[] memory poolPath
+    ) internal returns (bytes memory path) {
         require(tokenPath.length >= 2 && tokenPath.length == poolPath.length + 1, "invalid path lengths");
         // paths are tightly packed as:
         // [token0, token0token1PairFee, token1, token1Token2PairFee, token2, ...]
@@ -753,7 +756,7 @@ contract ForkUtils is Test {
         }
         for (uint256 i = 0; i < tokenPath.length; ++i) {
             if (i > 0) {
-                uint24 poolFee = poolPath[i - 1].swapFeeUnits();
+                uint24 poolFee = IKyberElasticPool(poolPath[i - 1]).swapFeeUnits();
                 assembly {
                     mstore(o, shl(232, poolFee))
                     o := add(o, 3)
@@ -773,5 +776,9 @@ contract ForkUtils is Test {
         } else {
             revert("Requires fork mode");
         }
+    }
+
+    function writeTokenBalance(address who, address token, uint256 amt) internal {
+        stdstore.target(token).sig(IERC20TokenV06(token).balanceOf.selector).with_key(who).checked_write(amt);
     }
 }

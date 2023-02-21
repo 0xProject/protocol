@@ -28,14 +28,6 @@ interface IKyberElasticRouter {
         uint256 minAmountOut;
     }
 
-    // struct ExactInputParams {
-    //     bytes path;
-    //     address recipient;
-    //     uint256 deadline;
-    //     uint256 amountIn;
-    //     uint256 amountOutMinimum;
-    // }
-
     function swapExactInput(ExactInputParams calldata params) external payable returns (uint256 amountOut);
 }
 
