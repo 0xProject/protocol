@@ -85,6 +85,9 @@ contract ZeroExProtocolGovernor is
     ) public {
         require(msg.sender == securityCouncil, "ZeroExProtocolGovernor: Only security council allowed");
         _cancel(targets, values, calldatas, descriptionHash);
+
+        // Eject security council
+        securityCouncil = address(0);
     }
 
     function _execute(

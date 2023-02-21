@@ -305,5 +305,7 @@ contract ZeroExTreasuryGovernorTest is BaseTest {
 
         state = treasuryGovernor.state(proposalId);
         assertEq(uint256(state), uint256(IGovernor.ProposalState.Canceled));
+
+        assertEq(treasuryGovernor.securityCouncil(), address(0));
     }
 }

@@ -332,5 +332,7 @@ contract ZeroExProtocolGovernorTest is BaseTest {
 
         state = governor.state(proposalId);
         assertEq(uint256(state), uint256(IGovernor.ProposalState.Canceled));
+
+        assertEq(governor.securityCouncil(), address(0));
     }
 }
