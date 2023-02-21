@@ -325,7 +325,7 @@ describe('MetaTransactionClient', () => {
                         feeAmount: '10000000',
                         feeRecipient: null,
                         estimatedGas: '1043459',
-                        feeTokenAmountPerBaseUnitNativeToken: '0.001',
+                        feeTokenAmountPerWei: '0.001',
                     },
                 },
             };
@@ -389,7 +389,7 @@ describe('MetaTransactionClient', () => {
                     feeAmount: new BigNumber(10000000),
                     feeRecipient: null,
                     estimatedGas: new BigNumber(1043459),
-                    feeTokenAmountPerBaseUnitNativeToken: new BigNumber(0.001),
+                    feeTokenAmountPerWei: new BigNumber(0.001),
                 },
             });
         });
@@ -545,7 +545,7 @@ describe('MetaTransactionClient', () => {
                         feeAmount: '10000000',
                         feeRecipient: null,
                         estimatedGas: '1043459',
-                        feeTokenAmountPerBaseUnitNativeToken: '0.001',
+                        feeTokenAmountPerWei: '0.001',
                     },
                 },
             };

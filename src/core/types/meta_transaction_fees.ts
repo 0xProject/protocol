@@ -55,14 +55,14 @@ export interface GasFee extends FeeBase {
     type: 'gas';
     gasPrice: BigNumber;
     estimatedGas: BigNumber;
-    feeTokenAmountPerBaseUnitNativeToken: BigNumber;
+    feeTokenAmountPerWei: BigNumber;
 }
 
 interface RawGasFee extends RawFeeBase {
     type: 'gas';
     gasPrice: string;
     estimatedGas: string;
-    feeTokenAmountPerBaseUnitNativeToken: string;
+    feeTokenAmountPerWei: string;
 }
 
 export interface IntegratorShareFee extends FeeBase {

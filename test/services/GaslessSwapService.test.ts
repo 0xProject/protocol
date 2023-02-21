@@ -235,7 +235,7 @@ describe('GaslessSwapService', () => {
             feeRecipient: null,
             billingType: 'off-chain',
             estimatedGas: new BigNumber(1043459),
-            feeTokenAmountPerBaseUnitNativeToken: new BigNumber(0.001),
+            feeTokenAmountPerWei: new BigNumber(0.001),
         },
     };
     // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me

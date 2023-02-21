@@ -178,7 +178,7 @@ describe('meta_transaction_fee_utils', () => {
                         billingType: 'on-chain',
                         gasPrice: '123',
                         estimatedGas: '200000',
-                        feeTokenAmountPerBaseUnitNativeToken: '0.0001',
+                        feeTokenAmountPerWei: '0.0001',
                     },
                 });
                 expect(fees).toBeTruthy();
@@ -190,7 +190,7 @@ describe('meta_transaction_fee_utils', () => {
                     billingType: 'on-chain',
                     gasPrice: new BigNumber(123),
                     estimatedGas: new BigNumber(200000),
-                    feeTokenAmountPerBaseUnitNativeToken: new BigNumber(0.0001),
+                    feeTokenAmountPerWei: new BigNumber(0.0001),
                 });
             });
         });
@@ -370,7 +370,7 @@ describe('meta_transaction_fee_utils', () => {
                         billingType: 'on-chain',
                         gasPrice: new BigNumber(123),
                         estimatedGas: new BigNumber(200000),
-                        feeTokenAmountPerBaseUnitNativeToken: new BigNumber(0.0001),
+                        feeTokenAmountPerWei: new BigNumber(0.0001),
                     },
                 }),
             );

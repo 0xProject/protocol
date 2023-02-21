@@ -71,7 +71,7 @@ export function rawFeesToFees(rawFees: RawFees | undefined): Fees | undefined {
             billingType: rawGasFee.billingType,
             gasPrice: new BigNumber(rawGasFee.gasPrice),
             estimatedGas: new BigNumber(rawGasFee.estimatedGas),
-            feeTokenAmountPerBaseUnitNativeToken: new BigNumber(rawGasFee.feeTokenAmountPerBaseUnitNativeToken),
+            feeTokenAmountPerWei: new BigNumber(rawGasFee.feeTokenAmountPerWei),
         };
     }
 
