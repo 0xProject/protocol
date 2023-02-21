@@ -288,7 +288,7 @@ describe('GaslessSwapService', () => {
 
                 expect(result?.liquiditySource).toEqual('rfq');
                 expect(result).toMatchInlineSnapshot(`
-                    Object {
+                    {
                       "allowanceTarget": "0x12345",
                       "buyAmount": "1800054805473",
                       "buyTokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
@@ -327,7 +327,7 @@ describe('GaslessSwapService', () => {
 
                 expect(result?.liquiditySource).toEqual('amm');
                 expect(result).toMatchInlineSnapshot(`
-                    Object {
+                    {
                       "allowanceTarget": "0x12345",
                       "buyAmount": "1800054805473",
                       "buyTokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
@@ -367,7 +367,7 @@ describe('GaslessSwapService', () => {
 
                 expect(result?.liquiditySource).toEqual('amm');
                 expect(result).toMatchInlineSnapshot(`
-                    Object {
+                    {
                       "allowanceTarget": "0x12345",
                       "buyAmount": "1800054805473",
                       "buyTokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
@@ -481,22 +481,22 @@ describe('GaslessSwapService', () => {
                 )) as FetchIndicativeQuoteResponse & { sources: LiquiditySource[]; fees?: Fees };
 
                 expect(result).toMatchInlineSnapshot(`
-                    Object {
+                    {
                       "allowanceTarget": "0x12345",
                       "buyAmount": "1800054805473",
                       "buyTokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-                      "fees": Object {
-                        "gasFee": Object {
+                      "fees": {
+                        "gasFee": {
                           "feeAmount": "10000000",
                           "feeToken": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
                           "feeType": "gas",
                         },
-                        "integratorFee": Object {
+                        "integratorFee": {
                           "feeAmount": "1000000000000000000",
                           "feeToken": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
                           "feeType": "volume",
                         },
-                        "zeroExFee": Object {
+                        "zeroExFee": {
                           "feeAmount": "1000000000000000",
                           "feeToken": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
                           "feeType": "integrator_share",
@@ -506,16 +506,16 @@ describe('GaslessSwapService', () => {
                       "price": "1800.054805",
                       "sellAmount": "1000000000000000000000",
                       "sellTokenAddress": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
-                      "sources": Array [
-                        Object {
+                      "sources": [
+                        {
                           "name": "QuickSwap",
                           "proportion": "0.2308",
                         },
-                        Object {
+                        {
                           "name": "DODO_V2",
                           "proportion": "0.07692",
                         },
-                        Object {
+                        {
                           "name": "Uniswap_V3",
                           "proportion": "0.6923",
                         },
@@ -622,7 +622,7 @@ describe('GaslessSwapService', () => {
                 expect(result).not.toBeNull();
                 expect(result?.type).toEqual(GaslessTypes.OtcOrder);
                 expect(result).toMatchInlineSnapshot(`
-                    Object {
+                    {
                       "allowanceTarget": "0x12345",
                       "buyAmount": "1800054805473",
                       "buyTokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
@@ -686,7 +686,7 @@ describe('GaslessSwapService', () => {
                 }
                 expect(result.metaTransaction.getHash()).toEqual(metaTransactionV1.getHash());
                 expect(result).toMatchInlineSnapshot(`
-                    Object {
+                    {
                       "allowanceTarget": "0x12345",
                       "approval": undefined,
                       "buyAmount": "1800054805473",
@@ -951,23 +951,23 @@ describe('GaslessSwapService', () => {
                 expect(result?.trade.hash).toEqual(metaTransactionV1.getHash());
                 console.log(result);
                 expect(result).toMatchInlineSnapshot(`
-                    Object {
+                    {
                       "allowanceTarget": "0x12345",
                       "approval": undefined,
                       "buyAmount": "1800054805473",
                       "buyTokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-                      "fees": Object {
-                        "gasFee": Object {
+                      "fees": {
+                        "gasFee": {
                           "feeAmount": "10000000",
                           "feeToken": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
                           "feeType": "gas",
                         },
-                        "integratorFee": Object {
+                        "integratorFee": {
                           "feeAmount": "1000000000000000000",
                           "feeToken": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
                           "feeType": "volume",
                         },
-                        "zeroExFee": Object {
+                        "zeroExFee": {
                           "feeAmount": "1000000000000000",
                           "feeToken": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
                           "feeType": "integrator_share",
@@ -977,21 +977,21 @@ describe('GaslessSwapService', () => {
                       "price": "1800.054805",
                       "sellAmount": "1000000000000000000000",
                       "sellTokenAddress": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
-                      "sources": Array [
-                        Object {
+                      "sources": [
+                        {
                           "name": "QuickSwap",
                           "proportion": "0.2308",
                         },
-                        Object {
+                        {
                           "name": "DODO_V2",
                           "proportion": "0.07692",
                         },
-                        Object {
+                        {
                           "name": "Uniswap_V3",
                           "proportion": "0.6923",
                         },
                       ],
-                      "trade": Object {
+                      "trade": {
                         "hash": "0xde5a11983edd012047dd3107532f007a73ae488bfb354f35b8a40580e2a775a1",
                         "kind": "metatransaction",
                         "metaTransaction": MetaTransaction {

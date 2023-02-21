@@ -143,16 +143,16 @@ describe('Rfqt Service', () => {
 
                 const args = mockQuoteRequestor.requestRfqtIndicativeQuotesAsync.mock.calls[0];
                 expect(args).toMatchInlineSnapshot(`
-                    Array [
+                    [
                       "0xmakertoken",
                       "0xtakertoken",
                       "111",
                       "Buy",
                       "666",
-                      Object {
-                        "altRfqAssetOfferings": Object {
-                          "alt-mm": Array [
-                            Object {
+                      {
+                        "altRfqAssetOfferings": {
+                          "alt-mm": [
+                            {
                               "baseAsset": "0xbaseasset",
                               "baseAssetDecimals": 420,
                               "id": "id",
@@ -161,9 +161,9 @@ describe('Rfqt Service', () => {
                             },
                           ],
                         },
-                        "integrator": Object {
-                          "allowedChainIds": Array [],
-                          "apiKeys": Array [],
+                        "integrator": {
+                          "allowedChainIds": [],
+                          "apiKeys": [],
                           "integratorId": "uuid-integrator",
                           "label": "Scam Integrator 1",
                           "plp": false,
@@ -232,16 +232,16 @@ describe('Rfqt Service', () => {
 
                 const args = mockQuoteRequestor.requestRfqtFirmQuotesAsync.mock.calls[0];
                 expect(args).toMatchInlineSnapshot(`
-                    Array [
+                    [
                       "0xmakertoken",
                       "0xtakertoken",
                       "111",
                       "Buy",
                       "666",
-                      Object {
-                        "altRfqAssetOfferings": Object {
-                          "alt-mm": Array [
-                            Object {
+                      {
+                        "altRfqAssetOfferings": {
+                          "alt-mm": [
+                            {
                               "baseAsset": "0xbaseasset",
                               "baseAssetDecimals": 420,
                               "id": "id",
@@ -250,9 +250,9 @@ describe('Rfqt Service', () => {
                             },
                           ],
                         },
-                        "integrator": Object {
-                          "allowedChainIds": Array [],
-                          "apiKeys": Array [],
+                        "integrator": {
+                          "allowedChainIds": [],
+                          "apiKeys": [],
                           "integratorId": "uuid-integrator",
                           "label": "Scam Integrator 1",
                           "plp": false,
@@ -336,35 +336,35 @@ describe('Rfqt Service', () => {
                 await rfqtService.getV2PricesAsync(quoteContext);
 
                 expect(mockQuoteServerClient.batchGetPriceV2Async.mock.calls[0]).toMatchInlineSnapshot(`
-                  Array [
-                    Array [
-                      "maker.uri",
-                    ],
-                    Object {
-                      "allowedChainIds": Array [
-                        1337,
+                    [
+                      [
+                        "maker.uri",
                       ],
-                      "apiKeys": Array [],
-                      "integratorId": "integrator-id",
-                      "label": "test integrator",
-                      "plp": false,
-                      "rfqm": false,
-                      "rfqt": true,
-                    },
-                    Object {
-                      "buyAmountBaseUnits": "1000",
-                      "buyTokenAddress": "0x1",
-                      "chainId": "1337",
-                      "feeAmount": "100",
-                      "feeToken": "0x0b1ba0af832d7c05fd64161e0db78e85978e8082",
-                      "integratorId": "integrator-id",
-                      "protocolVersion": "4",
-                      "sellTokenAddress": "0x2",
-                      "takerAddress": "0x0",
-                      "txOrigin": "0xtakeraddress",
-                    },
-                    [Function],
-                  ]
+                      {
+                        "allowedChainIds": [
+                          1337,
+                        ],
+                        "apiKeys": [],
+                        "integratorId": "integrator-id",
+                        "label": "test integrator",
+                        "plp": false,
+                        "rfqm": false,
+                        "rfqt": true,
+                      },
+                      {
+                        "buyAmountBaseUnits": "1000",
+                        "buyTokenAddress": "0x1",
+                        "chainId": "1337",
+                        "feeAmount": "100",
+                        "feeToken": "0x0b1ba0af832d7c05fd64161e0db78e85978e8082",
+                        "integratorId": "integrator-id",
+                        "protocolVersion": "4",
+                        "sellTokenAddress": "0x2",
+                        "takerAddress": "0x0",
+                        "txOrigin": "0xtakeraddress",
+                      },
+                      [Function],
+                    ]
                 `);
             });
             it('[workflow: gasless-rfqt] transforms the API request into a quote server client request for buys', async () => {
@@ -413,35 +413,35 @@ describe('Rfqt Service', () => {
                 await rfqtService.getV2PricesAsync(quoteContext);
 
                 expect(mockQuoteServerClient.batchGetPriceV2Async.mock.calls[0]).toMatchInlineSnapshot(`
-                  Array [
-                    Array [
-                      "maker.uri",
-                    ],
-                    Object {
-                      "allowedChainIds": Array [
-                        1337,
+                    [
+                      [
+                        "maker.uri",
                       ],
-                      "apiKeys": Array [],
-                      "integratorId": "integrator-id",
-                      "label": "test integrator",
-                      "plp": false,
-                      "rfqm": false,
-                      "rfqt": true,
-                    },
-                    Object {
-                      "buyAmountBaseUnits": "1000",
-                      "buyTokenAddress": "0x1",
-                      "chainId": "1337",
-                      "feeAmount": "100",
-                      "feeToken": "0x0b1ba0af832d7c05fd64161e0db78e85978e8082",
-                      "integratorId": "integrator-id",
-                      "protocolVersion": "4",
-                      "sellTokenAddress": "0x2",
-                      "takerAddress": "0x0",
-                      "txOrigin": "0xtakeraddress",
-                    },
-                    [Function],
-                  ]
+                      {
+                        "allowedChainIds": [
+                          1337,
+                        ],
+                        "apiKeys": [],
+                        "integratorId": "integrator-id",
+                        "label": "test integrator",
+                        "plp": false,
+                        "rfqm": false,
+                        "rfqt": true,
+                      },
+                      {
+                        "buyAmountBaseUnits": "1000",
+                        "buyTokenAddress": "0x1",
+                        "chainId": "1337",
+                        "feeAmount": "100",
+                        "feeToken": "0x0b1ba0af832d7c05fd64161e0db78e85978e8082",
+                        "integratorId": "integrator-id",
+                        "protocolVersion": "4",
+                        "sellTokenAddress": "0x2",
+                        "takerAddress": "0x0",
+                        "txOrigin": "0xtakeraddress",
+                      },
+                      [Function],
+                    ]
                 `);
             });
             it('transforms the API request into a quote server client request for sells', async () => {
@@ -489,36 +489,36 @@ describe('Rfqt Service', () => {
                 await rfqtService.getV2PricesAsync(quoteContext);
 
                 expect(mockQuoteServerClient.batchGetPriceV2Async.mock.calls[0]).toMatchInlineSnapshot(`
-                  Array [
-                    Array [
-                      "maker.uri",
-                    ],
-                    Object {
-                      "allowedChainIds": Array [
-                        1337,
+                    [
+                      [
+                        "maker.uri",
                       ],
-                      "apiKeys": Array [],
-                      "integratorId": "integrator-id",
-                      "label": "test integrator",
-                      "plp": false,
-                      "rfqm": false,
-                      "rfqt": true,
-                    },
-                    Object {
-                      "buyTokenAddress": "0x1",
-                      "chainId": "1337",
-                      "feeAmount": "100",
-                      "feeToken": "0x0b1ba0af832d7c05fd64161e0db78e85978e8082",
-                      "integratorId": "integrator-id",
-                      "protocolVersion": "4",
-                      "sellAmountBaseUnits": "1000",
-                      "sellTokenAddress": "0x2",
-                      "takerAddress": "0x0",
-                      "txOrigin": "0xtakeraddress",
-                    },
-                    [Function],
-                  ]
-              `);
+                      {
+                        "allowedChainIds": [
+                          1337,
+                        ],
+                        "apiKeys": [],
+                        "integratorId": "integrator-id",
+                        "label": "test integrator",
+                        "plp": false,
+                        "rfqm": false,
+                        "rfqt": true,
+                      },
+                      {
+                        "buyTokenAddress": "0x1",
+                        "chainId": "1337",
+                        "feeAmount": "100",
+                        "feeToken": "0x0b1ba0af832d7c05fd64161e0db78e85978e8082",
+                        "integratorId": "integrator-id",
+                        "protocolVersion": "4",
+                        "sellAmountBaseUnits": "1000",
+                        "sellTokenAddress": "0x2",
+                        "takerAddress": "0x0",
+                        "txOrigin": "0xtakeraddress",
+                      },
+                      [Function],
+                    ]
+                `);
             });
             it('gets prices', async () => {
                 const quoteContext: QuoteContext = {
@@ -580,16 +580,16 @@ describe('Rfqt Service', () => {
                 expect(result.length).toEqual(1);
                 expect(result[0].makerId).toEqual('maker-id');
                 expect(result[0]).toMatchInlineSnapshot(`
-                  Object {
-                    "expiry": "10000000000000000",
-                    "makerAddress": "0xmakeraddress",
-                    "makerAmount": "1000",
-                    "makerId": "maker-id",
-                    "makerToken": "0x1",
-                    "makerUri": "maker.uri",
-                    "takerAmount": "1001",
-                    "takerToken": "0x2",
-                  }
+                    {
+                      "expiry": "10000000000000000",
+                      "makerAddress": "0xmakeraddress",
+                      "makerAmount": "1000",
+                      "makerId": "maker-id",
+                      "makerToken": "0x1",
+                      "makerUri": "maker.uri",
+                      "takerAmount": "1001",
+                      "takerToken": "0x2",
+                    }
                 `);
             });
             it('gets prices from whitelisted makers only', async () => {
@@ -664,16 +664,16 @@ describe('Rfqt Service', () => {
                 expect(result.length).toEqual(1);
                 expect(result[0].makerId).toEqual('maker1');
                 expect(result[0]).toMatchInlineSnapshot(`
-                  Object {
-                    "expiry": "10000000000000000",
-                    "makerAddress": "0xmakeraddress",
-                    "makerAmount": "1000",
-                    "makerId": "maker1",
-                    "makerToken": "0x1",
-                    "makerUri": "maker.uri",
-                    "takerAmount": "1001",
-                    "takerToken": "0x2",
-                  }
+                    {
+                      "expiry": "10000000000000000",
+                      "makerAddress": "0xmakeraddress",
+                      "makerAmount": "1000",
+                      "makerId": "maker1",
+                      "makerToken": "0x1",
+                      "makerUri": "maker.uri",
+                      "takerAmount": "1001",
+                      "takerToken": "0x2",
+                    }
                 `);
             });
         });
@@ -1047,22 +1047,22 @@ describe('Rfqt Service', () => {
                     signature,
                 });
                 expect(result[0].order).toMatchInlineSnapshot(`
-                OtcOrder {
-                  "chainId": 1337,
-                  "expiry": "1657070278",
-                  "expiryAndNonce": "10401598717691489530826623925864187439861993812812831231287826374366",
-                  "maker": "0x79b7a69d90c82E014Bf0315e164208119B510FA0",
-                  "makerAmount": "999",
-                  "makerToken": "0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE",
-                  "nonce": "1657069278",
-                  "nonceBucket": "0",
-                  "taker": "0x0000000000000000000000000000000000000000",
-                  "takerAmount": "1000",
-                  "takerToken": "0x42d6622deCe394b54999Fbd73D108123806f6a18",
-                  "txOrigin": "0xE06fFA8146bBdECcBaaF72B6043b29091071AEB8",
-                  "verifyingContract": "0x5315e44798395d4a952530d131249fe00f554565",
-                }
-              `);
+                                    OtcOrder {
+                                      "chainId": 1337,
+                                      "expiry": "1657070278",
+                                      "expiryAndNonce": "10401598717691489530826623925864187439861993812812831231287826374366",
+                                      "maker": "0x79b7a69d90c82E014Bf0315e164208119B510FA0",
+                                      "makerAmount": "999",
+                                      "makerToken": "0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE",
+                                      "nonce": "1657069278",
+                                      "nonceBucket": "0",
+                                      "taker": "0x0000000000000000000000000000000000000000",
+                                      "takerAmount": "1000",
+                                      "takerToken": "0x42d6622deCe394b54999Fbd73D108123806f6a18",
+                                      "txOrigin": "0xE06fFA8146bBdECcBaaF72B6043b29091071AEB8",
+                                      "verifyingContract": "0x5315e44798395d4a952530d131249fe00f554565",
+                                    }
+                              `);
             });
         });
     });

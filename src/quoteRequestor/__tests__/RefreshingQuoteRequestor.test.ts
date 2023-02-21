@@ -81,16 +81,16 @@ describe('RefreshingQuoteRequestor', () => {
 
             const args = mockRequestRfqtIndicativeQuotesAsync.mock.calls[0];
             expect(args).toMatchInlineSnapshot(`
-                Array [
+                [
                   "0xmakertoken",
                   "0xtakertoken",
                   "100",
                   "Buy",
                   undefined,
-                  Object {
-                    "integrator": Object {
-                      "allowedChainIds": Array [],
-                      "apiKeys": Array [],
+                  {
+                    "integrator": {
+                      "allowedChainIds": [],
+                      "apiKeys": [],
                       "integratorId": "uuid-integrator-id",
                       "label": "integrator",
                       "plp": false,
@@ -135,16 +135,16 @@ describe('RefreshingQuoteRequestor', () => {
 
             const args = mockRequestRfqtFirmQuotesAsync.mock.calls[0];
             expect(args).toMatchInlineSnapshot(`
-                Array [
+                [
                   "0xmakertoken",
                   "0xtakertoken",
                   "100",
                   "Buy",
                   undefined,
-                  Object {
-                    "integrator": Object {
-                      "allowedChainIds": Array [],
-                      "apiKeys": Array [],
+                  {
+                    "integrator": {
+                      "allowedChainIds": [],
+                      "apiKeys": [],
                       "integratorId": "uuid-integrator-id",
                       "label": "integrator",
                       "plp": false,

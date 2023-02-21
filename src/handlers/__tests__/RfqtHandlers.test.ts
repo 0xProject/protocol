@@ -295,17 +295,17 @@ describe('RfqtHandlers', () => {
                 });
 
             expect(mockRfqtService.getV1PricesAsync.mock.calls[0]).toMatchInlineSnapshot(`
-                Array [
-                  Object {
-                    "altRfqAssetOfferings": Object {},
+                [
+                  {
+                    "altRfqAssetOfferings": {},
                     "assetFillAmount": "100",
                     "chainId": 1337,
                     "comparisonPrice": undefined,
-                    "integrator": Object {
-                      "allowedChainIds": Array [
+                    "integrator": {
+                      "allowedChainIds": [
                         1337,
                       ],
-                      "apiKeys": Array [],
+                      "apiKeys": [],
                       "integratorId": "uuid-integrator-id",
                       "label": "Polygon Swap Machine",
                       "plp": false,
@@ -454,17 +454,17 @@ describe('RfqtHandlers', () => {
                 });
 
             expect(mockRfqtService.getV1QuotesAsync.mock.calls[0]).toMatchInlineSnapshot(`
-                Array [
-                  Object {
-                    "altRfqAssetOfferings": Object {},
+                [
+                  {
+                    "altRfqAssetOfferings": {},
                     "assetFillAmount": "100",
                     "chainId": 1337,
                     "comparisonPrice": undefined,
-                    "integrator": Object {
-                      "allowedChainIds": Array [
+                    "integrator": {
+                      "allowedChainIds": [
                         1337,
                       ],
-                      "apiKeys": Array [],
+                      "apiKeys": [],
                       "integratorId": "uuid-integrator-id",
                       "label": "Polygon Swap Machine",
                       "plp": false,
@@ -758,17 +758,17 @@ describe('RfqtHandlers', () => {
                 });
 
             expect(mockRfqtService.getV2PricesAsync.mock.calls[0]).toMatchInlineSnapshot(`
-                Array [
-                  Object {
+                [
+                  {
                     "assetFillAmount": "100",
                     "bucket": undefined,
                     "chainId": 1337,
                     "feeModelVersion": 1,
-                    "integrator": Object {
-                      "allowedChainIds": Array [
+                    "integrator": {
+                      "allowedChainIds": [
                         1337,
                       ],
-                      "apiKeys": Array [],
+                      "apiKeys": [],
                       "integratorId": "uuid-integrator-id",
                       "label": "Polygon Swap Machine",
                       "plp": false,
@@ -925,17 +925,17 @@ describe('RfqtHandlers', () => {
                 });
 
             expect(mockRfqtService.getV2QuotesAsync.mock.calls[0]).toMatchInlineSnapshot(`
-                Array [
-                  Object {
+                [
+                  {
                     "assetFillAmount": "100",
                     "bucket": undefined,
                     "chainId": 1337,
                     "feeModelVersion": 1,
-                    "integrator": Object {
-                      "allowedChainIds": Array [
+                    "integrator": {
+                      "allowedChainIds": [
                         1337,
                       ],
-                      "apiKeys": Array [],
+                      "apiKeys": [],
                       "integratorId": "uuid-integrator-id",
                       "label": "Polygon Swap Machine",
                       "plp": false,
