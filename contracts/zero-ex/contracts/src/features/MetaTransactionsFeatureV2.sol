@@ -94,7 +94,7 @@ contract MetaTransactionsFeatureV2 is
             "uint256 amount"
             ")"
         );
-    
+
     /// @dev The WETH token contract.
     IEtherToken private immutable WETH;
 
@@ -115,10 +115,7 @@ contract MetaTransactionsFeatureV2 is
         require(initialBalance <= address(this).balance, "MetaTransactionDataV2/ETH_LEAK");
     }
 
-    constructor(
-        address zeroExAddress,
-        IEtherToken weth
-    ) public FixinCommon() FixinEIP712(zeroExAddress) {
+    constructor(address zeroExAddress, IEtherToken weth) public FixinCommon() FixinEIP712(zeroExAddress) {
         WETH = weth;
     }
 
@@ -243,7 +240,12 @@ contract MetaTransactionsFeatureV2 is
 
         // Pay the fees to the fee recipients.
         for (uint256 i = 0; i < state.mtx.fees.length; ++i) {
-            _transferERC20TokensFrom(state.mtx.feeToken, state.mtx.signer, state.mtx.fees[i].recipient, state.mtx.fees[i].amount);
+            _transferERC20TokensFrom(
+                state.mtx.feeToken,
+                state.mtx.signer,
+                state.mtx.fees[i].recipient,
+                state.mtx.fees[i].amount
+            );
         }
 
         // Execute the call based on the selector.
@@ -460,7 +462,9 @@ contract MetaTransactionsFeatureV2 is
     ///      call by decoding the call args and translating the call to the internal
     ///      `IMultiplexFeature._multiplexBatchSell()` variant, where we can override the
     ///      msgSender address.
-    function _executeMultiplexBatchSellTokenForTokenCall(ExecuteState memory state) private returns (bytes memory returnResult) {
+    function _executeMultiplexBatchSellTokenForTokenCall(
+        ExecuteState memory state
+    ) private returns (bytes memory returnResult) {
         IERC20Token inputToken;
         IERC20Token outputToken;
         IMultiplexFeature.BatchSellSubcall[] memory calls;
@@ -496,7 +500,9 @@ contract MetaTransactionsFeatureV2 is
     ///      call by decoding the call args and translating the call to the internal
     ///      `IMultiplexFeature._multiplexBatchSellTokenForEth()` variant, where we can override the
     ///      msgSender address.
-    function _executeMultiplexBatchSellTokenForEthCall(ExecuteState memory state) private returns (bytes memory returnResult) {
+    function _executeMultiplexBatchSellTokenForEthCall(
+        ExecuteState memory state
+    ) private returns (bytes memory returnResult) {
         IERC20Token inputToken;
         IMultiplexFeature.BatchSellSubcall[] memory calls;
         uint256 sellAmount;
@@ -535,7 +541,9 @@ contract MetaTransactionsFeatureV2 is
     ///      call by decoding the call args and translating the call to the internal
     ///      `IMultiplexFeature._multiplexMultiHopSell()` variant, where we can override the
     ///      msgSender address.
-    function _executeMultiplexMultiHopSellTokenForTokenCall(ExecuteState memory state) private returns (bytes memory returnResult) {
+    function _executeMultiplexMultiHopSellTokenForTokenCall(
+        ExecuteState memory state
+    ) private returns (bytes memory returnResult) {
         address[] memory tokens;
         IMultiplexFeature.MultiHopSellSubcall[] memory calls;
         uint256 sellAmount;
@@ -569,7 +577,9 @@ contract MetaTransactionsFeatureV2 is
     ///      call by decoding the call args and translating the call to the internal
     ///      `IMultiplexFeature._multiplexMultiHopSellTokenForEth()` variant, where we can override the
     ///      msgSender address.
-    function _executeMultiplexMultiHopSellTokenForEthCall(ExecuteState memory state) private returns (bytes memory returnResult) {
+    function _executeMultiplexMultiHopSellTokenForEthCall(
+        ExecuteState memory state
+    ) private returns (bytes memory returnResult) {
         address[] memory tokens;
         IMultiplexFeature.MultiHopSellSubcall[] memory calls;
         uint256 sellAmount;
