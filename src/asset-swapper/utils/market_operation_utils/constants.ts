@@ -698,7 +698,6 @@ export const REBASING_TOKENS = Set.of(MAINNET_TOKENS.stETH);
 const SADDLE_MAINNET_POOLS = {
     // swaps
     stablesV2: '0xacb83e0633d6605c5001e2ab59ef3c745547c8c7',
-    bitcoinsV2: '0xdf3309771d2bf82cb2b6c56f9f5365c8bd97c4f2',
     alETH: '0xa6018520eaacc06c30ff2e1b3ee2c7c22e64196a',
     d4: '0xc69ddcd4dfef25d8a793241834d4cc4b3668ead6',
     '4Pool': '0x101cd330d088634b6f64c2eb4276e63bf1bbfde3',
@@ -1057,11 +1056,6 @@ export const SADDLE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
     [SADDLE_MAINNET_POOLS.stablesV2]: createSaddleSwapPool({
         tokens: [MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC, MAINNET_TOKENS.USDT],
         pool: SADDLE_MAINNET_POOLS.stablesV2,
-        gasSchedule: 150e3,
-    }),
-    [SADDLE_MAINNET_POOLS.bitcoinsV2]: createSaddleSwapPool({
-        tokens: [MAINNET_TOKENS.WBTC, MAINNET_TOKENS.RenBTC, MAINNET_TOKENS.sBTC],
-        pool: SADDLE_MAINNET_POOLS.bitcoinsV2,
         gasSchedule: 150e3,
     }),
     [SADDLE_MAINNET_POOLS.alETH]: createSaddleSwapPool({
