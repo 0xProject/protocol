@@ -204,7 +204,7 @@ contract DeployZeroEx is Test {
         );
         ZERO_EX_DEPLOYED.features.fundRecoveryFeature = new FundRecoveryFeature();
         ZERO_EX_DEPLOYED.features.metaTransactionsFeature = new MetaTransactionsFeature(address(ZERO_EX));
-        ZERO_EX_DEPLOYED.features.metaTransactionsFeatureV2 = new MetaTransactionsFeatureV2(address(ZERO_EX));
+        ZERO_EX_DEPLOYED.features.metaTransactionsFeatureV2 = new MetaTransactionsFeatureV2(address(ZERO_EX), ZERO_EX_DEPLOYED.weth);
         ZERO_EX_DEPLOYED.features.erc1155OrdersFeature = new ERC1155OrdersFeature(
             address(ZERO_EX),
             ZERO_EX_DEPLOYED.weth

@@ -22,7 +22,7 @@ import "src/transformers/LibERC20Transformer.sol";
 import "src/features/libs/LibSignature.sol";
 import "src/features/libs/LibNativeOrder.sol";
 import "../../contracts/test/tokens/TestMintableERC20Token.sol";
-import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
+import "@0x/contracts-erc20/src/IEtherToken.sol";
 
 contract TestUtils is Test {
     address private constant ZERO_ADDRESS = 0x0000000000000000000000000000000000000000;
@@ -54,8 +54,8 @@ contract TestUtils is Test {
 
     function makeTestRfqOrder(
         DeployZeroEx.ZeroExDeployed memory zeroExDeployed, 
-        IERC20TokenV06 makerToken, 
-        IERC20TokenV06 takerToken,
+        IERC20Token makerToken, 
+        IERC20Token takerToken,
         address makerAddress,
         address takerAddress,
         uint256 makerKey
@@ -93,8 +93,8 @@ contract TestUtils is Test {
 
     function makeTestLimitOrder(
         DeployZeroEx.ZeroExDeployed memory zeroExDeployed, 
-        IERC20TokenV06 makerToken, 
-        IERC20TokenV06 takerToken,
+        IERC20Token makerToken, 
+        IERC20Token takerToken,
         address makerAddress,
         address takerAddress,
         uint256 makerKey
@@ -133,8 +133,8 @@ contract TestUtils is Test {
 
     function transformERC20Call(
         DeployZeroEx.ZeroExDeployed memory zeroExDeployed, 
-        IERC20TokenV06 makerToken, 
-        IERC20TokenV06 takerToken,
+        IERC20Token makerToken, 
+        IERC20Token takerToken,
         address takerAddress,
         uint256 transformerNonce
     ) public returns (bytes memory) {
@@ -158,11 +158,11 @@ contract TestUtils is Test {
         );
     }
 
-    function mintTo(IERC20TokenV06 token, address recipient, uint256 amount) public {
+    function mintTo(IERC20Token token, address recipient, uint256 amount) public {
         TestMintableERC20Token(address(token)).mint(recipient, amount);
     }
 
-    function mintToWETH(IEtherTokenV06 wethToken, address recipient, uint256 amount) public {
+    function mintToWETH(IEtherToken wethToken, address recipient, uint256 amount) public {
         wethToken.deposit{value: amount}();
         WETH9V06(payable(address(wethToken))).transfer(recipient, amount);
     }

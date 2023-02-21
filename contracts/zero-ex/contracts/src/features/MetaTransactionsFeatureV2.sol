@@ -15,6 +15,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
+import "@0x/contracts-erc20/src/IEtherToken.sol";
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibBytesV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
@@ -27,6 +28,7 @@ import "../migrations/LibMigrate.sol";
 import "../storage/LibMetaTransactionsStorage.sol";
 import "./interfaces/IFeature.sol";
 import "./interfaces/IMetaTransactionsFeatureV2.sol";
+import "./interfaces/IMultiplexFeature.sol";
 import "./interfaces/INativeOrdersFeature.sol";
 import "./interfaces/ITransformERC20Feature.sol";
 import "./libs/LibSignature.sol";
@@ -63,8 +65,8 @@ contract MetaTransactionsFeatureV2 is
 
     /// @dev Arguments for a `TransformERC20.transformERC20()` call.
     struct ExternalTransformERC20Args {
-        IERC20TokenV06 inputToken;
-        IERC20TokenV06 outputToken;
+        IERC20Token inputToken;
+        IERC20Token outputToken;
         uint256 inputTokenAmount;
         uint256 minOutputTokenAmount;
         ITransformERC20Feature.Transformation[] transformations;
@@ -92,6 +94,9 @@ contract MetaTransactionsFeatureV2 is
             "uint256 amount"
             ")"
         );
+    
+    /// @dev The WETH token contract.
+    IEtherToken private immutable WETH;
 
     /// @dev Refunds up to `msg.value` leftover ETH at the end of the call.
     modifier refundsAttachedEth() {
@@ -110,7 +115,12 @@ contract MetaTransactionsFeatureV2 is
         require(initialBalance <= address(this).balance, "MetaTransactionDataV2/ETH_LEAK");
     }
 
-    constructor(address zeroExAddress) public FixinCommon() FixinEIP712(zeroExAddress) {}
+    constructor(
+        address zeroExAddress,
+        IEtherToken weth
+    ) public FixinCommon() FixinEIP712(zeroExAddress) {
+        WETH = weth;
+    }
 
     /// @dev Initialize and register this feature.
     ///      Should be delegatecalled by `Migrate.migrate()`.
@@ -244,6 +254,14 @@ contract MetaTransactionsFeatureV2 is
             returnResult = _executeFillLimitOrderCall(state);
         } else if (state.selector == INativeOrdersFeature.fillRfqOrder.selector) {
             returnResult = _executeFillRfqOrderCall(state);
+        } else if (state.selector == IMultiplexFeature.multiplexBatchSellTokenForToken.selector) {
+            returnResult = _executeMultiplexBatchSellTokenForTokenCall(state);
+        } else if (state.selector == IMultiplexFeature.multiplexBatchSellTokenForEth.selector) {
+            returnResult = _executeMultiplexBatchSellTokenForEthCall(state);
+        } else if (state.selector == IMultiplexFeature.multiplexMultiHopSellTokenForToken.selector) {
+            returnResult = _executeMultiplexMultiHopSellTokenForTokenCall(state);
+        } else if (state.selector == IMultiplexFeature.multiplexMultiHopSellTokenForEth.selector) {
+            returnResult = _executeMultiplexMultiHopSellTokenForEthCall(state);
         } else {
             LibMetaTransactionsRichErrors.MetaTransactionUnsupportedFunctionError(state.hash, state.selector).rrevert();
         }
@@ -410,7 +428,7 @@ contract MetaTransactionsFeatureV2 is
 
     /// @dev Execute a `INativeOrdersFeature.fillRfqOrder()` meta-transaction call
     ///      by decoding the call args and translating the call to the internal
-    ///      `INativeOrdersFeature._fillRfqOrder()` variant, where we can overrideunimpleme
+    ///      `INativeOrdersFeature._fillRfqOrder()` variant, where we can override
     ///      the taker address.
     function _executeFillRfqOrderCall(ExecuteState memory state) private returns (bytes memory returnResult) {
         LibNativeOrder.RfqOrder memory order;
@@ -436,6 +454,158 @@ contract MetaTransactionsFeatureV2 is
                     state.mtx.signer
                 )
             );
+    }
+
+    /// @dev Execute a `IMultiplexFeature.multiplexBatchSellTokenForToken()` meta-transaction
+    ///      call by decoding the call args and translating the call to the internal
+    ///      `IMultiplexFeature._multiplexBatchSell()` variant, where we can override the
+    ///      msgSender address.
+    function _executeMultiplexBatchSellTokenForTokenCall(ExecuteState memory state) private returns (bytes memory returnResult) {
+        IERC20Token inputToken;
+        IERC20Token outputToken;
+        IMultiplexFeature.BatchSellSubcall[] memory calls;
+        uint256 sellAmount;
+        uint256 minBuyAmount;
+
+        bytes memory args = _extractArgumentsFromCallData(state.mtx.callData);
+        (inputToken, outputToken, calls, sellAmount, minBuyAmount) = abi.decode(
+            args,
+            (IERC20Token, IERC20Token, IMultiplexFeature.BatchSellSubcall[], uint256, uint256)
+        );
+
+        return
+            _callSelf(
+                state.hash,
+                abi.encodeWithSelector(
+                    IMultiplexFeature._multiplexBatchSell.selector,
+                    IMultiplexFeature.BatchSellParams({
+                        inputToken: inputToken,
+                        outputToken: outputToken,
+                        sellAmount: sellAmount,
+                        calls: calls,
+                        useSelfBalance: false,
+                        recipient: state.mtx.signer,
+                        msgSender: state.mtx.signer
+                    }),
+                    minBuyAmount
+                )
+            );
+    }
+
+    /// @dev Execute a `IMultiplexFeature.multiplexBatchSellTokenForEth()` meta-transaction
+    ///      call by decoding the call args and translating the call to the internal
+    ///      `IMultiplexFeature._multiplexBatchSellTokenForEth()` variant, where we can override the
+    ///      msgSender address.
+    function _executeMultiplexBatchSellTokenForEthCall(ExecuteState memory state) private returns (bytes memory returnResult) {
+        IERC20Token inputToken;
+        IMultiplexFeature.BatchSellSubcall[] memory calls;
+        uint256 sellAmount;
+        uint256 minBuyAmount;
+
+        bytes memory args = _extractArgumentsFromCallData(state.mtx.callData);
+        (inputToken, calls, sellAmount, minBuyAmount) = abi.decode(
+            args,
+            (IERC20Token, IMultiplexFeature.BatchSellSubcall[], uint256, uint256)
+        );
+
+        returnResult = _callSelf(
+            state.hash,
+            abi.encodeWithSelector(
+                IMultiplexFeature._multiplexBatchSell.selector,
+                IMultiplexFeature.BatchSellParams({
+                    inputToken: inputToken,
+                    outputToken: IERC20Token(WETH),
+                    sellAmount: sellAmount,
+                    calls: calls,
+                    useSelfBalance: false,
+                    recipient: address(this),
+                    msgSender: state.mtx.signer
+                }),
+                minBuyAmount
+            )
+        );
+
+        // Unwrap and transfer WETH
+        uint256 boughtAmount = abi.decode(returnResult, (uint256));
+        WETH.withdraw(boughtAmount);
+        _transferEth(state.mtx.signer, boughtAmount);
+    }
+
+    /// @dev Execute a `IMultiplexFeature.multiplexMultiHopSellTokenForToken()` meta-transaction
+    ///      call by decoding the call args and translating the call to the internal
+    ///      `IMultiplexFeature._multiplexMultiHopSell()` variant, where we can override the
+    ///      msgSender address.
+    function _executeMultiplexMultiHopSellTokenForTokenCall(ExecuteState memory state) private returns (bytes memory returnResult) {
+        address[] memory tokens;
+        IMultiplexFeature.MultiHopSellSubcall[] memory calls;
+        uint256 sellAmount;
+        uint256 minBuyAmount;
+
+        bytes memory args = _extractArgumentsFromCallData(state.mtx.callData);
+        (tokens, calls, sellAmount, minBuyAmount) = abi.decode(
+            args,
+            (address[], IMultiplexFeature.MultiHopSellSubcall[], uint256, uint256)
+        );
+
+        return
+            _callSelf(
+                state.hash,
+                abi.encodeWithSelector(
+                    IMultiplexFeature._multiplexMultiHopSell.selector,
+                    IMultiplexFeature.MultiHopSellParams({
+                        tokens: tokens,
+                        sellAmount: sellAmount,
+                        calls: calls,
+                        useSelfBalance: false,
+                        recipient: state.mtx.signer,
+                        msgSender: state.mtx.signer
+                    }),
+                    minBuyAmount
+                )
+            );
+    }
+
+    /// @dev Execute a `IMultiplexFeature.multiplexMultiHopSellTokenForEth()` meta-transaction
+    ///      call by decoding the call args and translating the call to the internal
+    ///      `IMultiplexFeature._multiplexMultiHopSellTokenForEth()` variant, where we can override the
+    ///      msgSender address.
+    function _executeMultiplexMultiHopSellTokenForEthCall(ExecuteState memory state) private returns (bytes memory returnResult) {
+        address[] memory tokens;
+        IMultiplexFeature.MultiHopSellSubcall[] memory calls;
+        uint256 sellAmount;
+        uint256 minBuyAmount;
+
+        bytes memory args = _extractArgumentsFromCallData(state.mtx.callData);
+        (tokens, calls, sellAmount, minBuyAmount) = abi.decode(
+            args,
+            (address[], IMultiplexFeature.MultiHopSellSubcall[], uint256, uint256)
+        );
+
+        require(
+            tokens[tokens.length - 1] == address(WETH),
+            "MetaTransactionsFeature::multiplexMultiHopSellTokenForEth/NOT_WETH"
+        );
+
+        returnResult = _callSelf(
+            state.hash,
+            abi.encodeWithSelector(
+                IMultiplexFeature._multiplexMultiHopSell.selector,
+                IMultiplexFeature.MultiHopSellParams({
+                    tokens: tokens,
+                    sellAmount: sellAmount,
+                    calls: calls,
+                    useSelfBalance: false,
+                    recipient: address(this),
+                    msgSender: state.mtx.signer
+                }),
+                minBuyAmount
+            )
+        );
+
+        // Unwrap and transfer WETH
+        uint256 boughtAmount = abi.decode(returnResult, (uint256));
+        WETH.withdraw(boughtAmount);
+        _transferEth(state.mtx.signer, boughtAmount);
     }
 
     /// @dev Make an arbitrary internal, meta-transaction call.

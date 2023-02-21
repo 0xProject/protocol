@@ -26,16 +26,16 @@ import "../contracts/src/features/libs/LibSignature.sol";
 import "src/features/libs/LibNativeOrder.sol";
 import "../contracts/test/tokens/TestMintableERC20Token.sol";
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
+import "@0x/contracts-erc20/src/IEtherToken.sol";
 
 contract MetaTransactionTest is BaseTest, TestUtils {
     DeployZeroEx.ZeroExDeployed zeroExDeployed;
     address private constant ZERO_ADDRESS = 0x0000000000000000000000000000000000000000;
     address private constant USER_ADDRESS = 0x6dc3a54FeAE57B65d185A7B159c5d3FA7fD7FD0F;
     uint256 private constant USER_KEY = 0x1fc1630343b31e60b7a197a53149ca571ed9d9791e2833337bbd8110c30710ec;
-    IEtherTokenV06 private wethToken;
-    IERC20TokenV06 private usdcToken;
-    IERC20TokenV06 private zrxToken;
+    IEtherToken private wethToken;
+    IERC20Token private usdcToken;
+    IERC20Token private zrxToken;
     uint256 private constant oneEth = 1e18;
     address private signerAddress;
     uint256 private signerKey;
@@ -47,8 +47,8 @@ contract MetaTransactionTest is BaseTest, TestUtils {
         (signerAddress, signerKey) = getSigner();
         zeroExDeployed = new DeployZeroEx().deployZeroEx();
         wethToken = zeroExDeployed.weth;
-        usdcToken = IERC20TokenV06(address(new TestMintableERC20Token()));
-        zrxToken = IERC20TokenV06(address(new TestMintableERC20Token()));
+        usdcToken = IERC20Token(address(new TestMintableERC20Token()));
+        zrxToken = IERC20Token(address(new TestMintableERC20Token()));
 
         transformerNonce = zeroExDeployed.transformerDeployer.nonce();
         vm.prank(zeroExDeployed.transformerDeployer.authorities(0));

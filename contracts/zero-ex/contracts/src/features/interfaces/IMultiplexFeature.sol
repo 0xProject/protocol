@@ -46,6 +46,8 @@ interface IMultiplexFeature {
         bool useSelfBalance;
         // The recipient of the bought output tokens.
         address recipient;
+        // The sender of the transaction.
+        address msgSender;
     }
 
     // Represents a constituent call of a batch sell.
@@ -75,6 +77,8 @@ interface IMultiplexFeature {
         bool useSelfBalance;
         // The recipient of the bought output tokens.
         address recipient;
+        // The sender of the transaction.
+        address msgSender;
     }
 
     // Represents a constituent call of a multi-hop sell.
@@ -153,6 +157,17 @@ interface IMultiplexFeature {
         uint256 minBuyAmount
     ) external returns (uint256 boughtAmount);
 
+    /// @dev Executes a multiplex BatchSell using the given
+    ///      parameters. Internal only.
+    /// @param params The parameters for the BatchSell.
+    /// @param minBuyAmount The minimum amount of `params.outputToken`
+    ///        that must be bought for this function to not revert.
+    /// @return boughtAmount The amount of `params.outputToken` bought.
+    function _multiplexBatchSell(
+        BatchSellParams memory params,
+        uint256 minBuyAmount
+    ) external returns (uint256 boughtAmount);
+
     /// @dev Sells attached ETH via the given sequence of tokens
     ///      and calls. `tokens[0]` must be WETH.
     ///      The last token in `tokens` is the output token that
@@ -202,6 +217,17 @@ interface IMultiplexFeature {
         address[] calldata tokens,
         MultiHopSellSubcall[] calldata calls,
         uint256 sellAmount,
+        uint256 minBuyAmount
+    ) external returns (uint256 boughtAmount);
+
+    /// @dev Executes a multiplex MultiHopSell using the given
+    ///      parameters. Internal only.
+    /// @param params The parameters for the MultiHopSell.
+    /// @param minBuyAmount The minimum amount of the output token
+    ///        that must be bought for this function to not revert.
+    /// @return boughtAmount The amount of the output token bought.
+    function _multiplexMultiHopSell(
+        MultiHopSellParams memory params,
         uint256 minBuyAmount
     ) external returns (uint256 boughtAmount);
 }
