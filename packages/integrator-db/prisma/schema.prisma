@@ -1,0 +1,141 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// A 0x integrator that acesses various 0x services
+// NOTE: initially a user will have a single auto-generated team. use of this model will expand in the future
+model IntegratorTeam {
+  id        String   @id @default(cuid()) @map("id")
+  name      String   @map("name")
+  image     String?  @map("image")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  users              User[]
+  integratorProjects IntegratorProject[]
+
+  @@map("integrator_teams")
+}
+
+// Represents a single person (or bot).
+// A `User` may have multiple Accounts, which are ways of logging in.
+// A `User` may have multiple sessions, which correspond to active
+// (non-expired) cookies in a browser.
+model User {
+  id               String    @id @default(cuid()) @map("id")
+  integratorTeamId String    @map("integrator_team_id")
+  name             String    @map("name")
+  email            String?   @unique @map("email")
+  emailVerifiedAt  DateTime? @map("email_verified_at")
+  image            String?   @map("image")
+  lastLoginAt      DateTime? @map("last_login_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  accounts Account[]
+
+  integratorTeam IntegratorTeam @relation(fields: [integratorTeamId], references: [id], onDelete: Cascade)
+  Session        Session[]
+
+  @@map("users")
+}
+
+// Represents a method of logging in a `User`.
+// A user might have multiple, for instance one account with
+// `provider` = `github` and another with `provider` = `gmail`.
+model Account {
+  id                String  @id @default(cuid()) @map("id")
+  userId            String  @map("user_id")
+  type              String  @map("type")
+  provider          String  @map("provider")
+  providerAccountId String  @map("provider_account_id")
+  refreshToken      String? @map("refresh_token") @db.Text
+  accessToken       String? @map("access_token") @db.Text
+  expiresAt         Int?    @map("expires_at")
+  tokenType         String? @map("token_type")
+  scope             String? @map("scope")
+  idToken           String? @map("id_token") @db.Text
+  sessionState      String? @map("session_state")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid()) @map("id")
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime @map("expires")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String   @map("identifier")
+  token      String   @unique @map("token")
+  expires    DateTime @map("expires")
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// Represents a logical unit of work by an integrator.
+model IntegratorProject {
+  id               String   @id @default(cuid()) @map("id")
+  integratorTeamId String   @map("integrator_team_id")
+  name             String   @map("name")
+  description      String?  @map("description")
+  affiliateAddress String?  @map("affiliate_address")
+  category         String?  @map("category")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  apiKeys          IntegratorApiKey[]
+  integratorAccess IntegratorAccess[]
+
+  integratorTeam IntegratorTeam @relation(fields: [integratorTeamId], references: [id], onDelete: Cascade)
+
+  @@map("integrator_projects")
+}
+
+// An API key for access to 0x services
+model IntegratorApiKey {
+  id                  String   @id @default(cuid()) @map("id")
+  apiKey              String   @map("api_key")
+  integratorProjectId String   @map("integrator_project_id")
+  description         String?  @map("description")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+  disabled            Boolean  @default(false) @map("disabled")
+
+  project IntegratorProject @relation(fields: [integratorProjectId], references: [id], onDelete: Cascade)
+
+  @@map("integrator_api_keys")
+}
+
+// Represents an integrator project having access to a specific 0x route (swap, orderbook, ...)
+//   with a specific rate limit
+model IntegratorAccess {
+  integratorProjectId String   @map("integrator_project_id")
+  routeTag            String   @map("route_tag")
+  rateLimit           String   @map("rate_limit")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  project IntegratorProject @relation(fields: [integratorProjectId], references: [id], onDelete: Cascade)
+
+  @@id([integratorProjectId, routeTag])
+  @@map("integrator_access")
+}
