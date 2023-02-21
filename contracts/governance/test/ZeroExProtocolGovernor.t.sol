@@ -289,4 +289,45 @@ contract ZeroExProtocolGovernorTest is BaseTest {
         uint256 timelockDelay = timelock.getMinDelay();
         assertEq(timelockDelay, 7 days);
     }
+
+    function testSecurityCouncilAreEjectedAfterCancellingAProposal() public {
+        // Create a proposal
+        address[] memory targets = new address[](1);
+        targets[0] = address(callReceiverMock);
+
+        uint256[] memory values = new uint256[](1);
+        values[0] = 0;
+
+        bytes[] memory calldatas = new bytes[](1);
+        calldatas[0] = abi.encodeWithSignature("mockFunction()");
+
+        vm.roll(2);
+        vm.startPrank(account2);
+        uint256 proposalId = governor.propose(targets, values, calldatas, "Proposal description");
+        vm.stopPrank();
+
+        // Fast forward to after vote start
+        vm.roll(governor.proposalSnapshot(proposalId) + 1);
+
+        // Vote
+        vm.prank(account2);
+        governor.castVote(proposalId, 1); // Vote "for"
+        vm.stopPrank();
+
+        // Fast forward to vote end
+        vm.roll(governor.proposalDeadline(proposalId) + 1);
+
+        IGovernor.ProposalState state = governor.state(proposalId);
+        assertEq(uint256(state), uint256(IGovernor.ProposalState.Succeeded));
+
+        // Queue proposal
+        governor.queue(targets, values, calldatas, keccak256(bytes("Proposal description")));
+
+        // Cancel the proposal
+        vm.warp(governor.proposalEta(proposalId));
+        governor.cancel(targets, values, calldatas, keccak256(bytes("Proposal description")));
+
+        state = governor.state(proposalId);
+        assertEq(uint256(state), uint256(IGovernor.ProposalState.Canceled));
+    }
 }

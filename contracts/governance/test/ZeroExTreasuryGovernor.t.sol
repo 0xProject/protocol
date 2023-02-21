@@ -263,4 +263,45 @@ contract ZeroExTreasuryGovernorTest is BaseTest {
         uint256 proposalThreshold = treasuryGovernor.proposalThreshold();
         assertEq(proposalThreshold, 2000000e18);
     }
+
+    function testSecurityCouncilAreEjectedAfterCancellingAProposal() public {
+        // Create a proposal
+        address[] memory targets = new address[](1);
+        targets[0] = address(callReceiverMock);
+
+        uint256[] memory values = new uint256[](1);
+        values[0] = 0;
+
+        bytes[] memory calldatas = new bytes[](1);
+        calldatas[0] = abi.encodeWithSignature("mockFunction()");
+
+        vm.roll(2);
+        vm.startPrank(account2);
+        uint256 proposalId = treasuryGovernor.propose(targets, values, calldatas, "Proposal description");
+        vm.stopPrank();
+
+        // Fast forward to after vote start
+        vm.roll(treasuryGovernor.proposalSnapshot(proposalId) + 1);
+
+        // Vote
+        vm.prank(account2);
+        treasuryGovernor.castVote(proposalId, 1); // Vote "for"
+        vm.stopPrank();
+
+        // Fast forward to vote end
+        vm.roll(treasuryGovernor.proposalDeadline(proposalId) + 1);
+
+        IGovernor.ProposalState state = treasuryGovernor.state(proposalId);
+        assertEq(uint256(state), uint256(IGovernor.ProposalState.Succeeded));
+
+        // Queue proposal
+        treasuryGovernor.queue(targets, values, calldatas, keccak256(bytes("Proposal description")));
+
+        // Cancel the proposal
+        vm.warp(treasuryGovernor.proposalEta(proposalId));
+        treasuryGovernor.cancel(targets, values, calldatas, keccak256(bytes("Proposal description")));
+
+        state = treasuryGovernor.state(proposalId);
+        assertEq(uint256(state), uint256(IGovernor.ProposalState.Canceled));
+    }
 }

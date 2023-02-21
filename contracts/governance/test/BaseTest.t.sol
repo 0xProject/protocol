@@ -35,12 +35,14 @@ contract BaseTest is Test {
     address payable internal account2 = payable(vm.addr(2));
     address payable internal account3 = payable(vm.addr(3));
     address payable internal account4 = payable(vm.addr(4));
+    address payable internal securityCouncil = payable(vm.addr(5));
 
     constructor() public {
         vm.deal(account1, 1e20);
         vm.deal(account2, 1e20);
         vm.deal(account3, 1e20);
         vm.deal(account4, 1e20);
+        vm.deal(securityCouncil, 1e20);
     }
 
     function setupGovernance()
@@ -64,12 +66,14 @@ contract BaseTest is Test {
         ZeroExProtocolGovernor protocolGovernor = new ZeroExProtocolGovernor(IVotes(address(votes)), protocolTimelock);
         protocolTimelock.grantRole(protocolTimelock.PROPOSER_ROLE(), address(protocolGovernor));
         protocolTimelock.grantRole(protocolTimelock.EXECUTOR_ROLE(), address(protocolGovernor));
+        protocolTimelock.grantRole(protocolTimelock.CANCELLER_ROLE(), address(protocolGovernor));
 
         ZeroExTimelock treasuryTimelock = new ZeroExTimelock(2 days, proposers, executors, account1);
         ZeroExTreasuryGovernor treasuryGovernor = new ZeroExTreasuryGovernor(IVotes(address(votes)), treasuryTimelock);
 
         treasuryTimelock.grantRole(treasuryTimelock.PROPOSER_ROLE(), address(treasuryGovernor));
         treasuryTimelock.grantRole(treasuryTimelock.EXECUTOR_ROLE(), address(treasuryGovernor));
+        treasuryTimelock.grantRole(treasuryTimelock.CANCELLER_ROLE(), address(treasuryGovernor));
 
         return (zrxToken, token, votes, protocolTimelock, treasuryTimelock, protocolGovernor, treasuryGovernor);
     }

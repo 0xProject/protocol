@@ -86,6 +86,15 @@ contract ZeroExTreasuryGovernor is
         return super.propose(targets, values, calldatas, description);
     }
 
+    function cancel(
+        address[] memory targets,
+        uint256[] memory values,
+        bytes[] memory calldatas,
+        bytes32 descriptionHash
+    ) public {
+        _cancel(targets, values, calldatas, descriptionHash);
+    }
+
     function _execute(
         uint256 proposalId,
         address[] memory targets,
