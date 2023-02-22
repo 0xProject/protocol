@@ -1,26 +1,24 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "downlevelIteration": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "lib": ["es2020", "dom"],
     "module": "commonjs",
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "outDir": "__build__",
+    "moduleResolution": "node",
+    "noErrorTruncation": true,
+    "noImplicitReturns": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
-    "target": "es2019",
+    "target": "ES6",
     "typeRoots": [
-      "../node_modules/@0x/typescript-typings/types",
-      "../node_modules/@types"
+      "../../node_modules/@0x/typescript-typings/types",
+      "../../node_modules/@types"
     ],
     "types": ["jest", "node"],
     "useUnknownInCatchVariables": false
-  },
-  "exclude": ["node_modules"],
-  "include": ["src/**/*.ts", "test/**/*.ts"]
+  }
 }
