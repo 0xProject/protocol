@@ -20,7 +20,7 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import {IERC20TokenV06} from "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import {IERC20Token} from "@0x/contracts-erc20/src/IERC20Token.sol";
 import {LibNativeOrder} from "src/features/libs/LibNativeOrder.sol";
 import {LibSignature} from "src/features/libs/LibSignature.sol";
 import {IMultiplexFeature} from "src/features/interfaces/IMultiplexFeature.sol";
@@ -29,8 +29,8 @@ import {LocalTest} from "utils/LocalTest.sol";
 
 contract MultiplexUtils is LocalTest {
     function _makeTestRfqOrder(
-        IERC20TokenV06 makerToken,
-        IERC20TokenV06 takerToken
+        IERC20Token makerToken,
+        IERC20Token takerToken
     ) internal returns (LibNativeOrder.RfqOrder memory order) {
         order = LibNativeOrder.RfqOrder({
             makerToken: makerToken,
@@ -191,8 +191,8 @@ contract MultiplexUtils is LocalTest {
     }
 
     function _makeMockTransformERC20Subcall(
-        IERC20TokenV06 inputToken,
-        IERC20TokenV06 outputToken,
+        IERC20Token inputToken,
+        IERC20Token outputToken,
         uint256 sellAmount,
         uint256 mintAmount
     ) internal view returns (IMultiplexFeature.BatchSellSubcall memory) {

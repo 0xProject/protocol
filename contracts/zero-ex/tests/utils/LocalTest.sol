@@ -16,9 +16,9 @@ pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 import {Test} from "forge-std/Test.sol";
-import {IERC20TokenV06} from "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-import {IEtherTokenV06} from "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
-import {WETH9V06} from "@0x/contracts-erc20/contracts/src/v06/WETH9V06.sol";
+import {IERC20Token} from "@0x/contracts-erc20/src/IERC20Token.sol";
+import {IEtherToken} from "@0x/contracts-erc20/src/IEtherToken.sol";
+import {WETH9V06} from "@0x/contracts-erc20/src/v06/WETH9V06.sol";
 import {IFlashWallet} from "src/external/IFlashWallet.sol";
 import {LibERC20Transformer} from "src/transformers/LibERC20Transformer.sol";
 import {LibNativeOrder} from "src/features/libs/LibNativeOrder.sol";
@@ -40,10 +40,10 @@ contract LocalTest is Test, TestUtils {
 
     DeployZeroEx.ZeroExDeployed internal zeroExDeployed;
     IFlashWallet internal flashWallet;
-    IERC20TokenV06 internal shib;
-    IERC20TokenV06 internal dai;
-    IERC20TokenV06 internal zrx;
-    IEtherTokenV06 internal weth;
+    IERC20Token internal shib;
+    IERC20Token internal dai;
+    IERC20Token internal zrx;
+    IEtherToken internal weth;
 
     TestUniswapV2Factory internal sushiFactory;
     TestUniswapV2Factory internal uniV2Factory;
@@ -87,9 +87,9 @@ contract LocalTest is Test, TestUtils {
 
         flashWallet = zeroExDeployed.zeroEx.getTransformWallet();
 
-        shib = IERC20TokenV06(address(new TestMintableERC20Token()));
-        dai = IERC20TokenV06(address(new TestMintableERC20Token()));
-        zrx = IERC20TokenV06(address(new TestMintableERC20Token()));
+        shib = IERC20Token(address(new TestMintableERC20Token()));
+        dai = IERC20Token(address(new TestMintableERC20Token()));
+        zrx = IERC20Token(address(new TestMintableERC20Token()));
         weth = zeroExDeployed.weth;
 
         _infiniteApprovals();
@@ -102,7 +102,7 @@ contract LocalTest is Test, TestUtils {
 
     function _mintTo(address token, address recipient, uint256 amount) internal {
         if (token == address(weth)) {
-            IEtherTokenV06(token).deposit{value: amount}();
+            IEtherToken(token).deposit{value: amount}();
             WETH9V06(payable(token)).transfer(recipient, amount);
         } else {
             TestMintableERC20Token(token).mint(recipient, amount);
@@ -111,8 +111,8 @@ contract LocalTest is Test, TestUtils {
 
     function _createUniswapV2Pool(
         TestUniswapV2Factory factory,
-        IERC20TokenV06 tokenA,
-        IERC20TokenV06 tokenB,
+        IERC20Token tokenA,
+        IERC20Token tokenB,
         uint112 balanceA,
         uint112 balanceB
     ) internal returns (address poolAddress) {
@@ -128,8 +128,8 @@ contract LocalTest is Test, TestUtils {
 
     function _createUniswapV3Pool(
         TestUniswapV3Factory factory,
-        IERC20TokenV06 tokenA,
-        IERC20TokenV06 tokenB,
+        IERC20Token tokenA,
+        IERC20Token tokenB,
         uint112 balanceA,
         uint112 balanceB
     ) internal returns (address poolAddress) {

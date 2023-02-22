@@ -401,26 +401,6 @@ contract Multiplex is LocalTest, MultiplexUtils {
         );
     }
 
-    function testMultiplexBatchSellEthForToken() public {
-        // RFQ
-        // OTC
-        // UniswapV2
-        // UniswapV3
-        // LiquidityProvider
-        // TransformERC20
-        // RFQ, MultiHop(UniV3, UniV2)
-    }
-
-    function testMultiplexBatchSellTokenForEth() public {
-        // RFQ
-        // OTC
-        // UniswapV2
-        // UniswapV3
-        // LiquidityProvider
-        // TransformERC20
-        // RFQ, MultiHop(UniV3, UniV2)
-    }
-
     //// multihop sells
 
     // reverts if given an invalid subcall type
@@ -631,21 +611,5 @@ contract Multiplex is LocalTest, MultiplexUtils {
             sellAmount,
             0
         );
-    }
-
-    function testMultiplexMultiHopSellEthForToken() public {
-        // reverts if first token is not WETH
-        // UniswapV2 -> LiquidityProvider
-        // LiquidityProvider -> Sushiswap
-        // UniswapV3 -> BatchSell(RFQ, UniswapV2)
-        // BatchSell(RFQ, UniswapV2) -> UniswapV3
-    }
-
-    function testMultiplexMultiHopSellTokenForEth() public {
-        // reverts if last token is not WETH
-        // UniswapV2 -> LiquidityProvider
-        // LiquidityProvider -> Sushiswap
-        // UniswapV3 -> BatchSell(RFQ, UniswapV2)
-        // BatchSell(RFQ, UniswapV2) -> UniswapV3
     }
 }
