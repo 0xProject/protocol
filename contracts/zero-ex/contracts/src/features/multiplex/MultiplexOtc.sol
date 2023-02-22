@@ -91,7 +91,7 @@ abstract contract MultiplexOtc is FixinEIP712 {
             return;
         }
 
-        uint256 sellAmount = state.outputTokenAmount
+        uint256 sellAmount = state.outputTokenAmount;
         // Try filling the Otc order. Swallows reverts.
         try
             IOtcOrdersFeature(address(this))._fillOtcOrder(
