@@ -10,6 +10,7 @@
     "scripts": {
         "build": ". ./turbo-prerun.sh && turbo run build",
         "build:no-diff": ". ./turbo-prerun.sh && turbo run build:no-diff",
+        "fix": ". ./turbo-prerun.sh && turbo run fix",
         "lint:ci": ". ./turbo-prerun.sh && turbo run lint:ci",
         "test:ci": ". ./turbo-prerun.sh && turbo run test:ci"
     },

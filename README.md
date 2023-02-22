@@ -218,6 +218,30 @@ If your workspace needs to deviate from the conventions above, see
 > of many frameworks (i.e. Foundry, SvelteKit, Rust). Make sure to change the build target from `lib`
 > before migrating the project into `0x-labs`.
 
+## Common tooling
+
+For the most part, you can use whatever tooling you'd like in your workspace. However, `0x-labs` has
+some built in tooling setup which can make bootstrapping your workspace easier.
+
+### Prettier
+
+Prettier is enabled globally and is a root dependency of `0x-labs`. (This isn't ideal, but it's a limitation
+of Prettier as of February 2023).
+
+To use Prettier in your workspace, first setup a `.prettierignore` in the workspace root. Note that, unlike
+`.gitignore` files, `.prettierignore` files do not "extend" `.prettierignore` files higher up the directory
+tree. (See ["Feature: handle .prettierignore location like .gitignore and .npmignore (#4081)"](https://github.com/prettier/prettier/issues/4081))
+
+Next, add scripts as you'd like to your `package.json`. Some suggestions:
+
+-   `"fix": "prettier --write ."` (Available via a turbo pipeline from the repo root)
+-   `"lint:ci": "prettier --check ."` (You probably also want `eslint` here)
+
+### `tsconfig` and eslint
+
+The repository has common configurations for both [TypeScript](packages/tsconfig/README.md)
+and [eslint](packages/eslint-config-common/README.md). See the linked READMEs for setup instructions.
+
 ## Websites
 
 Since Vercel is the author of Turborepo, it's no surprise that deploying websites from the
