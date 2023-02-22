@@ -36,7 +36,6 @@
         "zod": "^3.20.2"
     },
     "dependencies": {
-        "@prisma/client": "^4.9.0",
         "@trpc/client": "^10.9.0",
         "@trpc/server": "^10.9.0",
         "axios": "^1.2.4",

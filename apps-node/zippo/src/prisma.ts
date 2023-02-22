@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from 'integrator-db';
 
 const prisma = new PrismaClient();
 
