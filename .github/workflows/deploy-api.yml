@@ -1,27 +1,28 @@
-name: Deploy API
+# Deploy Swap Service and a few others: meta transaction service, RFQ cache worker, and etc.
+name: Deploy Swap Service
 
 on:
   workflow_dispatch:
     inputs:
       image_identifier:
-        description: Image identifier, e.g. apps:api__8aaa3432e60fc32 or 0x/api:8aaa3432e60fc3223234244524
+        description: Image identifier, e.g. api__2d5f8eed5287b74b or api_fd9c069a7d8a1bfdfca9a3c08cb9f405bfebdcc6
         type: string
         required: true
       environment:
         description: Environment(s) to deploy to
         type: choice
         options:
-          # - prod-all
-          # - prod-arbitrum
-          # - prod-avalanche
-          # - prod-bsc
-          # - prod-celo
-          # - prod-ethereum
-          # - prod-fantom
-          # - prod-optimism
-          # - prod-polygon
-          # - staging-all
-          # - staging-bsc
+          - prod-all
+          - prod-arbitrum
+          - prod-avalanche
+          - prod-bsc
+          - prod-celo
+          - prod-ethereum
+          - prod-fantom
+          - prod-optimism
+          - prod-polygon
+          - staging-all
+          - staging-bsc
           - staging-polygon
         default: staging-polygon
 
