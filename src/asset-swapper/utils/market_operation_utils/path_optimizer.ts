@@ -262,7 +262,7 @@ export class PathOptimizer {
             }
             const fee = this.calculateOutputFee(nativeOrder).integerValue().toNumber();
 
-            // HACK: due to an issue with the Rust router interpolation we need to create exactly 13 samples from the native order
+            // HACK: due to an issue with the Rust router interpolation we need to create exactly 40 samples from the native order
             const ids = [];
             const inputs = [];
             const outputs = [];
@@ -270,15 +270,14 @@ export class PathOptimizer {
 
             // NOTE: Limit orders can be both larger or smaller than the input amount
             // If the order is larger than the input we can scale the order to the size of
-            // the quote input (order pricing is constant) and then create 13 "samples" up to
+            // the quote input (order pricing is constant) and then create 40 "samples" up to
             // and including the full quote input amount.
             // If the order is smaller we don't need to scale anything, we will just end up
             // with trailing duplicate samples for the order input as we cannot go higher
             const scaleToInput = BigNumber.min(this.inputAmount.dividedBy(normalizedOrderInput), 1);
 
-            // TODO: replace constant with a proper sample size.
-            for (let i = 1; i <= 13; i++) {
-                const fraction = i / 13;
+            for (let i = 1; i < this.neonRouterNumSamples; i++) {
+                const fraction = i / (this.neonRouterNumSamples - 1);
                 const currentInput = BigNumber.min(
                     normalizedOrderInput.times(scaleToInput).times(fraction),
                     normalizedOrderInput,

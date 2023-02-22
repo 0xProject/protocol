@@ -77,14 +77,14 @@ const EXCHANGE_PROXY_OVERHEAD_FULLY_FEATURED = (sourceFlags: bigint) => {
     }
 };
 
-const NEON_ROUTER_NUM_SAMPLES = 14;
+const NUM_SAMPLES = 40;
 // TODO(kimpers): Due to an issue with the Rust router we want to use equidistant samples when using the Rust router
 
 export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
     bridgeSlippage: DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
-    numSamples: 13,
+    numSamples: NUM_SAMPLES,
     sampleDistributionBase: SAMPLE_DISTRIBUTION_BASE,
-    neonRouterNumSamples: NEON_ROUTER_NUM_SAMPLES,
+    neonRouterNumSamples: NUM_SAMPLES + 1,
     exchangeProxyOverhead: EXCHANGE_PROXY_OVERHEAD_FULLY_FEATURED,
     shouldGenerateQuoteReport: true,
 };

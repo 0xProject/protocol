@@ -2197,17 +2197,18 @@ const DEFAULT_FEE_SCHEDULE: FeeSchedule = Object.keys(DEFAULT_GAS_SCHEDULE).redu
     return acc;
 }, {} as FeeSchedule);
 
+const numSamples = 40;
 export const DEFAULT_GET_MARKET_ORDERS_OPTS: Omit<GetMarketOrdersOpts, 'gasPrice'> = {
     excludedSources: [],
     includedSources: [],
     bridgeSlippage: 0.005,
-    numSamples: 13,
+    numSamples: numSamples,
     sampleDistributionBase: 1,
     feeSchedule: DEFAULT_FEE_SCHEDULE,
     exchangeProxyOverhead: () => ZERO_AMOUNT,
     shouldGenerateQuoteReport: true,
     tokenAdjacencyGraph: TokenAdjacencyGraph.getEmptyGraph(),
-    neonRouterNumSamples: 14,
+    neonRouterNumSamples: numSamples + 1,
     fillAdjustor: new IdentityFillAdjustor(),
     endpoint: 'price',
 };
