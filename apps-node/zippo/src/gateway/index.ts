@@ -85,6 +85,7 @@ export async function provisionIntegratorAccess(
 
             return isSuccess && !rateLimitResults.includes(false); // if any result failed return false
         }
+        throw new Error('Route not found in route map.');
     });
 
     const results = await Promise.all(grantAccessPromises);
@@ -126,6 +127,7 @@ export async function deprovisionIntegratorAccess(
 
             return isSuccess && !rateLimitResults.includes(false); // if any result failed return false
         }
+        throw new Error('Route not found in route map.');
     });
 
     const results = await Promise.all(revokeAccessPromises);
