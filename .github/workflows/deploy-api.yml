@@ -64,7 +64,7 @@ jobs:
         id: conf
         with:
           string: ${{ inputs.environment }}
-          split-by: "-"
+          split-by: '-'
 
       - name: Create environment variables (ethereum)
         run: |
@@ -138,16 +138,16 @@ jobs:
         name: Sanitize branch name
         id: branch
         with:
-          branch-name: "${{ inputs.image_identifier }}"
+          branch-name: '${{ inputs.image_identifier }}'
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
         with:
           token: ${{ secrets.PAT }}
           author: ${{ github.event.sender.login }} <${{ github.event.sender.login }}@users.noreply.github.com>
-          commit-message: "api/${{ env.chain }}/${{ env.folder_env }}: Deploy ${{ inputs.image_identifier }}"
-          title: "[api][${{ env.chain }}][${{ env.folder_env }}] Deploy ${{ inputs.image_identifier }}"
-          branch: "0xApi/${{ env.chain }}/${{ env.folder_env }}/${{ steps.branch.outputs.sanitized-branch-name }}"
+          commit-message: 'api/${{ env.chain }}/${{ env.folder_env }}: Deploy ${{ inputs.image_identifier }}'
+          title: '[api][${{ env.chain }}][${{ env.folder_env }}] Deploy ${{ inputs.image_identifier }}'
+          branch: '0xApi/${{ env.chain }}/${{ env.folder_env }}/${{ steps.branch.outputs.sanitized-branch-name }}'
           body: |
             ## Automated deploy action for the workspace: API
             Triggered by @${{ github.event.sender.login }}

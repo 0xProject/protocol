@@ -9648,7 +9648,7 @@ const gitEmoji_json_1 = __importDefault(__nccwpck_require__(9259));
 // CAUTION: This is not a cryptographically secure hash function.
 // DO NOT USE FOR SECRUITY CRITICAL APPLICATIONS.
 function hashmoji(input) {
-    const hash = input.split("").reduce((a, b) => {
+    const hash = input.split('').reduce((a, b) => {
         a = (a << 5) - a + b.charCodeAt(0);
         return a & a;
     }, 0);
@@ -9675,7 +9675,7 @@ function areNamesConsistent(dryRunOutput) {
     const { tasks } = dryRunOutput;
     return tasks
         .map((task) => {
-        const pathMembers = task.directory.split("/");
+        const pathMembers = task.directory.split('/');
         const directoryName = pathMembers[pathMembers.length - 1];
         const isConsistent = directoryName === task.package;
         if (!isConsistent) {
@@ -9688,13 +9688,13 @@ function areNamesConsistent(dryRunOutput) {
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         const inputs = {
-            dryRunResult: core.getInput("dry-run-result"),
-            token: core.getInput("token"),
-            requireConsistentNames: core.getBooleanInput("require-consistent-names"),
+            dryRunResult: core.getInput('dry-run-result'),
+            token: core.getInput('token'),
+            requireConsistentNames: core.getBooleanInput('require-consistent-names'),
         };
         core.debug(`Inputs: ${(0, node_util_1.inspect)(inputs)}`);
         let sha;
-        if (github.context.eventName === "pull_request") {
+        if (github.context.eventName === 'pull_request') {
             const pullRequestPayload = github.context.payload;
             const prSha = pullRequestPayload.pull_request.head.sha;
             sha = prSha;
@@ -9709,11 +9709,11 @@ function run() {
             const turboInfo = JSON.parse(inputs.dryRunResult);
             if (inputs.requireConsistentNames) {
                 if (!areNamesConsistent(turboInfo)) {
-                    core.setFailed("Workspace names are not consistent with package names");
+                    core.setFailed('Workspace names are not consistent with package names');
                 }
             }
             const topLevelPaths = turboInfo.tasks.reduce((result, { directory }) => {
-                const topLevelPath = directory.split("/")[0];
+                const topLevelPath = directory.split('/')[0];
                 result.add(topLevelPath);
                 return result;
             }, new Set());

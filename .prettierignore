@@ -1,3 +1,7 @@
 dist/
 lib/
+__build__/
 node_modules/
+
+# Github Actions
+**/action/**/*.js

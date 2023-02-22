@@ -16,11 +16,11 @@ Create an `.eslintrc.js` file in your workspace root:
 
 ```js
 module.exports = {
-  root: true,
-  extends: ["common"],
+    root: true,
+    extends: ['common'],
 };
 ```
 
 ## Reference
 
-- https://turbo.build/repo/docs/handbook/linting/eslint
+-   https://turbo.build/repo/docs/handbook/linting/eslint

@@ -3999,12 +3999,12 @@ const node_util_1 = __nccwpck_require__(261);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         const inputs = {
-            pipeline: core.getInput("pipeline") // defaults to "build",
+            pipeline: core.getInput('pipeline'), // defaults to "build",
         };
         core.debug(`Inputs: ${(0, node_util_1.inspect)(inputs)}`);
         try {
-            let dryRunOutput = "";
-            yield (0, exec_1.exec)('"./node_modules/.bin/turbo"', ["run", "build", "--dry-run=json"], {
+            let dryRunOutput = '';
+            yield (0, exec_1.exec)('"./node_modules/.bin/turbo"', ['run', 'build', '--dry-run=json'], {
                 silent: true,
                 listeners: {
                     stdout: (data) => {

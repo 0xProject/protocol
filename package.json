@@ -1,24 +1,26 @@
 {
-  "name": "0x-labs",
-  "version": "0.0.0",
-  "private": true,
-  "workspaces": [
-    "apps-node/*",
-    "packages/*",
-    "sites/*"
-  ],
-  "scripts": {
-    "build": ". ./turbo-prerun.sh && turbo run build",
-    "build:no-diff": ". ./turbo-prerun.sh && turbo run build:no-diff",
-    "lint:ci": ". ./turbo-prerun.sh && turbo run lint:ci",
-    "test:ci": ". ./turbo-prerun.sh && turbo run test:ci"
-  },
-  "devDependencies": {
-    "turbo": "1.8.1"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  },
-  "dependencies": {},
-  "packageManager": "yarn@1.22.19"
+    "name": "0x-labs",
+    "version": "0.0.0",
+    "private": true,
+    "workspaces": [
+        "apps-node/*",
+        "packages/*",
+        "sites/*"
+    ],
+    "scripts": {
+        "build": ". ./turbo-prerun.sh && turbo run build",
+        "build:no-diff": ". ./turbo-prerun.sh && turbo run build:no-diff",
+        "lint:ci": ". ./turbo-prerun.sh && turbo run lint:ci",
+        "test:ci": ". ./turbo-prerun.sh && turbo run test:ci"
+    },
+    "devDependencies": {
+        "turbo": "1.8.1"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "dependencies": {
+        "prettier": "^2.8.4"
+    },
+    "packageManager": "yarn@1.22.19"
 }

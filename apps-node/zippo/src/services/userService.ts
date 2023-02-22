@@ -1,6 +1,6 @@
-import { Prisma } from "@prisma/client";
-import prisma from "../prisma";
-import { z } from "zod";
+import { Prisma } from '@prisma/client';
+import prisma from '../prisma';
+import { z } from 'zod';
 
 /**
  * Validation shape for getting a user by ID.
@@ -16,9 +16,9 @@ export type UserGetByIdInput = z.infer<typeof userGetByIdInputShape>;
  * Validation shape for creating a user.
  */
 export const userCreateInputShape = z.object({
-  name: z.string().min(1, { message: "Name is required" }),
-  email: z.string().email().optional(),
-  image: z.string().url().optional(),
+    name: z.string().min(1, { message: 'Name is required' }),
+    email: z.string().email().optional(),
+    image: z.string().url().optional(),
 });
 
 /**
@@ -27,12 +27,12 @@ export const userCreateInputShape = z.object({
 export type UserCreateInput = z.infer<typeof userCreateInputShape>;
 
 const defaultUserSelect = Prisma.validator<Prisma.UserSelect>()({
-  id: true,
-  name: true,
-  email: true,
-  image: true,
-  createdAt: true,
-  updatedAt: true,
+    id: true,
+    name: true,
+    email: true,
+    image: true,
+    createdAt: true,
+    updatedAt: true,
 });
 
 /**
@@ -41,10 +41,10 @@ const defaultUserSelect = Prisma.validator<Prisma.UserSelect>()({
  * @param input User ID
  */
 export async function getById(input: UserGetByIdInput) {
-  return prisma.user.findUnique({
-    where: { id: input },
-    select: defaultUserSelect,
-  });
+    return prisma.user.findUnique({
+        where: { id: input },
+        select: defaultUserSelect,
+    });
 }
 
 /**
@@ -53,24 +53,24 @@ export async function getById(input: UserGetByIdInput) {
  * @param input User information
  */
 export async function create(input: UserCreateInput) {
-  // for now, we automatically create a new team for every new user
-  const integratorTeam = await createIntegratorTeam();
+    // for now, we automatically create a new team for every new user
+    const integratorTeam = await createIntegratorTeam();
 
-  return prisma.user.create({
-    data: {
-      ...input,
-      integratorTeamId: integratorTeam.id,
-    },
-    select: defaultUserSelect,
-  });
+    return prisma.user.create({
+        data: {
+            ...input,
+            integratorTeamId: integratorTeam.id,
+        },
+        select: defaultUserSelect,
+    });
 }
 
 //TODO: replace this with actual team creation method import
 function createIntegratorTeam() {
-  return prisma.integratorTeam.create({
-    data: {
-      name: "My Team",
-      image: "",
-    },
-  });
+    return prisma.integratorTeam.create({
+        data: {
+            name: 'My Team',
+            image: '',
+        },
+    });
 }

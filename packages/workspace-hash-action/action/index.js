@@ -2732,9 +2732,9 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const inputs = {
-                dryRunResult: core.getInput("dry-run-result"),
-                dir: core.getInput("dir").length ? core.getInput("dir") : null,
-                separator: core.getInput("separator"),
+                dryRunResult: core.getInput('dry-run-result'),
+                dir: core.getInput('dir').length ? core.getInput('dir') : null,
+                separator: core.getInput('separator'),
             };
             core.debug(`Inputs: ${(0, node_util_1.inspect)(inputs)}`);
             const turboInfo = JSON.parse(inputs.dryRunResult);
@@ -2744,7 +2744,7 @@ function run() {
                 package: task.package,
                 hash: task.hash,
             }));
-            core.setOutput("workspace-hashes", packages.map((p) => `${p.package}${inputs.separator}${p.hash}`));
+            core.setOutput('workspace-hashes', packages.map((p) => `${p.package}${inputs.separator}${p.hash}`));
         }
         catch (error) {
             if (error instanceof Error)

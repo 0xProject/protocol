@@ -1,4 +1,4 @@
-version: "3"
+version: '3'
 services:
   postgres:
     image: postgres:9.6
@@ -14,7 +14,7 @@ services:
     volumes:
       - ./postgres:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - '5432:5432'
   kong:
     image: kong:3.1.1
     container_name: kong
@@ -34,10 +34,10 @@ services:
       - KONG_ADMIN_ERROR_LOG=/dev/stderr
       - KONG_ADMIN_LISTEN=0.0.0.0:8001, 0.0.0.0:8444 ssl
     ports:
-      - "8000:8000"
-      - "8443:8443"
-      - "127.0.0.1:8001:8001"
-      - "127.0.0.1:8444:8444"
+      - '8000:8000'
+      - '8443:8443'
+      - '127.0.0.1:8001:8001'
+      - '127.0.0.1:8444:8444'
 networks:
   kong-net:
     name: kong-net

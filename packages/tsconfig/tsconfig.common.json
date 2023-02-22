@@ -1,24 +1,21 @@
 {
-  "$schema": "https://json.schemastore.org/tsconfig",
-  "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "downlevelIteration": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "noErrorTruncation": true,
-    "noImplicitReturns": true,
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "sourceMap": true,
-    "strict": true,
-    "target": "ES6",
-    "typeRoots": [
-      "../../node_modules/@0x/typescript-typings/types",
-      "../../node_modules/@types"
-    ],
-    "types": ["jest", "node"],
-    "useUnknownInCatchVariables": false
-  }
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "compilerOptions": {
+        "allowSyntheticDefaultImports": true,
+        "downlevelIteration": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "noErrorTruncation": true,
+        "noImplicitReturns": true,
+        "resolveJsonModule": true,
+        "skipLibCheck": true,
+        "sourceMap": true,
+        "strict": true,
+        "target": "ES6",
+        "typeRoots": ["../../node_modules/@0x/typescript-typings/types", "../../node_modules/@types"],
+        "types": ["jest", "node"],
+        "useUnknownInCatchVariables": false
+    }
 }

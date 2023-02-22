@@ -6,8 +6,8 @@
 
 The repository relies on the following technologies:
 
-- **[Yarn classic](https://classic.yarnpkg.com/)**: A JavaScript package manager. `0x-labs` is built on [Yarn workspaces](https://classic.yarnpkg.com/lang/en/docs/workspaces/).
-- **[Turborepo](https://turbo.build/repo)**: Provides a caching solution to speed up workflows (`build`, `test`, etc.)
+-   **[Yarn classic](https://classic.yarnpkg.com/)**: A JavaScript package manager. `0x-labs` is built on [Yarn workspaces](https://classic.yarnpkg.com/lang/en/docs/workspaces/).
+-   **[Turborepo](https://turbo.build/repo)**: Provides a caching solution to speed up workflows (`build`, `test`, etc.)
 
 > ℹ️ Tip: the Turborepo [Monorepo Handbook](https://turbo.build/repo/docs/handbook) explains many of the concepts
 > you'll want to know to work in the repository
@@ -73,8 +73,8 @@ To perform complex actions across workspaces, we use Turborepo
 Turborepo pipelines are cached for speed and allow dependencies between pipelines
 to be specified. For example:
 
-- "run `test` in every workspace that has one, but run `build` in each of those workspaces first"
-- "`build` each workspace, but make sure `build` is first run on any [dependencies](#depending-on-shared-code) within the repository"
+-   "run `test` in every workspace that has one, but run `build` in each of those workspaces first"
+-   "`build` each workspace, but make sure `build` is first run on any [dependencies](#depending-on-shared-code) within the repository"
 
 Pipelines are specified in `turbo.json`. Each pipeline can be run with `yarn <pipeline name>` via the
 scripts defined in the root `package.json`.
@@ -117,9 +117,9 @@ For example, if your workspace contains an `.xyz/` directory which shouldn't be 
 
 Workspaces exist in the following directories:
 
-- `apps-node`
-- `packages`
-- `sites`
+-   `apps-node`
+-   `packages`
+-   `sites`
 
 ## `apps-node`
 
@@ -132,8 +132,8 @@ If there are no changes to a workspace, then no new image is created.
 
 As an example, a new image for `my-app` could be accessed at:
 
-- `***.dkr.ecr.us-east-1.amazonaws.com/apps:my-app__789355d868cd646f` (Turborepo hash, note the double underscore)
-- `***.dkr.ecr.us-east-1.amazonaws.com/apps:my-app_2a4810fbd3f195bf8da8c161d7d5b03e9626cd2e` (Commit hash)
+-   `***.dkr.ecr.us-east-1.amazonaws.com/apps:my-app__789355d868cd646f` (Turborepo hash, note the double underscore)
+-   `***.dkr.ecr.us-east-1.amazonaws.com/apps:my-app_2a4810fbd3f195bf8da8c161d7d5b03e9626cd2e` (Commit hash)
 
 > ℹ️ Tip: Click on the "Summary" section of the GitHub actions for a PR to view the built and skipped images.
 
@@ -153,10 +153,10 @@ a Docker image, most commonly Vercel or similar.
 
 GitHub Actions runs the following pipelines on each pull request and commit to the repository:
 
-- `build`
-- `build:no-diff`
-- `test:ci`
-- `lint:ci`
+-   `build`
+-   `build:no-diff`
+-   `test:ci`
+-   `lint:ci`
 
 Each pipeline will run the corresponding script in the `package.json` of each workspace, if
 it exists. To pass CI, each pipeline must finish with a `0` exit code. Additionally, the
@@ -169,17 +169,17 @@ it exists. To pass CI, each pipeline must finish with a `0` exit code. Additiona
 
 # Configuration
 
-- The primary branch of the repository is `main`
-- `main` is protected from pushes
-- `main` has a linear commit history
-- Commits to `main` must be [signed](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits)
-- Commits to `main` are accomplished by a pull request (PR)
-  - PRs require an approval to submit
-  - PRs require [CI](#ci--pipelines) to pass to submit
-  - PRs are submitted via “Squash and Merge”. One PR will translate to one commit.
-    - Commit messages should be in the form of a present-tense “action”, i.e. `Add prometheus metric for TokenPriceOracle`
-    - Commit messages may be prefixed with one or more “tags” describing the portions of the codebase the commit affects, i.e. `[rfqm] Add support for BSC`
-  - A [`CODEOWNERS`](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners) file may be used to require PR approvals from specific people for specific sub-directories of the repository
+-   The primary branch of the repository is `main`
+-   `main` is protected from pushes
+-   `main` has a linear commit history
+-   Commits to `main` must be [signed](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits)
+-   Commits to `main` are accomplished by a pull request (PR)
+    -   PRs require an approval to submit
+    -   PRs require [CI](#ci--pipelines) to pass to submit
+    -   PRs are submitted via “Squash and Merge”. One PR will translate to one commit.
+        -   Commit messages should be in the form of a present-tense “action”, i.e. `Add prometheus metric for TokenPriceOracle`
+        -   Commit messages may be prefixed with one or more “tags” describing the portions of the codebase the commit affects, i.e. `[rfqm] Add support for BSC`
+    -   A [`CODEOWNERS`](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners) file may be used to require PR approvals from specific people for specific sub-directories of the repository
 
 # Creating workspaces
 
@@ -189,12 +189,12 @@ At the most basic level, creating a workspace is as simple as adding a directory
 However, there are some conventions meant to make sure that workspaces play well with each other in
 the repository:
 
-- The workspace name (`name` field in `package.json`) matches the top-level directory name of the workspace
-- The workspace version (`version` field in `package.json`) is `0.0.0`. As no workspace is published as an npm package, there is no concept of a "version".
-- The workspace `private` field is set to `true` to prevent `yarn` from complaining
-- Source files are located in the `src/` directory
-- Test files are located in either a `test/` or `__tests__` directory, or a nested child directory thereof
-- Build artifacts not committed to the repository are written to the `__build__`, `dist`, or `out` directory in the package’s top level folder
+-   The workspace name (`name` field in `package.json`) matches the top-level directory name of the workspace
+-   The workspace version (`version` field in `package.json`) is `0.0.0`. As no workspace is published as an npm package, there is no concept of a "version".
+-   The workspace `private` field is set to `true` to prevent `yarn` from complaining
+-   Source files are located in the `src/` directory
+-   Test files are located in either a `test/` or `__tests__` directory, or a nested child directory thereof
+-   Build artifacts not committed to the repository are written to the `__build__`, `dist`, or `out` directory in the package’s top level folder
 
 Some other things to keep in mind:
 
@@ -203,12 +203,12 @@ special check in CI, make sure to run it as part of one of the CI checks:
 
 ```json
 {
-  "scripts": {
-    "circular": "madge --circular --extensions ts ./",
-    "lint": "eslint .",
-    "format": "prettier --list-different --config .prettierrc",
-    "lint:ci": "yarn circular && yarn format && yarn lint"
-  }
+    "scripts": {
+        "circular": "madge --circular --extensions ts ./",
+        "lint": "eslint .",
+        "format": "prettier --list-different --config .prettierrc",
+        "lint:ci": "yarn circular && yarn format && yarn lint"
+    }
 }
 ```
 
@@ -224,10 +224,10 @@ If your workspace needs to deviate from the conventions above, see
 Since Vercel is the author of Turborepo, it's no surprise that deploying websites from the
 repository to Vercel is a cinch. Key points of the Vercel project settings follow:
 
-- Set "General > Root Directory" to the workspace directory, e.g. `sites/matcha`
-- In "General > Root Directory" ensure that "Include source files outside of the Root Directory in the Build Step" is checked
-- Set "Git > Production Branch" to `main` (assuming you want commits to `main` to go into production)
-- Set "Git > Ignored Build Step" to `npx turbo-ignore`. This causes commits to `main` which _don't_ affect your site to not trigger a new production deployment.
+-   Set "General > Root Directory" to the workspace directory, e.g. `sites/matcha`
+-   In "General > Root Directory" ensure that "Include source files outside of the Root Directory in the Build Step" is checked
+-   Set "Git > Production Branch" to `main` (assuming you want commits to `main` to go into production)
+-   Set "Git > Ignored Build Step" to `npx turbo-ignore`. This causes commits to `main` which _don't_ affect your site to not trigger a new production deployment.
 
 That's it! For more information, see the Vercel [Monorepo](https://vercel.com/docs/concepts/monorepos)
 and the [Ignored Build Step](https://vercel.com/docs/concepts/projects/overview#ignored-build-step) documentation.
@@ -238,9 +238,9 @@ Consider the scenario where a project wishes to run Foundry tests in CI.
 
 ```json
 {
-  "scripts": {
-    "test:ci": "forge test -vvv"
-  }
+    "scripts": {
+        "test:ci": "forge test -vvv"
+    }
 }
 ```
 
@@ -291,13 +291,13 @@ Example package.json:
 
 ```json
 {
-  "name": "foundry-demo",
-  "version": "0.0.0",
-  "private": true,
-  "scripts": {
-    "build": "../../turbo-bin.sh forge build",
-    "test:ci": "../../turbo-bin.sh forge test"
-  }
+    "name": "foundry-demo",
+    "version": "0.0.0",
+    "private": true,
+    "scripts": {
+        "build": "../../turbo-bin.sh forge build",
+        "test:ci": "../../turbo-bin.sh forge test"
+    }
 }
 ```
 
@@ -320,18 +320,18 @@ to learn more about how environment variables affect the pipeline.
 ```jsonc
 // apps/foundry-demo/turbo.json
 {
-  "extends": ["//"],
-  "pipeline": {
-    "build": {
-      "dependsOn": ["^build"],
-      "outputs": ["out/**"],
-      "env": ["TURBO_VERSION_FORGE"]
-    },
-    "test:ci": {
-      "dependsOn": ["build"],
-      "env": ["TURBO_VERSION_FORGE"]
+    "extends": ["//"],
+    "pipeline": {
+        "build": {
+            "dependsOn": ["^build"],
+            "outputs": ["out/**"],
+            "env": ["TURBO_VERSION_FORGE"]
+        },
+        "test:ci": {
+            "dependsOn": ["build"],
+            "env": ["TURBO_VERSION_FORGE"]
+        }
     }
-  }
 }
 ```
 
@@ -341,7 +341,7 @@ to learn more about how environment variables affect the pipeline.
 - name: Add foundry
   uses: foundry-rs/foundry-toolchain@v1
   with:
-    version: nightly
+      version: nightly
 ```
 
 # Migrating existing repositories

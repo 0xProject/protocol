@@ -1,16 +1,16 @@
-name: "Turborepo Workspace Commit Comment Action"
-description: "Comments on a commit with a list of workspaces and their turbo hashes"
-author: "0x Labs"
+name: 'Turborepo Workspace Commit Comment Action'
+description: 'Comments on a commit with a list of workspaces and their turbo hashes'
+author: '0x Labs'
 inputs:
   dry-run-result:
-    description: "The JSON result of the Turborepo dry run"
+    description: 'The JSON result of the Turborepo dry run'
     required: true
   token:
-    description: "The GitHub authentication token"
+    description: 'The GitHub authentication token'
     default: ${{ github.token }}
   require-consistent-names:
     description: "Fail if any workspace's name doesn't match its directory name"
-    default: "false"
+    default: 'false'
 runs:
-  using: "node16"
-  main: "action/index.js"
+  using: 'node16'
+  main: 'action/index.js'

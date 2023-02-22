@@ -10916,7 +10916,7 @@ const gitEmoji_json_1 = __importDefault(__nccwpck_require__(9259));
 // CAUTION: This is not a cryptographically secure hash function.
 // DO NOT USE FOR SECRUITY CRITICAL APPLICATIONS.
 function hashmoji(input) {
-    const hash = input.split("").reduce((a, b) => {
+    const hash = input.split('').reduce((a, b) => {
         a = (a << 5) - a + b.charCodeAt(0);
         return a & a;
     }, 0);
@@ -10927,16 +10927,9 @@ function hashmoji(input) {
 }
 function checkForImage(imageTag) {
     return __awaiter(this, void 0, void 0, function* () {
-        let output = "";
-        let error = "";
-        const exitCode = yield (0, exec_1.exec)("aws", [
-            "ecr",
-            "describe-images",
-            "--repository-name",
-            "apps",
-            "--image-ids",
-            `imageTag=${imageTag}`,
-        ], {
+        let output = '';
+        let error = '';
+        const exitCode = yield (0, exec_1.exec)('aws', ['ecr', 'describe-images', '--repository-name', 'apps', '--image-ids', `imageTag=${imageTag}`], {
             silent: true,
             listeners: {
                 stdout: (data) => {
@@ -10963,15 +10956,15 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const inputs = {
-                dryRunResult: core.getInput("dry-run-result"),
-                dir: core.getInput("dir").length ? core.getInput("dir") : null,
-                token: core.getInput("token"),
-                uriBase: (_a = core.getInput("uri-base")) !== null && _a !== void 0 ? _a : "",
+                dryRunResult: core.getInput('dry-run-result'),
+                dir: core.getInput('dir').length ? core.getInput('dir') : null,
+                token: core.getInput('token'),
+                uriBase: (_a = core.getInput('uri-base')) !== null && _a !== void 0 ? _a : '',
             };
             core.debug(`Inputs: ${(0, node_util_1.inspect)(inputs)}`);
             const dryRunResult = JSON.parse(inputs.dryRunResult);
             const packages = dryRunResult.tasks
-                .filter((task) => inputs.dir ? task.directory.startsWith(`${inputs.dir}/`) : true)
+                .filter((task) => (inputs.dir ? task.directory.startsWith(`${inputs.dir}/`) : true))
                 .map((task) => ({
                 package: task.package,
                 hash: task.hash,
@@ -10988,11 +10981,11 @@ function run() {
                 };
             })));
             let comment = [`## :floppy_disk: Image Summary`];
-            comment.push("> These images reflect the code in this commit.");
+            comment.push('> These images reflect the code in this commit.');
             imageInfoResults
-                .filter((r) => r.status === "fulfilled" && r.value.tags)
+                .filter((r) => r.status === 'fulfilled' && r.value.tags)
                 .forEach((r) => {
-                if (r.status !== "fulfilled") {
+                if (r.status !== 'fulfilled') {
                     return;
                 }
                 const { packageName, tags, turboHash, imagePushedAt, imageSizeBytes } = r.value;
@@ -11012,19 +11005,19 @@ function run() {
                     const imageSizeKb = Math.round(imageSizeBytes / 1000);
                     comment.push(`<sub>Size: ${imageSizeKb} kB</sub>`);
                 }
-                comment.push("");
+                comment.push('');
                 return;
             });
             const failureReasons = [];
             imageInfoResults
-                .filter((r) => r.status === "rejected")
+                .filter((r) => r.status === 'rejected')
                 .forEach((r) => {
-                if (r.status === "rejected") {
+                if (r.status === 'rejected') {
                     failureReasons.push((0, node_util_1.inspect)(r.reason));
                 }
             });
             if (failureReasons.length) {
-                comment.push("## ☢️ Errors checking images");
+                comment.push('## ☢️ Errors checking images');
                 failureReasons.forEach((reason) => {
                     comment.push(`- ${reason}`);
                 });
@@ -11033,7 +11026,7 @@ function run() {
             const owner = github.context.repo.owner;
             const repo = github.context.repo.repo;
             let sha;
-            if (github.context.eventName === "pull_request") {
+            if (github.context.eventName === 'pull_request') {
                 const pullRequestPayload = github.context.payload;
                 const prSha = pullRequestPayload.pull_request.head.sha;
                 sha = prSha;
@@ -11046,7 +11039,7 @@ function run() {
             }
             core.debug((0, node_util_1.inspect)({ owner, repo, sha, comment }));
             yield octokit.rest.repos.createCommitComment({
-                body: comment.join("\n"),
+                body: comment.join('\n'),
                 commit_sha: sha,
                 owner,
                 repo,

@@ -1,5 +1,5 @@
-import * as gateway from "../../gateway";
+import * as gateway from '../../gateway';
 
-jest.mock("../../gateway");
+jest.mock('../../gateway');
 
 export const gatewayMock = jest.mocked(gateway);

@@ -37,7 +37,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "yarn"
+          cache: 'yarn'
 
       - name: Cache node modules
         uses: actions/cache@v3
@@ -70,7 +70,7 @@ jobs:
         uses: ./packages/workspace-commit-comment-action
         with:
           dry-run-result: ${{ steps.turbo-info.outputs.dry-run-output }}
-          require-consistent-names: "true"
+          require-consistent-names: 'true'
 
       - name: Get node app hashes
         id: app-hashes
