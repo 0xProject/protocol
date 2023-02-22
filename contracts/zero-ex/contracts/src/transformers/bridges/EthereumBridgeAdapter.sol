@@ -29,6 +29,7 @@ import "./mixins/MixinCryptoCom.sol";
 import "./mixins/MixinDodo.sol";
 import "./mixins/MixinDodoV2.sol";
 import "./mixins/MixinKyberDmm.sol";
+import "./mixins/MixinKyberElastic.sol";
 import "./mixins/MixinLido.sol";
 import "./mixins/MixinMakerPSM.sol";
 import "./mixins/MixinMStable.sol";
@@ -54,6 +55,7 @@ contract EthereumBridgeAdapter is
     MixinDodo,
     MixinDodoV2,
     MixinKyberDmm,
+    MixinKyberElastic,
     MixinLido,
     MixinMakerPSM,
     MixinMStable,
@@ -66,7 +68,7 @@ contract EthereumBridgeAdapter is
     MixinZeroExBridge
 {
     constructor(
-        IEtherTokenV06 weth
+        IEtherToken weth
     )
         public
         MixinBancor(weth)
@@ -79,8 +81,8 @@ contract EthereumBridgeAdapter is
 
     function _trade(
         BridgeOrder memory order,
-        IERC20TokenV06 sellToken,
-        IERC20TokenV06 buyToken,
+        IERC20Token sellToken,
+        IERC20Token buyToken,
         uint256 sellAmount,
         bool dryRun
     ) internal override returns (uint256 boughtAmount, bool supportedSource) {
@@ -165,6 +167,11 @@ contract EthereumBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeKyberDmm(buyToken, sellAmount, order.bridgeData);
+        } else if (protocolId == BridgeProtocols.KYBERELASTIC) {
+            if (dryRun) {
+                return (0, true);
+            }
+            boughtAmount = _tradeKyberElastic(sellToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.LIDO) {
             if (dryRun) {
                 return (0, true);

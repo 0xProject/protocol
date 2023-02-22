@@ -15,8 +15,8 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
+import "@0x/contracts-erc20/src/IEtherToken.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../../external/ILiquidityProviderSandbox.sol";
 import "../../fixins/FixinCommon.sol";
@@ -54,11 +54,11 @@ contract MultiplexFeature is
     uint256 private constant LOWER_255_BITS = HIGH_BIT - 1;
 
     /// @dev The WETH token contract.
-    IEtherTokenV06 private immutable WETH;
+    IEtherToken private immutable WETH;
 
     constructor(
         address zeroExAddress,
-        IEtherTokenV06 weth,
+        IEtherToken weth,
         ILiquidityProviderSandbox sandbox,
         address uniswapFactory,
         address sushiswapFactory,
@@ -94,7 +94,7 @@ contract MultiplexFeature is
     ///        must be bought for this function to not revert.
     /// @return boughtAmount The amount of `outputToken` bought.
     function multiplexBatchSellEthForToken(
-        IERC20TokenV06 outputToken,
+        IERC20Token outputToken,
         BatchSellSubcall[] memory calls,
         uint256 minBuyAmount
     ) public payable override returns (uint256 boughtAmount) {
@@ -125,7 +125,7 @@ contract MultiplexFeature is
     ///        must be bought for this function to not revert.
     /// @return boughtAmount The amount of ETH bought.
     function multiplexBatchSellTokenForEth(
-        IERC20TokenV06 inputToken,
+        IERC20Token inputToken,
         BatchSellSubcall[] memory calls,
         uint256 sellAmount,
         uint256 minBuyAmount
@@ -160,8 +160,8 @@ contract MultiplexFeature is
     ///        that must be bought for this function to not revert.
     /// @return boughtAmount The amount of `outputToken` bought.
     function multiplexBatchSellTokenForToken(
-        IERC20TokenV06 inputToken,
-        IERC20TokenV06 outputToken,
+        IERC20Token inputToken,
+        IERC20Token outputToken,
         BatchSellSubcall[] memory calls,
         uint256 sellAmount,
         uint256 minBuyAmount
@@ -327,7 +327,7 @@ contract MultiplexFeature is
             "MultiplexFeature::_multiplexMultiHopSell/MISMATCHED_ARRAY_LENGTHS"
         );
         // The output token is the last token in the path.
-        IERC20TokenV06 outputToken = IERC20TokenV06(params.tokens[params.tokens.length - 1]);
+        IERC20Token outputToken = IERC20Token(params.tokens[params.tokens.length - 1]);
         // Cache the recipient's balance of the output token.
         uint256 balanceBefore = outputToken.balanceOf(params.recipient);
         // Execute the multi-hop sell.
@@ -394,12 +394,12 @@ contract MultiplexFeature is
         // If the input tokens are currently held by `msg.sender` but
         // the first hop expects them elsewhere, perform a `transferFrom`.
         if (!params.useSelfBalance && state.from != msg.sender) {
-            _transferERC20TokensFrom(IERC20TokenV06(params.tokens[0]), msg.sender, state.from, params.sellAmount);
+            _transferERC20TokensFrom(IERC20Token(params.tokens[0]), msg.sender, state.from, params.sellAmount);
         }
         // If the input tokens are currently held by `address(this)` but
         // the first hop expects them elsewhere, perform a `transfer`.
         if (params.useSelfBalance && state.from != address(this)) {
-            _transferERC20Tokens(IERC20TokenV06(params.tokens[0]), state.from, params.sellAmount);
+            _transferERC20Tokens(IERC20Token(params.tokens[0]), state.from, params.sellAmount);
         }
         // Iterate through the calls and execute each one.
         for (state.hopIndex = 0; state.hopIndex != params.calls.length; state.hopIndex++) {
@@ -461,8 +461,8 @@ contract MultiplexFeature is
         // The input and output tokens of the batch
         // sell are the current and next tokens in
         // `params.tokens`, respectively.
-        batchSellParams.inputToken = IERC20TokenV06(params.tokens[state.hopIndex]);
-        batchSellParams.outputToken = IERC20TokenV06(params.tokens[state.hopIndex + 1]);
+        batchSellParams.inputToken = IERC20Token(params.tokens[state.hopIndex]);
+        batchSellParams.outputToken = IERC20Token(params.tokens[state.hopIndex + 1]);
         // The `sellAmount` for the batch sell is the
         // `outputTokenAmount` from the previous hop.
         batchSellParams.sellAmount = state.outputTokenAmount;

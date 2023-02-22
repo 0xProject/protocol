@@ -16,12 +16,12 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/v06/LibERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 
 contract MixinNerve {
-    using LibERC20TokenV06 for IERC20TokenV06;
+    using LibERC20TokenV06 for IERC20Token;
     using LibSafeMathV06 for uint256;
     using LibRichErrorsV06 for bytes;
 
@@ -33,7 +33,7 @@ contract MixinNerve {
     }
 
     function _tradeNerve(
-        IERC20TokenV06 sellToken,
+        IERC20Token sellToken,
         uint256 sellAmount,
         bytes memory bridgeData
     ) internal returns (uint256 boughtAmount) {

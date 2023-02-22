@@ -15,7 +15,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 import "../../errors/LibNativeOrdersRichErrors.sol";
 import "../../storage/LibNativeOrdersStorage.sol";
@@ -80,7 +80,7 @@ abstract contract NativeOrdersCancellation is INativeOrdersEvents, NativeOrdersI
     /// @param makerToken The maker token.
     /// @param takerToken The taker token.
     /// @param minValidSalt The new minimum valid salt.
-    function cancelPairLimitOrders(IERC20TokenV06 makerToken, IERC20TokenV06 takerToken, uint256 minValidSalt) public {
+    function cancelPairLimitOrders(IERC20Token makerToken, IERC20Token takerToken, uint256 minValidSalt) public {
         _cancelPairLimitOrders(msg.sender, makerToken, takerToken, minValidSalt);
     }
 
@@ -94,8 +94,8 @@ abstract contract NativeOrdersCancellation is INativeOrdersEvents, NativeOrdersI
     /// @param minValidSalt The new minimum valid salt.
     function cancelPairLimitOrdersWithSigner(
         address maker,
-        IERC20TokenV06 makerToken,
-        IERC20TokenV06 takerToken,
+        IERC20Token makerToken,
+        IERC20Token takerToken,
         uint256 minValidSalt
     ) public {
         // verify that the signer is authorized for the maker
@@ -114,8 +114,8 @@ abstract contract NativeOrdersCancellation is INativeOrdersEvents, NativeOrdersI
     /// @param takerTokens The taker tokens.
     /// @param minValidSalts The new minimum valid salts.
     function batchCancelPairLimitOrders(
-        IERC20TokenV06[] memory makerTokens,
-        IERC20TokenV06[] memory takerTokens,
+        IERC20Token[] memory makerTokens,
+        IERC20Token[] memory takerTokens,
         uint256[] memory minValidSalts
     ) public {
         require(
@@ -138,8 +138,8 @@ abstract contract NativeOrdersCancellation is INativeOrdersEvents, NativeOrdersI
     /// @param minValidSalts The new minimum valid salts.
     function batchCancelPairLimitOrdersWithSigner(
         address maker,
-        IERC20TokenV06[] memory makerTokens,
-        IERC20TokenV06[] memory takerTokens,
+        IERC20Token[] memory makerTokens,
+        IERC20Token[] memory takerTokens,
         uint256[] memory minValidSalts
     ) public {
         require(
@@ -163,7 +163,7 @@ abstract contract NativeOrdersCancellation is INativeOrdersEvents, NativeOrdersI
     /// @param makerToken The maker token.
     /// @param takerToken The taker token.
     /// @param minValidSalt The new minimum valid salt.
-    function cancelPairRfqOrders(IERC20TokenV06 makerToken, IERC20TokenV06 takerToken, uint256 minValidSalt) public {
+    function cancelPairRfqOrders(IERC20Token makerToken, IERC20Token takerToken, uint256 minValidSalt) public {
         _cancelPairRfqOrders(msg.sender, makerToken, takerToken, minValidSalt);
     }
 
@@ -177,8 +177,8 @@ abstract contract NativeOrdersCancellation is INativeOrdersEvents, NativeOrdersI
     /// @param minValidSalt The new minimum valid salt.
     function cancelPairRfqOrdersWithSigner(
         address maker,
-        IERC20TokenV06 makerToken,
-        IERC20TokenV06 takerToken,
+        IERC20Token makerToken,
+        IERC20Token takerToken,
         uint256 minValidSalt
     ) public {
         if (!isValidOrderSigner(maker, msg.sender)) {
@@ -196,8 +196,8 @@ abstract contract NativeOrdersCancellation is INativeOrdersEvents, NativeOrdersI
     /// @param takerTokens The taker tokens.
     /// @param minValidSalts The new minimum valid salts.
     function batchCancelPairRfqOrders(
-        IERC20TokenV06[] memory makerTokens,
-        IERC20TokenV06[] memory takerTokens,
+        IERC20Token[] memory makerTokens,
+        IERC20Token[] memory takerTokens,
         uint256[] memory minValidSalts
     ) public {
         require(
@@ -220,8 +220,8 @@ abstract contract NativeOrdersCancellation is INativeOrdersEvents, NativeOrdersI
     /// @param minValidSalts The new minimum valid salts.
     function batchCancelPairRfqOrdersWithSigner(
         address maker,
-        IERC20TokenV06[] memory makerTokens,
-        IERC20TokenV06[] memory takerTokens,
+        IERC20Token[] memory makerTokens,
+        IERC20Token[] memory takerTokens,
         uint256[] memory minValidSalts
     ) public {
         require(
@@ -258,8 +258,8 @@ abstract contract NativeOrdersCancellation is INativeOrdersEvents, NativeOrdersI
     /// @param minValidSalt The new minimum valid salt.
     function _cancelPairRfqOrders(
         address maker,
-        IERC20TokenV06 makerToken,
-        IERC20TokenV06 takerToken,
+        IERC20Token makerToken,
+        IERC20Token takerToken,
         uint256 minValidSalt
     ) private {
         LibNativeOrdersStorage.Storage storage stor = LibNativeOrdersStorage.getStorage();
@@ -288,8 +288,8 @@ abstract contract NativeOrdersCancellation is INativeOrdersEvents, NativeOrdersI
     /// @param minValidSalt The new minimum valid salt.
     function _cancelPairLimitOrders(
         address maker,
-        IERC20TokenV06 makerToken,
-        IERC20TokenV06 takerToken,
+        IERC20Token makerToken,
+        IERC20Token takerToken,
         uint256 minValidSalt
     ) private {
         LibNativeOrdersStorage.Storage storage stor = LibNativeOrdersStorage.getStorage();

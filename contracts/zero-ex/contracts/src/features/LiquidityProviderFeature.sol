@@ -15,10 +15,9 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "../errors/LibLiquidityProviderRichErrors.sol";
 import "../external/ILiquidityProviderSandbox.sol";
 import "../external/LiquidityProviderSandbox.sol";
@@ -67,8 +66,8 @@ contract LiquidityProviderFeature is IFeature, ILiquidityProviderFeature, FixinC
     /// @param auxiliaryData Auxiliary data supplied to the `provider` contract.
     /// @return boughtAmount The amount of `outputToken` bought.
     function sellToLiquidityProvider(
-        IERC20TokenV06 inputToken,
-        IERC20TokenV06 outputToken,
+        IERC20Token inputToken,
+        IERC20Token outputToken,
         ILiquidityProvider provider,
         address recipient,
         uint256 sellAmount,
@@ -92,7 +91,7 @@ contract LiquidityProviderFeature is IFeature, ILiquidityProviderFeature, FixinC
         if (LibERC20Transformer.isTokenETH(inputToken)) {
             uint256 balanceBefore = outputToken.balanceOf(recipient);
             sandbox.executeSellEthForToken(provider, outputToken, recipient, minBuyAmount, auxiliaryData);
-            boughtAmount = IERC20TokenV06(outputToken).balanceOf(recipient).safeSub(balanceBefore);
+            boughtAmount = IERC20Token(outputToken).balanceOf(recipient).safeSub(balanceBefore);
         } else if (LibERC20Transformer.isTokenETH(outputToken)) {
             uint256 balanceBefore = recipient.balance;
             sandbox.executeSellTokenForEth(provider, inputToken, recipient, minBuyAmount, auxiliaryData);

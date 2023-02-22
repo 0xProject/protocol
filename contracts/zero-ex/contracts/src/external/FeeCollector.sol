@@ -15,7 +15,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
+import "@0x/contracts-erc20/src/IEtherToken.sol";
 import "@0x/contracts-utils/contracts/src/v06/AuthorizableV06.sol";
 import "../vendor/v3/IStaking.sol";
 
@@ -33,14 +33,14 @@ contract FeeCollector is AuthorizableV06 {
     /// @param weth The WETH contract.
     /// @param staking The staking contract.
     /// @param poolId The pool ID this contract is collecting fees for.
-    function initialize(IEtherTokenV06 weth, IStaking staking, bytes32 poolId) external onlyAuthorized {
+    function initialize(IEtherToken weth, IStaking staking, bytes32 poolId) external onlyAuthorized {
         weth.approve(address(staking), type(uint256).max);
         staking.joinStakingPoolAsMaker(poolId);
     }
 
     /// @dev Convert all held ether to WETH. Only an authority can call this.
     /// @param weth The WETH contract.
-    function convertToWeth(IEtherTokenV06 weth) external onlyAuthorized {
+    function convertToWeth(IEtherToken weth) external onlyAuthorized {
         if (address(this).balance > 0) {
             weth.deposit{value: address(this).balance}();
         }

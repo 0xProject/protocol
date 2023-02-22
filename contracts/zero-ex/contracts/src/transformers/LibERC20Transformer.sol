@@ -15,16 +15,16 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
+import "@0x/contracts-erc20/src/v06/LibERC20TokenV06.sol";
 
 library LibERC20Transformer {
-    using LibERC20TokenV06 for IERC20TokenV06;
+    using LibERC20TokenV06 for IERC20Token;
 
     /// @dev ETH pseudo-token address.
     address internal constant ETH_TOKEN_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     /// @dev ETH pseudo-token.
-    IERC20TokenV06 internal constant ETH_TOKEN = IERC20TokenV06(ETH_TOKEN_ADDRESS);
+    IERC20Token internal constant ETH_TOKEN = IERC20Token(ETH_TOKEN_ADDRESS);
     /// @dev Return value indicating success in `IERC20Transformer.transform()`.
     ///      This is just `keccak256('TRANSFORMER_SUCCESS')`.
     bytes4 internal constant TRANSFORMER_SUCCESS = 0x13c9929e;
@@ -35,7 +35,7 @@ library LibERC20Transformer {
     /// @param token An ERC20 or the ETH pseudo-token address (`ETH_TOKEN_ADDRESS`).
     /// @param to The recipient.
     /// @param amount The transfer amount.
-    function transformerTransfer(IERC20TokenV06 token, address payable to, uint256 amount) internal {
+    function transformerTransfer(IERC20Token token, address payable to, uint256 amount) internal {
         if (isTokenETH(token)) {
             to.transfer(amount);
         } else {
@@ -48,7 +48,7 @@ library LibERC20Transformer {
     /// @param token An ERC20 or the ETH pseudo-token address (`ETH_TOKEN_ADDRESS`).
     /// @param to The recipient.
     /// @param amount The transfer amount.
-    function unsafeTransformerTransfer(IERC20TokenV06 token, address payable to, uint256 amount) internal {
+    function unsafeTransformerTransfer(IERC20Token token, address payable to, uint256 amount) internal {
         if (isTokenETH(token)) {
             (bool sent, ) = to.call{value: amount}("");
             require(sent, "LibERC20Transformer/FAILED_TO_SEND_ETHER");
@@ -60,7 +60,7 @@ library LibERC20Transformer {
     /// @dev Check if a token is the ETH pseudo-token.
     /// @param token The token to check.
     /// @return isETH `true` if the token is the ETH pseudo-token.
-    function isTokenETH(IERC20TokenV06 token) internal pure returns (bool isETH) {
+    function isTokenETH(IERC20Token token) internal pure returns (bool isETH) {
         return address(token) == ETH_TOKEN_ADDRESS;
     }
 
@@ -68,7 +68,7 @@ library LibERC20Transformer {
     /// @param token An ERC20 or the ETH pseudo-token address (`ETH_TOKEN_ADDRESS`).
     /// @param owner Holder of the tokens.
     /// @return tokenBalance The balance of `owner`.
-    function getTokenBalanceOf(IERC20TokenV06 token, address owner) internal view returns (uint256 tokenBalance) {
+    function getTokenBalanceOf(IERC20Token token, address owner) internal view returns (uint256 tokenBalance) {
         if (isTokenETH(token)) {
             return owner.balance;
         }

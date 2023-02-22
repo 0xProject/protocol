@@ -15,7 +15,7 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
+import "@0x/contracts-erc20/src/IEtherToken.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../../fixins/FixinERC721Spender.sol";
 import "../../migrations/LibMigrate.sol";
@@ -40,7 +40,7 @@ contract ERC721OrdersFeature is IFeature, IERC721OrdersFeature, FixinERC721Spend
     /// @dev The magic return value indicating the success of a `onERC721Received`.
     bytes4 private constant ERC721_RECEIVED_MAGIC_BYTES = this.onERC721Received.selector;
 
-    constructor(address zeroExAddress, IEtherTokenV06 weth) public NFTOrders(zeroExAddress, weth) {}
+    constructor(address zeroExAddress, IEtherToken weth) public NFTOrders(zeroExAddress, weth) {}
 
     /// @dev Initialize and register this feature.
     ///      Should be delegatecalled by `Migrate.migrate()`.

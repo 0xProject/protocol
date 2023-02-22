@@ -15,19 +15,19 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "../src/fixins/FixinTokenSpender.sol";
 
 contract TestFixinTokenSpender is FixinTokenSpender {
     constructor() public {}
 
-    function transferERC20TokensFrom(IERC20TokenV06 token, address owner, address to, uint256 amount) external {
+    function transferERC20TokensFrom(IERC20Token token, address owner, address to, uint256 amount) external {
         _transferERC20TokensFrom(token, owner, to, amount);
     }
 
     event FallbackCalled(address token, address owner, address to, uint256 amount);
 
-    function getSpendableERC20BalanceOf(IERC20TokenV06 token, address owner) external view returns (uint256) {
+    function getSpendableERC20BalanceOf(IERC20Token token, address owner) external view returns (uint256) {
         return _getSpendableERC20BalanceOf(token, owner);
     }
 }

@@ -16,22 +16,22 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
+import "@0x/contracts-erc20/src/v06/LibERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
+import "@0x/contracts-erc20/src/IEtherToken.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../transformers/LibERC20Transformer.sol";
 import "../vendor/ILiquidityProvider.sol";
 import "../vendor/IMooniswapPool.sol";
 
 contract MooniswapLiquidityProvider is ILiquidityProvider {
-    using LibERC20TokenV06 for IERC20TokenV06;
+    using LibERC20TokenV06 for IERC20Token;
     using LibSafeMathV06 for uint256;
     using LibRichErrorsV06 for bytes;
 
-    IEtherTokenV06 private immutable WETH;
+    IEtherToken private immutable WETH;
 
-    constructor(IEtherTokenV06 weth) public {
+    constructor(IEtherToken weth) public {
         WETH = weth;
     }
 
@@ -49,8 +49,8 @@ contract MooniswapLiquidityProvider is ILiquidityProvider {
     /// @param auxiliaryData Arbitrary auxiliary data supplied to the contract.
     /// @return boughtAmount The amount of `outputToken` bought.
     function sellTokenForToken(
-        IERC20TokenV06 inputToken,
-        IERC20TokenV06 outputToken,
+        IERC20Token inputToken,
+        IERC20Token outputToken,
         address recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
@@ -80,7 +80,7 @@ contract MooniswapLiquidityProvider is ILiquidityProvider {
     /// @param auxiliaryData Arbitrary auxiliary data supplied to the contract.
     /// @return boughtAmount The amount of `outputToken` bought.
     function sellEthForToken(
-        IERC20TokenV06 outputToken,
+        IERC20Token outputToken,
         address recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
@@ -104,7 +104,7 @@ contract MooniswapLiquidityProvider is ILiquidityProvider {
     /// @param auxiliaryData Arbitrary auxiliary data supplied to the contract.
     /// @return boughtAmount The amount of ETH bought.
     function sellTokenForEth(
-        IERC20TokenV06 inputToken,
+        IERC20Token inputToken,
         address payable recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
@@ -123,8 +123,8 @@ contract MooniswapLiquidityProvider is ILiquidityProvider {
     /// @dev Quotes the amount of `outputToken` that would be obtained by
     ///      selling `sellAmount` of `inputToken`.
     function getSellQuote(
-        IERC20TokenV06 /* inputToken */,
-        IERC20TokenV06 /* outputToken */,
+        IERC20Token /* inputToken */,
+        IERC20Token /* outputToken */,
         uint256 /* sellAmount */
     ) external view override returns (uint256) {
         revert("MooniswapLiquidityProvider/NOT_IMPLEMENTED");
@@ -133,8 +133,8 @@ contract MooniswapLiquidityProvider is ILiquidityProvider {
     /// @dev Perform the swap against the curve pool. Handles any combination of
     ///      tokens
     function _executeSwap(
-        IERC20TokenV06 inputToken,
-        IERC20TokenV06 outputToken,
+        IERC20Token inputToken,
+        IERC20Token outputToken,
         uint256 minBuyAmount,
         IMooniswapPool pool,
         address recipient // Only used to log event
@@ -157,8 +157,8 @@ contract MooniswapLiquidityProvider is ILiquidityProvider {
         }
 
         boughtAmount = pool.swap{value: ethValue}(
-            _isTokenEthLike(inputToken) ? IERC20TokenV06(0) : inputToken,
-            _isTokenEthLike(outputToken) ? IERC20TokenV06(0) : outputToken,
+            _isTokenEthLike(inputToken) ? IERC20Token(0) : inputToken,
+            _isTokenEthLike(outputToken) ? IERC20Token(0) : outputToken,
             sellAmount,
             minBuyAmount,
             address(0)
@@ -181,7 +181,7 @@ contract MooniswapLiquidityProvider is ILiquidityProvider {
     }
 
     /// @dev Check if a token is ETH or WETH.
-    function _isTokenEthLike(IERC20TokenV06 token) private view returns (bool isEthOrWeth) {
+    function _isTokenEthLike(IERC20Token token) private view returns (bool isEthOrWeth) {
         return LibERC20Transformer.isTokenETH(token) || token == WETH;
     }
 }

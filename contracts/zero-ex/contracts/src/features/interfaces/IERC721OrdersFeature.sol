@@ -15,7 +15,7 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "../libs/LibNFTOrder.sol";
 import "../libs/LibSignature.sol";
 import "../../vendor/IERC721Token.sol";
@@ -40,7 +40,7 @@ interface IERC721OrdersFeature {
         address maker,
         address taker,
         uint256 nonce,
-        IERC20TokenV06 erc20Token,
+        IERC20Token erc20Token,
         uint256 erc20TokenAmount,
         IERC721Token erc721Token,
         uint256 erc721TokenId,
@@ -60,7 +60,7 @@ interface IERC721OrdersFeature {
         address taker,
         uint256 expiry,
         uint256 nonce,
-        IERC20TokenV06 erc20Token,
+        IERC20Token erc20Token,
         uint256 erc20TokenAmount,
         LibNFTOrder.Fee[] fees,
         IERC721Token erc721Token,

@@ -38,7 +38,7 @@ To construct a Meta-Transaction, abi-encode the following struct and sign it.
         // Amount of ETH to attach to the call.
         uint256 value;
         // ERC20 fee `signer` pays `sender`.
-        IERC20TokenV06 feeToken;
+        IERC20Token feeToken;
         // ERC20 fee amount.
         uint256 feeAmount;
     }

@@ -15,7 +15,7 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "../../vendor/IERC1155Token.sol";
 import "../../vendor/IERC721Token.sol";
 import "../../vendor/IPropertyValidator.sol";
@@ -53,7 +53,7 @@ library LibNFTOrder {
         address taker;
         uint256 expiry;
         uint256 nonce;
-        IERC20TokenV06 erc20Token;
+        IERC20Token erc20Token;
         uint256 erc20TokenAmount;
         Fee[] fees;
         address nft;
@@ -68,7 +68,7 @@ library LibNFTOrder {
         address taker;
         uint256 expiry;
         uint256 nonce;
-        IERC20TokenV06 erc20Token;
+        IERC20Token erc20Token;
         uint256 erc20TokenAmount;
         Fee[] fees;
         IERC721Token erc721Token;
@@ -84,7 +84,7 @@ library LibNFTOrder {
         address taker;
         uint256 expiry;
         uint256 nonce;
-        IERC20TokenV06 erc20Token;
+        IERC20Token erc20Token;
         uint256 erc20TokenAmount;
         Fee[] fees;
         IERC1155Token erc1155Token;

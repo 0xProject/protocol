@@ -15,8 +15,6 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-
 /// @dev VIP uniswap v3 fill functions.
 interface IUniswapV3Feature {
     /// @dev Sell attached ETH directly against uniswap v3.

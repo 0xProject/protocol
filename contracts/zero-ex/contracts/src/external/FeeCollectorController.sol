@@ -15,7 +15,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
+import "@0x/contracts-erc20/src/IEtherToken.sol";
 import "../vendor/v3/IStaking.sol";
 import "./FeeCollector.sol";
 import "./LibFeeCollector.sol";
@@ -25,11 +25,11 @@ contract FeeCollectorController {
     /// @dev Hash of the fee collector init code.
     bytes32 public immutable FEE_COLLECTOR_INIT_CODE_HASH;
     /// @dev The WETH contract.
-    IEtherTokenV06 private immutable WETH;
+    IEtherToken private immutable WETH;
     /// @dev The staking contract.
     IStaking private immutable STAKING;
 
-    constructor(IEtherTokenV06 weth, IStaking staking) public {
+    constructor(IEtherToken weth, IStaking staking) public {
         FEE_COLLECTOR_INIT_CODE_HASH = keccak256(type(FeeCollector).creationCode);
         WETH = weth;
         STAKING = staking;

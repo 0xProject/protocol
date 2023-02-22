@@ -1,30 +1,51 @@
 {
     "1": {
         "UniswapV2Router": "0xf164fc0ec4e93095b804a4795bbe1e041497b92a",
-        "UniswapV3Router": "0x0000000000000000000000000000000000000000"
+        "UniswapV3Router": "0x0000000000000000000000000000000000000000",
+        "KyberElasticQuoter": "0x0d125c15d54ca1f8a813c74a81aee34ebb508c1f",
+        "KyberElasticRouter": "0xc1e7dfe73e1598e3910ef4c7845b68a9ab6f4c83",
+        "KyberElasticPool": "0x952ffc4c47d66b454a8181f5c68b6248e18b66ec"
     },
     "56": {
         "UniswapV2Router": "0x10ed43c718714eb63d5aa57b78b54704e256024e",
-        "UniswapV3Router": "0x0000000000000000000000000000000000000000"
+        "UniswapV3Router": "0x0000000000000000000000000000000000000000",
+        "KyberElasticQuoter": "0x0d125c15d54ca1f8a813c74a81aee34ebb508c1f",
+        "KyberElasticRouter": "0xc1e7dfe73e1598e3910ef4c7845b68a9ab6f4c83",
+        "KyberElasticPool": "0xfbfab68ba077d099cd4b66fa76920572cc0b557c"
     },
     "137": {
         "UniswapV2Router": "0x1b02da8cb0d097eb8d57a175b88c7d8b47997506",
-        "UniswapV3Router": "0x0000000000000000000000000000000000000000"
+        "UniswapV3Router": "0x0000000000000000000000000000000000000000",
+        "KyberElasticQuoter": "0x0d125c15d54ca1f8a813c74a81aee34ebb508c1f",
+        "KyberElasticRouter": "0xc1e7dfe73e1598e3910ef4c7845b68a9ab6f4c83",
+        "KyberElasticPool": "0xf9cc934753a127100585812181ac04d07158a4c2"
     },
     "43114": {
         "UniswapV2Router": "0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10",
-        "UniswapV3Router": "0x0000000000000000000000000000000000000000"
+        "UniswapV3Router": "0x0000000000000000000000000000000000000000",
+        "KyberElasticQuoter": "0x0d125c15d54ca1f8a813c74a81aee34ebb508c1f",
+        "KyberElasticRouter": "0xc1e7dfe73e1598e3910ef4c7845b68a9ab6f4c83",
+        "KyberElasticPool": "0x6038373de7f64da99b2a31951628b7d778b2c3cf"
     },
     "250": {
         "UniswapV2Router": "0x1b02da8cb0d097eb8d57a175b88c7d8b47997506",
-        "UniswapV3Router": "0x0000000000000000000000000000000000000000"
+        "UniswapV3Router": "0x0000000000000000000000000000000000000000",
+        "KyberElasticQuoter": "0x0d125c15d54ca1f8a813c74a81aee34ebb508c1f",
+        "KyberElasticRouter": "0xc1e7dfe73e1598e3910ef4c7845b68a9ab6f4c83",
+        "KyberElasticPool": "0x8dcf5fed6ae6bf0befb5e4f0c9414c2cb9a4ed01"
     },
     "10": {
         "UniswapV2Router": "0x0000000000000000000000000000000000000000",
-        "UniswapV3Router": "0x61ffe014ba17989e743c5f6cb21bf9697530b21e"
+        "UniswapV3Router": "0x61ffe014ba17989e743c5f6cb21bf9697530b21e",
+        "KyberElasticQuoter": "0x0d125c15d54ca1f8a813c74a81aee34ebb508c1f",
+        "KyberElasticRouter": "0xc1e7dfe73e1598e3910ef4c7845b68a9ab6f4c83",
+        "KyberElasticPool": "0x7e29ccaa4bf2894aca02c77e6b99cafc1d24b2f5"
     },
     "42161": {
         "UniswapV2Router": "0x1b02da8cb0d097eb8d57a175b88c7d8b47997506",
-        "UniswapV3Router": "0x0000000000000000000000000000000000000000"
+        "UniswapV3Router": "0x0000000000000000000000000000000000000000",
+        "KyberElasticQuoter": "0x0d125c15d54ca1f8a813c74a81aee34ebb508c1f",
+        "KyberElasticRouter": "0xc1e7dfe73e1598e3910ef4c7845b68a9ab6f4c83",
+        "KyberElasticPool": "0x087abaab9cd85025a8b3916948c69fe173c837ea"
     }
 }

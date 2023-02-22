@@ -15,7 +15,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 
 library BridgeProtocols {
     // A incrementally increasing, append-only list of protocol IDs.
@@ -54,4 +54,5 @@ library BridgeProtocols {
     uint128 internal constant SYNTHETIX = 30;
     uint128 internal constant WOOFI = 31;
     uint128 internal constant AAVEV3 = 32;
+    uint128 internal constant KYBERELASTIC = 33;
 }

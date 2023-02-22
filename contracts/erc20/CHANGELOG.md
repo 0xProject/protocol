@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v4.0.0 - _February 16, 2023_
+
+    * Migrated package to foundry
+
 ## v3.3.57 - _February 1, 2023_
 
     * Dependencies updated

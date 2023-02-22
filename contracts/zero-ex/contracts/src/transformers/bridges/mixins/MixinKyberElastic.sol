@@ -17,40 +17,39 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/src/IERC20Token.sol";
-import "../IBridgeAdapter.sol";
 
-interface IUniswapV3Router {
+interface IKyberElasticRouter {
     struct ExactInputParams {
         bytes path;
         address recipient;
         uint256 deadline;
         uint256 amountIn;
-        uint256 amountOutMinimum;
+        uint256 minAmountOut;
     }
 
-    function exactInput(ExactInputParams memory params) external payable returns (uint256 amountOut);
+    function swapExactInput(ExactInputParams calldata params) external payable returns (uint256 amountOut);
 }
 
-contract MixinUniswapV3 {
+contract MixinKyberElastic {
     using LibERC20TokenV06 for IERC20Token;
 
-    function _tradeUniswapV3(
+    function _tradeKyberElastic(
         IERC20Token sellToken,
         uint256 sellAmount,
         bytes memory bridgeData
     ) internal returns (uint256 boughtAmount) {
-        (IUniswapV3Router router, bytes memory path) = abi.decode(bridgeData, (IUniswapV3Router, bytes));
+        (IKyberElasticRouter router, bytes memory path) = abi.decode(bridgeData, (IKyberElasticRouter, bytes));
 
-        // Grant the Uniswap router an allowance to sell the sell token.
+        // Grant the Kyber router an allowance to sell the sell token.
         sellToken.approveIfBelow(address(router), sellAmount);
 
-        boughtAmount = router.exactInput(
-            IUniswapV3Router.ExactInputParams({
+        boughtAmount = router.swapExactInput(
+            IKyberElasticRouter.ExactInputParams({
                 path: path,
                 recipient: address(this),
                 deadline: block.timestamp,
                 amountIn: sellAmount,
-                amountOutMinimum: 1
+                minAmountOut: 1
             })
         );
     }

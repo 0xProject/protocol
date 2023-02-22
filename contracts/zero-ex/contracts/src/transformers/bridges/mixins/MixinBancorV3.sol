@@ -15,9 +15,9 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
+import "@0x/contracts-erc20/src/v06/LibERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
+import "@0x/contracts-erc20/src/IEtherToken.sol";
 
 /*
     BancorV3
@@ -41,22 +41,22 @@ interface IBancorV3 {
 }
 
 contract MixinBancorV3 {
-    using LibERC20TokenV06 for IERC20TokenV06;
+    using LibERC20TokenV06 for IERC20Token;
 
-    IERC20TokenV06 public constant BANCORV3_ETH_ADDRESS = IERC20TokenV06(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
-    IEtherTokenV06 private immutable WETH;
+    IERC20Token public constant BANCORV3_ETH_ADDRESS = IERC20Token(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
+    IEtherToken private immutable WETH;
 
-    constructor(IEtherTokenV06 weth) public {
+    constructor(IEtherToken weth) public {
         WETH = weth;
     }
 
     function _tradeBancorV3(
-        IERC20TokenV06 buyToken,
+        IERC20Token buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
     ) internal returns (uint256 amountOut) {
         IBancorV3 router;
-        IERC20TokenV06[] memory path;
+        IERC20Token[] memory path;
         address[] memory _path;
         uint256 payableAmount = 0;
 

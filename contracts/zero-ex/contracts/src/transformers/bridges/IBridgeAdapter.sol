@@ -15,7 +15,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 
 interface IBridgeAdapter {
     struct BridgeOrder {
@@ -37,8 +37,8 @@ interface IBridgeAdapter {
     /// @param outputTokenAmount Amount of output token bought.
     event BridgeFill(
         bytes32 source,
-        IERC20TokenV06 inputToken,
-        IERC20TokenV06 outputToken,
+        IERC20Token inputToken,
+        IERC20Token outputToken,
         uint256 inputTokenAmount,
         uint256 outputTokenAmount
     );
@@ -47,8 +47,8 @@ interface IBridgeAdapter {
 
     function trade(
         BridgeOrder calldata order,
-        IERC20TokenV06 sellToken,
-        IERC20TokenV06 buyToken,
+        IERC20Token sellToken,
+        IERC20Token buyToken,
         uint256 sellAmount
     ) external returns (uint256 boughtAmount);
 }

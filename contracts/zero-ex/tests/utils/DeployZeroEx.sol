@@ -44,8 +44,8 @@ import "src/transformers/PositiveSlippageFeeTransformer.sol";
 import "src/transformers/bridges/IBridgeAdapter.sol";
 import "src/transformers/bridges/EthereumBridgeAdapter.sol";
 
-import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/WETH9V06.sol";
+import "@0x/contracts-erc20/src/IEtherToken.sol";
+import "@0x/contracts-erc20/src/v06/WETH9V06.sol";
 
 contract DeployZeroEx is Test {
     ZeroEx public ZERO_EX = ZeroEx(0xDef1C0ded9bec7F1a1670819833240f027b25EfF);
@@ -87,7 +87,7 @@ contract DeployZeroEx is Test {
         IStaking staking; // address(0)
         Features features;
         Transformers transformers;
-        IEtherTokenV06 weth;
+        IEtherToken weth;
     }
 
     ZeroExDeployed ZERO_EX_DEPLOYED;
@@ -156,7 +156,7 @@ contract DeployZeroEx is Test {
             return ZERO_EX_DEPLOYED;
         }
 
-        ZERO_EX_DEPLOYED.weth = IEtherTokenV06(address(new WETH9V06()));
+        ZERO_EX_DEPLOYED.weth = IEtherToken(address(new WETH9V06()));
         InitialMigration initialMigration = new InitialMigration(address(this));
         // Append the required ZeroEx constructor arguments (address bootstrapper)
         bytes memory zeroExDeploycode = abi.encodePacked(type(ZeroEx).creationCode, abi.encode(initialMigration));
@@ -178,7 +178,7 @@ contract DeployZeroEx is Test {
         ZERO_EX_DEPLOYED.staking = IStaking(address(0));
         ZERO_EX_DEPLOYED.transformerDeployer = new TransformerDeployer(transformerSigners);
         ZERO_EX_DEPLOYED.feeCollectorController = new FeeCollectorController(
-            IEtherTokenV06(ZERO_EX_DEPLOYED.weth),
+            IEtherToken(ZERO_EX_DEPLOYED.weth),
             IStaking(ZERO_EX_DEPLOYED.staking)
         );
 

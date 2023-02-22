@@ -15,9 +15,9 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
+import "@0x/contracts-erc20/src/v06/LibERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
+import "@0x/contracts-erc20/src/IEtherToken.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 
 /// @dev Minimal CToken interface
@@ -45,20 +45,20 @@ interface ICEther {
 }
 
 contract MixinCompound {
-    using LibERC20TokenV06 for IERC20TokenV06;
+    using LibERC20TokenV06 for IERC20Token;
     using LibSafeMathV06 for uint256;
 
-    IEtherTokenV06 private immutable WETH;
+    IEtherToken private immutable WETH;
 
-    constructor(IEtherTokenV06 weth) public {
+    constructor(IEtherToken weth) public {
         WETH = weth;
     }
 
     uint256 private constant COMPOUND_SUCCESS_CODE = 0;
 
     function _tradeCompound(
-        IERC20TokenV06 sellToken,
-        IERC20TokenV06 buyToken,
+        IERC20Token sellToken,
+        IERC20Token buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
     ) internal returns (uint256) {

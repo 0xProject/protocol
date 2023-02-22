@@ -20,8 +20,8 @@ import "src/features/TransformERC20Feature.sol";
 import "src/external/TransformerDeployer.sol";
 import "src/transformers/WethTransformer.sol";
 import "src/transformers/FillQuoteTransformer.sol";
-import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IEtherToken.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "src/transformers/bridges/BridgeProtocols.sol";
 import "src/transformers/bridges/EthereumBridgeAdapter.sol";
 import "src/transformers/bridges/PolygonBridgeAdapter.sol";
@@ -82,19 +82,46 @@ struct Addresses {
 }
 
 struct TokenAddresses {
-    IERC20TokenV06 DAI;
-    IERC20TokenV06 USDC;
-    IERC20TokenV06 USDT;
-    IEtherTokenV06 WrappedNativeToken;
+    IERC20Token DAI;
+    IERC20Token USDC;
+    IERC20Token USDT;
+    IEtherToken WrappedNativeToken;
 }
 
 struct LiquiditySources {
+    address KyberElasticPool;
+    address KyberElasticQuoter;
+    address KyberElasticRouter;
     address UniswapV2Router;
     address UniswapV3Router;
 }
 
 interface IFQT {
     function bridgeAdapter() external returns (address);
+}
+
+interface IKyberElasticQuoter {
+    function quoteExactInput(
+        bytes memory path,
+        uint256 amountIn
+    )
+        external
+        returns (
+            uint256 amountOut,
+            uint160[] memory afterSqrtPList,
+            uint32[] memory initializedTicksCrossedList,
+            uint256 gasEstimate
+        );
+}
+
+interface IKyberElasticPool {
+    function token0() external view returns (address);
+
+    function token1() external view returns (address);
+
+    /// @notice The fee to be charged for a swap in basis points
+    /// @return The swap fee in basis points
+    function swapFeeUnits() external view returns (uint24);
 }
 
 interface IUniswapV2Router01 {
@@ -146,13 +173,13 @@ interface IUniswapV3QuoterV2 {
 }
 
 interface IUniswapV3Factory {
-    function getPool(IERC20TokenV06 a, IERC20TokenV06 b, uint24 fee) external view returns (IUniswapV3Pool pool);
+    function getPool(IERC20Token a, IERC20Token b, uint24 fee) external view returns (IUniswapV3Pool pool);
 }
 
 interface IUniswapV3Pool {
-    function token0() external view returns (IERC20TokenV06);
+    function token0() external view returns (IERC20Token);
 
-    function token1() external view returns (IERC20TokenV06);
+    function token1() external view returns (IERC20Token);
 
     function fee() external view returns (uint24);
 }
@@ -244,7 +271,7 @@ contract ForkUtils is Test {
     }
 
     //creates the appropriate bridge adapter based on what chain the tests are currently executing on.
-    function createBridgeAdapter(IEtherTokenV06 weth) public returns (IBridgeAdapter bridgeAdapter) {
+    function createBridgeAdapter(IEtherToken weth) public returns (IBridgeAdapter bridgeAdapter) {
         uint chainId;
 
         assembly {
@@ -308,13 +335,13 @@ contract ForkUtils is Test {
     //deploy a new FillQuoteTransformer
     //executes in the context of the transformerDeployer
     function createNewFQT(
-        IEtherTokenV06 wrappedNativeToken,
+        IEtherToken wrappedNativeToken,
         address payable exchangeProxy,
         address transformerDeployer
     ) public {
         vm.startPrank(transformerDeployer);
         // deploy a new instance of the bridge adapter from the transformerDeployer
-        bridgeAdapter = createBridgeAdapter(IEtherTokenV06(wrappedNativeToken));
+        bridgeAdapter = createBridgeAdapter(IEtherToken(wrappedNativeToken));
         // deploy a new instance of the fill quote transformer from the transformerDeployer
         fillQuoteTransformer = new FillQuoteTransformer(IBridgeAdapter(bridgeAdapter), IZeroEx(exchangeProxy));
         vm.label(address(fillQuoteTransformer), "zeroEx/FillQuoteTransformer");
@@ -403,7 +430,7 @@ contract ForkUtils is Test {
     /// @return makerTokenAmounts Maker amounts bought at each taker token amount.
     function sampleSellsFromUniswapV3(
         IUniswapV3QuoterV2 quoter,
-        IERC20TokenV06[] memory path,
+        IERC20Token[] memory path,
         uint256[] memory takerTokenAmounts
     )
         public
@@ -462,13 +489,13 @@ contract ForkUtils is Test {
     /// @return takerTokenAmounts Taker amounts sold at each maker token amount.
     function sampleBuysFromUniswapV3(
         IUniswapV3QuoterV2 quoter,
-        IERC20TokenV06[] memory path,
+        IERC20Token[] memory path,
         uint256[] memory makerTokenAmounts
     )
         public
         returns (bytes[] memory uniswapPaths, uint256[] memory uniswapGasUsed, uint256[] memory takerTokenAmounts)
     {
-        IERC20TokenV06[] memory reversedPath = _reverseTokenPath(path);
+        IERC20Token[] memory reversedPath = _reverseTokenPath(path);
         IUniswapV3Pool[][] memory poolPaths = _getPoolPaths(
             quoter,
             reversedPath,
@@ -517,7 +544,7 @@ contract ForkUtils is Test {
 
     function _getPoolPaths(
         IUniswapV3QuoterV2 quoter,
-        IERC20TokenV06[] memory path,
+        IERC20Token[] memory path,
         uint256 inputAmount
     ) private returns (IUniswapV3Pool[][] memory poolPaths) {
         if (path.length == 2) {
@@ -531,7 +558,7 @@ contract ForkUtils is Test {
 
     function _getPoolPathSingleHop(
         IUniswapV3QuoterV2 quoter,
-        IERC20TokenV06[] memory path,
+        IERC20Token[] memory path,
         uint256 inputAmount
     ) public returns (IUniswapV3Pool[][] memory poolPaths) {
         poolPaths = new IUniswapV3Pool[][](2);
@@ -554,7 +581,7 @@ contract ForkUtils is Test {
 
     function _getPoolPathTwoHop(
         IUniswapV3QuoterV2 quoter,
-        IERC20TokenV06[] memory path,
+        IERC20Token[] memory path,
         uint256 inputAmount
     ) private returns (IUniswapV3Pool[][] memory poolPaths) {
         IUniswapV3Factory factory = quoter.factory();
@@ -591,11 +618,11 @@ contract ForkUtils is Test {
     function _getTopTwoPools(
         IUniswapV3QuoterV2 quoter,
         IUniswapV3Factory factory,
-        IERC20TokenV06 inputToken,
-        IERC20TokenV06 outputToken,
+        IERC20Token inputToken,
+        IERC20Token outputToken,
         uint256 inputAmount
     ) private returns (IUniswapV3Pool[2] memory topPools, uint256[2] memory outputAmounts) {
-        IERC20TokenV06[] memory path = new IERC20TokenV06[](2);
+        IERC20Token[] memory path = new IERC20Token[](2);
         path[0] = inputToken;
         path[1] = outputToken;
 
@@ -629,10 +656,8 @@ contract ForkUtils is Test {
         }
     }
 
-    function _reverseTokenPath(
-        IERC20TokenV06[] memory tokenPath
-    ) private pure returns (IERC20TokenV06[] memory reversed) {
-        reversed = new IERC20TokenV06[](tokenPath.length);
+    function _reverseTokenPath(IERC20Token[] memory tokenPath) private pure returns (IERC20Token[] memory reversed) {
+        reversed = new IERC20Token[](tokenPath.length);
         for (uint256 i = 0; i < tokenPath.length; ++i) {
             reversed[i] = tokenPath[tokenPath.length - i - 1];
         }
@@ -678,7 +703,7 @@ contract ForkUtils is Test {
     }
 
     function _toUniswapPath(
-        IERC20TokenV06[] memory tokenPath,
+        IERC20Token[] memory tokenPath,
         IUniswapV3Pool[] memory poolPath
     ) private view returns (bytes memory uniswapPath) {
         require(
@@ -700,7 +725,35 @@ contract ForkUtils is Test {
                     o := add(o, 3)
                 }
             }
-            IERC20TokenV06 token = tokenPath[i];
+            IERC20Token token = tokenPath[i];
+            assembly {
+                mstore(o, shl(96, token))
+                o := add(o, 20)
+            }
+        }
+    }
+
+    function _toKyberElasticPath(
+        address[] memory tokenPath,
+        address[] memory poolPath
+    ) internal returns (bytes memory path) {
+        require(tokenPath.length >= 2 && tokenPath.length == poolPath.length + 1, "invalid path lengths");
+        // paths are tightly packed as:
+        // [token0, token0token1PairFee, token1, token1Token2PairFee, token2, ...]
+        path = new bytes(tokenPath.length * 20 + poolPath.length * 3);
+        uint256 o;
+        assembly {
+            o := add(path, 32)
+        }
+        for (uint256 i = 0; i < tokenPath.length; ++i) {
+            if (i > 0) {
+                uint24 poolFee = IKyberElasticPool(poolPath[i - 1]).swapFeeUnits();
+                assembly {
+                    mstore(o, shl(232, poolFee))
+                    o := add(o, 3)
+                }
+            }
+            address token = tokenPath[i];
             assembly {
                 mstore(o, shl(96, token))
                 o := add(o, 20)
@@ -714,5 +767,9 @@ contract ForkUtils is Test {
         } else {
             revert("Requires fork mode");
         }
+    }
+
+    function writeTokenBalance(address who, address token, uint256 amt) internal {
+        stdstore.target(token).sig(IERC20Token(token).balanceOf.selector).with_key(who).checked_write(amt);
     }
 }

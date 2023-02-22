@@ -15,8 +15,8 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/v06/LibERC20TokenV06.sol";
+import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../IBridgeAdapter.sol";
 
@@ -36,11 +36,11 @@ interface IGmxRouter {
 }
 
 contract MixinGMX {
-    using LibERC20TokenV06 for IERC20TokenV06;
+    using LibERC20TokenV06 for IERC20Token;
     using LibSafeMathV06 for uint256;
 
     function _tradeGMX(
-        IERC20TokenV06 buyToken,
+        IERC20Token buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
     ) public returns (uint256 boughtAmount) {
@@ -49,7 +49,7 @@ contract MixinGMX {
         address vault;
         address[] memory _path;
         IGmxRouter router;
-        IERC20TokenV06[] memory path;
+        IERC20Token[] memory path;
 
         {
             //decode the bridge data
