@@ -9,10 +9,12 @@
         "start": "node -r dotenv/config __build__/main.js",
         "db:dev:start": "docker-compose up -d postgres",
         "db:dev:shell": "docker exec -it postgres psql -U api",
+        "fix": "prettier --write .",
         "kong:dev:bootstrap": "docker exec -it postgres psql -U api -c 'create database kong' && docker run --rm --network=kong-net -e KONG_DATABASE=postgres -e KONG_PG_HOST=postgres -e KONG_PG_DATABASE=kong -e KONG_PG_USER=api -e KONG_PG_PASSWORD=api kong:3.1.1 kong migrations bootstrap",
         "kong:dev:start": "docker-compose up -d kong",
         "kong:dev:reset": "deck reset",
         "kong:dev:configure": "deck sync -s kong/configs/kong_base.yml",
+        "lint:ci": "prettier --check .",
         "test": "DOTENV_CONFIG_PATH=test.env jest",
         "test:integration": "jest -i -c jest.config.integration.js"
     },

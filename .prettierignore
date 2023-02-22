@@ -1,4 +1,4 @@
-dist/
+**/dist/
 lib/
 __build__/
 node_modules/
