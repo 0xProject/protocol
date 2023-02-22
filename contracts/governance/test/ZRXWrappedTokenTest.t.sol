@@ -28,8 +28,8 @@ contract ZRXWrappedTokenTest is BaseTest {
     ZeroExVotes private votes;
 
     function setUp() public {
-        vm.startPrank(account1);
         (token, wToken, votes, , , , ) = setupGovernance();
+        vm.startPrank(account1);
         token.transfer(account2, 100e18);
         token.transfer(account3, 200e18);
         vm.stopPrank();

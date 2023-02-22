@@ -47,16 +47,9 @@ contract BaseTest is Test {
 
     function setupGovernance()
         internal
-        returns (
-            IERC20,
-            ZRXWrappedToken,
-            ZeroExVotes,
-            ZeroExTimelock,
-            ZeroExTimelock,
-            ZeroExProtocolGovernor,
-            ZeroExTreasuryGovernor
-        )
+        returns (IERC20, ZRXWrappedToken, ZeroExVotes, ZeroExTimelock, ZeroExTimelock, address, address)
     {
+        vm.startPrank(account1);
         (IERC20 zrxToken, ZRXWrappedToken token, ZeroExVotes votes) = setupZRXWrappedToken();
 
         address[] memory proposers = new address[](0);
@@ -82,8 +75,17 @@ contract BaseTest is Test {
         treasuryTimelock.grantRole(treasuryTimelock.PROPOSER_ROLE(), address(treasuryGovernor));
         treasuryTimelock.grantRole(treasuryTimelock.EXECUTOR_ROLE(), address(treasuryGovernor));
         treasuryTimelock.grantRole(treasuryTimelock.CANCELLER_ROLE(), address(treasuryGovernor));
+        vm.stopPrank();
 
-        return (zrxToken, token, votes, protocolTimelock, treasuryTimelock, protocolGovernor, treasuryGovernor);
+        return (
+            zrxToken,
+            token,
+            votes,
+            protocolTimelock,
+            treasuryTimelock,
+            address(protocolGovernor),
+            address(treasuryGovernor)
+        );
     }
 
     function setupZRXWrappedToken() internal returns (IERC20, ZRXWrappedToken, ZeroExVotes) {
