@@ -36,6 +36,23 @@ To initialize/migrate your local database, change to the `packages/integrator-db
 yarn db:migrate
 ```
 
+## Kong Bootstrap
+
+Kong requires its own database and needs to be bootstrapped. After the postgres server is running from the previous steps,
+to bootstrap the kong database, from within the `apps-node/zippo` directory, run:
+
+```shell
+yarn kong:dev:bootstrap
+```
+
+## Start Kong
+
+The integration tests will automatically attempt to start kong, but you can start it maually with:
+
+```shell
+yarn kong:dev:start
+```
+
 # Yarn Scripts
 
 The following yarn script can be useful during development.
