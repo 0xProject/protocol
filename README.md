@@ -172,7 +172,6 @@ it exists. To pass CI, each pipeline must finish with a `0` exit code. Additiona
 -   The primary branch of the repository is `main`
 -   `main` is protected from pushes
 -   `main` has a linear commit history
--   Commits to `main` must be [signed](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits)
 -   Commits to `main` are accomplished by a pull request (PR)
     -   PRs require an approval to submit
     -   PRs require [CI](#ci--pipelines) to pass to submit
