@@ -86,9 +86,15 @@ contract MetaTransactionsFeatureV2 is
             "uint256 salt,"
             "bytes callData,"
             "address feeToken,"
-            "uint256 feeAmount,"
             "MetaTransactionFeeData[] fees"
             ")"
+            "MetaTransactionFeeData("
+            "address recipient,"
+            "uint256 amount"
+            ")"
+        );
+    bytes32 public immutable MTX_FEE_TYPEHASH =
+        keccak256(
             "MetaTransactionFeeData("
             "address recipient,"
             "uint256 amount"
@@ -209,6 +215,11 @@ contract MetaTransactionsFeatureV2 is
     /// @param mtx The meta-transaction.
     /// @return mtxHash The EIP712 hash of `mtx`.
     function getMetaTransactionV2Hash(MetaTransactionDataV2 memory mtx) public view override returns (bytes32 mtxHash) {
+        bytes32[] memory feeHashes = new bytes32[](mtx.fees.length);
+        for (uint256 i = 0; i < mtx.fees.length; ++i) {
+            feeHashes[i] = keccak256(abi.encode(MTX_FEE_TYPEHASH, mtx.fees[i]));
+        }
+
         return
             _getEIP712Hash(
                 keccak256(
@@ -220,7 +231,7 @@ contract MetaTransactionsFeatureV2 is
                         mtx.salt,
                         keccak256(mtx.callData),
                         mtx.feeToken,
-                        mtx.fees
+                        keccak256(abi.encodePacked(feeHashes))
                     )
                 )
             );

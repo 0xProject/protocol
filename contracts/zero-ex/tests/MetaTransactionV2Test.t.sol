@@ -21,6 +21,7 @@ import "./utils/DeployZeroEx.sol";
 import "./utils/TestUtils.sol";
 import "../contracts/src/features/MetaTransactionsFeatureV2.sol";
 import "../contracts/src/features/interfaces/IMetaTransactionsFeatureV2.sol";
+import "../contracts/src/features/interfaces/IMetaTransactionsFeature.sol";
 import "../contracts/test/TestMintTokenERC20Transformer.sol";
 import "../contracts/src/features/libs/LibSignature.sol";
 import "src/features/libs/LibNativeOrder.sol";
@@ -36,7 +37,6 @@ contract MetaTransactionTest is BaseTest, TestUtils {
     IEtherToken private wethToken;
     IERC20Token private usdcToken;
     IERC20Token private zrxToken;
-    uint256 private constant oneEth = 1e18;
     address private signerAddress;
     uint256 private signerKey;
     uint256 private transformerNonce;
@@ -74,7 +74,7 @@ contract MetaTransactionTest is BaseTest, TestUtils {
             mintToWETH(wethToken, mtx.signer, mtx.fees[i].amount);
         }
         vm.prank(mtx.signer);
-        mtx.feeToken.approve(address(zeroExDeployed.zeroEx), oneEth);
+        mtx.feeToken.approve(address(zeroExDeployed.zeroEx), 1e18);
 
         bytes32 mtxHash = zeroExDeployed.features.metaTransactionsFeatureV2.getMetaTransactionV2Hash(mtx);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(key, mtxHash);
@@ -116,20 +116,20 @@ contract MetaTransactionTest is BaseTest, TestUtils {
         ITransformERC20Feature.Transformation[] memory transformations = new ITransformERC20Feature.Transformation[](1);
         transformations[0] = ITransformERC20Feature.Transformation(
             uint32(transformerNonce),
-            abi.encode(address(usdcToken), address(wethToken), 0, oneEth, 0)
+            abi.encode(address(usdcToken), address(wethToken), 0, 1e18, 0)
         );
 
-        mintTo(usdcToken, USER_ADDRESS, oneEth);
+        mintTo(usdcToken, USER_ADDRESS, 1e18);
         vm.prank(USER_ADDRESS);
-        usdcToken.approve(address(zeroExDeployed.zeroEx), oneEth);
+        usdcToken.approve(address(zeroExDeployed.zeroEx), 1e18);
 
         return
             abi.encodeWithSelector(
                 zeroExDeployed.zeroEx.transformERC20.selector, // 0x415565b0
                 usdcToken,
                 wethToken,
-                oneEth,
-                oneEth,
+                1e18,
+                1e18,
                 transformations
             );
     }
@@ -144,9 +144,40 @@ contract MetaTransactionTest is BaseTest, TestUtils {
         );
         IMetaTransactionsFeatureV2.MetaTransactionDataV2 memory mtxData = _getMetaTransaction(transformCallData);
 
-        //mtxData.signer = address(0);
         bytes32 mtxHash = zeroExDeployed.features.metaTransactionsFeatureV2.getMetaTransactionV2Hash(mtxData);
         assertTrue(mtxHash != bytes32(0));
+    }
+
+    function test_EIP_712_signature() external {
+        // metamask wallet signed data
+        bytes32 r_mm = 0xcd6c09d558e23803afae870ca53a8e7bfaf5564c64ee29f23dc4a19e7dd9e9b5;
+        bytes32 s_mm = 0x1ae68e89fadab4a7f4d01fd5543e5e0efd5697e87c993f045f671aba3e1f55ac;
+        uint8 v_mm = 0x1b;
+
+        IMetaTransactionsFeatureV2.MetaTransactionFeeData[]
+            memory fees = new IMetaTransactionsFeatureV2.MetaTransactionFeeData[](2);
+        fees[0] = IMetaTransactionsFeatureV2.MetaTransactionFeeData({recipient: address(0), amount: 1000000});
+        fees[1] = IMetaTransactionsFeatureV2.MetaTransactionFeeData({recipient: address(0), amount: 1000});
+
+        IMetaTransactionsFeatureV2.MetaTransactionDataV2 memory mtx = IMetaTransactionsFeatureV2.MetaTransactionDataV2({
+            signer: address(0),
+            sender: address(0),
+            expirationTimeSeconds: 99999999,
+            salt: 1234,
+            callData: new bytes(0),
+            feeToken: usdcToken,
+            fees: fees
+        });
+
+        bytes32 mtxHash = zeroExDeployed.features.metaTransactionsFeatureV2.getMetaTransactionV2Hash(mtx);
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(USER_KEY, mtxHash);
+        //emit log_bytes(abi.encodePacked(r, s, bytes1(v)));
+
+        // Verify signature matches from what we generated using metamask
+        assertTrue(v == v_mm);
+        assertTrue(r == r_mm);
+        assertTrue(s == s_mm);
     }
 
     function test_transformERC20() external {
@@ -159,7 +190,7 @@ contract MetaTransactionTest is BaseTest, TestUtils {
         );
         IMetaTransactionsFeatureV2.MetaTransactionDataV2 memory mtxData = _getMetaTransaction(transformCallData);
 
-        assertEq(usdcToken.balanceOf(USER_ADDRESS), oneEth);
+        assertEq(usdcToken.balanceOf(USER_ADDRESS), 1e18);
         vm.expectEmit(true, false, false, true);
         emit MetaTransactionExecuted(
             zeroExDeployed.features.metaTransactionsFeatureV2.getMetaTransactionV2Hash(mtxData),
@@ -172,7 +203,7 @@ contract MetaTransactionTest is BaseTest, TestUtils {
             mtxData,
             _mtxSignature(mtxData)
         );
-        assertEq(zrxToken.balanceOf(USER_ADDRESS), oneEth);
+        assertEq(zrxToken.balanceOf(USER_ADDRESS), 1e18);
         assertEq(usdcToken.balanceOf(USER_ADDRESS), 0);
         assertEq(wethToken.balanceOf(address(this)), 1);
     }
@@ -188,7 +219,7 @@ contract MetaTransactionTest is BaseTest, TestUtils {
         );
         IMetaTransactionsFeatureV2.MetaTransactionDataV2 memory mtxData = _getMetaTransaction(callData);
 
-        assertEq(usdcToken.balanceOf(USER_ADDRESS), oneEth);
+        assertEq(usdcToken.balanceOf(USER_ADDRESS), 1e18);
         vm.expectEmit(true, false, false, true);
         emit MetaTransactionExecuted(
             zeroExDeployed.features.metaTransactionsFeatureV2.getMetaTransactionV2Hash(mtxData),
@@ -203,9 +234,9 @@ contract MetaTransactionTest is BaseTest, TestUtils {
         );
 
         assertEq(zrxToken.balanceOf(signerAddress), 0);
-        assertEq(zrxToken.balanceOf(USER_ADDRESS), oneEth);
+        assertEq(zrxToken.balanceOf(USER_ADDRESS), 1e18);
         assertEq(usdcToken.balanceOf(USER_ADDRESS), 0);
-        assertEq(usdcToken.balanceOf(signerAddress), oneEth);
+        assertEq(usdcToken.balanceOf(signerAddress), 1e18);
         assertEq(wethToken.balanceOf(address(this)), 1);
     }
 
@@ -220,7 +251,7 @@ contract MetaTransactionTest is BaseTest, TestUtils {
         );
         IMetaTransactionsFeatureV2.MetaTransactionDataV2 memory mtxData = _getMetaTransaction(callData);
 
-        assertEq(usdcToken.balanceOf(USER_ADDRESS), oneEth);
+        assertEq(usdcToken.balanceOf(USER_ADDRESS), 1e18);
         vm.expectEmit(true, false, false, true);
         emit MetaTransactionExecuted(
             zeroExDeployed.features.metaTransactionsFeatureV2.getMetaTransactionV2Hash(mtxData),
@@ -235,9 +266,9 @@ contract MetaTransactionTest is BaseTest, TestUtils {
         );
 
         assertEq(zrxToken.balanceOf(signerAddress), 0);
-        assertEq(zrxToken.balanceOf(USER_ADDRESS), oneEth);
+        assertEq(zrxToken.balanceOf(USER_ADDRESS), 1e18);
         assertEq(usdcToken.balanceOf(USER_ADDRESS), 0);
-        assertEq(usdcToken.balanceOf(signerAddress), oneEth);
+        assertEq(usdcToken.balanceOf(signerAddress), 1e18);
         assertEq(wethToken.balanceOf(address(this)), 1);
     }
 
@@ -252,13 +283,13 @@ contract MetaTransactionTest is BaseTest, TestUtils {
         IMetaTransactionsFeatureV2.MetaTransactionDataV2 memory mtxData = _getMetaTransaction(transformCallData);
         mtxData.sender = ZERO_ADDRESS;
 
-        assertEq(usdcToken.balanceOf(USER_ADDRESS), oneEth);
+        assertEq(usdcToken.balanceOf(USER_ADDRESS), 1e18);
 
         IMetaTransactionsFeatureV2(address(zeroExDeployed.zeroEx)).executeMetaTransactionV2(
             mtxData,
             _mtxSignature(mtxData)
         );
-        assertEq(zrxToken.balanceOf(USER_ADDRESS), oneEth);
+        assertEq(zrxToken.balanceOf(USER_ADDRESS), 1e18);
         assertEq(usdcToken.balanceOf(USER_ADDRESS), 0);
         assertEq(wethToken.balanceOf(address(this)), 1);
     }
@@ -277,13 +308,13 @@ contract MetaTransactionTest is BaseTest, TestUtils {
             fees
         );
 
-        assertEq(usdcToken.balanceOf(USER_ADDRESS), oneEth);
+        assertEq(usdcToken.balanceOf(USER_ADDRESS), 1e18);
 
         IMetaTransactionsFeatureV2(address(zeroExDeployed.zeroEx)).executeMetaTransactionV2(
             mtxData,
             _mtxSignature(mtxData)
         );
-        assertEq(zrxToken.balanceOf(USER_ADDRESS), oneEth);
+        assertEq(zrxToken.balanceOf(USER_ADDRESS), 1e18);
         assertEq(usdcToken.balanceOf(USER_ADDRESS), 0);
         assertEq(wethToken.balanceOf(address(this)), 0); // no fee paid out
     }
@@ -305,13 +336,13 @@ contract MetaTransactionTest is BaseTest, TestUtils {
             fees
         );
 
-        assertEq(usdcToken.balanceOf(USER_ADDRESS), oneEth);
+        assertEq(usdcToken.balanceOf(USER_ADDRESS), 1e18);
 
         IMetaTransactionsFeatureV2(address(zeroExDeployed.zeroEx)).executeMetaTransactionV2(
             mtxData,
             _mtxSignature(mtxData)
         );
-        assertEq(zrxToken.balanceOf(USER_ADDRESS), oneEth);
+        assertEq(zrxToken.balanceOf(USER_ADDRESS), 1e18);
         assertEq(usdcToken.balanceOf(USER_ADDRESS), 0);
         assertEq(wethToken.balanceOf(address(this)), 10);
         assertEq(wethToken.balanceOf(address(signerAddress)), 20);
