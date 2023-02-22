@@ -3,10 +3,9 @@
     "version": "0.0.0",
     "private": true,
     "scripts": {
-        "db:migrate": "npx prisma migrate dev",
-        "db:reset": "npx prisma migrate reset",
-        "test": "echo \"Error: no tests implemented\"",
-        "postinstall": "npx prisma generate"
+        "build": "prisma generate",
+        "db:migrate": "prisma migrate dev",
+        "db:reset": "prisma migrate reset"
     },
     "devDependencies": {
         "jest": "^29.4.2",
