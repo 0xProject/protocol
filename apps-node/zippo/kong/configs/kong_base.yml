@@ -1,0 +1,357 @@
+_format_version: "3.0"
+consumers:
+- acls:
+  - group: swap_price_v1_group
+  username: 0x_anonymous
+plugins:
+- config:
+    day: null
+    error_code: 429
+    error_message: API rate limit exceeded
+    fault_tolerant: true
+    header_name: null
+    hide_client_headers: false
+    hour: null
+    limit_by: ip
+    minute: 1
+    month: null
+    path: null
+    policy: local
+    redis_database: 0
+    redis_host: null
+    redis_password: null
+    redis_port: 6379
+    redis_server_name: null
+    redis_ssl: false
+    redis_ssl_verify: false
+    redis_timeout: 2000
+    redis_username: null
+    second: null
+    year: null
+  consumer: 0x_anonymous
+  enabled: true
+  name: rate-limiting
+  protocols:
+  - grpc
+  - grpcs
+  - http
+  - https
+  route: swap_price_v1_route_fantom
+- config:
+    day: null
+    error_code: 429
+    error_message: API rate limit exceeded
+    fault_tolerant: true
+    header_name: null
+    hide_client_headers: false
+    hour: null
+    limit_by: ip
+    minute: 1
+    month: null
+    path: null
+    policy: local
+    redis_database: 0
+    redis_host: null
+    redis_password: null
+    redis_port: 6379
+    redis_server_name: null
+    redis_ssl: false
+    redis_ssl_verify: false
+    redis_timeout: 2000
+    redis_username: null
+    second: null
+    year: null
+  consumer: 0x_anonymous
+  enabled: true
+  name: rate-limiting
+  protocols:
+  - grpc
+  - grpcs
+  - http
+  - https
+  route: swap_price_v1_route_optimism
+services:
+- connect_timeout: 60000
+  enabled: true
+  host: mockbin.org
+  name: orderbook_v1_service
+  port: 80
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
+  - hosts:
+    - fantom.api.0x.org
+    https_redirect_status_code: 426
+    name: orderbook_v1_route_fantom
+    path_handling: v0
+    paths:
+    - /orderbook/v1
+    plugins:
+    - config:
+        allow:
+        - orderbook_v1_group
+        deny: null
+        hide_groups_header: true
+      enabled: true
+      name: acl
+      protocols:
+      - grpc
+      - grpcs
+      - http
+      - https
+    - config:
+        anonymous: null
+        hide_credentials: false
+        key_in_body: false
+        key_in_header: true
+        key_in_query: false
+        key_names:
+        - 0x-api-key
+        run_on_preflight: true
+      enabled: true
+      name: key-auth
+      protocols:
+      - grpc
+      - grpcs
+      - http
+      - https
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  - hosts:
+    - optimism.api.0x.org
+    https_redirect_status_code: 426
+    name: orderbook_v1_route_optimism
+    path_handling: v0
+    paths:
+    - /orderbook/v1
+    plugins:
+    - config:
+        allow:
+        - orderbook_v1_group
+        deny: null
+        hide_groups_header: true
+      enabled: true
+      name: acl
+      protocols:
+      - grpc
+      - grpcs
+      - http
+      - https
+    - config:
+        anonymous: null
+        hide_credentials: false
+        key_in_body: false
+        key_in_header: true
+        key_in_query: false
+        key_names:
+        - 0x-api-key
+        run_on_preflight: true
+      enabled: true
+      name: key-auth
+      protocols:
+      - grpc
+      - grpcs
+      - http
+      - https
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  write_timeout: 60000
+- connect_timeout: 60000
+  enabled: true
+  host: mockbin.org
+  name: swap_v1_service
+  port: 80
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
+  - hosts:
+    - fantom.api.0x.org
+    https_redirect_status_code: 426
+    name: swap_price_v1_route_fantom
+    path_handling: v0
+    paths:
+    - /swap/v1/price
+    plugins:
+    - config:
+        allow:
+        - swap_price_v1_group
+        deny: null
+        hide_groups_header: true
+      enabled: true
+      name: acl
+      protocols:
+      - grpc
+      - grpcs
+      - http
+      - https
+    - config:
+        anonymous: 0x_anonymous
+        hide_credentials: false
+        key_in_body: false
+        key_in_header: true
+        key_in_query: false
+        key_names:
+        - 0x-api-key
+        run_on_preflight: true
+      enabled: true
+      name: key-auth
+      protocols:
+      - grpc
+      - grpcs
+      - http
+      - https
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  - hosts:
+    - optimism.api.0x.org
+    https_redirect_status_code: 426
+    name: swap_price_v1_route_optimism
+    path_handling: v0
+    paths:
+    - /swap/v1/price
+    plugins:
+    - config:
+        allow:
+        - swap_price_v1_group
+        deny: null
+        hide_groups_header: true
+      enabled: true
+      name: acl
+      protocols:
+      - grpc
+      - grpcs
+      - http
+      - https
+    - config:
+        anonymous: 0x_anonymous
+        hide_credentials: false
+        key_in_body: false
+        key_in_header: true
+        key_in_query: false
+        key_names:
+        - 0x-api-key
+        run_on_preflight: true
+      enabled: true
+      name: key-auth
+      protocols:
+      - grpc
+      - grpcs
+      - http
+      - https
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  - hosts:
+    - fantom.api.0x.org
+    https_redirect_status_code: 426
+    name: swap_quote_v1_route_fantom
+    path_handling: v0
+    paths:
+    - /swap/v1/quote
+    plugins:
+    - config:
+        allow:
+        - swap_quote_v1_group
+        deny: null
+        hide_groups_header: true
+      enabled: true
+      name: acl
+      protocols:
+      - grpc
+      - grpcs
+      - http
+      - https
+    - config:
+        anonymous: null
+        hide_credentials: false
+        key_in_body: false
+        key_in_header: true
+        key_in_query: false
+        key_names:
+        - 0x-api-key
+        run_on_preflight: true
+      enabled: true
+      name: key-auth
+      protocols:
+      - grpc
+      - grpcs
+      - http
+      - https
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  - hosts:
+    - optimism.api.0x.org
+    https_redirect_status_code: 426
+    name: swap_quote_v1_route_optimism
+    path_handling: v0
+    paths:
+    - /swap/v1/quote
+    plugins:
+    - config:
+        allow:
+        - swap_quote_v1_group
+        deny: null
+        hide_groups_header: true
+      enabled: true
+      name: acl
+      protocols:
+      - grpc
+      - grpcs
+      - http
+      - https
+    - config:
+        anonymous: null
+        hide_credentials: false
+        key_in_body: false
+        key_in_header: true
+        key_in_query: false
+        key_names:
+        - 0x-api-key
+        run_on_preflight: true
+      enabled: true
+      name: key-auth
+      protocols:
+      - grpc
+      - grpcs
+      - http
+      - https
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  write_timeout: 60000
