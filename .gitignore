@@ -25,6 +25,10 @@ yarn-error.log*
 # turbo
 .turbo
 
+# other package managers
+package-lock.json
+pnpm-lock.yaml
+
 # build
 __build__
 dist
