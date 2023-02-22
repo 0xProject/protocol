@@ -21,6 +21,7 @@ import "../utils/TestUtils.sol";
 import "src/IZeroEx.sol";
 import "@0x/contracts-erc20/src/IEtherToken.sol";
 import "src/features/TransformERC20Feature.sol";
+import "src/features/multiplex/MultiplexFeature.sol";
 import "src/external/TransformerDeployer.sol";
 import "src/transformers/WethTransformer.sol";
 import "src/transformers/FillQuoteTransformer.sol";
@@ -50,106 +51,137 @@ contract MultiplexRfqtTest is Test, ForkUtils, TestUtils {
                 getContractAddresses(i),
                 getLiquiditySourceAddresses(i)
             );
-            swapWithOtcOrder(getTokens(i), getContractAddresses(i), getLiquiditySourceAddresses(i));
+
+            MultiplexFeature memory mf = new MultiplexFeature(
+                address(ZERO_EX),
+                ZERO_EX_DEPLOYED.weth,
+                ILiquidityProviderSandbox(addresses.exchangeProxyLiquidityProviderSandbox),
+                address(0), // uniswapFactory
+                address(0), // sushiswapFactory
+                bytes32(0), // uniswapPairInitCodeHash
+                bytes32(0) // sushiswapPairInitCodeHash
+            );
+            swapMultihopOtc(getTokens(i), getContractAddresses(i), getLiquiditySourceAddresses(i));
         }
     }
 
     /* solhint-disable function-max-lines */
-    function swapWithOtcOrder(
+
+    function swapMultihopOtc(
         TokenAddresses memory tokens,
         ContractAddresses memory addresses,
         LiquiditySources memory sources
     ) public onlyForked {
         IZERO_EX = IZeroEx(addresses.exchangeProxy);
-        address USDC = address(tokens.USDC);
-        // Create our list of transformations, let's do WethTransformer and FillQuoteTransformer
-        ITransformERC20Feature.Transformation[] memory transformations = new ITransformERC20Feature.Transformation[](2);
 
-        // Use our cheeky search helper to find the nonce rather than hardcode it
-        transformations[0].deploymentNonce = _findTransformerNonce(
-            address(addresses.transformers.wethTransformer),
-            address(addresses.exchangeProxyTransformerDeployer)
+        address[] memory tradeTokens = new address[](3);
+        tradeTokens[0] = address(tokens.WrappedNativeToken);
+        tradeTokens[1] = address(tokens.USDC);
+        tradeTokens[2] = address(tokens.DAI);
+
+        uint inputAmount = 1e18;
+        uint outputAmount = 5e17;
+
+        IMultiplexFeature.MultiHopSellSubcall[] memory subcalls = new IMultiplexFeature.MultiHopSellSubcall[](2);
+        IMultiplexFeature.MultiHopSellState memory state;
+        state.outputTokenAmount = 0;
+        state.from = address(this);
+        state.to = address(addresses.exchangeProxy);
+        state.hopIndex = uint256(0);
+
+        IMultiplexFeature.MultiHopSellSubcall memory subcall1;
+        subcall1.id = IMultiplexFeature.MultiplexSubcall.OTC;
+
+        //subcall.data = abi.encode(address[], LibNativeOrder.OtcOrder, LibSignature.Signature);
+        (LibNativeOrder.OtcOrder memory order1, LibSignature.Signature memory signature1) = createOtcOrder(
+            tokens.WrappedNativeToken,
+            tokens.DAI,
+            1e18,
+            5e17,
+            0
         );
-        emit log_named_uint("           WethTransformer nonce", transformations[0].deploymentNonce);
-        createNewFQT(tokens.WrappedNativeToken, addresses.exchangeProxy, addresses.exchangeProxyTransformerDeployer);
-        // Set the first transformation to transform ETH into WETH
-        transformations[0].data = abi.encode(LibERC20Transformer.ETH_TOKEN_ADDRESS, 1e18);
+        subcall1.data = abi.encode(tradeTokens, order1, signature1);
 
-        transformations[1].deploymentNonce = _findTransformerNonce(
-            address(fillQuoteTransformer),
-            address(addresses.exchangeProxyTransformerDeployer)
+        IMultiplexFeature.MultiHopSellSubcall memory subcall2;
+        subcall2.id = IMultiplexFeature.MultiplexSubcall.OTC;
+        (LibNativeOrder.OtcOrder memory order2, LibSignature.Signature memory signature2) = createOtcOrder(
+            tokens.USDC,
+            tokens.DAI,
+            5e17,
+            5e17,
+            1
         );
-        log_named_uint("           FillQuoteTransformer nonce", transformations[1].deploymentNonce);
-        // Set up the FillQuoteTransformer data
-        FillQuoteTransformer.TransformData memory fqtData;
-        fqtData.side = FillQuoteTransformer.Side.Sell;
-        fqtData.sellToken = IERC20Token(address(tokens.WrappedNativeToken));
-        fqtData.buyToken = tokens.USDC;
-        // the FQT has a sequence, e.g first RFQ then Limit then Bridge
-        // since solidity doesn't support arrays of different types, this is one simple solution
-        // We use a Bridge order type here as we will fill on UniswapV2
-        fqtData.fillSequence = new FillQuoteTransformer.OrderType[](1);
-        fqtData.fillSequence[0] = FillQuoteTransformer.OrderType.Otc;
-        // The amount to fill
-        fqtData.fillAmount = 1e18;
+        subcall2.data = abi.encode(tradeTokens, order2, signature2);
 
-        // Now let's set up an OTC fill
-        fqtData.otcOrders = new FillQuoteTransformer.OtcOrderInfo[](1);
+        subcalls[0] = subcall1;
+        subcalls[1] = subcall2;
+        /// @dev Sells `sellAmount` of the input token (`tokens[0]`)
+        ///      via the given sequence of tokens and calls.
+        ///      The last token in `tokens` is the output token that
+        ///      will ultimately be sent to `msg.sender`
+        /// @param tokens The sequence of tokens to use for the sell,
+        ///        i.e. `tokens[i]` will be sold for `tokens[i+1]` via
+        ///        `calls[i]`.
+        /// @param calls The sequence of calls to use for the sell.
+        /// @param sellAmount The amount of `inputToken` to sell.
+        /// @param minBuyAmount The minimum amount of output tokens that
+        ///        must be bought for this function to not revert.
+        /// @return boughtAmount The amount of output tokens bought.
+        IZERO_EX.multiplexMultiHopSellTokenForToken(
+            // input token[] [input, intermediate, output]
+            tradeTokens,
+            //array of subcalls [{},{}]
+            subcalls,
+            // input token amount
+            inputAmount,
+            // min output token amount
+            outputAmount
+        );
+    }
+
+    function createOtcOrder(
+        IERC20Token inputToken,
+        IERC20Token ouputToken,
+        uint128 takerAmount,
+        uint128 makerAmount,
+        uint bump
+    ) public returns (LibNativeOrder.OtcOrder memory order, LibSignature.Signature memory signature) {
         LibNativeOrder.OtcOrder memory order;
         FillQuoteTransformer.OtcOrderInfo memory orderInfo;
-
-        order.makerToken = fqtData.buyToken;
-        order.takerToken = fqtData.sellToken;
-        order.makerAmount = 1e18;
-        order.takerAmount = 1e18;
+        LibSignature.Signature memory signature;
+        order.makerToken = inputToken;
+        order.takerToken = ouputToken;
+        order.takerAmount = takerAmount;
+        order.makerAmount = makerAmount;
         uint privateKey;
+
         (order.maker, privateKey) = getSigner();
-        deal(address(order.makerToken), order.maker, 1e20);
+
+        deal(address(order.makerToken), order.maker, 2e20);
+
         vm.prank(order.maker);
-        IERC20Token(tokens.USDC).approve(address(addresses.exchangeProxy), 1e20);
+        IERC20Token(order.makerToken).approve(addresses.exchangeProxy, 1e19);
+
         vm.prank(order.maker);
 
         order.taker = address(0);
         order.txOrigin = address(tx.origin);
-        order.expiryAndNonce = encodeExpiryAndNonce(order.maker);
-        orderInfo.order = order;
+        order.expiryAndNonce = encodeExpiryAndNonce(order.maker, bump);
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, IZERO_EX.getOtcOrderHash(order));
-        // How much we want to fill on this order, which can be different to the total
-        // e.g 50/50 split this would be half
-        order.takerAmount = 1e18;
-        // Set this low as the price of ETH/USDC can change
-        order.makerAmount = 1e18;
 
-        orderInfo.signature.signatureType = LibSignature.SignatureType.EIP712;
-        orderInfo.signature.v = v;
-        orderInfo.signature.r = r;
-        orderInfo.signature.s = s;
+        signature.signatureType = LibSignature.SignatureType.EIP712;
+        signature.v = v;
+        signature.r = r;
+        signature.s = s;
 
-        orderInfo.maxTakerTokenFillAmount = 1e18;
-
-        fqtData.otcOrders[0] = orderInfo;
-        transformations[1].data = abi.encode(fqtData);
-        log_string("        Successful fill, makerTokens bought");
-        IZERO_EX.transformERC20{value: 1e18}(
-            // input token
-            IERC20Token(LibERC20Transformer.ETH_TOKEN_ADDRESS),
-            // output token
-            tokens.USDC,
-            // input token amount
-            order.takerAmount,
-            // min output token amount
-            order.makerAmount,
-            // list of transform
-            transformations
-        );
-        assert(tokens.USDC.balanceOf(address(this)) > 0);
+        return (order, signature);
     }
 
     /* solhint-enable function-max-lines */
-    function encodeExpiryAndNonce(address maker) public returns (uint256) {
+    function encodeExpiryAndNonce(address maker, uint bump) public returns (uint256) {
         uint256 expiry = (block.timestamp + 120) << 192;
-        uint256 bucket = 0 << 128;
+        uint256 bucket = (0 + bump) << 128;
         uint256 nonce = vm.getNonce(maker);
         return expiry | bucket | nonce;
     }

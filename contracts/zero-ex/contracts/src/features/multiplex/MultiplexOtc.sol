@@ -72,10 +72,8 @@ abstract contract MultiplexOtc is FixinEIP712 {
         bytes memory wrappedCallData
     ) internal {
         // Decode the tokens[], Otc order, and signature.
-        (address[] memory tokens, LibNativeOrder.OtcOrder memory order, LibSignature.Signature memory signature) = abi.decode(
-            wrappedCallData,
-            (address[], LibNativeOrder.OtcOrder, LibSignature.Signature)
-        );
+        (address[] memory tokens, LibNativeOrder.OtcOrder memory order, LibSignature.Signature memory signature) = abi
+            .decode(wrappedCallData, (address[], LibNativeOrder.OtcOrder, LibSignature.Signature));
         // Validate tokens.
         require(
             tokens.length >= 2 &&
@@ -83,29 +81,19 @@ abstract contract MultiplexOtc is FixinEIP712 {
                 tokens[tokens.length - 1] == params.tokens[state.hopIndex + 1],
             "MultiplexOtcOrder::_multiHopSellOtcOrder/INVALID_TOKENS"
         );
-        // Pre-emptively check if the order is expired.
-        uint64 expiry = uint64(order.expiryAndNonce >> 192);
-        if (expiry <= uint64(block.timestamp)) {
-            bytes32 orderHash = _getEIP712Hash(LibNativeOrder.getOtcOrderStructHash(order));
-            emit ExpiredOtcOrder(orderHash, order.maker, expiry);
-            return;
-        }
 
         uint256 sellAmount = state.outputTokenAmount;
-        // Try filling the Otc order. Swallows reverts.
-        try
-            IOtcOrdersFeature(address(this))._fillOtcOrder(
+        // Try filling the Otc order. Bubble up reverts.
+        (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount) = IOtcOrdersFeature(address(this))
+            ._fillOtcOrder(
                 order,
                 signature,
                 sellAmount.safeDowncastToUint128(),
                 msg.sender,
                 params.useSelfBalance,
                 params.recipient
-            )
-        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount) {
-            //store the amount bought from the otc order
-            state.outputTokenAmount = makerTokenFilledAmount;
-
-        } catch {}
+            );
+        //store the bought amount for the next hop
+        state.outputTokenAmount = makerTokenFilledAmount;
     }
 }

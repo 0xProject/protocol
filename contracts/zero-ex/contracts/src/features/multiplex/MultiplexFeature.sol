@@ -416,9 +416,9 @@ contract MultiplexFeature is
                 _multiHopSellLiquidityProvider(state, params, subcall.data);
             } else if (subcall.id == MultiplexSubcall.BatchSell) {
                 _nestedBatchSell(state, params, subcall.data);
-            } else if (subcall.id == MultiplexSubcall.OTC){
+            } else if (subcall.id == MultiplexSubcall.OTC) {
                 _multiHopSellOtcOrder(state, params, subcall.data);
-            }else {
+            } else {
                 revert("MultiplexFeature::_executeMultiHopSell/INVALID_SUBCALL");
             }
             // The recipient of the current hop will be the source
