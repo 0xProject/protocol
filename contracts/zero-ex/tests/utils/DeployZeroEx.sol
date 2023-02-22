@@ -135,7 +135,10 @@ contract DeployZeroEx is Test {
         emit log_named_address("UniswapV3Feature", address(ZERO_EX_DEPLOYED.features.uniswapV3Feature));
         emit log_named_address("FundRecoveryFeature", address(ZERO_EX_DEPLOYED.features.fundRecoveryFeature));
         emit log_named_address("MetaTransactionsFeature", address(ZERO_EX_DEPLOYED.features.metaTransactionsFeature));
-        emit log_named_address("MetaTransactionsFeatureV2", address(ZERO_EX_DEPLOYED.features.metaTransactionsFeatureV2));
+        emit log_named_address(
+            "MetaTransactionsFeatureV2",
+            address(ZERO_EX_DEPLOYED.features.metaTransactionsFeatureV2)
+        );
         emit log_named_address("ERC1155OrdersFeature", address(ZERO_EX_DEPLOYED.features.erc1155OrdersFeature));
         emit log_named_address("ERC721OrdersFeature", address(ZERO_EX_DEPLOYED.features.erc721OrdersFeature));
         emit log_named_address("TransformERC20Feature", address(ZERO_EX_DEPLOYED.features.transformERC20Feature));
@@ -204,7 +207,10 @@ contract DeployZeroEx is Test {
         );
         ZERO_EX_DEPLOYED.features.fundRecoveryFeature = new FundRecoveryFeature();
         ZERO_EX_DEPLOYED.features.metaTransactionsFeature = new MetaTransactionsFeature(address(ZERO_EX));
-        ZERO_EX_DEPLOYED.features.metaTransactionsFeatureV2 = new MetaTransactionsFeatureV2(address(ZERO_EX), ZERO_EX_DEPLOYED.weth);
+        ZERO_EX_DEPLOYED.features.metaTransactionsFeatureV2 = new MetaTransactionsFeatureV2(
+            address(ZERO_EX),
+            ZERO_EX_DEPLOYED.weth
+        );
         ZERO_EX_DEPLOYED.features.erc1155OrdersFeature = new ERC1155OrdersFeature(
             address(ZERO_EX),
             ZERO_EX_DEPLOYED.weth

@@ -53,8 +53,8 @@ contract TestUtils is Test {
     }
 
     function makeTestRfqOrder(
-        DeployZeroEx.ZeroExDeployed memory zeroExDeployed, 
-        IERC20Token makerToken, 
+        DeployZeroEx.ZeroExDeployed memory zeroExDeployed,
+        IERC20Token makerToken,
         IERC20Token takerToken,
         address makerAddress,
         address takerAddress,
@@ -79,21 +79,24 @@ contract TestUtils is Test {
         vm.prank(takerAddress);
         order.takerToken.approve(address(zeroExDeployed.zeroEx), order.takerAmount);
 
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(makerKey, zeroExDeployed.features.nativeOrdersFeature.getRfqOrderHash(order));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
+            makerKey,
+            zeroExDeployed.features.nativeOrdersFeature.getRfqOrderHash(order)
+        );
         LibSignature.Signature memory sig = LibSignature.Signature(LibSignature.SignatureType.EIP712, v, r, s);
 
-
-        return abi.encodeWithSelector(
-            INativeOrdersFeature.fillRfqOrder.selector, // 0xaa77476c
-            order,  // RFQOrder
-            sig,    // Order Signature
-            1e18   // Fill Amount
-        );
+        return
+            abi.encodeWithSelector(
+                INativeOrdersFeature.fillRfqOrder.selector, // 0xaa77476c
+                order, // RFQOrder
+                sig, // Order Signature
+                1e18 // Fill Amount
+            );
     }
 
     function makeTestLimitOrder(
-        DeployZeroEx.ZeroExDeployed memory zeroExDeployed, 
-        IERC20Token makerToken, 
+        DeployZeroEx.ZeroExDeployed memory zeroExDeployed,
+        IERC20Token makerToken,
         IERC20Token takerToken,
         address makerAddress,
         address takerAddress,
@@ -120,20 +123,24 @@ contract TestUtils is Test {
         vm.prank(takerAddress);
         order.takerToken.approve(address(zeroExDeployed.zeroEx), order.takerAmount);
 
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(makerKey, zeroExDeployed.features.nativeOrdersFeature.getLimitOrderHash(order));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
+            makerKey,
+            zeroExDeployed.features.nativeOrdersFeature.getLimitOrderHash(order)
+        );
         LibSignature.Signature memory sig = LibSignature.Signature(LibSignature.SignatureType.EIP712, v, r, s);
 
-        return abi.encodeWithSelector(
-            INativeOrdersFeature.fillLimitOrder.selector, // 0xf6274f66
-            order,  // LimitOrder
-            sig,    // Order Signature
-            1e18   // Fill Amount
-        );
+        return
+            abi.encodeWithSelector(
+                INativeOrdersFeature.fillLimitOrder.selector, // 0xf6274f66
+                order, // LimitOrder
+                sig, // Order Signature
+                1e18 // Fill Amount
+            );
     }
 
     function transformERC20Call(
-        DeployZeroEx.ZeroExDeployed memory zeroExDeployed, 
-        IERC20Token makerToken, 
+        DeployZeroEx.ZeroExDeployed memory zeroExDeployed,
+        IERC20Token makerToken,
         IERC20Token takerToken,
         address takerAddress,
         uint256 transformerNonce
@@ -148,14 +155,15 @@ contract TestUtils is Test {
         vm.prank(takerAddress);
         takerToken.approve(address(zeroExDeployed.zeroEx), 1e18);
 
-        return abi.encodeWithSelector(
-            zeroExDeployed.zeroEx.transformERC20.selector, // 0x415565b0
-            takerToken,
-            makerToken,
-            1e18,
-            1e18,
-            transformations
-        );
+        return
+            abi.encodeWithSelector(
+                zeroExDeployed.zeroEx.transformERC20.selector, // 0x415565b0
+                takerToken,
+                makerToken,
+                1e18,
+                1e18,
+                transformations
+            );
     }
 
     function mintTo(IERC20Token token, address recipient, uint256 amount) public {
