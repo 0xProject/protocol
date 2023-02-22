@@ -90,6 +90,10 @@ contract ZeroExProtocolGovernor is
         securityCouncil = address(0);
     }
 
+    function assignSecurityCouncil(address _securityCouncil) public onlyGovernance {
+        securityCouncil = _securityCouncil;
+    }
+
     function _execute(
         uint256 proposalId,
         address[] memory targets,

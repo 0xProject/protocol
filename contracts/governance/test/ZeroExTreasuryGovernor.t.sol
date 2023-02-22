@@ -89,6 +89,10 @@ contract ZeroExTreasuryGovernorTest is BaseTest {
         assertEq(address(treasuryGovernor.token()), address(votes));
     }
 
+    function testShouldReturnCorrectSecurityCouncil() public {
+        assertEq(treasuryGovernor.securityCouncil(), securityCouncil);
+    }
+
     function testShouldBeAbleToExecuteASuccessfulProposal() public {
         // Create a proposal
         address[] memory targets = new address[](1);
@@ -307,5 +311,48 @@ contract ZeroExTreasuryGovernorTest is BaseTest {
         assertEq(uint256(state), uint256(IGovernor.ProposalState.Canceled));
 
         assertEq(treasuryGovernor.securityCouncil(), address(0));
+    }
+
+    function testCanAssignSecurityCouncil() public {
+        // Create a proposal
+        address[] memory targets = new address[](1);
+        targets[0] = address(treasuryGovernor);
+
+        uint256[] memory values = new uint256[](1);
+        values[0] = 0;
+
+        bytes[] memory calldatas = new bytes[](1);
+        calldatas[0] = abi.encodeWithSelector(treasuryGovernor.assignSecurityCouncil.selector, account1);
+
+        vm.roll(2);
+        vm.startPrank(account2);
+        uint256 proposalId = treasuryGovernor.propose(targets, values, calldatas, "Assign new security council");
+        vm.stopPrank();
+
+        // Fast forward to after vote start
+        vm.roll(treasuryGovernor.proposalSnapshot(proposalId) + 1);
+
+        // Vote
+        vm.prank(account2);
+        treasuryGovernor.castVote(proposalId, 1); // Vote "for"
+        vm.stopPrank();
+
+        // Fast forward to vote end
+        vm.roll(treasuryGovernor.proposalDeadline(proposalId) + 1);
+
+        // Queue proposal
+        treasuryGovernor.queue(targets, values, calldatas, keccak256(bytes("Assign new security council")));
+        vm.warp(treasuryGovernor.proposalEta(proposalId) + 1);
+
+        // Execute proposal
+        treasuryGovernor.execute(targets, values, calldatas, keccak256("Assign new security council"));
+
+        address newSecurityCouncil = treasuryGovernor.securityCouncil();
+        assertEq(newSecurityCouncil, account1);
+    }
+
+    function testCannotAssignSecurityCouncilOutsideOfGovernance() public {
+        vm.expectRevert("Governor: onlyGovernance");
+        treasuryGovernor.assignSecurityCouncil(account1);
     }
 }
