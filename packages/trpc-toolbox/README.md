@@ -53,7 +53,7 @@ export const myRouter = t.router({
                 return { greeting: `Hello ${ctx.userName} ${input} times!` };
             }),
     }),
-}) satisfies TMyRouter; // Don't forget the `satisfies` fot type safety!
+}) satisfies TMyRouter; // Don't forget the `satisfies` for type safety!
 ```
 
 ## Creating a client
