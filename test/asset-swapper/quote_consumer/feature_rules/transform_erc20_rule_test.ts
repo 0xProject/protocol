@@ -231,6 +231,7 @@ describe('TransformERC20Rule', () => {
             });
 
             const callArgs = decodeTransformERC20(callInfo.calldataHexString);
+            expect(callArgs.inputTokenAmount).to.deep.equal(ONE_ETHER);
             expect(getTransformerNonces(callArgs)).to.deep.eq(
                 [NONCES.affiliateFeeTransformer, NONCES.fillQuoteTransformer, NONCES.payTakerTransformer],
                 'Correct ordering of the transformers',
@@ -239,6 +240,70 @@ describe('TransformERC20Rule', () => {
             const affiliateFeeTransformerData = decodeAffiliateFeeTransformerData(callArgs.transformations[0].data);
             expect(affiliateFeeTransformerData.fees).to.deep.equal(
                 [{ token: TAKER_TOKEN, amount: sellTokenFeeAmount, recipient: integratorRecipient }],
+                'Affiliate Fee',
+            );
+        });
+
+        it('Appends an affiliate fee transformer before the FQT if sell token fees are specified and adjusts `sellAmount` if metaTransactionVersion is v1', () => {
+            const gasPrice = 20_000_000_000;
+            const makerAmountPerEth = new BigNumber(2);
+            const quote = createSimpleSellSwapQuoteWithBridgeOrder({
+                source: ERC20BridgeSource.UniswapV2,
+                takerToken: TAKER_TOKEN,
+                makerToken: MAKER_TOKEN,
+                takerAmount: ONE_ETHER,
+                makerAmount: ONE_ETHER.times(2),
+                makerAmountPerEth,
+                gasPrice,
+                slippage: 0,
+            });
+            const integratorRecipient = randomAddress();
+            const zeroExRecipient = randomAddress();
+            const integratorSellTokenFeeAmount = ONE_ETHER.times(0.01);
+            const zeroExSellTokenFeeAmount = ONE_ETHER.times(0.04);
+
+            const callInfo = rule.createCalldata(quote, {
+                ...constants.DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,
+                metaTransactionVersion: 'v1',
+                sellTokenAffiliateFees: [
+                    {
+                        recipient: integratorRecipient,
+                        buyTokenFeeAmount: ZERO_AMOUNT,
+                        sellTokenFeeAmount: integratorSellTokenFeeAmount,
+                        feeType: AffiliateFeeType.PercentageFee,
+                    },
+                    {
+                        recipient: zeroExRecipient,
+                        buyTokenFeeAmount: ZERO_AMOUNT,
+                        sellTokenFeeAmount: zeroExSellTokenFeeAmount,
+                        feeType: AffiliateFeeType.GaslessFee,
+                    },
+                ],
+            });
+
+            const callArgs = decodeTransformERC20(callInfo.calldataHexString);
+            expect(callArgs.inputTokenAmount).to.deep.equal(
+                ONE_ETHER.plus(integratorSellTokenFeeAmount).plus(zeroExSellTokenFeeAmount),
+            );
+            expect(getTransformerNonces(callArgs)).to.deep.equal(
+                [NONCES.affiliateFeeTransformer, NONCES.fillQuoteTransformer, NONCES.payTakerTransformer],
+                'Correct ordering of the transformers',
+            );
+
+            const affiliateFeeTransformerData = decodeAffiliateFeeTransformerData(callArgs.transformations[0].data);
+            expect(affiliateFeeTransformerData.fees).to.deep.equal(
+                [
+                    {
+                        token: TAKER_TOKEN,
+                        amount: integratorSellTokenFeeAmount,
+                        recipient: integratorRecipient,
+                    },
+                    {
+                        token: TAKER_TOKEN,
+                        amount: zeroExSellTokenFeeAmount,
+                        recipient: zeroExRecipient,
+                    },
+                ],
                 'Affiliate Fee',
             );
         });
@@ -273,6 +338,7 @@ describe('TransformERC20Rule', () => {
             });
 
             const callArgs = decodeTransformERC20(callInfo.calldataHexString);
+            expect(callArgs.inputTokenAmount).to.deep.equal(ONE_ETHER);
             expect(getTransformerNonces(callArgs)).to.deep.eq(
                 [
                     NONCES.affiliateFeeTransformer,

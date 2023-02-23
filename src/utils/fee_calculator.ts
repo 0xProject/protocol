@@ -11,33 +11,47 @@ import {
     VolumeBasedFeeConfig,
 } from '../types';
 
-/**
- * `transferFrom` estimated gas:
- * - Decrease balance of the owner (SLOAD + SSTORE): 24,000
- * - Increase balance of the spender (SLOAD + SSTORE): 24,000
- * - Update allowance of the spender (SLOAD + SSTORE): 24,000
- */
-const TRANSFER_FROM_GAS = new BigNumber(72e3);
+interface OnChainTransfer {
+    feeToken: string;
+    feeAmount: BigNumber;
+    feeRecipient: string;
+}
 
 /**
  * Calculate fees object which contains total fee amount and a breakdown of integrator, 0x and gas fees.
  *
- * @param feeConfigs Fee configs parsed from input.
- * @param opts sellToken: Address of the sell token.
+ * @param opts feeConfigs: Fee configs parsed from input.
+ *             sellToken: Address of the sell token.
  *             sellTokenAmount: Amount of the sell token.
- *             sellTokenAmountPerBaseUnitNativeToken: Amount of sell token per base unit native token.
+ *             sellTokenAmountPerWei: Amount of sell token per wei.
  *             gasPrice: Estimated gas price.
  *             quoteGasEstimate: The gas estimate to fill the quote.
- * @returns Fee object and the total on-chain fee amount.
+ *             gasPerOnChainTransfer: The gas cost per on-chain transfer.
+ * @returns Fee object, the total on-chain fee amount, on-chain transfers and the gas associated with on-chain transfers.
  */
 export function calculateFees(opts: {
-    feeConfigs: FeeConfigs;
+    feeConfigs: FeeConfigs | undefined;
     sellToken: string;
     sellTokenAmount: BigNumber;
-    sellTokenAmountPerBaseUnitNativeToken: BigNumber;
+    sellTokenAmountPerWei: BigNumber | undefined;
     gasPrice: BigNumber;
     quoteGasEstimate: BigNumber;
-}): { fees: Fees; totalOnChainChargedFeeAmount: BigNumber } {
+    gasPerOnChainTransfer: BigNumber;
+}): {
+    fees: Fees | undefined;
+    totalOnChainFeeAmount: BigNumber;
+    onChainTransfers: OnChainTransfer[];
+    onChainTransfersGas: BigNumber;
+} {
+    if (!opts.feeConfigs) {
+        return {
+            fees: undefined,
+            totalOnChainFeeAmount: ZERO,
+            onChainTransfers: [],
+            onChainTransfersGas: ZERO,
+        };
+    }
+
     const integratorFee = _calculateIntegratorFee({
         integratorFeeConfig: opts.feeConfigs.integratorFee,
         sellToken: opts.sellToken,
@@ -54,9 +68,10 @@ export function calculateFees(opts: {
     const gasFee = _calculateGasFee({
         gasFeeConfig: opts.feeConfigs.gasFee,
         sellToken: opts.sellToken,
-        sellTokenAmountPerBaseUnitNativeToken: opts.sellTokenAmountPerBaseUnitNativeToken,
+        sellTokenAmountPerWei: opts.sellTokenAmountPerWei,
         gasPrice: opts.gasPrice,
         quoteGasEstimate: opts.quoteGasEstimate,
+        gasPerOnChainTransfer: opts.gasPerOnChainTransfer,
         integratorFee,
         zeroExFee,
     });
@@ -69,31 +84,94 @@ export function calculateFees(opts: {
 
     return {
         fees,
-        // `totalOnChainChargedFeeAmount` is used to adjust pricing. Currently, only on-chain fee would impact pricing.
-        totalOnChainChargedFeeAmount: _calculateTotalOnChainChargedFeeAmount(fees),
+        ..._calculateTotalOnChainFees(fees, opts.gasPerOnChainTransfer),
     };
 }
 
-function _calculateTotalOnChainChargedFeeAmount(fees: Fees): BigNumber {
-    let totalFeeAmount = ZERO;
+/**
+ * Calculate fees that needs to be transferred on-chain.
+ *
+ * @param fees Fees object.
+ * @param gasPerOnChainTransfer: The gas cost per on-chain transfer.
+ * @returns On-chain fee amount, transfers and corresponding gas cost.
+ */
+function _calculateTotalOnChainFees(
+    fees: Fees,
+    gasPerOnChainTransfer: BigNumber,
+): {
+    totalOnChainFeeAmount: BigNumber;
+    onChainTransfers: OnChainTransfer[];
+    onChainTransfersGas: BigNumber;
+} {
+    const feeRecipientToOnChainTransfer = new Map<string, OnChainTransfer>();
 
     // Integrator fee
-    if (fees.integratorFee && fees.integratorFee.billingType === 'on-chain' && fees.integratorFee.feeRecipient) {
-        totalFeeAmount = totalFeeAmount.plus(fees.integratorFee.feeAmount);
+    if (
+        fees.integratorFee &&
+        fees.integratorFee.billingType === 'on-chain' &&
+        fees.integratorFee.feeRecipient &&
+        fees.integratorFee.feeAmount.gt(ZERO)
+    ) {
+        const currentIntegratorFeeAmount =
+            feeRecipientToOnChainTransfer.get(fees.integratorFee.feeRecipient)?.feeAmount ?? ZERO;
+        let zeroExFeeAdjustment = ZERO;
+
+        // If 0x fee is on-chain integrator share fee, we need to adjust integrator fee
+        if (
+            fees.zeroExFee &&
+            fees.zeroExFee.billingType === 'on-chain' &&
+            fees.zeroExFee.feeRecipient &&
+            fees.zeroExFee.type === 'integrator_share'
+        ) {
+            zeroExFeeAdjustment = fees.zeroExFee.feeAmount;
+        }
+
+        feeRecipientToOnChainTransfer.set(fees.integratorFee.feeRecipient, {
+            feeRecipient: fees.integratorFee.feeRecipient,
+            feeToken: fees.integratorFee.feeToken,
+            feeAmount: currentIntegratorFeeAmount.plus(fees.integratorFee.feeAmount.minus(zeroExFeeAdjustment)),
+        });
     }
     // 0x fee
-    if (fees.zeroExFee && fees.zeroExFee.billingType === 'on-chain' && fees.zeroExFee.feeRecipient) {
-        // If the fee kind is integrator_share, the 0x amount has already been included in integrator amount
-        if (fees.zeroExFee.type !== 'integrator_share') {
-            totalFeeAmount = totalFeeAmount.plus(fees.zeroExFee.feeAmount);
-        }
+    if (
+        fees.zeroExFee &&
+        fees.zeroExFee.billingType === 'on-chain' &&
+        fees.zeroExFee.feeRecipient &&
+        fees.zeroExFee.feeAmount.gt(ZERO)
+    ) {
+        const currentZeroExFeeAmount =
+            feeRecipientToOnChainTransfer.get(fees.zeroExFee.feeRecipient)?.feeAmount ?? ZERO;
+        feeRecipientToOnChainTransfer.set(fees.zeroExFee.feeRecipient, {
+            feeRecipient: fees.zeroExFee.feeRecipient,
+            feeToken: fees.zeroExFee.feeToken,
+            feeAmount: currentZeroExFeeAmount.plus(fees.zeroExFee.feeAmount),
+        });
     }
     // Gas fee
-    if (fees.gasFee && fees.gasFee.billingType === 'on-chain' && fees.gasFee.feeRecipient) {
-        totalFeeAmount = totalFeeAmount.plus(fees.gasFee.feeAmount);
+    if (
+        fees.gasFee &&
+        fees.gasFee.billingType === 'on-chain' &&
+        fees.gasFee.feeRecipient &&
+        fees.gasFee.feeAmount.gt(ZERO)
+    ) {
+        const currentGasFeeAmount = feeRecipientToOnChainTransfer.get(fees.gasFee.feeRecipient)?.feeAmount ?? ZERO;
+        feeRecipientToOnChainTransfer.set(fees.gasFee.feeRecipient, {
+            feeRecipient: fees.gasFee.feeRecipient,
+            feeToken: fees.gasFee.feeToken,
+            feeAmount: currentGasFeeAmount.plus(fees.gasFee.feeAmount),
+        });
     }
 
-    return totalFeeAmount;
+    const onChainTransfersGas = gasPerOnChainTransfer.times(feeRecipientToOnChainTransfer.size);
+    const onChainTransfers = [...feeRecipientToOnChainTransfer.values()];
+    return {
+        totalOnChainFeeAmount: onChainTransfers.reduce(
+            (totalOnChainFeeAmount, onChainTransfer) => totalOnChainFeeAmount.plus(onChainTransfer.feeAmount),
+            ZERO,
+        ),
+        onChainTransfers,
+        onChainTransfersGas,
+    };
 }
 
 function _calculateIntegratorFee(opts: {
@@ -163,23 +241,29 @@ function _calculateZeroExFee(opts: {
 function _calculateGasFee(opts: {
     gasFeeConfig?: GasFeeConfig;
     sellToken: string;
-    sellTokenAmountPerBaseUnitNativeToken: BigNumber;
+    sellTokenAmountPerWei: BigNumber | undefined;
     gasPrice: BigNumber;
     quoteGasEstimate: BigNumber;
+    gasPerOnChainTransfer: BigNumber;
     integratorFee?: VolumeBasedFee;
     zeroExFee?: VolumeBasedFee | IntegratorShareFee;
 }): GasFee | undefined {
     if (!opts.gasFeeConfig) {
         return undefined;
     }
+    if (!opts.sellTokenAmountPerWei) {
+        throw new Error(`Undefined sellTokenAmountPerWei when gas fee config is not undefined ${opts.gasFeeConfig}`);
+    }
 
-    // Check the number of `transferFrom` necessary for fee
+    // TODO: Throw error for mainnet if we can't get sell token to native token conversion rate (sellTokenAmountPerWei is 0)
+
+    // Check the number of on-chain transfer necessary for fee
     const feeRecipients = new Set<string>();
     if (
         opts.integratorFee &&
         opts.integratorFee.billingType === 'on-chain' &&
         opts.integratorFee.feeRecipient &&
-        opts.integratorFee.feeAmount.gt(0)
+        opts.integratorFee.feeAmount.gt(ZERO)
     ) {
         feeRecipients.add(opts.integratorFee.feeRecipient);
     }
@@ -187,28 +271,33 @@ function _calculateGasFee(opts: {
         opts.zeroExFee &&
         opts.zeroExFee.billingType === 'on-chain' &&
         opts.zeroExFee.feeRecipient &&
-        opts.zeroExFee.feeAmount.gt(0)
+        opts.zeroExFee.feeAmount.gt(ZERO)
     ) {
         feeRecipients.add(opts.zeroExFee.feeRecipient);
     }
-    if (opts.gasFeeConfig && opts.gasFeeConfig.billingType === 'on-chain' && opts.gasFeeConfig.feeRecipient) {
+    if (
+        opts.gasFeeConfig &&
+        opts.gasFeeConfig.billingType === 'on-chain' &&
+        opts.gasFeeConfig.feeRecipient &&
+        opts.sellTokenAmountPerWei.gt(ZERO)
+    ) {
         feeRecipients.add(opts.gasFeeConfig.feeRecipient);
     }
 
-    const numTransferFromForFee = feeRecipients.size;
-    // Add the `transferFrom` gas to gas cost to fill the order
-    const estimatedGas = opts.quoteGasEstimate.plus(TRANSFER_FROM_GAS.times(numTransferFromForFee));
+    const numOnChainTransfer = feeRecipients.size;
+    // Add the on-chain transfer gas cost
+    const estimatedGas = opts.quoteGasEstimate.plus(opts.gasPerOnChainTransfer.times(numOnChainTransfer));
 
     return {
         type: 'gas',
         feeToken: opts.sellToken,
-        feeAmount: opts.sellTokenAmountPerBaseUnitNativeToken
+        feeAmount: opts.sellTokenAmountPerWei
             .times(opts.gasPrice)
             .times(estimatedGas)
             .integerValue(BigNumber.ROUND_FLOOR),
         feeRecipient: opts.gasFeeConfig.feeRecipient,
         billingType: opts.gasFeeConfig.billingType,
-        feeTokenAmountPerBaseUnitNativeToken: opts.sellTokenAmountPerBaseUnitNativeToken,
+        feeTokenAmountPerWei: opts.sellTokenAmountPerWei,
         gasPrice: opts.gasPrice,
         estimatedGas,
     };

@@ -29,6 +29,7 @@ import { IZeroExContract } from '@0x/contract-wrappers';
 import { TransformerNonces } from '../types';
 import { AbstractFeatureRule } from './abstract_feature_rule';
 import * as _ from 'lodash';
+import { ZERO } from '../../../constants';
 
 // Transformation of `TransformERC20` feature.
 interface ERC20Transformation {
@@ -72,11 +73,12 @@ export class TransformERC20Rule extends AbstractFeatureRule {
             isFromETH,
             isToETH,
             shouldSellEntireBalance,
+            metaTransactionVersion,
         } = opts;
 
         const swapContext = this.getSwapContext(quote, opts);
-        const { sellToken, buyToken, sellAmount, ethAmount } = swapContext;
-        let minBuyAmount = swapContext.minBuyAmount;
+        const { sellToken, buyToken, ethAmount } = swapContext;
+        let { minBuyAmount, sellAmount } = swapContext;
 
         // Build up the transformations.
         const transformations = [] as ERC20Transformation[];
@@ -97,6 +99,17 @@ export class TransformERC20Rule extends AbstractFeatureRule {
                         })),
                 }),
             });
+
+            // Adjust the sell amount by the fee for meta-transaction v1. We don't need to adjust the amount for v2
+            // since fee transfer won't happen in `transformERC20`
+            if (metaTransactionVersion === 'v1') {
+                const totalSellTokenFeeAmount = sellTokenAffiliateFees.reduce(
+                    (totalSellTokenFeeAmount, sellTokenAffiliateFees) =>
+                        totalSellTokenFeeAmount.plus(sellTokenAffiliateFees.sellTokenFeeAmount),
+                    ZERO,
+                );
+                sellAmount = sellAmount.plus(totalSellTokenFeeAmount);
+            }
         }
 
         // Create a WETH wrapper if coming from ETH.

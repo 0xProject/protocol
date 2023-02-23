@@ -27,6 +27,30 @@ export const POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS = new BigNumber(30000);
 export const ONE_GWEI = new BigNumber(1000000000);
 export const AFFILIATE_DATA_SELECTOR = '869584cd';
 export const DEFAULT_META_TX_MIN_ALLOWED_SLIPPAGE = 0.001;
+export const AVG_MULTIPLEX_TRANFORM_ERC_20_GAS = new BigNumber(933e3);
+/**
+ * `transformerTransfer` estimated gas (used by `AffiliateFeeTransformer`):
+ * - Decrease balance of the owner (flash wallet):
+ *   - SLOAD: 2,100
+ *   - SSTORE: 2,900 (original value is non-zero)
+ * - Increase balance of the spender (fee recipient):
+ *   - SLOAD: 2,100
+ *   - SSTORE: 20,000 (worst case scenario: original value is zero)
+ */
+export const TRANSFER_GAS = new BigNumber(27e3);
+/**
+ * `_transferERC20TokensFrom` estimated gas (used by `FixinTokenSpender`):
+ * - Decrease balance of the owner (taker):
+ *   - SLOAD: 2,100
+ *   - SSTORE: 2,900 (original value is non-zero)
+ * - Increase balance of the spender (one of the 0x contracts):
+ *   - SLOAD: 2,100
+ *   - SSTORE: 20,000 (worst case scenario: original value is zero)
+ * - Decrease allowance of the spender if necessary (one of the 0x contracts)
+ *   - SLOAD: 2,100
+ *   - SSTORE: 2,900 (original value is non-zero)
+ */
+export const TRANSFER_FROM_GAS = new BigNumber(32e3);
 
 // API namespaces
 export const SRA_PATH = '/sra/v4';

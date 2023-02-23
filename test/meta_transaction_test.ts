@@ -1,6 +1,6 @@
 import { WETH9Contract } from '@0x/contract-wrappers';
 import { DummyERC20TokenContract } from '@0x/contracts-erc20';
-import { assertRoughlyEquals, expect } from '@0x/contracts-test-utils';
+import { assertRoughlyEquals, expect, randomAddress } from '@0x/contracts-test-utils';
 import { BlockchainLifecycle, Web3ProviderEngine, Web3Wrapper } from '@0x/dev-utils';
 import { isNativeSymbolOrAddress } from '@0x/token-metadata';
 import { BigNumber } from '@0x/utils';
@@ -36,6 +36,8 @@ import { httpPostAsync } from './utils/http_utils';
 import { MockOrderWatcher } from './utils/mock_order_watcher';
 import { getRandomSignedLimitOrderAsync } from './utils/orders';
 import { StatusCodes } from 'http-status-codes';
+import { decodeTransformERC20 } from './asset-swapper/test_utils/decoders';
+import { decodeAffiliateFeeTransformerData } from '@0x/protocol-utils';
 
 // Force reload of the app avoid variables being polluted between test suites
 // Warning: You probably don't want to move this
@@ -50,6 +52,9 @@ const ZERO_EX_SOURCE = { name: '0x', proportion: new BigNumber('1') };
 
 const INTEGRATOR_ID = 'integrator';
 const TAKER_ADDRESS = '0x70a9f34f9b34c64957b9c401a97bfed35b95049e';
+
+const onChainBilling = 'on-chain';
+const offChainBilling = 'off-chain';
 
 describe(SUITE_NAME, () => {
     let app: Express.Application;
@@ -190,13 +195,23 @@ describe(SUITE_NAME, () => {
                     integratorId: INTEGRATOR_ID,
                     takerAddress: TAKER_ADDRESS,
                     feeConfigs: {
-                        integrator: { type: 'volume', volumePercentage: '0.1' },
-                        zeroex: {
+                        integratorFee: {
+                            type: 'volume',
+                            volumePercentage: '0.1',
+                            billingType: onChainBilling as 'on-chain',
+                            feeRecipient: randomAddress(),
+                        },
+                        zeroExFee: {
                             type: 'integrator_share',
                             integratorSharePercentage: '0.2',
-                            feeRecipient: TAKER_ADDRESS,
+                            billingType: onChainBilling as 'on-chain',
+                            feeRecipient: randomAddress(),
                         },
-                        gas: { type: 'gas' },
+                        gasFee: {
+                            type: 'gas',
+                            billingType: onChainBilling as 'on-chain',
+                            feeRecipient: randomAddress(),
+                        },
                     },
                 },
                 {
@@ -206,11 +221,17 @@ describe(SUITE_NAME, () => {
                     integratorId: INTEGRATOR_ID,
                     takerAddress: TAKER_ADDRESS,
                     feeConfigs: {
-                        integratorFee: { type: 'volume', volumePercentage: '0.1', feeRecipient: TAKER_ADDRESS },
+                        integratorFee: {
+                            type: 'volume',
+                            volumePercentage: '0.1',
+                            billingType: onChainBilling as 'on-chain',
+                            feeRecipient: randomAddress(),
+                        },
                         zeroExFee: {
                             type: 'integrator_share',
                             integratorSharePercentage: '0.2',
-                            feeRecipient: TAKER_ADDRESS,
+                            billingType: offChainBilling as 'off-chain',
+                            feeRecipient: null,
                         },
                     },
                 },
@@ -221,8 +242,17 @@ describe(SUITE_NAME, () => {
                     integratorId: INTEGRATOR_ID,
                     takerAddress: TAKER_ADDRESS,
                     feeConfigs: {
-                        integratorFee: { type: 'volume', volumePercentage: '0.1' },
-                        gasFee: { type: 'gas', feeRecipient: TAKER_ADDRESS },
+                        integratorFee: {
+                            type: 'volume',
+                            volumePercentage: '0.1',
+                            billingType: onChainBilling as 'on-chain',
+                            feeRecipient: randomAddress(),
+                        },
+                        gasFee: {
+                            type: 'gas',
+                            billingType: onChainBilling as 'on-chain',
+                            feeRecipient: randomAddress(),
+                        },
                     },
                 },
                 {
@@ -231,7 +261,14 @@ describe(SUITE_NAME, () => {
                     buyAmount: ZRX_BUY_AMOUNT,
                     integratorId: INTEGRATOR_ID,
                     takerAddress: TAKER_ADDRESS,
-                    feeConfigs: { integratorFee: { type: 'volume', volumePercentage: '0.1' } },
+                    feeConfigs: {
+                        integratorFee: {
+                            type: 'volume',
+                            volumePercentage: '0.1',
+                            billingType: onChainBilling as 'on-chain',
+                            feeRecipient: randomAddress(),
+                        },
+                    },
                 },
                 {
                     buyToken: ZRX_TOKEN_ADDRESS,
@@ -239,7 +276,9 @@ describe(SUITE_NAME, () => {
                     buyAmount: ZRX_BUY_AMOUNT,
                     integratorId: INTEGRATOR_ID,
                     takerAddress: TAKER_ADDRESS,
-                    feeConfigs: { gasFee: { type: 'gas', feeRecipient: TAKER_ADDRESS } },
+                    feeConfigs: {
+                        gasFee: { type: 'gas', billingType: offChainBilling as 'off-chain', feeRecipient: null },
+                    },
                 },
             ];
 
@@ -270,7 +309,14 @@ describe(SUITE_NAME, () => {
                 integratorId: 'integrator',
                 takerAddress: TAKER_ADDRESS,
                 metaTransactionVersion: 'v1',
-                feeConfigs: { integratorFee: { type: 'volume', volumePercentage: '0.1' } },
+                feeConfigs: {
+                    integratorFee: {
+                        type: 'volume',
+                        volumePercentage: '0.1',
+                        billingType: onChainBilling,
+                        feeRecipient: randomAddress(),
+                    },
+                },
             });
             expectSwapError(response, {
                 validationErrors: [
@@ -292,13 +338,19 @@ describe(SUITE_NAME, () => {
                 takerAddress: TAKER_ADDRESS,
                 metaTransactionVersion: 'v1',
                 feeConfigs: {
-                    integratorFee: { type: 'volume', volumePercentage: '0.1' },
+                    integratorFee: {
+                        type: 'volume',
+                        volumePercentage: '0.1',
+                        billingType: onChainBilling,
+                        feeRecipient: randomAddress(),
+                    },
                     zeroExFee: {
                         type: 'integrator_share',
                         integratorSharePercentage: '0.2',
-                        feeRecipient: TAKER_ADDRESS,
+                        billingType: offChainBilling,
+                        feeRecipient: null,
                     },
-                    gasFee: { type: 'gas' },
+                    gasFee: { type: 'gas', billingType: offChainBilling, feeRecipient: null },
                 },
             });
             expectCorrectQuoteResponse(response, { buyAmount: new BigNumber(1234) });
@@ -313,13 +365,18 @@ describe(SUITE_NAME, () => {
                 takerAddress: TAKER_ADDRESS,
                 metaTransactionVersion: 'v1',
                 feeConfigs: {
-                    integratorFee: { type: 'volume', volumePercentage: '0.1' },
+                    integratorFee: {
+                        type: 'volume',
+                        volumePercentage: '0.1',
+                        billingType: onChainBilling,
+                        feeRecipient: randomAddress(),
+                    },
                     zeroExFee: {
                         type: 'integrator_share',
                         integratorSharePercentage: '0.2',
-                        feeRecipient: TAKER_ADDRESS,
+                        billingType: offChainBilling,
+                        feeRecipient: null,
                     },
-                    gasFee: { type: 'gas' },
                 },
             });
             expectCorrectQuoteResponse(response, { sellAmount: new BigNumber(1234) });
@@ -334,21 +391,26 @@ describe(SUITE_NAME, () => {
                 takerAddress: TAKER_ADDRESS,
                 metaTransactionVersion: 'v1',
                 feeConfigs: {
-                    integratorFee: { type: 'volume', volumePercentage: '0.1' },
+                    integratorFee: {
+                        type: 'volume',
+                        volumePercentage: '0.1',
+                        billingType: onChainBilling,
+                        feeRecipient: randomAddress(),
+                    },
                     zeroExFee: {
                         type: 'integrator_share',
                         integratorSharePercentage: '0.2',
-                        feeRecipient: TAKER_ADDRESS,
+                        billingType: onChainBilling,
+                        feeRecipient: randomAddress(),
                     },
-                    gasFee: { type: 'gas' },
                 },
             });
             expect(response.body.trade.kind).to.eql('metatransaction');
         });
 
-        describe('fee configs', async () => {
+        describe('fee', async () => {
             describe('integrator', async () => {
-                it('should throw error if kind is invalid', async () => {
+                it('should throw error if fee config kind is invalid', async () => {
                     const response = await requestSwap(app, 'quote', 'v2', {
                         buyToken: 'ZRX',
                         sellToken: 'WETH',
@@ -357,7 +419,12 @@ describe(SUITE_NAME, () => {
                         takerAddress: TAKER_ADDRESS,
                         metaTransactionVersion: 'v1',
                         feeConfigs: {
-                            integratorFee: { type: 'random', volumePercentage: '0.1' },
+                            integratorFee: {
+                                type: 'random',
+                                volumePercentage: '0.1',
+                                billingType: onChainBilling,
+                                feeRecipient: randomAddress(),
+                            },
                         },
                     });
 
@@ -381,7 +448,12 @@ describe(SUITE_NAME, () => {
                         takerAddress: TAKER_ADDRESS,
                         metaTransactionVersion: 'v1',
                         feeConfigs: {
-                            integratorFee: { type: 'volume', volumePercentage: '1000' },
+                            integratorFee: {
+                                type: 'volume',
+                                volumePercentage: '1000',
+                                billingType: onChainBilling,
+                                feeRecipient: randomAddress(),
+                            },
                         },
                     });
 
@@ -395,6 +467,41 @@ describe(SUITE_NAME, () => {
                         ],
                     });
                 });
+
+                it('should returns correct integrator fee', async () => {
+                    const feeRecipient = randomAddress();
+                    const response = await requestSwap(app, 'quote', 'v2', {
+                        buyToken: 'ZRX',
+                        sellToken: 'WETH',
+                        sellAmount: '1234',
+                        integratorId: INTEGRATOR_ID,
+                        takerAddress: TAKER_ADDRESS,
+                        metaTransactionVersion: 'v1',
+                        feeConfigs: {
+                            integratorFee: {
+                                type: 'volume',
+                                volumePercentage: '0.1',
+                                billingType: onChainBilling,
+                                feeRecipient,
+                            },
+                        },
+                    });
+
+                    const { sellAmount, trade, fees } = response.body;
+                    const callArgs = decodeTransformERC20(trade.metaTransaction.callData);
+                    expect(sellAmount).to.eql('1234');
+                    expect(fees.integratorFee).to.eql({
+                        type: 'volume',
+                        feeToken: WETH_TOKEN_ADDRESS,
+                        billingType: onChainBilling,
+                        feeRecipient,
+                        feeAmount: '123',
+                        volumePercentage: '0.1',
+                    });
+                    expect(decodeAffiliateFeeTransformerData(callArgs.transformations[0].data).fees).to.eql([
+                        { token: WETH_TOKEN_ADDRESS, amount: new BigNumber(123), recipient: feeRecipient },
+                    ]);
+                });
             });
 
             describe('0x', async () => {
@@ -407,7 +514,12 @@ describe(SUITE_NAME, () => {
                         takerAddress: TAKER_ADDRESS,
                         metaTransactionVersion: 'v1',
                         feeConfigs: {
-                            zeroExFee: { type: 'random', volumePercentage: '0.1' },
+                            zeroExFee: {
+                                type: 'random',
+                                volumePercentage: '0.1',
+                                billingType: onChainBilling,
+                                feeRecipient: randomAddress(),
+                            },
                         },
                     });
 
@@ -431,7 +543,12 @@ describe(SUITE_NAME, () => {
                         takerAddress: TAKER_ADDRESS,
                         metaTransactionVersion: 'v1',
                         feeConfigs: {
-                            zeroExFee: { type: 'volume', volumePercentage: '1000' },
+                            zeroExFee: {
+                                type: 'volume',
+                                volumePercentage: '1000',
+                                billingType: onChainBilling,
+                                feeRecipient: randomAddress(),
+                            },
                         },
                     });
 
@@ -455,7 +572,12 @@ describe(SUITE_NAME, () => {
                         takerAddress: TAKER_ADDRESS,
                         metaTransactionVersion: 'v1',
                         feeConfigs: {
-                            zeroExFee: { type: 'integrator_share', integratorSharePercentage: '1000' },
+                            zeroExFee: {
+                                type: 'integrator_share',
+                                integratorSharePercentage: '1000',
+                                billingType: onChainBilling,
+                                feeRecipient: randomAddress(),
+                            },
                         },
                     });
 
@@ -478,8 +600,18 @@ describe(SUITE_NAME, () => {
                             takerAddress: TAKER_ADDRESS,
                             metaTransactionVersion: 'v1',
                             feeConfigs: {
-                                integratorFee: { type: 'volume', volumePercentage: '0.1' },
-                                zeroExFee: { type: 'integrator_share', integratorSharePercentage: '1000' },
+                                integratorFee: {
+                                    type: 'volume',
+                                    volumePercentage: '0.1',
+                                    billingType: onChainBilling,
+                                    feeRecipient: randomAddress(),
+                                },
+                                zeroExFee: {
+                                    type: 'integrator_share',
+                                    integratorSharePercentage: '1000',
+                                    billingType: onChainBilling,
+                                    feeRecipient: randomAddress(),
+                                },
                             },
                         });
 
@@ -494,6 +626,41 @@ describe(SUITE_NAME, () => {
                         });
                     });
                 });
+
+                it('should returns correct 0x fee', async () => {
+                    const feeRecipient = randomAddress();
+                    const response = await requestSwap(app, 'quote', 'v2', {
+                        buyToken: 'ZRX',
+                        sellToken: 'WETH',
+                        sellAmount: '1234',
+                        integratorId: INTEGRATOR_ID,
+                        takerAddress: TAKER_ADDRESS,
+                        metaTransactionVersion: 'v1',
+                        feeConfigs: {
+                            zeroExFee: {
+                                type: 'volume',
+                                volumePercentage: '0.2',
+                                billingType: onChainBilling,
+                                feeRecipient,
+                            },
+                        },
+                    });
+
+                    const { sellAmount, trade, fees } = response.body;
+                    const callArgs = decodeTransformERC20(trade.metaTransaction.callData);
+                    expect(sellAmount).to.eql('1234');
+                    expect(fees.zeroExFee).to.eql({
+                        type: 'volume',
+                        feeToken: WETH_TOKEN_ADDRESS,
+                        billingType: onChainBilling,
+                        feeRecipient,
+                        feeAmount: '246',
+                        volumePercentage: '0.2',
+                    });
+                    expect(decodeAffiliateFeeTransformerData(callArgs.transformations[0].data).fees).to.eql([
+                        { token: WETH_TOKEN_ADDRESS, amount: new BigNumber(246), recipient: feeRecipient },
+                    ]);
+                });
             });
 
             describe('gas', async () => {
@@ -506,7 +673,7 @@ describe(SUITE_NAME, () => {
                         takerAddress: TAKER_ADDRESS,
                         metaTransactionVersion: 'v1',
                         feeConfigs: {
-                            gasFee: { type: 'random' },
+                            gasFee: { type: 'random', billingType: onChainBilling, feeRecipient: randomAddress() },
                         },
                     });
 
@@ -549,22 +716,26 @@ async function requestSwap(
             integratorFee?: {
                 type: string;
                 volumePercentage: string;
-                feeRecipient?: string;
+                billingType: 'on-chain' | 'off-chain';
+                feeRecipient: string;
             };
             zeroExFee?:
                 | {
                       type: string;
                       volumePercentage: string;
-                      feeRecipient?: string;
+                      billingType: 'on-chain' | 'off-chain';
+                      feeRecipient: string | null;
                   }
                 | {
                       type: string;
                       integratorSharePercentage: string;
-                      feeRecipient?: string;
+                      billingType: 'on-chain' | 'off-chain';
+                      feeRecipient: string | null;
                   };
             gasFee?: {
                 type: string;
-                feeRecipient?: string;
+                feeRecipient: string | null;
+                billingType: 'on-chain' | 'off-chain';
             };
         };
     },

@@ -139,6 +139,35 @@ export class MarketOperationUtils {
     }
 
     /**
+     * Get the token amount per wei for native token. Note:
+     * - This function would make an `eth_call` and shouldn't be used in most cases
+     * - This function does not perform a full search (only perform a direct price check on `token` and native token) and
+     * calls `sampler.getBestNativeTokenSellRate` internally
+     *
+     * @param tokenAddress The token to check price for.
+     * @param opts GetMarketOrdersOpts object.
+     * @returns Token amount per wei.
+     */
+    public async getTokenAmountPerWei(tokenAddress: string, opts?: Partial<GetMarketOrdersOpts>): Promise<BigNumber> {
+        const optsWithDefault = { ...DEFAULT_GET_MARKET_ORDERS_OPTS, ...opts };
+        const [tokenAmountPerWei] = await this.sampler.executeAsync(
+            this.sampler.getBestNativeTokenSellRate(
+                this._feeSources,
+                tokenAddress,
+                this._nativeFeeToken,
+                this._nativeFeeTokenAmount,
+                optsWithDefault.feeSchedule,
+            ),
+        );
+
+        if (tokenAmountPerWei.isZero()) {
+            NO_CONVERSION_TO_NATIVE_FOUND.labels('getTokenAmountPerWei', opts?.endpoint ?? 'N/A').inc();
+        }
+
+        return tokenAmountPerWei;
+    }
+
+    /**
      * Gets the liquidity available for a market sell operation
      * @param makerToken Maker token address
      * @param takerToken Taker token address

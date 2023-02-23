@@ -199,6 +199,7 @@ export interface GetSwapQuoteResponse extends SwapQuoteResponsePartialTransactio
     extendedQuoteReportSources?: ExtendedQuoteReportSources;
     expectedSlippage?: BigNumber | null;
     blockNumber: number | undefined;
+    fees?: Fees;
 }
 
 export interface SwapQuoteResponsePartialTransaction {
@@ -230,6 +231,7 @@ export interface GetSwapQuoteParams extends SwapQuoteParamsBase {
     origin?: string;
     // Whether the optimal route accounts for expected slippage for each liquidity source
     enableSlippageProtection?: boolean;
+    feeConfigs?: FeeConfigs;
 
     // Non-functional parameters:
     isDebugEnabled: boolean;
@@ -518,7 +520,7 @@ export interface GasFee extends FeeBase {
     type: 'gas';
     gasPrice: BigNumber;
     estimatedGas: BigNumber;
-    feeTokenAmountPerBaseUnitNativeToken: BigNumber;
+    feeTokenAmountPerWei: BigNumber;
 }
 
 export interface IntegratorShareFee extends FeeBase {
