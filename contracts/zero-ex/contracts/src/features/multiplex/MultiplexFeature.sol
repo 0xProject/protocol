@@ -30,6 +30,7 @@ import "./MultiplexRfq.sol";
 import "./MultiplexTransformERC20.sol";
 import "./MultiplexUniswapV2.sol";
 import "./MultiplexUniswapV3.sol";
+import "forge-std/Test.sol";
 
 /// @dev This feature enables efficient batch and multi-hop trades
 ///      using different liquidity sources.
@@ -391,6 +392,7 @@ contract MultiplexFeature is
         // Compute the expected address and transfer the input tokens
         // there if necessary.
         state.from = _computeHopTarget(params, 0);
+        
         // If the input tokens are currently held by `msg.sender` but
         // the first hop expects them elsewhere, perform a `transferFrom`.
         if (!params.useSelfBalance && state.from != msg.sender) {
@@ -407,7 +409,6 @@ contract MultiplexFeature is
             // Compute the recipient of the tokens that will be
             // bought by the current hop.
             state.to = _computeHopTarget(params, state.hopIndex + 1);
-
             if (subcall.id == MultiplexSubcall.UniswapV2) {
                 _multiHopSellUniswapV2(state, params, subcall.data);
             } else if (subcall.id == MultiplexSubcall.UniswapV3) {
@@ -488,7 +489,7 @@ contract MultiplexFeature is
     // If `i == 0`, the target is the address which should hold the input
     // tokens prior to executing `calls[0]`. Otherwise, it is the address
     // that should receive `tokens[i]` upon executing `calls[i-1]`.
-    function _computeHopTarget(MultiHopSellParams memory params, uint256 i) private view returns (address target) {
+    function _computeHopTarget(MultiHopSellParams memory params, uint256 i) private  returns (address target) {
         if (i == params.calls.length) {
             // The last call should send the output tokens to the
             // multi-hop sell recipient.
@@ -531,6 +532,14 @@ contract MultiplexFeature is
                 if (i == 0 && !params.useSelfBalance) {
                     target = msg.sender;
                 } else {
+                    target = address(this);
+                }
+            } else if(subcall.id == MultiplexSubcall.OTC) {
+                //on the first call we want to pull tokens from the taker, subsequent calls should use the EP balance
+                if( i == 0) {
+                    target =  msg.sender;
+                }
+                else {
                     target = address(this);
                 }
             } else {

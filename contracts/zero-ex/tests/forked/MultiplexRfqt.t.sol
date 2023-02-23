@@ -29,6 +29,9 @@ import "src/transformers/bridges/BridgeProtocols.sol";
 import "src/features/OtcOrdersFeature.sol";
 
 contract MultiplexRfqtTest is Test, ForkUtils, TestUtils {
+
+    using LibERC20TokenV06 for IERC20Token;
+    using LibERC20TokenV06 for IEtherToken;
     function setUp() public {
         _setup();
     }
@@ -52,14 +55,34 @@ contract MultiplexRfqtTest is Test, ForkUtils, TestUtils {
                 getLiquiditySourceAddresses(i)
             );
 
-            MultiplexFeature memory mf = new MultiplexFeature(
-                address(ZERO_EX),
-                ZERO_EX_DEPLOYED.weth,
+            //redeploy and migrate multiplexFeature and OtcOrders for logging
+
+            MultiplexFeature multiplexFeature = new MultiplexFeature(
+                address(IZERO_EX),
+                IEtherToken(tokens.WrappedNativeToken),
                 ILiquidityProviderSandbox(addresses.exchangeProxyLiquidityProviderSandbox),
                 address(0), // uniswapFactory
                 address(0), // sushiswapFactory
                 bytes32(0), // uniswapPairInitCodeHash
                 bytes32(0) // sushiswapPairInitCodeHash
+            );
+
+            OtcOrdersFeature otcOrdersFeature = new OtcOrdersFeature(address(addresses.exchangeProxy), tokens.WrappedNativeToken);
+
+            vm.label(address(multiplexFeature), "zeroEx/NewMultiplexFeature");
+            vm.label(address(otcOrdersFeature), "zeroEx/NewOtcOrdersFeature");
+            vm.prank(IZeroEx(addresses.exchangeProxy).owner());
+           
+            IZeroEx(addresses.exchangeProxy).migrate(
+                address(otcOrdersFeature),
+                abi.encodeWithSelector(OtcOrdersFeature.migrate.selector),
+                address(addresses.exchangeProxy)
+            );
+            vm.prank(IZeroEx(addresses.exchangeProxy).owner());
+            IZeroEx(addresses.exchangeProxy).migrate(
+                address(multiplexFeature),
+                abi.encodeWithSelector(MultiplexFeature.migrate.selector),
+                address(addresses.exchangeProxy)
             );
             swapMultihopOtc(getTokens(i), getContractAddresses(i), getLiquiditySourceAddresses(i));
         }
@@ -72,6 +95,7 @@ contract MultiplexRfqtTest is Test, ForkUtils, TestUtils {
         ContractAddresses memory addresses,
         LiquiditySources memory sources
     ) public onlyForked {
+        
         IZERO_EX = IZeroEx(addresses.exchangeProxy);
 
         address[] memory tradeTokens = new address[](3);
@@ -79,15 +103,13 @@ contract MultiplexRfqtTest is Test, ForkUtils, TestUtils {
         tradeTokens[1] = address(tokens.USDC);
         tradeTokens[2] = address(tokens.DAI);
 
+        deal(tradeTokens[0], address(this), 1e18);
+
+        tokens.WrappedNativeToken.approveIfBelow(addresses.exchangeProxy, uint(-1));
         uint inputAmount = 1e18;
         uint outputAmount = 5e17;
 
         IMultiplexFeature.MultiHopSellSubcall[] memory subcalls = new IMultiplexFeature.MultiHopSellSubcall[](2);
-        IMultiplexFeature.MultiHopSellState memory state;
-        state.outputTokenAmount = 0;
-        state.from = address(this);
-        state.to = address(addresses.exchangeProxy);
-        state.hopIndex = uint256(0);
 
         IMultiplexFeature.MultiHopSellSubcall memory subcall1;
         subcall1.id = IMultiplexFeature.MultiplexSubcall.OTC;
@@ -95,7 +117,7 @@ contract MultiplexRfqtTest is Test, ForkUtils, TestUtils {
         //subcall.data = abi.encode(address[], LibNativeOrder.OtcOrder, LibSignature.Signature);
         (LibNativeOrder.OtcOrder memory order1, LibSignature.Signature memory signature1) = createOtcOrder(
             tokens.WrappedNativeToken,
-            tokens.DAI,
+            tokens.USDC,
             1e18,
             5e17,
             0
@@ -115,6 +137,11 @@ contract MultiplexRfqtTest is Test, ForkUtils, TestUtils {
 
         subcalls[0] = subcall1;
         subcalls[1] = subcall2;
+
+        uint balanceBefore = tokens.DAI.balanceOf(address(this));
+        emit log_named_uint("DAI Balance Before",balanceBefore); 
+        emit log_string("Multihop Rfqt: WETH->USDC->DAI"); 
+
         /// @dev Sells `sellAmount` of the input token (`tokens[0]`)
         ///      via the given sequence of tokens and calls.
         ///      The last token in `tokens` is the output token that
@@ -137,6 +164,9 @@ contract MultiplexRfqtTest is Test, ForkUtils, TestUtils {
             // min output token amount
             outputAmount
         );
+        uint balanceAfter = tokens.DAI.balanceOf(address(this));
+        emit log_named_uint("DAI Balance After", balanceAfter - balanceBefore);
+        require(balanceAfter >= 5e17, "Failed: UNDERBOUGHT");
     }
 
     function createOtcOrder(
@@ -149,8 +179,8 @@ contract MultiplexRfqtTest is Test, ForkUtils, TestUtils {
         LibNativeOrder.OtcOrder memory order;
         FillQuoteTransformer.OtcOrderInfo memory orderInfo;
         LibSignature.Signature memory signature;
-        order.makerToken = inputToken;
-        order.takerToken = ouputToken;
+        order.makerToken = ouputToken;
+        order.takerToken = inputToken;
         order.takerAmount = takerAmount;
         order.makerAmount = makerAmount;
         uint privateKey;
@@ -158,11 +188,12 @@ contract MultiplexRfqtTest is Test, ForkUtils, TestUtils {
         (order.maker, privateKey) = getSigner();
 
         deal(address(order.makerToken), order.maker, 2e20);
+        deal(address(order.takerToken), order.maker, 2e20);
 
-        vm.prank(order.maker);
-        IERC20Token(order.makerToken).approve(addresses.exchangeProxy, 1e19);
+        vm.startPrank(order.maker);
+        IERC20Token(order.makerToken).approveIfBelow(addresses.exchangeProxy, 2e20);
 
-        vm.prank(order.maker);
+        
 
         order.taker = address(0);
         order.txOrigin = address(tx.origin);
@@ -170,6 +201,7 @@ contract MultiplexRfqtTest is Test, ForkUtils, TestUtils {
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, IZERO_EX.getOtcOrderHash(order));
 
+        vm.stopPrank();
         signature.signatureType = LibSignature.SignatureType.EIP712;
         signature.v = v;
         signature.r = r;
