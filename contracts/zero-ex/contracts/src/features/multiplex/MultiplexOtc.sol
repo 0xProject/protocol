@@ -71,9 +71,9 @@ abstract contract MultiplexOtc is FixinEIP712 {
         IMultiplexFeature.MultiHopSellParams memory params,
         bytes memory wrappedCallData
     ) internal {
-        // Decode the tokens[], Otc order, and signature.
-        (address[] memory tokens, LibNativeOrder.OtcOrder memory order, LibSignature.Signature memory signature) = abi
-            .decode(wrappedCallData, (address[], LibNativeOrder.OtcOrder, LibSignature.Signature));
+        // Decode the Otc order, and signature.
+        (LibNativeOrder.OtcOrder memory order, LibSignature.Signature memory signature) = abi
+            .decode(wrappedCallData, (LibNativeOrder.OtcOrder, LibSignature.Signature));
         //Make sure that the otc orders maker and taker tokens match the fill sequence in params.tokens[]
         require(
             address(order.takerToken) == params.tokens[state.hopIndex] &&

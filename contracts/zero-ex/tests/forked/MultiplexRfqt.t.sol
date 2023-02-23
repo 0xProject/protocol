@@ -124,7 +124,7 @@ contract MultiplexRfqtTest is Test, ForkUtils, TestUtils {
             5e17,
             0
         );
-        subcall1.data = abi.encode(tradeTokens, order1, signature1);
+        subcall1.data = abi.encode(order1, signature1);
 
         IMultiplexFeature.MultiHopSellSubcall memory subcall2;
         subcall2.id = IMultiplexFeature.MultiplexSubcall.OTC;
@@ -135,7 +135,7 @@ contract MultiplexRfqtTest is Test, ForkUtils, TestUtils {
             5e17,
             1
         );
-        subcall2.data = abi.encode(tradeTokens, order2, signature2);
+        subcall2.data = abi.encode(order2, signature2);
 
         subcalls[0] = subcall1;
         subcalls[1] = subcall2;
