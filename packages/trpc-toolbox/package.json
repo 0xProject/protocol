@@ -1,0 +1,22 @@
+{
+    "dependencies": {
+        "@trpc/client": "^10.12.0",
+        "@trpc/server": "^10.12.0",
+        "typescript": "^4.9.5"
+    },
+    "devDependencies": {
+        "eslint": "^8.34.0",
+        "eslint-config-common": "*",
+        "tsconfig": "*",
+        "zod": "^3.20.6"
+    },
+    "name": "trpc-toolbox",
+    "private": true,
+    "scripts": {
+        "fix": "prettier --write .",
+        "lint:ci": "prettier --check . && eslint .",
+        "test:ci": "tsc --noEmit"
+    },
+    "types": "src/main.ts",
+    "version": "0.0.0"
+}
