@@ -489,7 +489,7 @@ contract MultiplexFeature is
     // If `i == 0`, the target is the address which should hold the input
     // tokens prior to executing `calls[0]`. Otherwise, it is the address
     // that should receive `tokens[i]` upon executing `calls[i-1]`.
-    function _computeHopTarget(MultiHopSellParams memory params, uint256 i) private returns (address target) {
+    function _computeHopTarget(MultiHopSellParams memory params, uint256 i) private view returns (address target) {
         if (i == params.calls.length) {
             // The last call should send the output tokens to the
             // multi-hop sell recipient.
