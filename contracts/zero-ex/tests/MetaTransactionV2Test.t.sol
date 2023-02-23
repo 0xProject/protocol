@@ -17,8 +17,7 @@ pragma experimental ABIEncoderV2;
 
 import "./utils/BaseTest.sol";
 import "forge-std/Test.sol";
-import "./utils/DeployZeroEx.sol";
-import "./utils/TestUtils.sol";
+import "./utils/LocalTest.sol";
 import "../contracts/src/features/MetaTransactionsFeatureV2.sol";
 import "../contracts/src/features/interfaces/IMetaTransactionsFeatureV2.sol";
 import "../contracts/src/features/interfaces/IMetaTransactionsFeature.sol";
@@ -29,35 +28,12 @@ import "../contracts/test/tokens/TestMintableERC20Token.sol";
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 import "@0x/contracts-erc20/src/IEtherToken.sol";
 
-contract MetaTransactionTest is BaseTest, TestUtils {
-    DeployZeroEx.ZeroExDeployed zeroExDeployed;
-    address private constant ZERO_ADDRESS = 0x0000000000000000000000000000000000000000;
+contract MetaTransactionTest is LocalTest {
+    address private constant ZERO_ADDRESS = address(0);
     address private constant USER_ADDRESS = 0x6dc3a54FeAE57B65d185A7B159c5d3FA7fD7FD0F;
     uint256 private constant USER_KEY = 0x1fc1630343b31e60b7a197a53149ca571ed9d9791e2833337bbd8110c30710ec;
-    IEtherToken private wethToken;
-    IERC20Token private usdcToken;
-    IERC20Token private zrxToken;
-    address private signerAddress;
-    uint256 private signerKey;
-    uint256 private transformerNonce;
 
     event MetaTransactionExecuted(bytes32 hash, bytes4 indexed selector, address signer, address sender);
-
-    function setUp() public {
-        (signerAddress, signerKey) = getSigner();
-        zeroExDeployed = new DeployZeroEx().deployZeroEx();
-        wethToken = zeroExDeployed.weth;
-        usdcToken = IERC20Token(address(new TestMintableERC20Token()));
-        zrxToken = IERC20Token(address(new TestMintableERC20Token()));
-
-        transformerNonce = zeroExDeployed.transformerDeployer.nonce();
-        vm.prank(zeroExDeployed.transformerDeployer.authorities(0));
-        zeroExDeployed.transformerDeployer.deploy(type(TestMintTokenERC20Transformer).creationCode);
-
-        vm.deal(address(this), 10e18);
-        vm.deal(USER_ADDRESS, 10e18);
-        vm.deal(signerAddress, 10e18);
-    }
 
     function _mtxSignature(
         IMetaTransactionsFeatureV2.MetaTransactionDataV2 memory mtx
@@ -71,7 +47,7 @@ contract MetaTransactionTest is BaseTest, TestUtils {
     ) private returns (LibSignature.Signature memory) {
         // Mint fee to signer and approve
         for (uint256 i = 0; i < mtx.fees.length; ++i) {
-            mintToWETH(wethToken, mtx.signer, mtx.fees[i].amount);
+            _mintTo(address(weth), mtx.signer, mtx.fees[i].amount);
         }
         vm.prank(mtx.signer);
         mtx.feeToken.approve(address(zeroExDeployed.zeroEx), 1e18);
@@ -102,7 +78,7 @@ contract MetaTransactionTest is BaseTest, TestUtils {
             expirationTimeSeconds: block.timestamp + 60,
             salt: 123,
             callData: callData,
-            feeToken: wethToken,
+            feeToken: weth,
             fees: fees
         });
         return mtx;
@@ -116,18 +92,132 @@ contract MetaTransactionTest is BaseTest, TestUtils {
         ITransformERC20Feature.Transformation[] memory transformations = new ITransformERC20Feature.Transformation[](1);
         transformations[0] = ITransformERC20Feature.Transformation(
             uint32(transformerNonce),
-            abi.encode(address(usdcToken), address(wethToken), 0, 1e18, 0)
+            abi.encode(address(dai), address(weth), 0, 1e18, 0)
         );
 
-        mintTo(usdcToken, USER_ADDRESS, 1e18);
+        _mintTo(address(dai), USER_ADDRESS, 1e18);
         vm.prank(USER_ADDRESS);
-        usdcToken.approve(address(zeroExDeployed.zeroEx), 1e18);
+        dai.approve(address(zeroExDeployed.zeroEx), 1e18);
 
         return
             abi.encodeWithSelector(
                 zeroExDeployed.zeroEx.transformERC20.selector, // 0x415565b0
-                usdcToken,
-                wethToken,
+                dai,
+                weth,
+                1e18,
+                1e18,
+                transformations
+            );
+    }
+
+    function _makeTestRfqOrder(
+        DeployZeroEx.ZeroExDeployed memory zeroExDeployed,
+        IERC20Token makerToken,
+        IERC20Token takerToken,
+        address makerAddress,
+        address takerAddress,
+        uint256 makerKey
+    ) internal returns (bytes memory callData) {
+        LibNativeOrder.RfqOrder memory order = LibNativeOrder.RfqOrder({
+            makerToken: makerToken,
+            takerToken: takerToken,
+            makerAmount: 1e18,
+            takerAmount: 1e18,
+            maker: makerAddress,
+            taker: ZERO_ADDRESS,
+            txOrigin: tx.origin,
+            pool: 0x0000000000000000000000000000000000000000000000000000000000000000,
+            expiry: uint64(block.timestamp + 60),
+            salt: 123
+        });
+        _mintTo(address(order.makerToken), order.maker, order.makerAmount);
+        vm.prank(order.maker);
+        order.makerToken.approve(address(zeroExDeployed.zeroEx), order.makerAmount);
+        _mintTo(address(order.takerToken), takerAddress, order.takerAmount);
+        vm.prank(takerAddress);
+        order.takerToken.approve(address(zeroExDeployed.zeroEx), order.takerAmount);
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
+            makerKey,
+            zeroExDeployed.features.nativeOrdersFeature.getRfqOrderHash(order)
+        );
+        LibSignature.Signature memory sig = LibSignature.Signature(LibSignature.SignatureType.EIP712, v, r, s);
+
+        return
+            abi.encodeWithSelector(
+                INativeOrdersFeature.fillRfqOrder.selector, // 0xaa77476c
+                order, // RFQOrder
+                sig, // Order Signature
+                1e18 // Fill Amount
+            );
+    }
+
+    function _makeTestLimitOrder(
+        DeployZeroEx.ZeroExDeployed memory zeroExDeployed,
+        IERC20Token makerToken,
+        IERC20Token takerToken,
+        address makerAddress,
+        address takerAddress,
+        uint256 makerKey
+    ) internal returns (bytes memory callData) {
+        LibNativeOrder.LimitOrder memory order = LibNativeOrder.LimitOrder({
+            makerToken: makerToken,
+            takerToken: takerToken,
+            makerAmount: 1e18,
+            takerAmount: 1e18,
+            maker: makerAddress,
+            taker: ZERO_ADDRESS,
+            sender: ZERO_ADDRESS,
+            takerTokenFeeAmount: 0,
+            feeRecipient: ZERO_ADDRESS,
+            pool: 0x0000000000000000000000000000000000000000000000000000000000000000,
+            expiry: uint64(block.timestamp + 60),
+            salt: 123
+        });
+        _mintTo(address(order.makerToken), order.maker, order.makerAmount);
+        vm.prank(order.maker);
+        order.makerToken.approve(address(zeroExDeployed.zeroEx), order.makerAmount);
+        _mintTo(address(order.takerToken), takerAddress, order.takerAmount);
+        vm.prank(takerAddress);
+        order.takerToken.approve(address(zeroExDeployed.zeroEx), order.takerAmount);
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
+            makerKey,
+            zeroExDeployed.features.nativeOrdersFeature.getLimitOrderHash(order)
+        );
+        LibSignature.Signature memory sig = LibSignature.Signature(LibSignature.SignatureType.EIP712, v, r, s);
+
+        return
+            abi.encodeWithSelector(
+                INativeOrdersFeature.fillLimitOrder.selector, // 0xf6274f66
+                order, // LimitOrder
+                sig, // Order Signature
+                1e18 // Fill Amount
+            );
+    }
+
+    function _transformERC20Call(
+        DeployZeroEx.ZeroExDeployed memory zeroExDeployed,
+        IERC20Token makerToken,
+        IERC20Token takerToken,
+        address takerAddress,
+        uint256 transformerNonce
+    ) internal returns (bytes memory) {
+        ITransformERC20Feature.Transformation[] memory transformations = new ITransformERC20Feature.Transformation[](1);
+        transformations[0] = ITransformERC20Feature.Transformation(
+            uint32(transformerNonce),
+            abi.encode(address(takerToken), address(makerToken), 0, 1e18, 0)
+        );
+
+        _mintTo(address(takerToken), takerAddress, 1e18);
+        vm.prank(takerAddress);
+        takerToken.approve(address(zeroExDeployed.zeroEx), 1e18);
+
+        return
+            abi.encodeWithSelector(
+                zeroExDeployed.zeroEx.transformERC20.selector, // 0x415565b0
+                takerToken,
+                makerToken,
                 1e18,
                 1e18,
                 transformations
@@ -135,13 +225,7 @@ contract MetaTransactionTest is BaseTest, TestUtils {
     }
 
     function test_createHash() external {
-        bytes memory transformCallData = transformERC20Call(
-            zeroExDeployed,
-            zrxToken,
-            usdcToken,
-            USER_ADDRESS,
-            transformerNonce
-        );
+        bytes memory transformCallData = _transformERC20Call(zeroExDeployed, zrx, dai, USER_ADDRESS, transformerNonce);
         IMetaTransactionsFeatureV2.MetaTransactionDataV2 memory mtxData = _getMetaTransaction(transformCallData);
 
         bytes32 mtxHash = zeroExDeployed.features.metaTransactionsFeatureV2.getMetaTransactionV2Hash(mtxData);
@@ -158,6 +242,7 @@ contract MetaTransactionTest is BaseTest, TestUtils {
             memory fees = new IMetaTransactionsFeatureV2.MetaTransactionFeeData[](2);
         fees[0] = IMetaTransactionsFeatureV2.MetaTransactionFeeData({recipient: address(0), amount: 1000000});
         fees[1] = IMetaTransactionsFeatureV2.MetaTransactionFeeData({recipient: address(0), amount: 1000});
+        IERC20Token usdcToken = IERC20Token(address(0x2e234DAe75C793f67A35089C9d99245E1C58470b));
 
         IMetaTransactionsFeatureV2.MetaTransactionDataV2 memory mtx = IMetaTransactionsFeatureV2.MetaTransactionDataV2({
             signer: address(0),
@@ -181,16 +266,10 @@ contract MetaTransactionTest is BaseTest, TestUtils {
     }
 
     function test_transformERC20() external {
-        bytes memory transformCallData = transformERC20Call(
-            zeroExDeployed,
-            zrxToken,
-            usdcToken,
-            USER_ADDRESS,
-            transformerNonce
-        );
+        bytes memory transformCallData = _transformERC20Call(zeroExDeployed, zrx, dai, USER_ADDRESS, transformerNonce);
         IMetaTransactionsFeatureV2.MetaTransactionDataV2 memory mtxData = _getMetaTransaction(transformCallData);
 
-        assertEq(usdcToken.balanceOf(USER_ADDRESS), 1e18);
+        assertEq(dai.balanceOf(USER_ADDRESS), 1e18);
         vm.expectEmit(true, false, false, true);
         emit MetaTransactionExecuted(
             zeroExDeployed.features.metaTransactionsFeatureV2.getMetaTransactionV2Hash(mtxData),
@@ -203,23 +282,16 @@ contract MetaTransactionTest is BaseTest, TestUtils {
             mtxData,
             _mtxSignature(mtxData)
         );
-        assertEq(zrxToken.balanceOf(USER_ADDRESS), 1e18);
-        assertEq(usdcToken.balanceOf(USER_ADDRESS), 0);
-        assertEq(wethToken.balanceOf(address(this)), 1);
+        assertEq(zrx.balanceOf(USER_ADDRESS), 1e18);
+        assertEq(dai.balanceOf(USER_ADDRESS), 0);
+        assertEq(weth.balanceOf(address(this)), 1);
     }
 
     function test_rfqOrder() external {
-        bytes memory callData = makeTestRfqOrder(
-            zeroExDeployed,
-            zrxToken,
-            usdcToken,
-            signerAddress,
-            USER_ADDRESS,
-            signerKey
-        );
+        bytes memory callData = _makeTestRfqOrder(zeroExDeployed, zrx, dai, signerAddress, USER_ADDRESS, signerKey);
         IMetaTransactionsFeatureV2.MetaTransactionDataV2 memory mtxData = _getMetaTransaction(callData);
 
-        assertEq(usdcToken.balanceOf(USER_ADDRESS), 1e18);
+        assertEq(dai.balanceOf(USER_ADDRESS), 1e18);
         vm.expectEmit(true, false, false, true);
         emit MetaTransactionExecuted(
             zeroExDeployed.features.metaTransactionsFeatureV2.getMetaTransactionV2Hash(mtxData),
@@ -233,25 +305,18 @@ contract MetaTransactionTest is BaseTest, TestUtils {
             _mtxSignature(mtxData)
         );
 
-        assertEq(zrxToken.balanceOf(signerAddress), 0);
-        assertEq(zrxToken.balanceOf(USER_ADDRESS), 1e18);
-        assertEq(usdcToken.balanceOf(USER_ADDRESS), 0);
-        assertEq(usdcToken.balanceOf(signerAddress), 1e18);
-        assertEq(wethToken.balanceOf(address(this)), 1);
+        assertEq(zrx.balanceOf(signerAddress), 0);
+        assertEq(zrx.balanceOf(USER_ADDRESS), 1e18);
+        assertEq(dai.balanceOf(USER_ADDRESS), 0);
+        assertEq(dai.balanceOf(signerAddress), 1e18);
+        assertEq(weth.balanceOf(address(this)), 1);
     }
 
     function test_fillLimitOrder() external {
-        bytes memory callData = makeTestLimitOrder(
-            zeroExDeployed,
-            zrxToken,
-            usdcToken,
-            signerAddress,
-            USER_ADDRESS,
-            signerKey
-        );
+        bytes memory callData = _makeTestLimitOrder(zeroExDeployed, zrx, dai, signerAddress, USER_ADDRESS, signerKey);
         IMetaTransactionsFeatureV2.MetaTransactionDataV2 memory mtxData = _getMetaTransaction(callData);
 
-        assertEq(usdcToken.balanceOf(USER_ADDRESS), 1e18);
+        assertEq(dai.balanceOf(USER_ADDRESS), 1e18);
         vm.expectEmit(true, false, false, true);
         emit MetaTransactionExecuted(
             zeroExDeployed.features.metaTransactionsFeatureV2.getMetaTransactionV2Hash(mtxData),
@@ -265,68 +330,50 @@ contract MetaTransactionTest is BaseTest, TestUtils {
             _mtxSignature(mtxData)
         );
 
-        assertEq(zrxToken.balanceOf(signerAddress), 0);
-        assertEq(zrxToken.balanceOf(USER_ADDRESS), 1e18);
-        assertEq(usdcToken.balanceOf(USER_ADDRESS), 0);
-        assertEq(usdcToken.balanceOf(signerAddress), 1e18);
-        assertEq(wethToken.balanceOf(address(this)), 1);
+        assertEq(zrx.balanceOf(signerAddress), 0);
+        assertEq(zrx.balanceOf(USER_ADDRESS), 1e18);
+        assertEq(dai.balanceOf(USER_ADDRESS), 0);
+        assertEq(dai.balanceOf(signerAddress), 1e18);
+        assertEq(weth.balanceOf(address(this)), 1);
     }
 
     function test_transformERC20WithAnySender() external {
-        bytes memory transformCallData = transformERC20Call(
-            zeroExDeployed,
-            zrxToken,
-            usdcToken,
-            USER_ADDRESS,
-            transformerNonce
-        );
+        bytes memory transformCallData = _transformERC20Call(zeroExDeployed, zrx, dai, USER_ADDRESS, transformerNonce);
         IMetaTransactionsFeatureV2.MetaTransactionDataV2 memory mtxData = _getMetaTransaction(transformCallData);
         mtxData.sender = ZERO_ADDRESS;
 
-        assertEq(usdcToken.balanceOf(USER_ADDRESS), 1e18);
+        assertEq(dai.balanceOf(USER_ADDRESS), 1e18);
 
         IMetaTransactionsFeatureV2(address(zeroExDeployed.zeroEx)).executeMetaTransactionV2(
             mtxData,
             _mtxSignature(mtxData)
         );
-        assertEq(zrxToken.balanceOf(USER_ADDRESS), 1e18);
-        assertEq(usdcToken.balanceOf(USER_ADDRESS), 0);
-        assertEq(wethToken.balanceOf(address(this)), 1);
+        assertEq(zrx.balanceOf(USER_ADDRESS), 1e18);
+        assertEq(dai.balanceOf(USER_ADDRESS), 0);
+        assertEq(weth.balanceOf(address(this)), 1);
     }
 
     function test_transformERC20WithoutFee() external {
-        bytes memory transformCallData = transformERC20Call(
-            zeroExDeployed,
-            zrxToken,
-            usdcToken,
-            USER_ADDRESS,
-            transformerNonce
-        );
+        bytes memory transformCallData = _transformERC20Call(zeroExDeployed, zrx, dai, USER_ADDRESS, transformerNonce);
         IMetaTransactionsFeatureV2.MetaTransactionFeeData[] memory fees;
         IMetaTransactionsFeatureV2.MetaTransactionDataV2 memory mtxData = _getMetaTransactionWithFees(
             transformCallData,
             fees
         );
 
-        assertEq(usdcToken.balanceOf(USER_ADDRESS), 1e18);
+        assertEq(dai.balanceOf(USER_ADDRESS), 1e18);
 
         IMetaTransactionsFeatureV2(address(zeroExDeployed.zeroEx)).executeMetaTransactionV2(
             mtxData,
             _mtxSignature(mtxData)
         );
-        assertEq(zrxToken.balanceOf(USER_ADDRESS), 1e18);
-        assertEq(usdcToken.balanceOf(USER_ADDRESS), 0);
-        assertEq(wethToken.balanceOf(address(this)), 0); // no fee paid out
+        assertEq(zrx.balanceOf(USER_ADDRESS), 1e18);
+        assertEq(dai.balanceOf(USER_ADDRESS), 0);
+        assertEq(weth.balanceOf(address(this)), 0); // no fee paid out
     }
 
     function test_transformERC20MultipleFees() external {
-        bytes memory transformCallData = transformERC20Call(
-            zeroExDeployed,
-            zrxToken,
-            usdcToken,
-            USER_ADDRESS,
-            transformerNonce
-        );
+        bytes memory transformCallData = _transformERC20Call(zeroExDeployed, zrx, dai, USER_ADDRESS, transformerNonce);
         IMetaTransactionsFeatureV2.MetaTransactionFeeData[]
             memory fees = new IMetaTransactionsFeatureV2.MetaTransactionFeeData[](2);
         fees[0] = IMetaTransactionsFeatureV2.MetaTransactionFeeData({recipient: address(this), amount: 10});
@@ -336,16 +383,16 @@ contract MetaTransactionTest is BaseTest, TestUtils {
             fees
         );
 
-        assertEq(usdcToken.balanceOf(USER_ADDRESS), 1e18);
+        assertEq(dai.balanceOf(USER_ADDRESS), 1e18);
 
         IMetaTransactionsFeatureV2(address(zeroExDeployed.zeroEx)).executeMetaTransactionV2(
             mtxData,
             _mtxSignature(mtxData)
         );
-        assertEq(zrxToken.balanceOf(USER_ADDRESS), 1e18);
-        assertEq(usdcToken.balanceOf(USER_ADDRESS), 0);
-        assertEq(wethToken.balanceOf(address(this)), 10);
-        assertEq(wethToken.balanceOf(address(signerAddress)), 20);
+        assertEq(zrx.balanceOf(USER_ADDRESS), 1e18);
+        assertEq(dai.balanceOf(USER_ADDRESS), 0);
+        assertEq(weth.balanceOf(address(this)), 10);
+        assertEq(weth.balanceOf(address(signerAddress)), 20);
     }
 
     function test_transformERC20TranslatedCallFail() external {
@@ -367,14 +414,7 @@ contract MetaTransactionTest is BaseTest, TestUtils {
     }
 
     function test_transformERC20CantExecuteTwice() external {
-        bytes memory callData = makeTestRfqOrder(
-            zeroExDeployed,
-            zrxToken,
-            usdcToken,
-            signerAddress,
-            USER_ADDRESS,
-            signerKey
-        );
+        bytes memory callData = _makeTestRfqOrder(zeroExDeployed, zrx, dai, signerAddress, USER_ADDRESS, signerKey);
 
         IMetaTransactionsFeatureV2.MetaTransactionDataV2 memory mtxData = _getMetaTransaction(callData);
         LibSignature.Signature memory sig = _mtxSignature(mtxData);
@@ -384,14 +424,7 @@ contract MetaTransactionTest is BaseTest, TestUtils {
     }
 
     function test_metaTxnFailsIfExpired() external {
-        bytes memory callData = makeTestRfqOrder(
-            zeroExDeployed,
-            zrxToken,
-            usdcToken,
-            signerAddress,
-            USER_ADDRESS,
-            signerKey
-        );
+        bytes memory callData = _makeTestRfqOrder(zeroExDeployed, zrx, dai, signerAddress, USER_ADDRESS, signerKey);
 
         IMetaTransactionsFeatureV2.MetaTransactionDataV2 memory mtxData = _getMetaTransaction(callData);
         mtxData.expirationTimeSeconds = block.timestamp - 1;
@@ -402,13 +435,7 @@ contract MetaTransactionTest is BaseTest, TestUtils {
     }
 
     function test_metaTxnFailsIfWrongSender() external {
-        bytes memory transformCallData = transformERC20Call(
-            zeroExDeployed,
-            zrxToken,
-            usdcToken,
-            USER_ADDRESS,
-            transformerNonce
-        );
+        bytes memory transformCallData = _transformERC20Call(zeroExDeployed, zrx, dai, USER_ADDRESS, transformerNonce);
 
         IMetaTransactionsFeatureV2.MetaTransactionDataV2 memory mtxData = _getMetaTransaction(transformCallData);
         mtxData.sender = USER_ADDRESS;
@@ -419,13 +446,7 @@ contract MetaTransactionTest is BaseTest, TestUtils {
     }
 
     function test_metaTxnFailsWrongSignature() external {
-        bytes memory transformCallData = transformERC20Call(
-            zeroExDeployed,
-            zrxToken,
-            usdcToken,
-            USER_ADDRESS,
-            transformerNonce
-        );
+        bytes memory transformCallData = _transformERC20Call(zeroExDeployed, zrx, dai, USER_ADDRESS, transformerNonce);
 
         IMetaTransactionsFeatureV2.MetaTransactionDataV2 memory mtxData = _getMetaTransaction(transformCallData);
 
