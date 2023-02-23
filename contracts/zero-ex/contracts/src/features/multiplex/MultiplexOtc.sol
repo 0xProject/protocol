@@ -74,11 +74,10 @@ abstract contract MultiplexOtc is FixinEIP712 {
         // Decode the tokens[], Otc order, and signature.
         (address[] memory tokens, LibNativeOrder.OtcOrder memory order, LibSignature.Signature memory signature) = abi
             .decode(wrappedCallData, (address[], LibNativeOrder.OtcOrder, LibSignature.Signature));
-        //Make sure that we are trading either the 1st & 2nd token || 2nd & 3rd token from the tokens array
+        //Make sure that the otc orders maker and taker tokens match the fill sequence in params.tokens[]
         require(
-            tokens.length >= 2 &&
-                tokens[state.hopIndex] == params.tokens[state.hopIndex] &&
-                tokens[tokens.length - (2 - state.hopIndex)] == params.tokens[state.hopIndex + 1],
+            address(order.takerToken) == params.tokens[state.hopIndex] &&
+                address(order.makerToken) == params.tokens[state.hopIndex + 1],
             "MultiplexOtcOrder::_multiHopSellOtcOrder/INVALID_TOKENS"
         );
         uint256 sellAmount = state.outputTokenAmount;
