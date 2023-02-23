@@ -54,7 +54,7 @@ abstract contract MultiplexUniswapV3 is FixinTokenSpender {
                     sellAmount,
                     0,
                     params.recipient,
-                    params.msgSender
+                    params.payer
                 )
             );
         }
@@ -89,7 +89,7 @@ abstract contract MultiplexUniswapV3 is FixinTokenSpender {
             );
         } else {
             // Otherwise, we self-delegatecall `_sellTokenForTokenToUniswapV3`,
-            // which pulls the input token from `msgSender`.
+            // which pulls the input token from `payer`.
             (success, resultData) = address(this).delegatecall(
                 abi.encodeWithSelector(
                     IUniswapV3Feature._sellTokenForTokenToUniswapV3.selector,
@@ -97,7 +97,7 @@ abstract contract MultiplexUniswapV3 is FixinTokenSpender {
                     state.outputTokenAmount,
                     0,
                     state.to,
-                    params.msgSender
+                    params.payer
                 )
             );
         }

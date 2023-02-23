@@ -54,7 +54,7 @@ abstract contract MultiplexRfq is FixinEIP712 {
                 order,
                 signature,
                 sellAmount.safeDowncastToUint128(),
-                params.msgSender,
+                params.payer,
                 params.useSelfBalance,
                 params.recipient
             )

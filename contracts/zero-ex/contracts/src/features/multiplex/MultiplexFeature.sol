@@ -113,7 +113,7 @@ contract MultiplexFeature is
                     calls: calls,
                     useSelfBalance: true,
                     recipient: msg.sender,
-                    msgSender: msg.sender
+                    payer: msg.sender
                 }),
                 minBuyAmount
             );
@@ -144,7 +144,7 @@ contract MultiplexFeature is
                 calls: calls,
                 useSelfBalance: false,
                 recipient: address(this),
-                msgSender: msg.sender
+                payer: msg.sender
             }),
             minBuyAmount
         );
@@ -179,7 +179,7 @@ contract MultiplexFeature is
                     calls: calls,
                     useSelfBalance: false,
                     recipient: msg.sender,
-                    msgSender: msg.sender
+                    payer: msg.sender
                 }),
                 minBuyAmount
             );
@@ -251,7 +251,7 @@ contract MultiplexFeature is
                     calls: calls,
                     useSelfBalance: true,
                     recipient: msg.sender,
-                    msgSender: msg.sender
+                    payer: msg.sender
                 }),
                 minBuyAmount
             );
@@ -288,7 +288,7 @@ contract MultiplexFeature is
                 calls: calls,
                 useSelfBalance: false,
                 recipient: address(this),
-                msgSender: msg.sender
+                payer: msg.sender
             }),
             minBuyAmount
         );
@@ -324,7 +324,7 @@ contract MultiplexFeature is
                     calls: calls,
                     useSelfBalance: false,
                     recipient: msg.sender,
-                    msgSender: msg.sender
+                    payer: msg.sender
                 }),
                 minBuyAmount
             );
@@ -420,14 +420,14 @@ contract MultiplexFeature is
         // amount of the multi-hop fill.
         state.outputTokenAmount = params.sellAmount;
         // The first call may expect the input tokens to be held by
-        // `msgSender`, `address(this)`, or some other address.
+        // `payer`, `address(this)`, or some other address.
         // Compute the expected address and transfer the input tokens
         // there if necessary.
         state.from = _computeHopTarget(params, 0);
-        // If the input tokens are currently held by `msgSender` but
+        // If the input tokens are currently held by `payer` but
         // the first hop expects them elsewhere, perform a `transferFrom`.
-        if (!params.useSelfBalance && state.from != params.msgSender) {
-            _transferERC20TokensFrom(IERC20Token(params.tokens[0]), params.msgSender, state.from, params.sellAmount);
+        if (!params.useSelfBalance && state.from != params.payer) {
+            _transferERC20TokensFrom(IERC20Token(params.tokens[0]), params.payer, state.from, params.sellAmount);
         }
         // If the input tokens are currently held by `address(this)` but
         // the first hop expects them elsewhere, perform a `transfer`.
@@ -476,8 +476,8 @@ contract MultiplexFeature is
         // Likewise, the recipient of the multi-hop sell is
         // equal to the recipient of its containing batch sell.
         multiHopParams.recipient = params.recipient;
-        // The msgSender is the same too.
-        multiHopParams.msgSender = params.msgSender;
+        // The payer is the same too.
+        multiHopParams.payer = params.payer;
         // Execute the nested multi-hop sell.
         uint256 outputTokenAmount = _executeMultiHopSell(multiHopParams).outputTokenAmount;
         // Increment the sold and bought amounts.
@@ -504,7 +504,7 @@ contract MultiplexFeature is
         // If the nested batch sell is the first hop
         // and `useSelfBalance` for the containing multi-
         // hop sell is false, the nested batch sell should
-        // pull tokens from `msgSender` (so  `batchSellParams.useSelfBalance`
+        // pull tokens from `payer` (so  `batchSellParams.useSelfBalance`
         // should be false). Otherwise `batchSellParams.useSelfBalance`
         // should be true.
         batchSellParams.useSelfBalance = state.hopIndex > 0 || params.useSelfBalance;
@@ -512,8 +512,8 @@ contract MultiplexFeature is
         // that should receive the output tokens of the
         // batch sell.
         batchSellParams.recipient = state.to;
-        // msgSender shound be the same too.
-        batchSellParams.msgSender = params.msgSender;
+        // payer shound be the same too.
+        batchSellParams.payer = params.payer;
         // Execute the nested batch sell.
         state.outputTokenAmount = _executeBatchSell(batchSellParams).boughtAmount;
     }
@@ -546,25 +546,25 @@ contract MultiplexFeature is
                 // UniswapV3 uses a callback to pull in the tokens being
                 // sold to it. The callback implemented in `UniswapV3Feature`
                 // can either:
-                // - call `transferFrom` to move tokens from `msgSender` to the
+                // - call `transferFrom` to move tokens from `payer` to the
                 //   UniswapV3 pool, or
                 // - call `transfer` to move tokens from `address(this)` to the
                 //   UniswapV3 pool.
                 // A nested batch sell is similar, in that it can either:
-                // - use tokens from `msgSender`, or
+                // - use tokens from `payer`, or
                 // - use tokens held by `address(this)`.
 
                 // Suppose UniswapV3/BatchSell is the first call in the multi-hop
-                // path. The input tokens are either held by `msgSender`,
+                // path. The input tokens are either held by `payer`,
                 // or in the case of `multiplexMultiHopSellEthForToken` WETH is
                 // held by `address(this)`. The target is set accordingly.
 
                 // If this is _not_ the first call in the multi-hop path, we
                 // are dealing with an "intermediate" token in the multi-hop path,
-                // which `msgSender` may not have an allowance set for. Thus
+                // which `payer` may not have an allowance set for. Thus
                 // target must be set to `address(this)` for `i > 0`.
                 if (i == 0 && !params.useSelfBalance) {
-                    target = params.msgSender;
+                    target = params.payer;
                 } else {
                     target = address(this);
                 }

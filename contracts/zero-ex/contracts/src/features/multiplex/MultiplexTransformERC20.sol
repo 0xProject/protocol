@@ -30,8 +30,8 @@ abstract contract MultiplexTransformERC20 {
     ) internal {
         ITransformERC20Feature.TransformERC20Args memory args;
         // We want the TransformedERC20 event to have
-        // `msgSender` as the taker.
-        args.taker = payable(params.msgSender);
+        // `payer` as the taker.
+        args.taker = payable(params.payer);
         args.inputToken = params.inputToken;
         args.outputToken = params.outputToken;
         args.inputTokenAmount = sellAmount;

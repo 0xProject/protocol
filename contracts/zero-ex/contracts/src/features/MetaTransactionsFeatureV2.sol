@@ -25,7 +25,7 @@ import "../fixins/FixinReentrancyGuard.sol";
 import "../fixins/FixinTokenSpender.sol";
 import "../fixins/FixinEIP712.sol";
 import "../migrations/LibMigrate.sol";
-import "../storage/LibMetaTransactionsStorage.sol";
+import "../storage/LibMetaTransactionsV2Storage.sol";
 import "./interfaces/IFeature.sol";
 import "./interfaces/IMetaTransactionsFeatureV2.sol";
 import "./interfaces/IMultiplexFeature.sol";
@@ -75,7 +75,7 @@ contract MetaTransactionsFeatureV2 is
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "MetaTransactionsV2";
     /// @dev Version of this feature.
-    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 2, 1);
+    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 0);
     /// @dev EIP712 typehash of the `MetaTransactionData` struct.
     bytes32 public immutable MTX_EIP712_TYPEHASH =
         keccak256(
@@ -118,7 +118,7 @@ contract MetaTransactionsFeatureV2 is
     modifier doesNotReduceEthBalance() {
         uint256 initialBalance = address(this).balance - msg.value;
         _;
-        require(initialBalance <= address(this).balance, "MetaTransactionDataV2/ETH_LEAK");
+        require(initialBalance <= address(this).balance, "MetaTransactionsFeatureV2/ETH_LEAK");
     }
 
     constructor(address zeroExAddress, IEtherToken weth) public FixinCommon() FixinEIP712(zeroExAddress) {
@@ -208,7 +208,7 @@ contract MetaTransactionsFeatureV2 is
     /// @param mtxHash The meta-transaction hash.
     /// @return blockNumber The block height when the meta-transactioin was executed.
     function getMetaTransactionV2HashExecutedBlock(bytes32 mtxHash) public view override returns (uint256 blockNumber) {
-        return LibMetaTransactionsStorage.getStorage().mtxHashToExecutedBlockNumber[mtxHash];
+        return LibMetaTransactionsV2Storage.getStorage().mtxHashToExecutedBlockNumber[mtxHash];
     }
 
     /// @dev Get the EIP712 hash of a meta-transaction.
@@ -247,7 +247,7 @@ contract MetaTransactionsFeatureV2 is
         // Mark the transaction executed by storing the block at which it was executed.
         // Currently the block number just indicates that the mtx was executed and
         // serves no other purpose from within this contract.
-        LibMetaTransactionsStorage.getStorage().mtxHashToExecutedBlockNumber[state.hash] = block.number;
+        LibMetaTransactionsV2Storage.getStorage().mtxHashToExecutedBlockNumber[state.hash] = block.number;
 
         // Pay the fees to the fee recipients.
         for (uint256 i = 0; i < state.mtx.fees.length; ++i) {
@@ -309,7 +309,7 @@ contract MetaTransactionsFeatureV2 is
                 .rrevert();
         }
         // Transaction must not have been already executed.
-        state.executedBlockNumber = LibMetaTransactionsStorage.getStorage().mtxHashToExecutedBlockNumber[state.hash];
+        state.executedBlockNumber = LibMetaTransactionsV2Storage.getStorage().mtxHashToExecutedBlockNumber[state.hash];
         if (state.executedBlockNumber != 0) {
             LibMetaTransactionsRichErrors
                 .MetaTransactionAlreadyExecutedError(state.hash, state.executedBlockNumber)
@@ -472,7 +472,7 @@ contract MetaTransactionsFeatureV2 is
     /// @dev Execute a `IMultiplexFeature.multiplexBatchSellTokenForToken()` meta-transaction
     ///      call by decoding the call args and translating the call to the internal
     ///      `IMultiplexFeature._multiplexBatchSell()` variant, where we can override the
-    ///      msgSender address.
+    ///      payer address.
     function _executeMultiplexBatchSellTokenForTokenCall(
         ExecuteState memory state
     ) private returns (bytes memory returnResult) {
@@ -500,7 +500,7 @@ contract MetaTransactionsFeatureV2 is
                         calls: calls,
                         useSelfBalance: false,
                         recipient: state.mtx.signer,
-                        msgSender: state.mtx.signer
+                        payer: state.mtx.signer
                     }),
                     minBuyAmount
                 )
@@ -510,7 +510,7 @@ contract MetaTransactionsFeatureV2 is
     /// @dev Execute a `IMultiplexFeature.multiplexBatchSellTokenForEth()` meta-transaction
     ///      call by decoding the call args and translating the call to the internal
     ///      `IMultiplexFeature._multiplexBatchSellTokenForEth()` variant, where we can override the
-    ///      msgSender address.
+    ///      payer address.
     function _executeMultiplexBatchSellTokenForEthCall(
         ExecuteState memory state
     ) private returns (bytes memory returnResult) {
@@ -536,7 +536,7 @@ contract MetaTransactionsFeatureV2 is
                     calls: calls,
                     useSelfBalance: false,
                     recipient: address(this),
-                    msgSender: state.mtx.signer
+                    payer: state.mtx.signer
                 }),
                 minBuyAmount
             )
@@ -551,7 +551,7 @@ contract MetaTransactionsFeatureV2 is
     /// @dev Execute a `IMultiplexFeature.multiplexMultiHopSellTokenForToken()` meta-transaction
     ///      call by decoding the call args and translating the call to the internal
     ///      `IMultiplexFeature._multiplexMultiHopSell()` variant, where we can override the
-    ///      msgSender address.
+    ///      payer address.
     function _executeMultiplexMultiHopSellTokenForTokenCall(
         ExecuteState memory state
     ) private returns (bytes memory returnResult) {
@@ -577,7 +577,7 @@ contract MetaTransactionsFeatureV2 is
                         calls: calls,
                         useSelfBalance: false,
                         recipient: state.mtx.signer,
-                        msgSender: state.mtx.signer
+                        payer: state.mtx.signer
                     }),
                     minBuyAmount
                 )
@@ -587,7 +587,7 @@ contract MetaTransactionsFeatureV2 is
     /// @dev Execute a `IMultiplexFeature.multiplexMultiHopSellTokenForEth()` meta-transaction
     ///      call by decoding the call args and translating the call to the internal
     ///      `IMultiplexFeature._multiplexMultiHopSellTokenForEth()` variant, where we can override the
-    ///      msgSender address.
+    ///      payer address.
     function _executeMultiplexMultiHopSellTokenForEthCall(
         ExecuteState memory state
     ) private returns (bytes memory returnResult) {
@@ -617,7 +617,7 @@ contract MetaTransactionsFeatureV2 is
                     calls: calls,
                     useSelfBalance: false,
                     recipient: address(this),
-                    msgSender: state.mtx.signer
+                    payer: state.mtx.signer
                 }),
                 minBuyAmount
             )
