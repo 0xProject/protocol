@@ -529,9 +529,9 @@ contract MultiplexFeature is
                 // which `msg.sender` may not have an allowance set for. Thus
                 // target must be set to `address(this)` for `i > 0`.
                 if (i == 0 && !params.useSelfBalance) {
-                    target = msg.sender;
-                } else {
                     target = address(this);
+                } else {
+                    target = msg.sender;
                 }
             } else if (subcall.id == MultiplexSubcall.OTC) {
                 //on the first call we want to pull tokens from the taker, subsequent calls should use the EP balance

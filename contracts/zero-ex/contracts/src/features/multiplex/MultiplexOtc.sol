@@ -87,7 +87,7 @@ abstract contract MultiplexOtc is FixinEIP712 {
                 order,
                 signature,
                 sellAmount.safeDowncastToUint128(),
-                state.to == msg.sender ? address(this) : msg.sender,
+                state.hopIndex == 0 ? msg.sender : address(this),
                 params.useSelfBalance,
                 state.to
             );
