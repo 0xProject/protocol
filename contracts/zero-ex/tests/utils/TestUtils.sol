@@ -29,4 +29,13 @@ contract TestUtils is Test {
             }
         }
     }
+
+    // gets a dummy signer
+    function _getSigner() internal returns (address, uint) {
+        string memory mnemonic = "test test test test test test test test test test test junk";
+        uint256 privateKey = vm.deriveKey(mnemonic, 0);
+
+        vm.label(vm.addr(privateKey), "zeroEx/MarketMaker");
+        return (vm.addr(privateKey), privateKey);
+    }
 }
