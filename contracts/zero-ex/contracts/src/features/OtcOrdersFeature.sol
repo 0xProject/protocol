@@ -31,7 +31,7 @@ import "./libs/LibNativeOrder.sol";
 import "./libs/LibSignature.sol";
 
 /// @dev Feature for interacting with OTC orders.
-contract OtcOrdersFeature is IFeature, IOtcOrdersFeature, FixinCommon, FixinEIP712, FixinTokenSpender{
+contract OtcOrdersFeature is IFeature, IOtcOrdersFeature, FixinCommon, FixinEIP712, FixinTokenSpender {
     using LibSafeMathV06 for uint256;
     using LibSafeMathV06 for uint128;
 

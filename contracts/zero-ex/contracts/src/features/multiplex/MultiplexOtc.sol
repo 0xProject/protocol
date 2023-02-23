@@ -21,7 +21,7 @@ import "../interfaces/IMultiplexFeature.sol";
 import "../interfaces/IOtcOrdersFeature.sol";
 import "../libs/LibNativeOrder.sol";
 
-abstract contract MultiplexOtc is FixinEIP712{
+abstract contract MultiplexOtc is FixinEIP712 {
     using LibSafeMathV06 for uint256;
 
     event ExpiredOtcOrder(bytes32 orderHash, address maker, uint64 expiry);

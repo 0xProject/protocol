@@ -29,9 +29,9 @@ import "src/transformers/bridges/BridgeProtocols.sol";
 import "src/features/OtcOrdersFeature.sol";
 
 contract MultiplexRfqtTest is Test, ForkUtils, TestUtils {
-
     using LibERC20TokenV06 for IERC20Token;
     using LibERC20TokenV06 for IEtherToken;
+
     function setUp() public {
         _setup();
     }
@@ -67,12 +67,15 @@ contract MultiplexRfqtTest is Test, ForkUtils, TestUtils {
                 bytes32(0) // sushiswapPairInitCodeHash
             );
 
-            OtcOrdersFeature otcOrdersFeature = new OtcOrdersFeature(address(addresses.exchangeProxy), tokens.WrappedNativeToken);
+            OtcOrdersFeature otcOrdersFeature = new OtcOrdersFeature(
+                address(addresses.exchangeProxy),
+                tokens.WrappedNativeToken
+            );
 
             vm.label(address(multiplexFeature), "zeroEx/NewMultiplexFeature");
             vm.label(address(otcOrdersFeature), "zeroEx/NewOtcOrdersFeature");
             vm.prank(IZeroEx(addresses.exchangeProxy).owner());
-           
+
             IZeroEx(addresses.exchangeProxy).migrate(
                 address(otcOrdersFeature),
                 abi.encodeWithSelector(OtcOrdersFeature.migrate.selector),
@@ -95,7 +98,6 @@ contract MultiplexRfqtTest is Test, ForkUtils, TestUtils {
         ContractAddresses memory addresses,
         LiquiditySources memory sources
     ) public onlyForked {
-        
         IZERO_EX = IZeroEx(addresses.exchangeProxy);
 
         address[] memory tradeTokens = new address[](3);
@@ -139,8 +141,8 @@ contract MultiplexRfqtTest is Test, ForkUtils, TestUtils {
         subcalls[1] = subcall2;
 
         uint balanceBefore = tokens.DAI.balanceOf(address(this));
-        emit log_named_uint("DAI Balance Before",balanceBefore); 
-        emit log_string("Multihop Rfqt: WETH->USDC->DAI"); 
+        emit log_named_uint("DAI Balance Before", balanceBefore);
+        emit log_string("Multihop Rfqt: WETH->USDC->DAI");
 
         /// @dev Sells `sellAmount` of the input token (`tokens[0]`)
         ///      via the given sequence of tokens and calls.
@@ -192,8 +194,6 @@ contract MultiplexRfqtTest is Test, ForkUtils, TestUtils {
 
         vm.startPrank(order.maker);
         IERC20Token(order.makerToken).approveIfBelow(addresses.exchangeProxy, 2e20);
-
-        
 
         order.taker = address(0);
         order.txOrigin = address(tx.origin);
