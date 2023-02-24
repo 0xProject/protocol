@@ -544,7 +544,11 @@ contract MultiplexFeature is
                 // is executed, so we the target is the address encoded
                 // in the subcall data.
                 (target, ) = abi.decode(subcall.data, (address, bytes));
-            } else if (subcall.id == MultiplexSubcall.UniswapV3 || subcall.id == MultiplexSubcall.BatchSell) {
+            } else if (
+                subcall.id == MultiplexSubcall.UniswapV3 ||
+                subcall.id == MultiplexSubcall.BatchSell ||
+                subcall.id == MultiplexSubcall.OTC
+            ) {
                 // UniswapV3 uses a callback to pull in the tokens being
                 // sold to it. The callback implemented in `UniswapV3Feature`
                 // can either:
@@ -566,13 +570,6 @@ contract MultiplexFeature is
                 // which `payer` may not have an allowance set for. Thus
                 // target must be set to `address(this)` for `i > 0`.
                 if (i == 0 && !params.useSelfBalance) {
-                    target = params.payer;
-                } else {
-                    target = address(this);
-                }
-            } else if (subcall.id == MultiplexSubcall.OTC) {
-                //on the first call we want to pull tokens from the taker, subsequent calls should use the EP balance
-                if (i == 0) {
                     target = params.payer;
                 } else {
                     target = address(this);
