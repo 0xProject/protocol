@@ -29,7 +29,6 @@ import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 import "@0x/contracts-erc20/src/IEtherToken.sol";
 
 contract MetaTransactionTest is LocalTest {
-    address private constant ZERO_ADDRESS = address(0);
     address private constant USER_ADDRESS = 0x6dc3a54FeAE57B65d185A7B159c5d3FA7fD7FD0F;
     uint256 private constant USER_KEY = 0x1fc1630343b31e60b7a197a53149ca571ed9d9791e2833337bbd8110c30710ec;
 
@@ -123,7 +122,7 @@ contract MetaTransactionTest is LocalTest {
             makerAmount: 1e18,
             takerAmount: 1e18,
             maker: makerAddress,
-            taker: ZERO_ADDRESS,
+            taker: address(0),
             txOrigin: tx.origin,
             pool: 0x0000000000000000000000000000000000000000000000000000000000000000,
             expiry: uint64(block.timestamp + 60),
@@ -164,10 +163,10 @@ contract MetaTransactionTest is LocalTest {
             makerAmount: 1e18,
             takerAmount: 1e18,
             maker: makerAddress,
-            taker: ZERO_ADDRESS,
-            sender: ZERO_ADDRESS,
+            taker: address(0),
+            sender: address(0),
             takerTokenFeeAmount: 0,
-            feeRecipient: ZERO_ADDRESS,
+            feeRecipient: address(0),
             pool: 0x0000000000000000000000000000000000000000000000000000000000000000,
             expiry: uint64(block.timestamp + 60),
             salt: 123
@@ -336,7 +335,7 @@ contract MetaTransactionTest is LocalTest {
     function test_transformERC20WithAnySender() external {
         bytes memory transformCallData = _transformERC20Call(zrx, dai, USER_ADDRESS);
         IMetaTransactionsFeatureV2.MetaTransactionDataV2 memory mtxData = _getMetaTransaction(transformCallData);
-        mtxData.sender = ZERO_ADDRESS;
+        mtxData.sender = address(0);
 
         assertEq(dai.balanceOf(USER_ADDRESS), 1e18);
 
