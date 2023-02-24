@@ -84,7 +84,7 @@ contract MetaTransactionTest is LocalTest {
         return mtx;
     }
 
-    function _badSelectorTransformERC20Call() private returns (bytes memory) {
+    function _badSelectorTransformERC20Call() private pure returns (bytes memory) {
         return abi.encodeWithSelector(ITransformERC20Feature.createTransformWallet.selector);
     }
 
