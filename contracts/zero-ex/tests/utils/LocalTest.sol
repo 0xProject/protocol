@@ -54,6 +54,9 @@ contract LocalTest is Test, TestUtils {
     address internal signerAddress;
     uint256 internal signerKey;
 
+    address internal otherSignerAddress;
+    uint256 internal otherSignerKey;
+
     function _infiniteApprovals() private {
         shib.approve(address(zeroExDeployed.zeroEx), type(uint256).max);
         dai.approve(address(zeroExDeployed.zeroEx), type(uint256).max);
@@ -92,12 +95,23 @@ contract LocalTest is Test, TestUtils {
         zrx = IERC20Token(address(new TestMintableERC20Token()));
         weth = zeroExDeployed.weth;
 
+        // TODO this should be somewhere else
+        string memory mnemonic = "conduct into noodle wreck before satisfy alarm vendor dose lunch vapor party";
+        otherSignerKey = vm.deriveKey(mnemonic, 0);
+        otherSignerAddress = vm.addr(otherSignerKey);
+        vm.label(otherSignerAddress, "zeroEx/OtherGuy");
+
         _infiniteApprovals();
+
         vm.startPrank(signerAddress);
         _infiniteApprovals();
         vm.stopPrank();
 
-        vm.deal(address(this), 10e18);
+        vm.startPrank(otherSignerAddress);
+        _infiniteApprovals();
+        vm.stopPrank();
+
+        vm.deal(address(this), 20e18);
     }
 
     function _mintTo(address token, address recipient, uint256 amount) internal {
