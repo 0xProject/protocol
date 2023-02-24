@@ -10,7 +10,9 @@ import {LibNativeOrder} from "src/features/libs/LibNativeOrder.sol";
 import {IMetaTransactionsFeatureV2} from "src/features/interfaces/IMetaTransactionsFeatureV2.sol";
 
 contract MultiplexMetaTransactionsV2 is LocalTest, MultiplexUtils {
-    function _makeMetaTransactionV2(bytes memory callData) private view returns (IMetaTransactionsFeatureV2.MetaTransactionDataV2 memory, LibSignature.Signature memory) {
+    function _makeMetaTransactionV2(
+        bytes memory callData
+    ) private view returns (IMetaTransactionsFeatureV2.MetaTransactionDataV2 memory, LibSignature.Signature memory) {
         IMetaTransactionsFeatureV2.MetaTransactionDataV2 memory mtx = IMetaTransactionsFeatureV2.MetaTransactionDataV2({
             signer: payable(otherSignerAddress),
             sender: address(0),
@@ -80,9 +82,7 @@ contract MultiplexMetaTransactionsV2 is LocalTest, MultiplexUtils {
                 zeroExDeployed.zeroEx.multiplexBatchSellTokenForToken.selector,
                 dai,
                 zrx,
-                _makeArray(
-                    _makeUniswapV2BatchSubcall(_makeArray(address(dai), address(zrx)), 1e18, false)
-                ),
+                _makeArray(_makeUniswapV2BatchSubcall(_makeArray(address(dai), address(zrx)), 1e18, false)),
                 1e18,
                 1
             )
@@ -319,11 +319,9 @@ contract MultiplexMetaTransactionsV2 is LocalTest, MultiplexUtils {
                 zeroExDeployed.zeroEx.multiplexBatchSellTokenForToken.selector,
                 dai,
                 zrx,
-                _makeArray(_makeNestedMultiHopSellSubcall(
-                    tokens,
-                    _makeArray(_makeUniswapV3MultiHopSubcall(tokens)),
-                    1e18
-                )),
+                _makeArray(
+                    _makeNestedMultiHopSellSubcall(tokens, _makeArray(_makeUniswapV3MultiHopSubcall(tokens)), 1e18)
+                ),
                 1e18,
                 1
             )
@@ -338,9 +336,11 @@ contract MultiplexMetaTransactionsV2 is LocalTest, MultiplexUtils {
             abi.encodeWithSelector(
                 zeroExDeployed.zeroEx.multiplexMultiHopSellTokenForToken.selector,
                 _makeArray(address(dai), address(zrx)),
-                _makeArray(_makeNestedBatchSellSubcall(_makeArray(
-                    _makeUniswapV3BatchSubcall(_makeArray(address(dai), address(zrx)), 1e18)
-                ))),
+                _makeArray(
+                    _makeNestedBatchSellSubcall(
+                        _makeArray(_makeUniswapV3BatchSubcall(_makeArray(address(dai), address(zrx)), 1e18))
+                    )
+                ),
                 1e18,
                 1
             )
