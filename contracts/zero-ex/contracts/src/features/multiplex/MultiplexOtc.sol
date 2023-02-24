@@ -65,4 +65,35 @@ abstract contract MultiplexOtc is FixinEIP712 {
             state.boughtAmount = state.boughtAmount.safeAdd(makerTokenFilledAmount);
         } catch {}
     }
+
+    function _multiHopSellOtcOrder(
+        IMultiplexFeature.MultiHopSellState memory state,
+        IMultiplexFeature.MultiHopSellParams memory params,
+        bytes memory wrappedCallData
+    ) internal {
+        // Decode the Otc order, and signature.
+        (LibNativeOrder.OtcOrder memory order, LibSignature.Signature memory signature) = abi.decode(
+            wrappedCallData,
+            (LibNativeOrder.OtcOrder, LibSignature.Signature)
+        );
+        //Make sure that the otc orders maker and taker tokens match the fill sequence in params.tokens[]
+        require(
+            address(order.takerToken) == params.tokens[state.hopIndex] &&
+                address(order.makerToken) == params.tokens[state.hopIndex + 1],
+            "MultiplexOtcOrder::_multiHopSellOtcOrder/INVALID_TOKENS"
+        );
+        uint256 sellAmount = state.outputTokenAmount;
+        // Try filling the Otc order. Bubble up reverts.
+        (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount) = IOtcOrdersFeature(address(this))
+            ._fillOtcOrder(
+                order,
+                signature,
+                sellAmount.safeDowncastToUint128(),
+                state.hopIndex == 0 ? params.payer : address(this),
+                params.useSelfBalance,
+                state.to
+            );
+        //store the bought amount for the next hop
+        state.outputTokenAmount = makerTokenFilledAmount;
+    }
 }
