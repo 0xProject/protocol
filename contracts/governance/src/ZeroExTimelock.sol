@@ -18,10 +18,13 @@
 */
 pragma solidity ^0.8.17;
 
+import "@0x/contracts-utils/contracts/src/v08/LibBytesV08.sol";
 import "@openzeppelin/governance/TimelockController.sol";
 
 /// @custom:security-contact security@0xproject.com
 contract ZeroExTimelock is TimelockController {
+    using LibBytesV08 for bytes;
+
     // minDelay is how long you have to wait before executing
     // proposers is the list of addresses that can propose
     // executors is the list of addresses that can execute
@@ -31,4 +34,40 @@ contract ZeroExTimelock is TimelockController {
         address[] memory executors,
         address admin
     ) TimelockController(minDelay, proposers, executors, admin) {}
+
+    /**
+     * @dev Execute a batch of rollback transactions. Similar to TimelockController.executeBatch function but without
+     * the timelock checks.
+     * Emits one {CallExecuted} event per transaction in the batch.
+     *
+     * Requirements:
+     *
+     * - the caller must have the 'executor' role.
+     */
+    function executeRollbackBatch(
+        address[] calldata targets,
+        uint256[] calldata values,
+        bytes[] calldata payloads,
+        bytes32 predecessor,
+        bytes32 salt
+    ) public payable onlyRoleOrOpenRole(EXECUTOR_ROLE) {
+        require(targets.length == values.length, "TimelockController: length mismatch");
+        require(targets.length == payloads.length, "TimelockController: length mismatch");
+
+        bytes32 id = hashOperationBatch(targets, values, payloads, predecessor, salt);
+
+        for (uint256 i = 0; i < targets.length; ++i) {
+            address target = targets[i];
+            uint256 value = values[i];
+            bytes calldata payload = payloads[i];
+            // Check this is a rollback transaction
+            // function signature for rollback(bytes4,address)
+            // = bytes4(keccak256("rollback(bytes4,address)"))
+            // = 0x9db64a40
+            require(payload.readBytes4(0) == 0x9db64a40, "TimelockController: Not a rollback call");
+
+            _execute(target, value, payload);
+            emit CallExecuted(id, i, target, value, payload);
+        }
+    }
 }

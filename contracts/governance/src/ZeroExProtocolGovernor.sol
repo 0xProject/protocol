@@ -18,6 +18,7 @@
 */
 pragma solidity ^0.8.17;
 
+import "./ZeroExTimelock.sol";
 import "@openzeppelin/governance/Governor.sol";
 import "@openzeppelin/governance/extensions/GovernorSettings.sol";
 import "@openzeppelin/governance/extensions/GovernorCountingSimple.sol";
@@ -35,13 +36,13 @@ contract ZeroExProtocolGovernor is
 
     constructor(
         IVotes _token,
-        TimelockController _timelock,
+        ZeroExTimelock _timelock,
         address _securityCouncil
     )
         Governor("ZeroExProtocolGovernor")
         GovernorSettings(14400 /* 2 days */, 50400 /* 7 days */, 1000000e18)
         GovernorVotes(_token)
-        GovernorTimelockControl(_timelock)
+        GovernorTimelockControl(TimelockController(payable(_timelock)))
     {
         securityCouncil = _securityCouncil;
     }
@@ -85,6 +86,25 @@ contract ZeroExProtocolGovernor is
     ) public {
         require(msg.sender == securityCouncil, "ZeroExProtocolGovernor: Only security council allowed");
         _cancel(targets, values, calldatas, descriptionHash);
+
+        // Eject security council
+        securityCouncil = address(0);
+    }
+
+    // Like the GovernorTimelockControl.queue function but without the proposal checks,
+    // (as there's effectively no proposal).
+    // And also using a delay of 0 as opposed to the minimum delay of the timelock
+    function executeRollback(
+        address[] memory targets,
+        uint256[] memory values,
+        bytes[] memory calldatas,
+        bytes32 descriptionHash
+    ) public {
+        require(msg.sender == securityCouncil, "ZeroExProtocolGovernor: Only security council allowed");
+
+        // Execute the batch of rollbacks via the timelock controller
+        ZeroExTimelock timelockController = ZeroExTimelock(payable(timelock()));
+        timelockController.executeRollbackBatch(targets, values, calldatas, 0, descriptionHash);
 
         // Eject security council
         securityCouncil = address(0);

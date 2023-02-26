@@ -19,8 +19,14 @@
 pragma solidity ^0.8.17;
 
 import "./ZeroExGovernorBaseTest.t.sol";
+import "./ZeroExMock.sol";
+import "../src/ZeroExProtocolGovernor.sol";
 
 contract ZeroExProtocolGovernorTest is ZeroExGovernorBaseTest {
+    ZeroExProtocolGovernor internal protocolGovernor;
+    ZeroExMock internal zeroExMock;
+    event CallExecuted(bytes32 indexed id, uint256 indexed index, address target, uint256 value, bytes data);
+
     function setUp() public {
         governorName = "ZeroExProtocolGovernor";
         proposalThreshold = 1000000e18;
@@ -29,7 +35,8 @@ contract ZeroExProtocolGovernorTest is ZeroExGovernorBaseTest {
         address governorAddress;
         (token, wToken, votes, timelock, , governorAddress, ) = setupGovernance();
         governor = IZeroExGovernor(governorAddress);
-
+        protocolGovernor = ZeroExProtocolGovernor(payable(governorAddress));
+        zeroExMock = new ZeroExMock();
         initialiseAccounts();
     }
 
@@ -82,5 +89,59 @@ contract ZeroExProtocolGovernorTest is ZeroExGovernorBaseTest {
         governor.execute(targets, values, calldatas, keccak256("Proposal description"));
         state = governor.state(proposalId);
         assertEq(uint256(state), uint256(IGovernor.ProposalState.Executed));
+    }
+
+    function testSecurityCouncilShouldBeAbleToExecuteRollback() public {
+        // Create a proposal
+        address[] memory targets = new address[](1);
+        targets[0] = address(zeroExMock);
+
+        uint256[] memory values = new uint256[](1);
+        values[0] = 0;
+
+        bytes[] memory calldatas = new bytes[](1);
+        bytes4 testFunctionSig = 0xc853c969;
+        address testFunctionImpl = 0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f;
+        calldatas[0] = abi.encodeWithSignature("rollback(bytes4,address)", testFunctionSig, testFunctionImpl);
+
+        // Security council adds the batch of rollbacks to the queue
+        vm.startPrank(securityCouncil);
+
+        bytes32 proposalId = timelock.hashOperationBatch(
+            targets,
+            values,
+            calldatas,
+            0,
+            keccak256(bytes("Emergency rollback"))
+        );
+        vm.expectEmit(false, false, false, false);
+        emit CallExecuted(proposalId, 0, targets[0], values[0], calldatas[0]);
+
+        protocolGovernor.executeRollback(targets, values, calldatas, keccak256(bytes("Emergency rollback")));
+    }
+
+    function testSecurityCouncilShouldNotBeAbleToExecuteArbitraryFunctions() public {
+        // Create a proposal
+        address[] memory targets = new address[](1);
+        targets[0] = address(callReceiverMock);
+
+        uint256[] memory values = new uint256[](1);
+        values[0] = 0;
+
+        bytes[] memory calldatas = new bytes[](1);
+        calldatas[0] = abi.encodeWithSignature("mockFunction()");
+
+        // Security council tries to
+        vm.startPrank(securityCouncil);
+
+        bytes32 proposalId = timelock.hashOperationBatch(
+            targets,
+            values,
+            calldatas,
+            0,
+            keccak256(bytes("Proposal description"))
+        );
+        vm.expectRevert("TimelockController: Not a rollback call");
+        protocolGovernor.executeRollback(targets, values, calldatas, keccak256(bytes("Proposal description")));
     }
 }

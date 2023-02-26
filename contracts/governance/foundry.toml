@@ -1,7 +1,10 @@
 [profile.default]
 src = 'src'
 out = 'out'
-libs = ['lib']
-fs_permissions = [{ access = "read", path = "./ZRXToken.json"}]
-remappings = ['@openzeppelin/=./lib/openzeppelin-contracts/contracts/']
+libs = ['lib', "../utils/contracts/src/"]
+fs_permissions = [{ access = "read", path = "./" }]
+remappings = [
+    '@openzeppelin/=./lib/openzeppelin-contracts/contracts/',
+    '@0x/contracts-utils/=../utils/',
+]
 optimizer_runs = 20_000
