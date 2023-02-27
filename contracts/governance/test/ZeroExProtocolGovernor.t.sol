@@ -114,7 +114,7 @@ contract ZeroExProtocolGovernorTest is ZeroExGovernorBaseTest {
             0,
             keccak256(bytes("Emergency rollback"))
         );
-        vm.expectEmit(false, false, false, false);
+        vm.expectEmit(true, true, true, true);
         emit CallExecuted(proposalId, 0, targets[0], values[0], calldatas[0]);
 
         protocolGovernor.executeRollback(targets, values, calldatas, keccak256(bytes("Emergency rollback")));

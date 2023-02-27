@@ -18,6 +18,7 @@
 */
 pragma solidity ^0.8.19;
 
+import "./IZeroExGovernor.sol";
 import "./ZeroExTimelock.sol";
 import "@openzeppelin/governance/Governor.sol";
 import "@openzeppelin/governance/extensions/GovernorSettings.sol";
