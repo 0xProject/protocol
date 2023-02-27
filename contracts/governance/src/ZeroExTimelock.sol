@@ -18,13 +18,10 @@
 */
 pragma solidity ^0.8.19;
 
-import "@0x/contracts-utils/contracts/src/v08/LibBytesV08.sol";
 import "@openzeppelin/governance/TimelockController.sol";
 
 /// @custom:security-contact security@0xproject.com
 contract ZeroExTimelock is TimelockController {
-    using LibBytesV08 for bytes;
-
     // minDelay is how long you have to wait before executing
     // proposers is the list of addresses that can propose
     // executors is the list of addresses that can execute
@@ -64,7 +61,7 @@ contract ZeroExTimelock is TimelockController {
             // function signature for rollback(bytes4,address)
             // = bytes4(keccak256("rollback(bytes4,address)"))
             // = 0x9db64a40
-            require(payload.readBytes4(0) == 0x9db64a40, "TimelockController: Not a rollback call");
+            require(bytes4(payload) == bytes4(0x9db64a40), "TimelockController: Not a rollback call");
 
             _execute(target, value, payload);
             emit CallExecuted(id, i, target, value, payload);
