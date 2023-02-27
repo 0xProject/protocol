@@ -3,39 +3,60 @@
 @tailwind utilities;
 
 @layer base {
-  @font-face {
-    font-family: "PolySans";
-    font-style: normal;
-    font-weight: 100;
-    font-display: swap;
-    src: url("/fonts/PolySans-Slim.otf") format("opentype");
-  }
-  @font-face {
-    font-family: "PolySans";
-    font-style: normal;
-    font-weight: 400;
-    font-display: swap;
-    src: url("/fonts/PolySans-Neutral.otf") format("opentype");
-  }
-  @font-face {
-    font-family: "PolySans";
-    font-style: italic;
-    font-weight: 400;
-    font-display: swap;
-    src: url("/fonts/PolySans-NeutralItalic.otf") format("opentype");
-  }
-  @font-face {
-    font-family: "PolySans";
-    font-style: normal;
-    font-weight: 500;
-    font-display: swap;
-    src: url("/fonts/PolySans-Median.otf") format("opentype");
-  }
-  @font-face {
-    font-family: "PolySans";
-    font-style: normal;
-    font-weight: 700;
-    font-display: swap;
-    src: url("/fonts/PolySans-Bulky.otf") format("opentype");
-  }
+    @font-face {
+        font-family: 'PolySans';
+        font-style: normal;
+        font-weight: 100;
+        font-display: swap;
+        src: url('/fonts/PolySans-Slim.woff2') format('woff2');
+    }
+    @font-face {
+        font-family: 'PolySans';
+        font-style: italic;
+        font-weight: 100;
+        font-display: swap;
+        src: url('/fonts/PolySans-SlimItalic.woff2') format('woff2');
+    }
+    @font-face {
+        font-family: 'PolySans';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url('/fonts/PolySans-Neutral.woff2') format('woff2');
+    }
+    @font-face {
+        font-family: 'PolySans';
+        font-style: italic;
+        font-weight: 400;
+        font-display: swap;
+        src: url('/fonts/PolySans-NeutralItalic.woff2') format('woff2');
+    }
+    @font-face {
+        font-family: 'PolySans';
+        font-style: normal;
+        font-weight: 500;
+        font-display: swap;
+        src: url('/fonts/PolySans-Median.woff2') format('woff2');
+    }
+    @font-face {
+        font-family: 'PolySans';
+        font-style: italic;
+        font-weight: 500;
+        font-display: swap;
+        src: url('/fonts/PolySans-MedianItalic.woff2') format('woff2');
+    }
+    @font-face {
+        font-family: 'PolySans';
+        font-style: normal;
+        font-weight: 700;
+        font-display: swap;
+        src: url('/fonts/PolySans-Bulky.woff2') format('woff2');
+    }
+    @font-face {
+        font-family: 'PolySans';
+        font-style: italic;
+        font-weight: 700;
+        font-display: swap;
+        src: url('/fonts/PolySans-BulkyItalic.woff2') format('woff2');
+    }
 }
