@@ -11,6 +11,7 @@ import { getTokenMetadataIfExists, isNativeSymbolOrAddress, nativeWrappedTokenSy
 import { addressUtils, BigNumber } from '@0x/utils';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
+import * as _ from 'lodash';
 import { Counter } from 'prom-client';
 
 import { Integrator } from '../config';
@@ -20,17 +21,11 @@ import {
     FetchFirmQuoteParams,
     FetchIndicativeQuoteParams,
     FetchQuoteParamsBase,
-    MetaTransactionV2,
     SubmitMetaTransactionSignedQuoteParams,
     SubmitMetaTransactionV2SignedQuoteParams,
     SubmitRfqmSignedQuoteWithApprovalParams,
 } from '../services/types';
-import {
-    ExecuteMetaTransactionEip712Context,
-    GaslessApprovalTypes,
-    GaslessTypes,
-    PermitEip712Context,
-} from '../core/types';
+import { Approval, Eip712DataField, GaslessApprovalTypes, GaslessTypes } from '../core/types';
 import { ConfigManager } from '../utils/config_manager';
 import { HealthCheckResult, transformResultToShortResponse } from '../utils/rfqm_health_check';
 import {
@@ -44,6 +39,8 @@ import {
 } from '../utils/rfqm_request_utils';
 import { schemaUtils } from '../core/schema_utils';
 import { TX_RELAY_V1_PATH, ZERO_G_PATH, ZERO_G_ALIAS_PATH } from '../core/constants';
+import { logger } from '../logger';
+import { getZeroExEip712Domain } from '../eip712registry';
 
 // Minimum slippage allowed. This value should be kept consistent with the value set in 0x-api
 const MIN_ALLOWED_SLIPPAGE = 0.001; // 0.1%
@@ -422,15 +419,15 @@ export class GaslessSwapHandlers {
         };
     }
 
-    private _parseSubmitParams<T extends ExecuteMetaTransactionEip712Context | PermitEip712Context>(
+    private _parseSubmitParams<ApprovalType extends Approval>(
         req: express.Request,
     ): {
         chainId: number;
         integrator: Integrator;
         params:
-            | SubmitRfqmSignedQuoteWithApprovalParams<T>
-            | SubmitMetaTransactionSignedQuoteParams<T>
-            | SubmitMetaTransactionV2SignedQuoteParams<T>;
+            | SubmitRfqmSignedQuoteWithApprovalParams<ApprovalType>
+            | SubmitMetaTransactionSignedQuoteParams<ApprovalType>
+            | SubmitMetaTransactionV2SignedQuoteParams<ApprovalType>;
     } {
         const chainId = extractChainId(req, this._gaslessSwapServices);
         const { integrator } = this._validateApiKey(req.header('0x-api-key'), chainId);
@@ -438,7 +435,9 @@ export class GaslessSwapHandlers {
         const { approval, trade } = req.body;
 
         const parsedParams: Partial<
-            SubmitRfqmSignedQuoteWithApprovalParams<T> | SubmitMetaTransactionSignedQuoteParams<T>
+            | SubmitRfqmSignedQuoteWithApprovalParams<ApprovalType>
+            | SubmitMetaTransactionSignedQuoteParams<ApprovalType>
+            | SubmitMetaTransactionV2SignedQuoteParams<ApprovalType>
         > = {};
 
         // Parse approval params
@@ -447,7 +446,7 @@ export class GaslessSwapHandlers {
                 approval.type === GaslessApprovalTypes.ExecuteMetaTransaction ||
                 approval.type === GaslessApprovalTypes.Permit
             ) {
-                const eip712 = stringsToEIP712Context(approval.eip712) as T;
+                const eip712 = stringsToEIP712Context(approval.eip712);
                 const signature = stringsToSignature(approval.signature as StringSignatureFields);
                 parsedParams.approval = {
                     type: approval.type,
@@ -475,24 +474,48 @@ export class GaslessSwapHandlers {
                 signature,
             };
         } else if (trade.type === GaslessTypes.MetaTransaction) {
-            const metaTransaction = new MetaTransaction(
-                stringsToMetaTransactionFields(trade.metaTransaction as RawMetaTransactionFields),
-            );
-            const signature = stringsToSignature(trade.signature as StringSignatureFields);
-            parsedParams.trade = {
-                type: trade.type,
-                metaTransaction,
-                signature,
-            };
+            if (trade.metaTransaction !== undefined) {
+                const metaTransaction = new MetaTransaction(
+                    stringsToMetaTransactionFields(trade.metaTransaction as RawMetaTransactionFields),
+                );
+                const signature = stringsToSignature(trade.signature as StringSignatureFields);
+                parsedParams.trade = {
+                    type: trade.type,
+                    metaTransaction,
+                    signature,
+                };
+            } /* if trade.eip712 is present */ else {
+                const { domain, message } = trade.eip712;
+                validateEip712TradeContext(trade.eip712);
+
+                const signature = stringsToSignature(trade.signature as StringSignatureFields);
+                parsedParams.trade = {
+                    type: trade.type,
+                    trade: new MetaTransaction(
+                        stringsToMetaTransactionFields({
+                            ...message,
+                            chainId: domain.chainId,
+                            verifyingContract: domain.verifyingContract,
+                        }),
+                    ),
+                    signature,
+                };
+            }
         } else if (trade.type === GaslessTypes.MetaTransactionV2) {
             // TODO: This needs to be changed
-            const metaTransaction = new MetaTransactionV2(
-                stringsToMetaTransactionFields(trade.metaTransaction as RawMetaTransactionFields),
-            );
+            const { domain, message } = trade.eip712;
+            validateEip712TradeContext(trade.eip712);
+
             const signature = stringsToSignature(trade.signature as StringSignatureFields);
             parsedParams.trade = {
                 type: trade.type,
-                metaTransaction,
+                trade: new MetaTransaction(
+                    stringsToMetaTransactionFields({
+                        ...message,
+                        chainId: domain.chainId,
+                        verifyingContract: domain.verifyingContract,
+                    }),
+                ),
                 signature,
             };
         } else {
@@ -511,10 +534,48 @@ export class GaslessSwapHandlers {
             chainId,
             integrator,
             params: parsedParams as
-                | SubmitRfqmSignedQuoteWithApprovalParams<T>
-                | SubmitMetaTransactionSignedQuoteParams<T>
-                | SubmitMetaTransactionV2SignedQuoteParams<T>,
+                | SubmitRfqmSignedQuoteWithApprovalParams<ApprovalType>
+                | SubmitMetaTransactionSignedQuoteParams<ApprovalType>
+                | SubmitMetaTransactionV2SignedQuoteParams<ApprovalType>,
         };
+    }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function validateEip712TradeContext(eip712: any) {
+    const { types, primaryType, domain, message } = eip712;
+    if (primaryType !== 'MetaTransactionData') {
+        throw new ValidationError([
+            {
+                field: 'primaryType',
+                code: ValidationErrorCodes.FieldInvalid,
+                reason: `Invalid primaryType field provided for Trade`,
+            },
+        ]);
+    }
+    if (typeof domain.chainId !== 'number' || !_.isEqual(domain, getZeroExEip712Domain(domain.chainId))) {
+        throw new ValidationError([
+            {
+                field: 'domain',
+                code: ValidationErrorCodes.FieldInvalid,
+                reason: `Invalid domain field provided for Trade of primaryType ${primaryType}`,
+            },
+        ]);
+    }
+    if (
+        !_.isEqual(
+            _.keys(message).sort(),
+            types.MetaTransactionData.map((dataField: Eip712DataField) => dataField.name).sort(), // TODO: validate metatxn v2
+        )
+    ) {
+        logger.warn({ primaryType, message }, 'Invalid message field provided for Trade');
+        throw new ValidationError([
+            {
+                field: 'message',
+                code: ValidationErrorCodes.FieldInvalid,
+                reason: `Invalid message field provided for Trade of primaryType ${primaryType}`,
+            },
+        ]);
     }
 }
 

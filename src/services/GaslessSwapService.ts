@@ -5,22 +5,23 @@ import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import { AxiosInstance } from 'axios';
 import { utils as ethersUtils } from 'ethers';
 import Redis from 'ioredis';
+import * as _ from 'lodash';
 import { Counter, Summary } from 'prom-client';
 import { Producer } from 'sqs-producer';
 
-import { ONE_MINUTE_S, ONE_SECOND_MS } from '../core/constants';
+import { META_TRANSACTION_V1_EIP_712_TYPES, ONE_MINUTE_S, ONE_SECOND_MS } from '../core/constants';
 import { MetaTransactionJobConstructorOpts } from '../entities/MetaTransactionJobEntity';
 import { RfqmJobStatus } from '../entities/types';
 import { logger } from '../logger';
-import { ExecuteMetaTransactionEip712Context, PermitEip712Context, GaslessTypes } from '../core/types';
+import { feesToTruncatedFees, getFeeConfigsFromParams } from '../core/meta_transaction_fee_utils';
+import { GaslessTypes, Approval } from '../core/types';
 import { FeeConfigs, TruncatedFees } from '../core/types/meta_transaction_fees';
 import { getV1QuoteAsync, getV2QuoteAsync, MetaTransactionClientQuoteResponse } from '../utils/MetaTransactionClient';
 import { RfqmDbUtils } from '../utils/rfqm_db_utils';
 import { HealthCheckResult } from '../utils/rfqm_health_check';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
-import { getSignerFromHash } from '../utils/signature_utils';
+import { getSignerFromHash, padSignature } from '../utils/signature_utils';
 
-import { RfqmService } from './rfqm_service';
 import {
     FetchFirmQuoteParams,
     FetchIndicativeQuoteParams,
@@ -37,8 +38,12 @@ import {
     SubmitMetaTransactionV2SignedQuoteResponse,
     StatusResponse,
     FetchQuoteParamsBase,
+    TradeResponse,
 } from './types';
-import { feesToTruncatedFees, getFeeConfigsFromParams } from '../core/meta_transaction_fee_utils';
+import { getZeroExEip712Domain } from '../eip712registry';
+import { extractEIP712DomainType } from '../utils/Eip712Utils';
+
+import { RfqmService } from './rfqm_service';
 
 /**
  * When a metatransaction quote is issued, the hash
@@ -97,6 +102,14 @@ function decodeTransformErc20Calldata(calldata: string): {
         inputTokenAmount: new BigNumber(inputTokenAmount.toString()),
         minOutputTokenAmount: new BigNumber(minOutputTokenAmount.toString()),
     };
+}
+
+/**
+ * Transient function that prunes `/v1` suffixes, if present.
+ * Used to roll out MetaTransactionClient URL change in a safe manner.
+ */
+function removeV1SuffixFromUrl(url: string): URL {
+    return new URL(url.replace(/\/+v1/, ''));
 }
 
 const ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS = new Summary({
@@ -183,16 +196,19 @@ export class GaslessSwapService {
                 // Can use the null address here since we won't be returning
                 // the actual metatransaction
                 takerAddress: params.takerAddress ?? NULL_ADDRESS,
+                metaTransactionVersion: 'v1' as 'v1' | 'v2',
                 feeConfigs,
             };
 
             let metaTransactionQuote: MetaTransactionClientQuoteResponse | null;
 
+            // In this context, `kind` refers to the type of endpoints that the quote will be fetched from.
+            // MetaTransaction refers to the old zero-g flow, and MetaTransactionV2 refers to /tx-relay.
             switch (kind) {
                 case GaslessTypes.MetaTransaction:
                     metaTransactionQuote = await getV1QuoteAsync(
                         this._axiosInstance,
-                        new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
+                        new URL(`${removeV1SuffixFromUrl(this._metaTransactionServiceBaseUrl.toString())}/v1/quote`),
                         metaTransactionRequestParams,
                         {
                             requestDurationSummary: ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS,
@@ -204,7 +220,7 @@ export class GaslessSwapService {
                 case GaslessTypes.MetaTransactionV2:
                     metaTransactionQuote = await getV2QuoteAsync(
                         this._axiosInstance,
-                        new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
+                        new URL(`${removeV1SuffixFromUrl(this._metaTransactionServiceBaseUrl.toString())}/v2/quote`),
                         metaTransactionRequestParams,
                         {
                             requestDurationSummary: ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS,
@@ -310,16 +326,19 @@ export class GaslessSwapService {
                 affiliateAddress: params.affiliateAddress ?? params.integrator.affiliateAddress,
                 integratorId: params.integrator.integratorId,
                 quoteUniqueId: kind === GaslessTypes.MetaTransaction ? rfqQuoteReportId ?? undefined : undefined,
+                metaTransactionVersion: 'v1' as 'v1' | 'v2',
                 feeConfigs,
             };
 
             let metaTransactionQuote: MetaTransactionClientQuoteResponse | null;
 
+            // In this context, `kind` refers to the type of endpoints that the quote will be fetched from.
+            // MetaTransaction refers to the old zero-g flow, and MetaTransactionV2 refers to /tx-relay.
             switch (kind) {
                 case GaslessTypes.MetaTransaction:
                     metaTransactionQuote = await getV1QuoteAsync(
                         this._axiosInstance,
-                        new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
+                        new URL(`${removeV1SuffixFromUrl(this._metaTransactionServiceBaseUrl.toString())}/v1/quote`),
                         metaTransactionRequestParams,
                         {
                             requestDurationSummary: ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS,
@@ -331,7 +350,7 @@ export class GaslessSwapService {
                 case GaslessTypes.MetaTransactionV2:
                     metaTransactionQuote = await getV2QuoteAsync(
                         this._axiosInstance,
-                        new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
+                        new URL(`${removeV1SuffixFromUrl(this._metaTransactionServiceBaseUrl.toString())}/v2/quote`),
                         metaTransactionRequestParams,
                         {
                             requestDurationSummary: ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS,
@@ -357,7 +376,7 @@ export class GaslessSwapService {
                           metaTransactionQuote.price.sellAmount,
                       )
                     : null;
-                const metaTransaction = metaTransactionQuote.trade.metaTransaction;
+                const { metaTransaction, hash: metaTransactionHash } = metaTransactionQuote.trade;
                 // TODO: Publish fee event for meta-transaction v2
                 await this._storeMetaTransactionHashAsync(metaTransaction.getHash());
 
@@ -368,7 +387,7 @@ export class GaslessSwapService {
                         ...metaTransactionQuote.price,
                         approval: approval ?? undefined,
                         metaTransaction,
-                        metaTransactionHash: metaTransaction.getHash(),
+                        metaTransactionHash,
                         type: GaslessTypes.MetaTransaction,
                         allowanceTarget: this._blockchainUtils.getExchangeProxyAddress(),
                         liquiditySource: 'amm',
@@ -376,10 +395,11 @@ export class GaslessSwapService {
                 } else {
                     // Response from /meta_transaction/v2 endpoint. The meta-transaction type
                     // can either be meta-transaction v1 / v2
+                    const trade = await this.getGaslessTradeResponse(metaTransactionQuote);
                     return {
                         ...metaTransactionQuote.price,
                         approval: approval ?? undefined,
-                        trade: metaTransactionQuote.trade,
+                        trade,
                         sources: metaTransactionQuote.sources ?? [],
                         fees: feesToTruncatedFees(metaTransactionQuote.fees),
                         allowanceTarget: this._blockchainUtils.getExchangeProxyAddress(),
@@ -408,6 +428,62 @@ export class GaslessSwapService {
     }
 
     /**
+     * Gets the quote response from MetaTransaction client and transforms it into external
+     * `TradeResponse` response format. Response consists of Trade `type` (internally represented as `kind`),
+     * trade hash, and the EIP-712 object.
+     *
+     * @param quote Quote response returned by MetaTransactionClient
+     * @returns The `TradeResponse` response object.
+     */
+    public async getGaslessTradeResponse(quote: MetaTransactionClientQuoteResponse): Promise<TradeResponse> {
+        const eip712Domain = getZeroExEip712Domain(this._chainId);
+        const eip712DomainType = extractEIP712DomainType(eip712Domain);
+        const { kind, hash } = quote.trade;
+
+        switch (kind) {
+            case GaslessTypes.MetaTransaction: {
+                const message = _.omit(quote.trade.metaTransaction, ['chainId', 'verifyingContract']);
+                return {
+                    type: kind,
+                    hash,
+                    eip712: {
+                        types: {
+                            ...eip712DomainType,
+                            ...META_TRANSACTION_V1_EIP_712_TYPES,
+                        },
+                        primaryType: 'MetaTransactionData',
+                        domain: eip712Domain,
+                        message,
+                    },
+                };
+            }
+            // TODO: uncomment once MetaTransaction v2 is supported
+            // case GaslessTypes.MetaTransactionV2:
+            //     return {
+            //         kind,
+            //         hash,
+            //         eip712: {
+            //             types: {
+            //                 ...eip712DomainType,
+            //                 ...META_TRANSACTION_V2_EIP_712_TYPES,
+            //             },
+            //             primaryType: 'MetaTransactionDataV2',
+            //             domain: eip712Domain,
+            //             message: {
+            //                 ...quote.trade.metaTransaction,
+            //                 fees: feesToMetaTransactionV2Eip712Fees(quote.fees),
+            //             },
+            //         },
+            //     };
+            //     break;
+            default:
+                ((_x: never) => {
+                    throw new Error('unreachable');
+                })(kind);
+        }
+    }
+
+    /**
      * Accepts a taker-signed MetaTransaction or OtcOrder trade, and optionally,
      * a signed permit transaction, and produces the appropriate Job and sends
      * a message to SQS.
@@ -417,43 +493,38 @@ export class GaslessSwapService {
      */
     public async processSubmitAsync<
         T extends
-            | SubmitRfqmSignedQuoteWithApprovalParams<ExecuteMetaTransactionEip712Context | PermitEip712Context>
-            | SubmitMetaTransactionSignedQuoteParams<ExecuteMetaTransactionEip712Context | PermitEip712Context>
-            | SubmitMetaTransactionV2SignedQuoteParams<ExecuteMetaTransactionEip712Context | PermitEip712Context>,
+            | SubmitRfqmSignedQuoteWithApprovalParams<Approval>
+            | SubmitMetaTransactionSignedQuoteParams<Approval>
+            | SubmitMetaTransactionV2SignedQuoteParams<Approval>,
     >(
         params: T,
         integratorId: string,
     ): Promise<
-        T extends SubmitRfqmSignedQuoteWithApprovalParams<ExecuteMetaTransactionEip712Context | PermitEip712Context>
+        T extends SubmitRfqmSignedQuoteWithApprovalParams<Approval>
             ? SubmitRfqmSignedQuoteWithApprovalResponse
-            : T extends SubmitMetaTransactionSignedQuoteParams<
-                  ExecuteMetaTransactionEip712Context | PermitEip712Context
-              >
+            : T extends SubmitMetaTransactionSignedQuoteParams<Approval>
             ? SubmitMetaTransactionSignedQuoteResponse
             : SubmitMetaTransactionV2SignedQuoteResponse
     > {
         // OtcOrder
         if (params.kind === GaslessTypes.OtcOrder) {
             const otcOrderResult = await this._rfqmService.submitTakerSignedOtcOrderWithApprovalAsync(params);
-            return otcOrderResult as T extends SubmitRfqmSignedQuoteWithApprovalParams<
-                ExecuteMetaTransactionEip712Context | PermitEip712Context
-            >
+            return otcOrderResult as T extends SubmitRfqmSignedQuoteWithApprovalParams<Approval>
                 ? SubmitRfqmSignedQuoteWithApprovalResponse
-                : T extends SubmitMetaTransactionSignedQuoteParams<
-                      ExecuteMetaTransactionEip712Context | PermitEip712Context
-                  >
+                : T extends SubmitMetaTransactionSignedQuoteParams<Approval>
                 ? SubmitMetaTransactionSignedQuoteResponse
                 : SubmitMetaTransactionV2SignedQuoteResponse;
         }
 
         // TODO: Add the logic to handle meta-transaction v2 when the type is ready
         // MetaTransaction
-        const {
-            trade: { metaTransaction },
-        } = params;
+        const metaTransaction = 'metaTransaction' in params.trade ? params.trade.metaTransaction : params.trade.trade;
+        const type = params.trade.type;
+        let signature = params.trade.signature;
         const { inputToken, inputTokenAmount, outputToken, minOutputTokenAmount } = decodeTransformErc20Calldata(
             metaTransaction.callData,
         );
+        const metaTransactionHash = metaTransaction.getHash();
 
         // Verify that the metatransaction is not expired
         const currentTimeMs = new Date().getTime();
@@ -465,10 +536,7 @@ export class GaslessSwapService {
                 this._chainId.toString(),
                 GaslessSwapServiceErrorReason.MetaTransactionAboutToExpire,
             ).inc();
-            logger.warn(
-                { metaTransactionHash: metaTransaction.getHash() },
-                'Received metatransaction submission which is about to expire',
-            );
+            logger.warn({ metaTransactionHash }, 'Received metatransaction submission which is about to expire');
 
             throw new ValidationError([
                 {
@@ -480,16 +548,13 @@ export class GaslessSwapService {
         }
 
         // Verify that the metatransaction was created by 0x API
-        const doesMetaTransactionHashExist = await this._doesMetaTransactionHashExistAsync(metaTransaction.getHash());
+        const doesMetaTransactionHashExist = await this._doesMetaTransactionHashExistAsync(metaTransactionHash);
         if (!doesMetaTransactionHashExist) {
             ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
                 this._chainId.toString(),
                 GaslessSwapServiceErrorReason.MetaTransactionHashNotExist,
             ).inc();
-            logger.warn(
-                { metaTransactionHash: metaTransaction.getHash() },
-                'Received metatransaction submission not created by 0x API',
-            );
+            logger.warn({ metaTransactionHash }, 'Received metatransaction submission not created by 0x API');
             throw new Error('MetaTransaction hash not found');
         }
 
@@ -510,7 +575,7 @@ export class GaslessSwapService {
                     job.takerAddress.toLowerCase() === metaTransaction.signer.toLowerCase() &&
                     job.inputToken.toLowerCase() === inputToken.toLowerCase() &&
                     // Other logic handles the case where the same order is submitted twice
-                    job.metaTransactionHash !== metaTransaction.getHash(),
+                    job.metaTransactionHash !== metaTransactionHash,
             )
         ) {
             ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
@@ -519,7 +584,7 @@ export class GaslessSwapService {
             ).inc();
             logger.warn(
                 {
-                    metaTransactionHash: metaTransaction.getHash(),
+                    metaTransactionHash: metaTransactionHash,
                     takerToken: inputToken,
                     takerAddress: metaTransaction.signer.toLowerCase(),
                 },
@@ -528,8 +593,18 @@ export class GaslessSwapService {
             throw new TooManyRequestsError('a pending trade for this taker and takertoken already exists');
         }
 
+        // pad approval signature if there are missing bytes
+        const paddedSignature = padSignature(signature);
+        if (paddedSignature.r !== signature.r || paddedSignature.s !== signature.s) {
+            logger.warn(
+                { tradeHash: metaTransactionHash, r: paddedSignature.r, s: paddedSignature.s },
+                'Got approval signature with missing bytes',
+            );
+            signature = paddedSignature;
+        }
+
         // validate that the given taker signature is valid
-        const signerAddress = getSignerFromHash(metaTransaction.getHash(), params.trade.signature).toLowerCase();
+        const signerAddress = getSignerFromHash(metaTransactionHash, signature).toLowerCase();
         if (signerAddress !== metaTransaction.signer) {
             ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
                 this._chainId.toString(),
@@ -537,7 +612,7 @@ export class GaslessSwapService {
             ).inc();
             logger.warn(
                 {
-                    metaTransactionHash: metaTransaction.getHash(),
+                    metaTransactionHash,
                     metaTransactionSigner: metaTransaction.signer,
                     transactionSigner: signerAddress,
                 },
@@ -568,7 +643,7 @@ export class GaslessSwapService {
                 {
                     takerBalance,
                     takerAddress: metaTransaction.signer,
-                    metaTransactionHash: metaTransaction.getHash(),
+                    metaTransactionHash,
                 },
                 'Balance check failed while user was submitting',
             );
@@ -582,7 +657,7 @@ export class GaslessSwapService {
         }
 
         const rfqmApprovalOpts = params.approval
-            ? await this._rfqmService.createApprovalAsync(params.approval, metaTransaction.getHash(), inputToken)
+            ? await this._rfqmService.createApprovalAsync(params.approval, metaTransactionHash, inputToken)
             : undefined;
 
         const jobOptions: MetaTransactionJobConstructorOpts = {
@@ -593,11 +668,11 @@ export class GaslessSwapService {
             inputTokenAmount,
             integratorId,
             metaTransaction,
-            metaTransactionHash: metaTransaction.getHash(),
+            metaTransactionHash,
             minOutputTokenAmount,
             outputToken,
             takerAddress: metaTransaction.signer,
-            takerSignature: params.trade.signature,
+            takerSignature: signature,
             ...rfqmApprovalOpts,
         };
 
@@ -615,18 +690,14 @@ export class GaslessSwapService {
             );
         }
 
-        const result: SubmitMetaTransactionSignedQuoteResponse = {
-            metaTransactionHash: metaTransaction.getHash(),
-            type: GaslessTypes.MetaTransaction,
+        const result = {
+            type,
+            ...('metaTransaction' in params.trade ? { metaTransactionHash } : { tradeHash: metaTransactionHash }),
         };
 
-        return result as T extends SubmitRfqmSignedQuoteWithApprovalParams<
-            ExecuteMetaTransactionEip712Context | PermitEip712Context
-        >
+        return result as T extends SubmitRfqmSignedQuoteWithApprovalParams<Approval>
             ? SubmitRfqmSignedQuoteWithApprovalResponse
-            : T extends SubmitMetaTransactionSignedQuoteParams<
-                  ExecuteMetaTransactionEip712Context | PermitEip712Context
-              >
+            : T extends SubmitMetaTransactionSignedQuoteParams<Approval>
             ? SubmitMetaTransactionSignedQuoteResponse
             : SubmitMetaTransactionV2SignedQuoteResponse;
     }

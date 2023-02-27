@@ -5,13 +5,13 @@ import { BigNumber } from '@0x/utils';
 import { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 import { BAD_REQUEST } from 'http-status-codes';
 import { Summary } from 'prom-client';
-import { ZERO } from '../core/constants';
+import { META_TRANSACTION_V1_CLIENT_TIMEOUT_MS, META_TRANSACTION_V2_CLIENT_TIMEOUT_MS, ZERO } from '../core/constants';
 import { APIErrorCodes } from '../core/errors';
 import { rawFeesToFees } from '../core/meta_transaction_fee_utils';
 import { GaslessTypes, SwapQuoterError } from '../core/types';
 import { FeeConfigs, Fees, RawFees } from '../core/types/meta_transaction_fees';
 
-import { FetchIndicativeQuoteResponse, LiquiditySource, MetaTransactionTradeResponse } from '../services/types';
+import { FetchIndicativeQuoteResponse, LiquiditySource } from '../services/types';
 import { stringsToMetaTransactionFields } from './rfqm_request_utils';
 
 interface QuoteParams {
@@ -129,8 +129,18 @@ interface GetMetaTransactionV2QuoteResponse extends RawBasePriceResponse {
     fees?: RawFees;
 }
 
+/****** Response types for client quote endpoints ******/
+type MetaTransactionClientTradeResponse =
+    MetaTransactionV1ClientTradeResponse /* | MetaTransactionV2ClientTradeResponse */;
+
+interface MetaTransactionV1ClientTradeResponse {
+    kind: GaslessTypes.MetaTransaction;
+    hash: string;
+    metaTransaction: MetaTransaction;
+}
+
 export interface MetaTransactionClientQuoteResponse {
-    trade: MetaTransactionTradeResponse;
+    trade: MetaTransactionClientTradeResponse;
     price: FetchIndicativeQuoteResponse;
     sources?: LiquiditySource[];
     fees?: Fees;
@@ -162,7 +172,7 @@ export async function getV1QuoteAsync(
             params,
             // TODO (rhinodavid): Formalize this value once we have a good idea of the
             // actual numbers
-            timeout: 10000,
+            timeout: META_TRANSACTION_V1_CLIENT_TIMEOUT_MS,
             paramsSerializer: (data: typeof params) => {
                 const result = new URLSearchParams({
                     buyToken: data.buyToken,
@@ -255,7 +265,9 @@ export async function getV2QuoteAsync(
 
     let response: AxiosResponse<GetMetaTransactionV2QuoteResponse>;
     try {
-        response = await axiosInstance.post<GetMetaTransactionV2QuoteResponse>(url.toString(), params);
+        response = await axiosInstance.post<GetMetaTransactionV2QuoteResponse>(url.toString(), params, {
+            timeout: META_TRANSACTION_V2_CLIENT_TIMEOUT_MS,
+        });
     } catch (e) {
         stopTimer && stopTimer({ success: 'false' });
         return handleQuoteError(e, params, noLiquidityLogger);

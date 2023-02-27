@@ -41,11 +41,14 @@ import {
     SubmitRfqmSignedQuoteWithApprovalParams,
 } from '../../src/services/types';
 import {
+    Approval,
+    ExecuteMetaTransactionApproval,
     ExecuteMetaTransactionEip712Context,
     FeeModelVersion,
     GaslessApprovalTypes,
     GaslessTypes,
     IndicativeQuote,
+    PermitApproval,
     PermitEip712Context,
 } from '../../src/core/types';
 import { CacheClient } from '../../src/utils/cache_client';
@@ -55,7 +58,7 @@ import { HealthCheckStatus } from '../../src/utils/rfqm_health_check';
 import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
 import { RfqMakerManager } from '../../src/utils/rfq_maker_manager';
 import { TokenMetadataManager } from '../../src/utils/TokenMetadataManager';
-import { MOCK_EXECUTE_META_TRANSACTION_APPROVAL } from '../constants';
+import { MOCK_EXECUTE_META_TRANSACTION_APPROVAL, MOCK_EXECUTE_META_TRANSACTION_HASH } from '../constants';
 
 // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
 // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
@@ -148,6 +151,7 @@ const buildRfqmServiceForUnitTest = (
         null,
         MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
     );
+    when(rfqBlockchainUtilsMock.computeEip712Hash(anything())).thenReturn(MOCK_EXECUTE_META_TRANSACTION_HASH);
     const dbUtilsMock = mock(RfqmDbUtils);
     const sqsMock = mock(Producer);
     when(sqsMock.queueSize()).thenResolve(0);
@@ -375,7 +379,7 @@ describe('RfqmService HTTP Logic', () => {
                     functionSignature: '',
                 },
             };
-            const submitParams: SubmitRfqmSignedQuoteWithApprovalParams<ExecuteMetaTransactionEip712Context> = {
+            const submitParams: SubmitRfqmSignedQuoteWithApprovalParams<ExecuteMetaTransactionApproval> = {
                 approval: {
                     type: GaslessApprovalTypes.ExecuteMetaTransaction,
                     eip712: eip712Context,
@@ -464,9 +468,7 @@ describe('RfqmService HTTP Logic', () => {
                 rfqBlockchainUtils: instance(blockchainUtilsMock),
                 rfqMakerBalanceCacheService: instance(rfqMakerBalanceCacheServiceMock),
             });
-            const submitParams: SubmitRfqmSignedQuoteWithApprovalParams<
-                ExecuteMetaTransactionEip712Context | PermitEip712Context
-            > = {
+            const submitParams: SubmitRfqmSignedQuoteWithApprovalParams<Approval> = {
                 kind: GaslessTypes.OtcOrder,
                 trade: {
                     type: GaslessTypes.OtcOrder,
@@ -549,7 +551,7 @@ describe('RfqmService HTTP Logic', () => {
                 rfqBlockchainUtils: instance(blockchainUtilsMock),
                 rfqMakerBalanceCacheService: instance(rfqMakerBalanceCacheServiceMock),
             });
-            const submitParams: SubmitRfqmSignedQuoteWithApprovalParams<ExecuteMetaTransactionEip712Context> = {
+            const submitParams: SubmitRfqmSignedQuoteWithApprovalParams<ExecuteMetaTransactionApproval> = {
                 trade: {
                     type: GaslessTypes.OtcOrder,
                     order: otcOrder,
@@ -642,7 +644,7 @@ describe('RfqmService HTTP Logic', () => {
                 rfqBlockchainUtils: instance(blockchainUtilsMock),
                 rfqMakerBalanceCacheService: instance(rfqMakerBalanceCacheServiceMock),
             });
-            const submitParams: SubmitRfqmSignedQuoteWithApprovalParams<PermitEip712Context> = {
+            const submitParams: SubmitRfqmSignedQuoteWithApprovalParams<PermitApproval> = {
                 trade: {
                     type: GaslessTypes.OtcOrder,
                     order: otcOrder,
@@ -1606,6 +1608,7 @@ describe('RfqmService HTTP Logic', () => {
                 isRequired: true,
                 isGaslessAvailable: true,
                 type: MOCK_EXECUTE_META_TRANSACTION_APPROVAL.kind,
+                hash: MOCK_EXECUTE_META_TRANSACTION_HASH,
                 eip712: MOCK_EXECUTE_META_TRANSACTION_APPROVAL.eip712,
             });
         });

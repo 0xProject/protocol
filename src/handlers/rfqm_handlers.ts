@@ -18,12 +18,7 @@ import {
     OtcOrderSubmitRfqmSignedQuoteParams,
     SubmitRfqmSignedQuoteWithApprovalParams,
 } from '../services/types';
-import {
-    ExecuteMetaTransactionEip712Context,
-    GaslessApprovalTypes,
-    GaslessTypes,
-    PermitEip712Context,
-} from '../core/types';
+import { Approval, GaslessApprovalTypes, GaslessTypes } from '../core/types';
 import { ConfigManager } from '../utils/config_manager';
 import { HealthCheckResult, transformResultToShortResponse } from '../utils/rfqm_health_check';
 import {
@@ -408,9 +403,7 @@ export class RfqmHandlers {
         }
     }
 
-    private _parseSubmitSignedQuoteWithApprovalParams<
-        T extends ExecuteMetaTransactionEip712Context | PermitEip712Context,
-    >(
+    private _parseSubmitSignedQuoteWithApprovalParams<T extends Approval>(
         req: express.Request,
     ): {
         chainId: number;

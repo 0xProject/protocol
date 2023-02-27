@@ -1,6 +1,7 @@
 import { BigNumber } from '@0x/utils';
 import { ZeroExFeeConfiguration, ZERO_EX_FEE_CONFIGURATION_MAP } from '../config';
 import { toPairString } from './pair_utils';
+import { MetaTransactionV2Eip712Fee } from './types';
 import {
     FeeConfigs,
     Fees,
@@ -80,6 +81,20 @@ export function rawFeesToFees(rawFees: RawFees | undefined): Fees | undefined {
         zeroExFee,
         gasFee,
     };
+}
+
+/**
+ * Convert `Fees` to `MetaTransactionV2Eip712Fees` to adhere to EIP-712 trade params
+ */
+export function feesToMetaTransactionV2Eip712Fees(fees: Fees | undefined): MetaTransactionV2Eip712Fee[] {
+    return fees
+        ? Object.entries(fees).map(([, fee]) => {
+              return {
+                  recipient: fee.feeRecipient,
+                  amount: fee.feeAmount,
+              };
+          })
+        : [];
 }
 
 /**

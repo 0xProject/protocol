@@ -53,6 +53,10 @@ export const GWEI_DECIMALS = 9;
 // RFQ quote minimum expiry
 export const DEFAULT_MIN_EXPIRY_DURATION_MS = ONE_MINUTE_MS;
 
+// MetaTransactionClient endpoint timeouts
+export const META_TRANSACTION_V1_CLIENT_TIMEOUT_MS = 10000;
+export const META_TRANSACTION_V2_CLIENT_TIMEOUT_MS = 10000;
+
 export const RFQ_ALLOWANCE_TARGET = '0xdef1c0ded9bec7f1a1670819833240f027b25eff';
 export const RFQM_TX_GAS_ESTIMATE = 165e3;
 export const RFQM_TX_OTC_ORDER_GAS_ESTIMATE = 100e3;
@@ -86,6 +90,37 @@ export const PERMIT_EIP_712_TYPES = {
         { name: 'value', type: 'uint256' },
         { name: 'nonce', type: 'uint256' },
         { name: 'deadline', type: 'uint256' },
+    ],
+};
+
+export const META_TRANSACTION_V1_EIP_712_TYPES = {
+    MetaTransactionData: [
+        { name: 'signer', type: 'address' },
+        { name: 'sender', type: 'address' },
+        { name: 'minGasPrice', type: 'uint256' },
+        { name: 'maxGasPrice', type: 'uint256' },
+        { name: 'expirationTimeSeconds', type: 'uint256' },
+        { name: 'salt', type: 'uint256' },
+        { name: 'callData', type: 'bytes' },
+        { name: 'value', type: 'uint256' },
+        { name: 'feeToken', type: 'address' },
+        { name: 'feeAmount', type: 'uint256' },
+    ],
+};
+
+export const META_TRANSACTION_V2_EIP_712_TYPES = {
+    MetaTransactionDataV2: [
+        { name: 'signer', type: 'address' },
+        { name: 'sender', type: 'address' },
+        { name: 'expirationTimeSeconds', type: 'uint256' },
+        { name: 'salt', type: 'uint256' },
+        { name: 'callData', type: 'bytes' },
+        { name: 'feeToken', type: 'address' },
+        { name: 'fees', type: 'MetaTransactionFeeData[]' },
+    ],
+    MetaTransactionFeeData: [
+        { name: 'recipient', type: 'address' },
+        { name: 'amount', type: 'uint256' },
     ],
 };
 

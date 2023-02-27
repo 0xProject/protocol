@@ -4,13 +4,35 @@ import { BigNumber } from '@0x/utils';
 import { Integrator } from '../config';
 import { JobFailureReason } from '../entities/types';
 import {
+    Approval,
     ExecuteMetaTransactionEip712Context,
     FeeModelVersion,
     GaslessApprovalTypes,
     GaslessTypes,
+    MetaTransactionV1Eip712Context,
+    MetaTransactionV2Eip712Context,
     PermitEip712Context,
 } from '../core/types';
 import { TruncatedFees } from '../core/types/meta_transaction_fees';
+
+/**
+ * RFQm Indicative Quote (`/price`) and Firm Quote (`/quote`) endpoints.
+ */
+export interface FetchQuoteParamsBase {
+    affiliateAddress?: string;
+    buyAmount?: BigNumber;
+    buyToken: string;
+    buyTokenDecimals: number;
+    integrator: Integrator;
+    sellAmount?: BigNumber;
+    sellToken: string;
+    sellTokenDecimals: number;
+    // fields specific to gasless endpoints
+    slippagePercentage?: BigNumber;
+    feeType?: 'volume';
+    feeSellTokenPercentage?: BigNumber;
+    feeRecipient?: string;
+}
 
 export interface FetchIndicativeQuoteParams extends FetchQuoteParamsBase {
     takerAddress?: string;
@@ -29,22 +51,6 @@ export interface FetchIndicativeQuoteResponse {
 export interface FetchFirmQuoteParams extends FetchQuoteParamsBase {
     takerAddress: string;
     checkApproval: boolean;
-}
-
-export interface FetchQuoteParamsBase {
-    affiliateAddress?: string;
-    buyAmount?: BigNumber;
-    buyToken: string;
-    buyTokenDecimals: number;
-    integrator: Integrator;
-    sellAmount?: BigNumber;
-    sellToken: string;
-    sellTokenDecimals: number;
-    // fields specific to gasless endpoints
-    slippagePercentage?: BigNumber;
-    feeType?: 'volume';
-    feeSellTokenPercentage?: BigNumber;
-    feeRecipient?: string;
 }
 
 export interface BaseRfqmQuoteResponse {
@@ -76,6 +82,14 @@ export interface MetaTransactionV1QuoteResponse extends BaseRfqmQuoteResponse {
     metaTransaction: MetaTransaction;
     metaTransactionHash: string;
     approval?: ApprovalResponse;
+    trade?: TradeResponse;
+}
+
+export interface MetaTransactionV2QuoteResponse extends BaseRfqmQuoteResponse {
+    trade: TradeResponse;
+    approval?: ApprovalResponse;
+    sources: LiquiditySource[];
+    fees?: TruncatedFees;
 }
 
 // TODO: This needs to be updated to the new meta-transaction type when smart contract changes are finished and corresponding types are published in packages
@@ -88,86 +102,94 @@ export interface LiquiditySource {
     hops?: string[];
 }
 
-// TODO: The type is only a placeholder and should be replaced by eip-712 context soon. Please move `MetaTransactionTradeResponse` and
-//       `MetaTransactionV1TradeResponse` to `MetaTransactionClient` file
-export type MetaTransactionTradeResponse =
-    MetaTransactionV1TradeResponse /* add MetaTransactionV2TradeResponse when it's ready */;
-
-interface MetaTransactionV1TradeResponse {
-    kind: GaslessTypes.MetaTransaction;
-    hash: string;
-    metaTransaction: MetaTransaction; // TODO: This field is a placeholder and should be updated to `eip712`
-}
-
-export interface MetaTransactionV2QuoteResponse extends BaseRfqmQuoteResponse {
-    trade: MetaTransactionTradeResponse;
-    approval?: ApprovalResponse;
-    sources: LiquiditySource[];
-    fees?: TruncatedFees;
-}
-
+/**
+ * EIP-712 response fields for the Tx Relay `/quote` endpoint
+ */
 export interface ApprovalResponse {
     isRequired: boolean;
     isGaslessAvailable?: boolean;
     type?: GaslessApprovalTypes;
+    hash?: string;
     eip712?: ExecuteMetaTransactionEip712Context | PermitEip712Context;
 }
 
+export interface TradeResponse {
+    type: GaslessTypes;
+    hash: string;
+    eip712: MetaTransactionV1Eip712Context | MetaTransactionV2Eip712Context;
+}
+
+/**
+ * RFQm OtcOrder `/submit` endpoint params
+ * If approval is needed, order can be submitted with approval via `/submit-with-approval`.
+ */
 export interface OtcOrderSubmitRfqmSignedQuoteParams {
     type: GaslessTypes.OtcOrder;
     order: OtcOrder;
     signature: Signature;
 }
 
-/**
- * Payload for the Gasless Swap `/submit` endpoint in the
- * metatransaction flow
- */
-export interface SubmitMetaTransactionSignedQuoteParams<
-    T extends ExecuteMetaTransactionEip712Context | PermitEip712Context,
-> {
-    approval?: SubmitApprovalParams<T>;
-    // Used to distinguish between `SubmitRfqmSignedQuoteWithApprovalParams` during type check.
-    // Note that this information is in `trade`, but TypeScript does not narrow types based
-    // on nested values.
-    kind: GaslessTypes.MetaTransaction;
-    trade: { metaTransaction: MetaTransaction; signature: Signature; type: GaslessTypes.MetaTransaction };
-}
-
-export interface SubmitMetaTransactionV2SignedQuoteParams<
-    T extends ExecuteMetaTransactionEip712Context | PermitEip712Context,
-> {
-    approval?: SubmitApprovalParams<T>;
-    // Used to distinguish between `SubmitRfqmSignedQuoteWithApprovalParams` and `SubmitMetaTransactionSignedQuoteParams` during type check.
-    // Note that this information is in `trade`, but TypeScript does not narrow types based
-    // on nested values.
-    kind: GaslessTypes.MetaTransactionV2;
-    // TODO: This needs to be updated to the new meta-transaction type when smart contract changes are finished and corresponding types are published in packages
-    trade: { metaTransaction: MetaTransactionV2; signature: Signature; type: GaslessTypes.MetaTransactionV2 };
-}
-
-export interface OtcOrderSubmitRfqmSignedQuoteResponse {
-    type: GaslessTypes.OtcOrder;
-    orderHash: string;
-}
-
-export interface SubmitApprovalParams<T extends ExecuteMetaTransactionEip712Context | PermitEip712Context> {
-    type: T extends ExecuteMetaTransactionEip712Context
-        ? GaslessApprovalTypes.ExecuteMetaTransaction
-        : GaslessApprovalTypes.Permit;
-    eip712: T;
-    signature: Signature;
-}
-
-export interface SubmitRfqmSignedQuoteWithApprovalParams<
-    T extends ExecuteMetaTransactionEip712Context | PermitEip712Context,
-> {
+export interface SubmitRfqmSignedQuoteWithApprovalParams<T extends Approval> {
     approval?: SubmitApprovalParams<T>;
     // Used to distinguish between `SubmitMetaTransactionSignedQuoteParams` during type check.
     // Note that this information is in `trade`, but TypeScript does not narrow types based
     // on nested values.
     kind: GaslessTypes.OtcOrder;
     trade: OtcOrderSubmitRfqmSignedQuoteParams;
+}
+
+/**
+ * Payload for the Gasless Swap `/submit` endpoint in the
+ * metatransaction flow
+ */
+export interface SubmitMetaTransactionSignedQuoteParams<ApprovalType extends Approval> {
+    approval?: SubmitApprovalParams<ApprovalType>;
+    // Used to distinguish between `SubmitRfqmSignedQuoteWithApprovalParams` during type check.
+    // Note that this information is in `trade`, but TypeScript does not narrow types based
+    // on nested values.
+    kind: GaslessTypes.MetaTransaction;
+    trade:
+        | { metaTransaction: MetaTransaction; signature: Signature; type: GaslessTypes.MetaTransaction }
+        | MetatransactionTradeParams;
+}
+
+export interface SubmitMetaTransactionV2SignedQuoteParams<ApprovalType extends Approval> {
+    approval?: SubmitApprovalParams<ApprovalType>;
+    // Used to distinguish between `SubmitRfqmSignedQuoteWithApprovalParams` and `SubmitMetaTransactionV2SignedQuoteParams` during type check.
+    // Note that this information is in `trade`, but TypeScript does not narrow types based
+    // on nested values.
+    kind: GaslessTypes.MetaTransactionV2;
+    // TODO: This needs to be updated to the new meta-transaction type when smart contract changes are finished and corresponding types are published in packages
+    trade: MetatransactionV2TradeParams;
+}
+
+export interface SubmitApprovalParams<T extends Approval> {
+    type: T['kind'];
+    eip712: T['eip712'];
+    signature: Signature;
+}
+
+/**
+ * The `trade` params fields of `/submit` endpoint payload. The fields are
+ * destructured before usage, from which the trade object may be represented as
+ * `params.trade.trade` (params.{trade params}.{trade object}), but is not accessed
+ * beyond the destructuring.
+ */
+export interface MetatransactionTradeParams {
+    type: GaslessTypes.MetaTransaction;
+    trade: MetaTransaction;
+    signature: Signature;
+}
+
+export interface MetatransactionV2TradeParams {
+    type: GaslessTypes.MetaTransactionV2;
+    trade: MetaTransaction; // TODO: upgrade to v2
+    signature: Signature;
+}
+
+export interface OtcOrderSubmitRfqmSignedQuoteResponse {
+    type: GaslessTypes.OtcOrder;
+    orderHash: string;
 }
 
 export interface SubmitRfqmSignedQuoteWithApprovalResponse {
@@ -177,14 +199,19 @@ export interface SubmitRfqmSignedQuoteWithApprovalResponse {
 
 export interface SubmitMetaTransactionSignedQuoteResponse {
     type: GaslessTypes.MetaTransaction;
-    metaTransactionHash: string;
+    // Returns hash as `metaTransactionHash` for zero-g, and `tradeHash` for tx-relay.
+    metaTransactionHash?: string;
+    tradeHash?: string;
 }
 
 export interface SubmitMetaTransactionV2SignedQuoteResponse {
     type: GaslessTypes.MetaTransactionV2;
-    metaTransactionHash: string;
+    tradeHash: string;
 }
 
+/**
+ * `/status` endpoint response for Gasless services
+ */
 export interface TransactionDetails {
     hash: string;
     timestamp: number /* unix ms */;

@@ -52,6 +52,7 @@ import {
     getProvider,
     MATCHA_AFFILIATE_ADDRESS,
     MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
+    MOCK_EXECUTE_META_TRANSACTION_HASH,
     MOCK_PERMIT_APPROVAL,
     TEST_DECODED_RFQ_ORDER_FILLED_EVENT_LOG,
     TEST_RFQ_ORDER_FILLED_EVENT_LOG,
@@ -277,6 +278,7 @@ describe('RFQM Integration', () => {
         when(rfqBlockchainUtilsMock.getAccountBalanceAsync(MOCK_WORKER_REGISTRY_ADDRESS)).thenResolve(
             WORKER_FULL_BALANCE_WEI,
         );
+        when(rfqBlockchainUtilsMock.computeEip712Hash(anything())).thenReturn(MOCK_EXECUTE_META_TRANSACTION_HASH);
         const rfqBlockchainUtils = instance(rfqBlockchainUtilsMock);
 
         const tokenMetadataManagerMock = mock(TokenMetadataManager);
@@ -921,6 +923,7 @@ describe('RFQM Integration', () => {
                 isRequired: true,
                 isGaslessAvailable: true,
                 type: MOCK_EXECUTE_META_TRANSACTION_APPROVAL.kind,
+                hash: MOCK_EXECUTE_META_TRANSACTION_HASH,
                 eip712: MOCK_EXECUTE_META_TRANSACTION_APPROVAL.eip712,
             };
             expect(appResponse.body.price).to.equal(expectedPrice);

@@ -36,12 +36,6 @@ export interface ERC20Owner {
     token: string;
 }
 
-export enum GaslessTypes {
-    MetaTransaction = 'metatransaction',
-    MetaTransactionV2 = 'metatransaction_v2',
-    OtcOrder = 'otc',
-}
-
 /**
  * Approval is an object that encapsulates the EIP-712 context that will eventually be signed by takers
  * for gasless approvals. There are multiple flavors of these approval objects, which can be distinguished
@@ -54,6 +48,7 @@ export enum GaslessApprovalTypes {
 }
 
 export type Approval = ExecuteMetaTransactionApproval | PermitApproval;
+
 export interface ExecuteMetaTransactionApproval {
     kind: GaslessApprovalTypes.ExecuteMetaTransaction;
     eip712: ExecuteMetaTransactionEip712Context;
@@ -63,6 +58,7 @@ export interface PermitApproval {
     kind: GaslessApprovalTypes.Permit;
     eip712: PermitEip712Context;
 }
+
 export interface ExecuteMetaTransactionEip712Context {
     types: ExecuteMetaTransactionEip712Types;
     primaryType: 'MetaTransaction';
@@ -87,13 +83,82 @@ export interface PermitEip712Context {
     };
 }
 
-export interface ExecuteMetaTransactionEip712Types {
+export type ExecuteMetaTransactionEip712Types = {
     EIP712Domain: Eip712DataField[];
     MetaTransaction: Eip712DataField[];
-}
-export interface PermitEip712Types {
+};
+
+export type PermitEip712Types = {
     EIP712Domain: Eip712DataField[];
     Permit: Eip712DataField[];
+};
+
+/**
+ * Trade object encapsulates the EIP-712 context for tx-relay trades.
+ */
+export enum GaslessTypes {
+    MetaTransaction = 'metatransaction',
+    MetaTransactionV2 = 'metatransaction_v2',
+    OtcOrder = 'otc',
+}
+
+export interface MetaTransactionV1Eip712Context {
+    types: MetaTransactionV1Eip712Types;
+    primaryType: 'MetaTransactionData';
+    domain: Eip712Domain;
+    message: {
+        signer: string;
+        sender: string;
+        minGasPrice: BigNumber;
+        maxGasPrice: BigNumber;
+        expirationTimeSeconds: BigNumber;
+        salt: BigNumber;
+        callData: string;
+        value: BigNumber;
+        feeToken: string;
+        feeAmount: BigNumber;
+    };
+}
+
+export interface MetaTransactionV2Eip712Context {
+    types: MetaTransactionV2Eip712Types;
+    primaryType: 'MetaTransactionDataV2';
+    domain: Eip712Domain;
+    message: {
+        signer: string;
+        sender: string;
+        expirationTimeSeconds: BigNumber;
+        salt: BigNumber;
+        callData: string;
+        feeToken: string;
+        fees: MetaTransactionV2Eip712Fee[];
+    };
+}
+
+export type MetaTransactionV1Eip712Types = {
+    EIP712Domain: Eip712DataField[];
+    MetaTransactionData: Eip712DataField[];
+};
+
+export type MetaTransactionV2Eip712Types = {
+    EIP712Domain: Eip712DataField[];
+    MetaTransactionDataV2: Eip712DataField[];
+    MetaTransactionFeeData: Eip712DataField[];
+};
+
+export interface MetaTransactionV2Eip712Fee {
+    recipient: string;
+    amount: BigNumber;
+}
+
+/**
+ * Generic EIP-712 params and interfaces
+ */
+export interface Eip712Context {
+    types: Record<string, Eip712DataField[]>;
+    primaryType: string;
+    domain: Eip712Domain;
+    message: Record<string, unknown>;
 }
 
 export interface Eip712Domain {

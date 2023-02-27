@@ -22,8 +22,10 @@ import {
     MATCHA_AFFILIATE_ADDRESS,
     MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
     MOCK_EXECUTE_META_TRANSACTION_CALLDATA,
+    MOCK_EXECUTE_META_TRANSACTION_HASH,
     MOCK_PERMIT_APPROVAL,
     MOCK_PERMIT_CALLDATA,
+    MOCK_PERMIT_HASH,
     TEST_RFQ_ORDER_FILLED_EVENT_LOG,
     TEST_RFQ_ORDER_FILLED_EVENT_TAKER_AMOUNT,
     WORKER_TEST_PRIVATE_KEY,
@@ -503,6 +505,19 @@ describe('RFQ Blockchain Utils', () => {
             const calldata = await rfqBlockchainUtils.generateApprovalCalldataAsync(token, approval, signature);
             expect(calldata).to.eq(MOCK_PERMIT_CALLDATA);
         });
+    });
+
+    describe('computeEip712Hash', () => {
+        const eip712Objects = [MOCK_EXECUTE_META_TRANSACTION_APPROVAL, MOCK_PERMIT_APPROVAL];
+        const eip712Hashes = [MOCK_EXECUTE_META_TRANSACTION_HASH, MOCK_PERMIT_HASH];
+        eip712Objects
+            .map((eip712Object) => eip712Object.eip712)
+            .map((context) => {
+                it(`computes EIP-712 hashes for ${JSON.stringify(context.primaryType)}`, () => {
+                    const hash = rfqBlockchainUtils.computeEip712Hash(context);
+                    expect(eip712Hashes).includes(hash);
+                });
+            });
     });
 
     describe('estimateGasForAsync', () => {

@@ -27,6 +27,7 @@ import { EIP_712_REGISTRY } from '../eip712registry';
 import { logger } from '../logger';
 import {
     Approval,
+    Eip712Context,
     ERC20Owner,
     ExecuteMetaTransactionApproval,
     GaslessApprovalTypes,
@@ -782,6 +783,23 @@ export class RfqBlockchainUtils {
             default:
                 throw new Error(`Gasless approval kind ${kind} is not implemented yet`);
         }
+    }
+
+    /**
+     * Computes the hash of the EIP-712 object to be signed by the trader.
+     *
+     * @param eip712 The EIP-712 context object, which includes required metadata and values to be hashed.
+     * @returns Computed hash.
+     */
+    public computeEip712Hash<T extends Eip712Context>(eip712: T): string {
+        const { domain, types, message: value } = eip712;
+        /**
+         * Ethers (v5.4.5) TypedDataEncoder computes the domain separately from other types.
+         * EIP712Domain will be seen as an alternate possible root unrelated to them.
+         * https://github.com/ethers-io/ethers.js/blob/86146650d83865d83b10867e9592923eada5d7cc/packages/hash/src.ts/typed-data.ts#L392
+         */
+        if (types.EIP712Domain) delete types.EIP712Domain;
+        return utils._TypedDataEncoder.hash(domain, types, value);
     }
 }
 

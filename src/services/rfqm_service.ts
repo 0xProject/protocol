@@ -31,6 +31,7 @@ import { logger } from '../logger';
 import { feeToStoredFee } from '../core/fee_utils';
 import { toPairString } from '../core/pair_utils';
 import {
+    Approval,
     Eip712DataField,
     ExecuteMetaTransactionApproval,
     ExecuteMetaTransactionEip712Context,
@@ -586,6 +587,7 @@ export class RfqmService {
             isRequired,
             isGaslessAvailable,
             type: gaslessApproval.kind,
+            hash: this._blockchainUtils.computeEip712Hash(gaslessApproval.eip712),
             eip712: gaslessApproval.eip712,
         };
     }
@@ -736,9 +738,9 @@ export class RfqmService {
      * Validates and enqueues the Taker Signed Otc Order with approval for submission.
      * Can also be used to submit order without approval if approval params are not supplied.
      */
-    public async submitTakerSignedOtcOrderWithApprovalAsync<
-        T extends ExecuteMetaTransactionEip712Context | PermitEip712Context,
-    >(params: SubmitRfqmSignedQuoteWithApprovalParams<T>): Promise<SubmitRfqmSignedQuoteWithApprovalResponse> {
+    public async submitTakerSignedOtcOrderWithApprovalAsync<T extends Approval>(
+        params: SubmitRfqmSignedQuoteWithApprovalParams<T>,
+    ): Promise<SubmitRfqmSignedQuoteWithApprovalResponse> {
         let submitRfqmSignedQuoteWithApprovalRes: SubmitRfqmSignedQuoteWithApprovalResponse;
         const { approval, trade } = params;
 
@@ -756,7 +758,7 @@ export class RfqmService {
      * Processes a signed approval sent to the submission endpoint in order to
      * create the approval data needed by the job.
      */
-    public async createApprovalAsync<T extends ExecuteMetaTransactionEip712Context | PermitEip712Context>(
+    public async createApprovalAsync<T extends Approval>(
         approval: SubmitApprovalParams<T>,
         tradeHash: string,
         takerToken: string,
