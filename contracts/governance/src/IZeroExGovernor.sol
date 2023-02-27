@@ -18,24 +18,14 @@
 */
 pragma solidity ^0.8.19;
 
+import "./IZeroExSecurityCouncil.sol";
 import "@openzeppelin/governance/IGovernor.sol";
 import "@openzeppelin/governance/extensions/IGovernorTimelock.sol";
 
-abstract contract IZeroExGovernor is IGovernor, IGovernorTimelock {
+abstract contract IZeroExGovernor is IZeroExSecurityCouncil, IGovernor, IGovernorTimelock {
     function token() public virtual returns (address);
 
-    function securityCouncil() public virtual returns (address);
-
     function proposalThreshold() public view virtual returns (uint256);
-
-    function cancel(
-        address[] memory targets,
-        uint256[] memory values,
-        bytes[] memory calldatas,
-        bytes32 descriptionHash
-    ) public virtual;
-
-    function assignSecurityCouncil(address _securityCouncil) public virtual;
 
     function setVotingDelay(uint256 newVotingDelay) public virtual;
 

@@ -25,8 +25,10 @@ import "@openzeppelin/governance/extensions/GovernorVotes.sol";
 import "@openzeppelin/governance/extensions/GovernorTimelockControl.sol";
 
 import "./IZeroExVotes.sol";
+import "./IZeroExSecurityCouncil.sol";
 
 contract ZeroExTreasuryGovernor is
+    IZeroExSecurityCouncil,
     Governor,
     GovernorSettings,
     GovernorCountingSimple,
