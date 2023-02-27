@@ -7,4 +7,5 @@ remappings = [
     '@openzeppelin/=./lib/openzeppelin-contracts/contracts/',
     '@0x/contracts-utils/=../utils/',
 ]
+solc = '0.8.19'
 optimizer_runs = 20_000

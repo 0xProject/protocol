@@ -16,7 +16,7 @@
   limitations under the License.
 
 */
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.19;
 
 import "./ZeroExTimelock.sol";
 import "@openzeppelin/governance/Governor.sol";

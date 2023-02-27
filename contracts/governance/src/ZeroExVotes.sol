@@ -16,7 +16,7 @@
   limitations under the License.
 
 */
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.19;
 
 import "@openzeppelin/utils/math/SafeCast.sol";
 import "@openzeppelin/utils/math/Math.sol";
