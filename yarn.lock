@@ -776,6 +776,21 @@
     web3 "1.2.1"
     web3-typescript-typings "^0.10.2"
 
+"@cryptoalgebra/core@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@cryptoalgebra/core/-/core-2.0.0.tgz#b6d4b1ee6567d163ed2953c73724f105d1529149"
+  integrity sha512-0IYRzqxtMpA2ZuxRCe6r/gK+3I94AQ8Sg/57QtFGkTCls4JewtMW4HlnIIgz1xRvjb5mUWVK+hHG/vXMdcz8gw==
+
+"@cryptoalgebra/periphery@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@cryptoalgebra/periphery/-/periphery-1.0.0.tgz#cffee5a61d4532117aafef9354963b28d4e82889"
+  integrity sha512-iU2bzVIIcdkgfKccRnLnlNYOGy46wOK622ZBQGd3KQJ8RwV2xvIIGLtZvd7dSZSL9+dLhh2fqgb0mb8k8Rv3Mw==
+  dependencies:
+    "@cryptoalgebra/core" "^2.0.0"
+    "@openzeppelin/contracts" "3.4.1-solc-0.7-2"
+    "@uniswap/v2-core" "1.0.1"
+    base64-sol "1.0.1"
+
 "@cspotcode/source-map-support@^0.8.0":
   version "0.8.1"
   resolved "https://registry.yarnpkg.com/@cspotcode/source-map-support/-/source-map-support-0.8.1.tgz#00629c35a688e05a88b1cda684fb9d5e73f000a1"
@@ -1654,6 +1669,11 @@
   dependencies:
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
+
+"@openzeppelin/contracts@3.4.1-solc-0.7-2":
+  version "3.4.1-solc-0.7-2"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-3.4.1-solc-0.7-2.tgz#371c67ebffe50f551c3146a9eec5fe6ffe862e92"
+  integrity sha512-tAG9LWg8+M2CMu7hIsqHPaTyG4uDzjr6mhvH96LvOpLZZj6tgzTluBt+LsCf1/QaYrlis6pITvpIaIhE+iZB+Q==
 
 "@openzeppelin/contracts@3.4.2-solc-0.7":
   version "3.4.2-solc-0.7"
