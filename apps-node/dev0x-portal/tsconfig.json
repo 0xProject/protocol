@@ -1,0 +1,21 @@
+{
+  "include": ["remix.env.d.ts", "**/*.ts", "**/*.tsx"],
+  "exclude": ["**/*.test.ts", "**/*.test.tsx"],
+  "compilerOptions": {
+    "lib": ["DOM", "DOM.Iterable", "ES2019"],
+    "types": ["vitest/globals", "@testing-library/jest-dom"],
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "target": "ES2019",
+    "strict": true,
+    "allowJs": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    // Remix takes care of building everything in `remix build`.
+    "skipLibCheck": true,
+    "noEmit": true
+  }
+}
