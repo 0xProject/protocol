@@ -91,6 +91,7 @@ contract ZeroExProtocolGovernor is
 
         // Eject security council
         securityCouncil = address(0);
+        emit SecurityCouncilEjected();
     }
 
     // Like the GovernorTimelockControl.queue function but without the proposal checks,
@@ -110,10 +111,13 @@ contract ZeroExProtocolGovernor is
 
         // Eject security council
         securityCouncil = address(0);
+        emit SecurityCouncilEjected();
     }
 
     function assignSecurityCouncil(address _securityCouncil) public onlyGovernance {
         securityCouncil = _securityCouncil;
+
+        emit SecurityCouncilAssigned(securityCouncil);
     }
 
     function _execute(

@@ -19,7 +19,13 @@
 pragma solidity ^0.8.19;
 
 interface IZeroExSecurityCouncil {
+    event SecurityCouncilAssigned(address securityCouncil);
+
+    event SecurityCouncilEjected();
+
     function securityCouncil() external returns (address);
+
+    function assignSecurityCouncil(address _securityCouncil) external;
 
     function cancel(
         address[] memory targets,
@@ -27,6 +33,4 @@ interface IZeroExSecurityCouncil {
         bytes[] memory calldatas,
         bytes32 descriptionHash
     ) external;
-
-    function assignSecurityCouncil(address _securityCouncil) external;
 }

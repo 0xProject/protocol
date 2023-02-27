@@ -38,6 +38,9 @@ abstract contract ZeroExGovernorBaseTest is BaseTest {
     uint256 internal proposalThreshold;
     uint256 internal quorum;
 
+    event SecurityCouncilAssigned(address securityCouncil);
+    event SecurityCouncilEjected();
+
     function initialiseAccounts() public {
         vm.startPrank(account1);
         token.transfer(account2, 10000000e18);
@@ -131,6 +134,8 @@ abstract contract ZeroExGovernorBaseTest is BaseTest {
         vm.warp(governor.proposalEta(proposalId) + 1);
 
         // Execute proposal
+        vm.expectEmit(true, false, false, false);
+        emit SecurityCouncilAssigned(account1);
         governor.execute(targets, values, calldatas, keccak256("Assign new security council"));
 
         address newSecurityCouncil = governor.securityCouncil();
@@ -179,6 +184,9 @@ abstract contract ZeroExGovernorBaseTest is BaseTest {
         vm.warp(governor.proposalEta(proposalId));
 
         vm.prank(securityCouncil);
+
+        vm.expectEmit(true, false, false, false);
+        emit SecurityCouncilEjected();
         governor.cancel(targets, values, calldatas, keccak256(bytes("Proposal description")));
         vm.stopPrank();
 
