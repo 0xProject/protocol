@@ -104,15 +104,18 @@ export class SwapHandlers {
         const auth = req.header('Authorization');
         REGISTRY_ENDPOINT_FETCHED.labels(auth || 'N/A').inc();
         if (auth === undefined) {
-            return res.status(StatusCodes.UNAUTHORIZED).end();
+            res.status(StatusCodes.UNAUTHORIZED).end();
+            return;
         }
         const authTokenRegex = auth.match(BEARER_REGEX);
         if (!authTokenRegex) {
-            return res.status(StatusCodes.UNAUTHORIZED).end();
+            res.status(StatusCodes.UNAUTHORIZED).end();
+            return;
         }
         const authToken = authTokenRegex[1];
         if (!REGISTRY_SET.has(authToken)) {
-            return res.status(StatusCodes.UNAUTHORIZED).end();
+            res.status(StatusCodes.UNAUTHORIZED).end();
+            return;
         }
         res.status(StatusCodes.OK).send(RFQT_INTEGRATOR_IDS).end();
     }
