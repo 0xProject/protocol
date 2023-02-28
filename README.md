@@ -40,7 +40,7 @@ If you're only dealing with one workspace, _and_ all its dependencies have been 
 you can `cd` into the workspace root and mostly ignore that you're in a monorepo:
 
 ```sh
-cd node-apps/swap-api
+cd apps-node/api
 yarn install
 yarn build
 yarn test
@@ -57,7 +57,7 @@ to run a command in a specific workspace:
 
 ```bash
 pwd # ~/0x-labs
-yarn workspace swap-api add -D ts-node
+yarn workspace api add -D ts-node
 ```
 
 Use [`yarn workspaces <command>`](https://classic.yarnpkg.com/en/docs/cli/workspaces#toc-yarn-workspaces-info)
@@ -91,7 +91,7 @@ To run a Turbo pipeline on a single workspace, use the `--filter` flag:
 
 ```bash
 pwd # ~/0x-labs
-yarn build --filter=swap-api # Builds workspace "swap-api" and its dependencies
+yarn build --filter=api # Builds workspace "api" and its dependencies
 ```
 
 > ℹ️ Tip: The `--filter` flag has syntax to match on a number of dimensions. See
