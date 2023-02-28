@@ -24,7 +24,7 @@ on:
           - staging-all
           - staging-bsc
           - staging-polygon
-        default: staging-polygon
+        default: prod-all
 
 jobs:
   deploy:
