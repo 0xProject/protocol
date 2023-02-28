@@ -1,4 +1,4 @@
-import { createCookieSessionStorage } from "@remix-run/node";
+import { createCookieSessionStorage, redirect } from "@remix-run/node";
 import { addMinutes } from "date-fns";
 import { Authenticator, AuthorizationError } from "remix-auth";
 import { FormStrategy } from "remix-auth-form";
@@ -6,6 +6,21 @@ import { GoogleStrategy } from "remix-auth-socials";
 import { doesSessionExist } from "./data/zippo.server";
 import { env } from "./env";
 import { UserDoesNotExistExeption } from "./exceptions/authExeptions";
+import { zxcvbn, zxcvbnOptions } from "@zxcvbn-ts/core";
+import zxcvbnCommonPackage from "@zxcvbn-ts/language-common";
+import zxcvbnEnPackage from "@zxcvbn-ts/language-en";
+
+const ZXCVBN_OPTIONS = {
+  translations: zxcvbnEnPackage.translations,
+  graphs: zxcvbnCommonPackage.adjacencyGraphs,
+  useLevenshteinDistance: true,
+  dictionary: {
+    ...zxcvbnCommonPackage.dictionary,
+    ...zxcvbnEnPackage.dictionary,
+  },
+} as const;
+
+zxcvbnOptions.setOptions(ZXCVBN_OPTIONS);
 
 export const sessionStorage = createCookieSessionStorage({
   cookie: {
@@ -21,10 +36,12 @@ export const sessionStorage = createCookieSessionStorage({
 export type User = {
   id: string;
   email: string;
-  team: string;
+  team: string | null;
   sessionToken: string;
   expiresAt: string;
 };
+
+export const PASSWORD_MAX_STRENGTH = 4 as const;
 
 export const auth = new Authenticator<User>(sessionStorage);
 auth.use(
@@ -38,6 +55,16 @@ auth.use(
       throw new AuthorizationError("Invalid credentials");
     }
     if (!email) throw new AuthorizationError("Email is required");
+
+    if (email === "freshmeat@0xproject.com") {
+      return {
+        id: "1337",
+        email: email as string,
+        team: null,
+        sessionToken: "123",
+        expiresAt: addMinutes(new Date(), 15).toISOString(),
+      };
+    }
 
     return {
       id: "1337",
@@ -82,6 +109,45 @@ async function verifySession(user: User) {
   // currently stubbed, but this is where we would check with the backend to see if the session is still valid
 
   return doesSessionExist(user.id, user.sessionToken);
+}
+
+export async function getSignedInUser(
+  request: Request,
+  failureRedirect?: string
+): Promise<[User | null, Headers | null]> {
+  const user = (await auth.isAuthenticated(request)) || null;
+  if (!user && failureRedirect) {
+    throw redirect(failureRedirect);
+  }
+  const headers = new Headers();
+  if (user && new Date(user.expiresAt) < new Date()) {
+    // session has expired, we need to check with the backend if the session is still valid
+    // if it is, we need to update the session with the new expiry date
+    // if it isn't, we need to redirect to the login page
+    const sessionIsValid = await verifySession(user);
+    if (!sessionIsValid) {
+      throw await auth.logout(request, { redirectTo: "/login" });
+    }
+    // we extend the session by 15 minutes
+    user.expiresAt = addMinutes(new Date(), 15).toISOString();
+    const session = await sessionStorage.getSession(
+      request.headers.get("Cookie")
+    );
+    session.set(auth.sessionKey, user);
+    headers.append("Set-Cookie", await sessionStorage.commitSession(session));
+  }
+
+  // at this point, we know the user is authenticated and the session is valid
+  return [user, headers];
+}
+
+export function getPasswordStrength(
+  password: string
+): [number, { suggestions: string[]; warning: string }] {
+  // currently stubbed, but this is where we would check with the backend to see if the password is strong enough
+
+  const result = zxcvbn(password);
+  return [result.score, result.feedback];
 }
 
 export async function withSignedInUser<R extends Response>(

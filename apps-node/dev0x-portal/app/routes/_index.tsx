@@ -1,10 +1,15 @@
-import { Link } from "@remix-run/react";
+import type { LoaderArgs } from '@remix-run/server-runtime';
+import { redirect } from '@remix-run/server-runtime';
+import { getSignedInUser } from '../auth.server';
 
-export default function Create0xDevAccount() {
-  return (
-    <div>
-      <div className="font-sans text-lg">Create 1</div>
-      <Link to={"/login"}>Login</Link>
-    </div>
-  );
+// this page is only to redirect logged out users to the create account page
+// and logged in users to the apps page
+export async function loader({ request }: LoaderArgs) {
+    const [user, headers] = await getSignedInUser(request);
+
+    if (user) {
+        throw redirect('/apps', { headers: headers || new Headers() });
+    } else {
+        throw redirect('/create-account', { headers: headers || new Headers() });
+    }
 }
