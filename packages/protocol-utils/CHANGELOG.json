@@ -1,5 +1,13 @@
 [
 	{
+		"version": "11.18.0",
+		"changes": [
+			{
+				"note": "Add KyberElastic support"
+			}
+		]
+	},
+	{
 		"timestamp": 1675210931,
 		"version": "11.17.6",
 		"changes": [
