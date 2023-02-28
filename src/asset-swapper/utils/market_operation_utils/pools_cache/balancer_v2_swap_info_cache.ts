@@ -32,7 +32,7 @@ type BalancerChains =
     | ChainId.Optimism
     | ChainId.Arbitrum;
 
-const SOR_CONFIG: Record<BalancerChains, SorConfig> = {
+const SOR_CONFIG: Record<BalancerChains, SorConfig & { poolsToIgnore?: string[] }> = {
     [ChainId.Mainnet]: {
         chainId: ChainId.Mainnet,
         vault: '0xba12222222228d8ba445958a75a0704d566bf2c8',
@@ -41,31 +41,105 @@ const SOR_CONFIG: Record<BalancerChains, SorConfig> = {
             id: '0x32296969ef14eb0c6d29669c550d4a0449130230000200000000000000000080',
             address: '0x32296969ef14eb0c6d29669c550d4a0449130230',
         },
+        connectingTokens: [
+            {
+                symbol: 'wEth',
+                address: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+            },
+            {
+                symbol: 'wstEth',
+                address: '0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0',
+            },
+            {
+                symbol: 'DOLA',
+                address: '0x865377367054516e17014ccded1e7d814edc9ce4',
+            },
+        ],
+        poolsToIgnore: [
+            '0xbd482ffb3e6e50dc1c437557c3bea2b68f3683ee', // a pool made by an external dev who was playing with a novel rate provider mechanism in production.
+        ],
+        lbpRaisingTokens: [
+            '0x6b175474e89094c44da98b954eedeac495271d0f', // DAI
+            '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
+            '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2', // WETH
+        ],
     },
     [ChainId.Polygon]: {
         chainId: ChainId.Polygon,
         vault: '0xba12222222228d8ba445958a75a0704d566bf2c8',
         weth: '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270',
+        connectingTokens: [
+            {
+                symbol: 'weth',
+                address: '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270',
+            },
+            {
+                symbol: 'bbrz2',
+                address: '0xe22483774bd8611be2ad2f4194078dac9159f4ba',
+            }, // Joins Stables<>BRZ via https://app.balancer.fi/#/polygon/pool/0x4a0b73f0d13ff6d43e304a174697e3d5cfd310a400020000000000000000091c
+        ],
+        poolsToIgnore: [
+            '0x600bd01b6526611079e12e1ff93aba7a3e34226f', // This pool has rateProviders with incorrect scaling
+        ],
+        lbpRaisingTokens: [
+            '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063', // DAI
+            '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', // USDC
+            '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270', // WMATIC
+        ],
     },
     [ChainId.Arbitrum]: {
         chainId: ChainId.Arbitrum,
         vault: '0xba12222222228d8ba445958a75a0704d566bf2c8',
         weth: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+        connectingTokens: [
+            {
+                symbol: 'weth',
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+            },
+        ],
+        lbpRaisingTokens: [
+            '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1', // DAI
+            '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8', // USDC
+            '0x82af49447d8a07e3bd95bd0d56f35241523fbab1', // WETH
+        ],
     },
     [ChainId.Goerli]: {
         chainId: ChainId.Goerli,
         vault: '0x65748e8287ce4b9e6d83ee853431958851550311',
         weth: '0x9a1000d492d40bfccbc03f413a48f5b6516ec0fd',
+        connectingTokens: [
+            {
+                symbol: 'weth',
+                address: '0xdfcea9088c8a88a76ff74892c1457c17dfeef9c1',
+            },
+        ],
     },
     [ChainId.Optimism]: {
         chainId: ChainId.Optimism,
         vault: '0xba12222222228d8ba445958a75a0704d566bf2c8',
         weth: '0x4200000000000000000000000000000000000006',
+        connectingTokens: [
+            {
+                symbol: 'weth',
+                address: '0x4200000000000000000000000000000000000006',
+            },
+        ],
+        lbpRaisingTokens: [
+            '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1', // DAI
+            '0x7f5c764cbc14f9669b88837ca1490cca17c31607', // USDC
+            '0x4200000000000000000000000000000000000006', // WETH
+        ],
     },
     [ChainId.Fantom]: {
         chainId: ChainId.Fantom,
         vault: '0x20dd72ed959b6147912c2e529f0a0c651c33c9ce',
         weth: '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83',
+        connectingTokens: [
+            {
+                symbol: 'weth',
+                address: '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83',
+            },
+        ],
     },
 };
 
@@ -95,6 +169,7 @@ export class BalancerV2SwapInfoCache extends SwapInfoCache {
         this._poolDataService = new SubgraphPoolDataService({
             chainId,
             subgraphUrl,
+            poolsToIgnore: SOR_CONFIG[chainId as BalancerChains].poolsToIgnore,
         });
         const sor = new SOR(
             provider,

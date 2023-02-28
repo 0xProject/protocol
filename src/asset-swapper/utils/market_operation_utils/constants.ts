@@ -1971,7 +1971,7 @@ export const DEFAULT_GAS_SCHEDULE: GasSchedule = {
     [ERC20BridgeSource.KnightSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.Balancer]: () => 120e3,
     [ERC20BridgeSource.BalancerV2]: (fillData?: FillData) => {
-        return 100e3 + ((fillData as BalancerV2BatchSwapFillData).swapSteps.length - 1) * 50e3;
+        return 140e3 + ((fillData as BalancerV2BatchSwapFillData).swapSteps.length - 1) * 80e3;
     },
     [ERC20BridgeSource.MStable]: () => 200e3,
     [ERC20BridgeSource.MakerPsm]: (fillData?: FillData) => {

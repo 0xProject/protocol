@@ -115,7 +115,7 @@
         "@0x/types": "^3.3.6",
         "@0x/utils": "^7.0.0",
         "@0x/web3-wrapper": "^8.0.0",
-        "@balancer-labs/sor": "^4.0.1-beta.5",
+        "@balancer-labs/sor": "^4.1.1-beta.2",
         "@bancor/sdk": "0.2.10",
         "@cryptoalgebra/core": "^2.0.0",
         "@cryptoalgebra/periphery": "^1.0.0",
