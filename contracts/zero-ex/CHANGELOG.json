@@ -4,6 +4,9 @@
         "changes": [
             {
                 "note": "Add KyberElastic mixin for Ethereum, Polygon, Arbitrum, Avalanche"
+            },
+            {
+                "note": "Skip chain id validation in AbstractBridgeAdapter on testnets"
             }
         ]
     },
