@@ -1,5 +1,13 @@
 [
     {
+        "version": "4.0.0",
+        "changes": [
+            {
+                "note": "Migrated package to foundry"
+            }
+        ]
+    },
+    {
         "timestamp": 1675210931,
         "version": "3.3.57",
         "changes": [
