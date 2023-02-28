@@ -14,7 +14,6 @@
         "build-storybook": "storybook build"
     },
     "dependencies": {
-        "@radix-ui/react-accordion": "^1.1.0",
         "@radix-ui/react-icons": "^1.1.1",
         "@radix-ui/react-label": "^2.0.0",
         "@radix-ui/react-visually-hidden": "^1.0.1",
