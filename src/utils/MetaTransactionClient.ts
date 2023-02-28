@@ -275,7 +275,7 @@ export async function getV2QuoteAsync(
 
     stopTimer && stopTimer({ success: 'true' });
 
-    const { buyAmount, buyTokenAddress, gas, price, sellAmount, sellTokenAddress, trade: rawTrade } = response.data;
+    const { buyAmount, buyTokenAddress, price, sellAmount, sellTokenAddress, trade: rawTrade } = response.data;
 
     switch (rawTrade.kind) {
         case GaslessTypes.MetaTransaction: {
@@ -301,7 +301,6 @@ export async function getV2QuoteAsync(
                 price: {
                     buyAmount: new BigNumber(buyAmount),
                     buyTokenAddress,
-                    gas: new BigNumber(gas),
                     price: new BigNumber(price),
                     sellAmount: new BigNumber(sellAmount),
                     sellTokenAddress,

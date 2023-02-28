@@ -42,7 +42,7 @@ export interface FetchIndicativeQuoteResponse {
     allowanceTarget?: string;
     buyAmount: BigNumber;
     buyTokenAddress: string;
-    gas: BigNumber;
+    gas?: BigNumber;
     price: BigNumber;
     sellAmount: BigNumber;
     sellTokenAddress: string;
@@ -57,7 +57,7 @@ export interface BaseRfqmQuoteResponse {
     allowanceTarget?: string;
     buyAmount: BigNumber;
     buyTokenAddress: string;
-    gas: BigNumber;
+    gas?: BigNumber;
     price: BigNumber;
     sellAmount: BigNumber;
     sellTokenAddress: string;

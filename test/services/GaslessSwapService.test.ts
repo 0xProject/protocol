@@ -189,13 +189,21 @@ describe('GaslessSwapService', () => {
         signer: '0x4c42a706410f1190f97d26fe3c999c90070aa40f',
         value: new BigNumber(0),
     });
-    const price: FetchIndicativeQuoteResponse = {
+    const metaTransactionV1EndpointPrice: FetchIndicativeQuoteResponse = {
         allowanceTarget: '0x12345',
         buyAmount: new BigNumber(1800054805473),
         sellAmount: new BigNumber(1000000000000000000000),
         buyTokenAddress: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
         sellTokenAddress: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
         gas: new BigNumber(1043459),
+        price: new BigNumber(1800.054805),
+    };
+    const metaTransactionV2EndpointPrice: FetchIndicativeQuoteResponse = {
+        allowanceTarget: '0x12345',
+        buyAmount: new BigNumber(1800054805473),
+        sellAmount: new BigNumber(1000000000000000000000),
+        buyTokenAddress: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+        sellTokenAddress: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
         price: new BigNumber(1800.054805),
     };
     const sources: LiquiditySource[] = [
@@ -274,7 +282,7 @@ describe('GaslessSwapService', () => {
     describe('fetchPriceAsync', () => {
         describe('zero-g', () => {
             it('gets an RFQ price if available', async () => {
-                mockRfqmService.fetchIndicativeQuoteAsync.mockResolvedValueOnce(price);
+                mockRfqmService.fetchIndicativeQuoteAsync.mockResolvedValueOnce(metaTransactionV1EndpointPrice);
 
                 const result = (await gaslessSwapService.fetchPriceAsync(
                     {
@@ -311,7 +319,7 @@ describe('GaslessSwapService', () => {
                         hash: metaTransactionV1.getHash(),
                         metaTransaction: metaTransactionV1,
                     },
-                    price,
+                    price: metaTransactionV1EndpointPrice,
                 });
                 mockRfqmService.fetchIndicativeQuoteAsync.mockResolvedValueOnce(null);
 
@@ -349,7 +357,7 @@ describe('GaslessSwapService', () => {
                         hash: metaTransactionV1.getHash(),
                         metaTransaction: metaTransactionV1,
                     },
-                    price,
+                    price: metaTransactionV1EndpointPrice,
                 });
                 mockRfqmService.fetchIndicativeQuoteAsync.mockImplementationOnce(() => {
                     throw new Error('rfqm quote threw up');
@@ -461,7 +469,7 @@ describe('GaslessSwapService', () => {
                         hash: metaTransactionV1.getHash(),
                         metaTransaction: metaTransactionV1,
                     },
-                    price,
+                    price: metaTransactionV2EndpointPrice,
                     sources,
                     fees,
                 });
@@ -504,7 +512,6 @@ describe('GaslessSwapService', () => {
                           "feeType": "integrator_share",
                         },
                       },
-                      "gas": "1043459",
                       "price": "1800.054805",
                       "sellAmount": "1000000000000000000000",
                       "sellTokenAddress": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
@@ -662,7 +669,7 @@ describe('GaslessSwapService', () => {
                         hash: metaTransactionV1.getHash(),
                         metaTransaction: metaTransactionV1,
                     },
-                    price,
+                    price: metaTransactionV1EndpointPrice,
                 });
                 mockRfqmService.fetchFirmQuoteAsync.mockResolvedValueOnce({ quote: null, quoteReportId: null });
 
@@ -754,7 +761,7 @@ describe('GaslessSwapService', () => {
                         hash: metaTransactionV1.getHash(),
                         metaTransaction: metaTransactionV1,
                     },
-                    price,
+                    price: metaTransactionV1EndpointPrice,
                 });
                 mockRfqmService.fetchFirmQuoteAsync.mockResolvedValueOnce({ quote: null, quoteReportId: null });
 
@@ -783,7 +790,7 @@ describe('GaslessSwapService', () => {
                         hash: metaTransactionV1.getHash(),
                         metaTransaction: metaTransactionV1,
                     },
-                    price,
+                    price: metaTransactionV1EndpointPrice,
                 });
                 mockRfqmService.fetchFirmQuoteAsync.mockResolvedValueOnce({ quote: null, quoteReportId: null });
 
@@ -859,7 +866,7 @@ describe('GaslessSwapService', () => {
                         hash: metaTransactionV1.getHash(),
                         metaTransaction: metaTransactionV1,
                     },
-                    price,
+                    price: metaTransactionV1EndpointPrice,
                 });
                 mockRfqmService.fetchFirmQuoteAsync.mockResolvedValueOnce({ quote: null, quoteReportId: null });
 
@@ -895,7 +902,7 @@ describe('GaslessSwapService', () => {
                         hash: metaTransactionV1.getHash(),
                         metaTransaction: metaTransactionV1,
                     },
-                    price,
+                    price: metaTransactionV1EndpointPrice,
                 });
                 mockRfqmService.fetchFirmQuoteAsync.mockResolvedValueOnce({ quote: null, quoteReportId: null });
                 mockRfqmService.getGaslessApprovalResponseAsync.mockResolvedValueOnce(approvalResponse);
@@ -929,7 +936,7 @@ describe('GaslessSwapService', () => {
                         hash: metaTransactionV1.getHash(),
                         metaTransaction: metaTransactionV1,
                     },
-                    price,
+                    price: metaTransactionV2EndpointPrice,
                     sources,
                     fees,
                 });
@@ -977,7 +984,6 @@ describe('GaslessSwapService', () => {
                           "feeType": "integrator_share",
                         },
                       },
-                      "gas": "1043459",
                       "price": "1800.054805",
                       "sellAmount": "1000000000000000000000",
                       "sellTokenAddress": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
@@ -1127,7 +1133,7 @@ describe('GaslessSwapService', () => {
                         hash: metaTransactionV1.getHash(),
                         metaTransaction: metaTransactionV1,
                     },
-                    price,
+                    price: metaTransactionV2EndpointPrice,
                     sources,
                     fees,
                 });
@@ -1163,7 +1169,7 @@ describe('GaslessSwapService', () => {
                         hash: metaTransactionV1.getHash(),
                         metaTransaction: metaTransactionV1,
                     },
-                    price,
+                    price: metaTransactionV2EndpointPrice,
                     sources,
                     fees,
                 });
@@ -1248,7 +1254,7 @@ describe('GaslessSwapService', () => {
                         hash: metaTransactionV1.getHash(),
                         metaTransaction: metaTransactionV1,
                     },
-                    price,
+                    price: metaTransactionV2EndpointPrice,
                     sources,
                     fees,
                 });
@@ -1291,7 +1297,7 @@ describe('GaslessSwapService', () => {
                         hash: metaTransactionV1.getHash(),
                         metaTransaction: metaTransactionV1,
                     },
-                    price,
+                    price: metaTransactionV2EndpointPrice,
                     sources,
                     fees,
                 });
@@ -1395,13 +1401,13 @@ describe('GaslessSwapService', () => {
                             token: metaTransactionV1.feeToken,
                             type: 'fixed',
                         },
-                        inputToken: price.sellTokenAddress,
-                        inputTokenAmount: price.sellAmount,
+                        inputToken: metaTransactionV1EndpointPrice.sellTokenAddress,
+                        inputTokenAmount: metaTransactionV1EndpointPrice.sellAmount,
                         integratorId: 'integrator-id',
                         metaTransaction: metaTransactionV1,
                         metaTransactionHash: '0xotherhash',
                         minOutputTokenAmount: new BigNumber(0),
-                        outputToken: price.buyTokenAddress,
+                        outputToken: metaTransactionV1EndpointPrice.buyTokenAddress,
                         status: RfqmJobStatus.PendingProcessing,
                         takerAddress: metaTransactionV1.signer,
                         takerSignature: {
@@ -1468,7 +1474,7 @@ describe('GaslessSwapService', () => {
                 mockRedis.get = jest.fn().mockResolvedValueOnce({});
                 mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync = jest
                     .fn()
-                    .mockResolvedValueOnce([price.sellAmount]);
+                    .mockResolvedValueOnce([metaTransactionV1EndpointPrice.sellAmount]);
 
                 mockDbUtils.writeMetaTransactionJobAsync.mockResolvedValueOnce({
                     id: 'id',
@@ -1501,7 +1507,7 @@ describe('GaslessSwapService', () => {
                 mockRedis.get = jest.fn().mockResolvedValueOnce({});
                 mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync = jest
                     .fn()
-                    .mockResolvedValueOnce([price.sellAmount]);
+                    .mockResolvedValueOnce([metaTransactionV1EndpointPrice.sellAmount]);
 
                 mockDbUtils.writeMetaTransactionJobAsync.mockResolvedValueOnce({
                     id: 'id',

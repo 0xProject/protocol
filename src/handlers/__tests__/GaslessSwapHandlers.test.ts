@@ -562,7 +562,6 @@ describe('GaslessSwapHandlers', () => {
                     sellAmount: new BigNumber(2000),
                     buyTokenAddress: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
                     sellTokenAddress: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
-                    gas: new BigNumber(1043459),
                     price: new BigNumber(2),
                     sources: [
                         {
@@ -831,7 +830,6 @@ describe('GaslessSwapHandlers', () => {
                 const quote: MetaTransactionV2QuoteResponse = {
                     buyAmount: new BigNumber('1800054805473'),
                     buyTokenAddress: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
-                    gas: new BigNumber('1043459'),
                     trade: {
                         type: GaslessTypes.MetaTransaction,
                         hash: '0xde5a11983edd012047dd3107532f007a73ae488bfb354f35b8a40580e2a775a1',

@@ -348,7 +348,7 @@ describe('MetaTransactionClient', () => {
             expect(response?.price).toEqual({
                 buyAmount: new BigNumber(exampleSuccessfulResponse.buyAmount),
                 buyTokenAddress: exampleSuccessfulResponse.buyTokenAddress,
-                gas: new BigNumber(exampleSuccessfulResponse.gas),
+                gas: undefined,
                 price: new BigNumber(exampleSuccessfulResponse.price),
                 sellAmount: new BigNumber(exampleSuccessfulResponse.sellAmount),
                 sellTokenAddress: exampleSuccessfulResponse.sellTokenAddress,
