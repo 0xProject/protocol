@@ -1,5 +1,14 @@
 [
 	{
+		"version": "8.1.0",
+		"changes": [
+			{
+				"note": "Upgrade Mainnet and Polygon FillQuoteTransformers to support KyberElastic",
+				"pr": 669
+			}
+		]
+	},
+	{
 		"version": "8.0.3",
 		"changes": [
 			{
