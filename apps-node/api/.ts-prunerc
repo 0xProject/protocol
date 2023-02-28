@@ -1,0 +1,3 @@
+{
+    "ignore": "src/wrappers.ts|test/wrappers.ts|migrations|generated-wrappers|generated-artifacts|test/generated-wrappers|test/generated-artifacts"
+}

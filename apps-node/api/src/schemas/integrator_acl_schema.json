@@ -1,0 +1,40 @@
+{
+    "id": "/integratorAclSchema",
+    "properties": {
+        "apiKeys": {
+            "items": {
+                "type": "string"
+            },
+            "type": "array"
+        },
+        "whitelistIntegratorUrls": {
+            "items": {
+                "type": "string"
+            },
+            "type": "array"
+        },
+        "integratorId": {
+            "type": "string"
+        },
+        "label": {
+            "type": "string"
+        },
+        "rfqm": {
+            "type": "boolean"
+        },
+        "rfqt": {
+            "type": "boolean"
+        },
+        "slippageModel": {
+            "type": "boolean"
+        },
+        "positiveSlippagePercent": {
+            "type": "number"
+        },
+        "feeRecipient": {
+            "$ref": "/addressSchema"
+        }
+    },
+    "required": ["label", "integratorId", "apiKeys", "rfqt", "rfqm"],
+    "type": "object"
+}

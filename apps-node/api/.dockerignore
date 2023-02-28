@@ -1,0 +1,5 @@
+node_modules
+postgres
+.circleci
+.git
+.env

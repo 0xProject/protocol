@@ -1,0 +1,25 @@
+{
+    "id": "/slippageModelSchema",
+    "properties": {
+        "token0": {
+            "$ref": "/addressSchema"
+        },
+        "token1": {
+            "$ref": "/addressSchema"
+        },
+        "source": {
+            "type": "string"
+        },
+        "slippageCoefficient": {
+            "type": "number"
+        },
+        "volumeCoefficient": {
+            "type": "number"
+        },
+        "intercept": {
+            "type": "number"
+        }
+    },
+    "required": ["token0", "token1", "source", "slippageCoefficient", "volumeCoefficient", "intercept"],
+    "type": "object"
+}

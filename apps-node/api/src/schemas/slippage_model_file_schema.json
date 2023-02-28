@@ -1,0 +1,7 @@
+{
+    "id": "/slippageModelFileSchema",
+    "type": "array",
+    "items": {
+        "$ref": "/slippageModelSchema"
+    }
+}

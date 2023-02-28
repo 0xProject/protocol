@@ -1,0 +1,73 @@
+{
+    "artifactsDir": "./test/generated-artifacts",
+    "contractsDir": "./contracts",
+    "contracts": [
+        "./contracts/src/AaveV2Sampler.sol",
+        "./contracts/src/AaveV3Sampler.sol",
+        "./contracts/src/ApproximateBuys.sol",
+        "./contracts/src/BalanceChecker.sol",
+        "./contracts/src/BalancerSampler.sol",
+        "./contracts/src/BalancerV2BatchSampler.sol",
+        "./contracts/src/BalancerV2Common.sol",
+        "./contracts/src/BalancerV2Sampler.sol",
+        "./contracts/src/BancorSampler.sol",
+        "./contracts/src/BancorV3Sampler.sol",
+        "./contracts/src/CompoundSampler.sol",
+        "./contracts/src/CurveSampler.sol",
+        "./contracts/src/DODOSampler.sol",
+        "./contracts/src/DODOV2Sampler.sol",
+        "./contracts/src/ERC20BridgeSampler.sol",
+        "./contracts/src/FakeTaker.sol",
+        "./contracts/src/GMXSampler.sol",
+        "./contracts/src/KyberDmmSampler.sol",
+        "./contracts/src/LidoSampler.sol",
+        "./contracts/src/MStableSampler.sol",
+        "./contracts/src/MakerPSMSampler.sol",
+        "./contracts/src/MooniswapSampler.sol",
+        "./contracts/src/NativeOrderSampler.sol",
+        "./contracts/src/PlatypusSampler.sol",
+        "./contracts/src/SamplerUtils.sol",
+        "./contracts/src/ShellSampler.sol",
+        "./contracts/src/SynthetixSampler.sol",
+        "./contracts/src/TwoHopSampler.sol",
+        "./contracts/src/UniswapSampler.sol",
+        "./contracts/src/UniswapV2Sampler.sol",
+        "./contracts/src/UniswapV3MultiQuoter.sol",
+        "./contracts/src/UniswapV3Sampler.sol",
+        "./contracts/src/UtilitySampler.sol",
+        "./contracts/src/VelodromeSampler.sol",
+        "./contracts/src/WooPPSampler.sol",
+        "./contracts/src/interfaces/IBalancer.sol",
+        "./contracts/src/interfaces/IBalancerV2Vault.sol",
+        "./contracts/src/interfaces/IBancor.sol",
+        "./contracts/src/interfaces/IBancorV3.sol",
+        "./contracts/src/interfaces/ICurve.sol",
+        "./contracts/src/interfaces/IGMX.sol",
+        "./contracts/src/interfaces/IMStable.sol",
+        "./contracts/src/interfaces/IMooniswap.sol",
+        "./contracts/src/interfaces/IPlatypus.sol",
+        "./contracts/src/interfaces/IShell.sol",
+        "./contracts/src/interfaces/IUniswapExchangeQuotes.sol",
+        "./contracts/src/interfaces/IUniswapV2Router01.sol",
+        "./contracts/test/TestNativeOrderSampler.sol"
+    ],
+    "useDockerisedSolc": false,
+    "isOfflineMode": false,
+    "shouldSaveStandardInput": true,
+    "compilerSettings": {
+        "evmVersion": "istanbul",
+        "optimizer": { "enabled": true, "runs": 200, "details": { "yul": false, "deduplicate": true } },
+        "outputSelection": {
+            "*": {
+                "*": [
+                    "abi",
+                    "devdoc",
+                    "evm.bytecode.object",
+                    "evm.bytecode.sourceMap",
+                    "evm.deployedBytecode.object",
+                    "evm.deployedBytecode.sourceMap"
+                ]
+            }
+        }
+    }
+}

@@ -1,0 +1,7 @@
+{
+    "id": "/integratorsAclSchema",
+    "type": "array",
+    "items": {
+        "$ref": "/integratorAclSchema"
+    }
+}
