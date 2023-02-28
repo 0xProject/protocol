@@ -10,11 +10,81 @@ import {
     IntegratorShareFee,
     IntegratorShareFeeConfig,
     RawFees,
+    RawGasFee,
+    RawIntegratorShareFee,
+    RawVolumeBasedFee,
     TruncatedFee,
     TruncatedFees,
     VolumeBasedFee,
     VolumeBasedFeeConfig,
 } from './types/meta_transaction_fees';
+
+export function feesToRawFees(fees: Fees | undefined): RawFees {
+    if (!fees) {
+        return {};
+    }
+
+    let rawIntegratorFee: RawVolumeBasedFee | undefined;
+    if (fees.integratorFee) {
+        const integratorFee = fees.integratorFee;
+
+        rawIntegratorFee = {
+            type: 'volume',
+            feeToken: integratorFee.feeToken,
+            feeAmount: integratorFee.feeAmount.toString(),
+            feeRecipient: integratorFee.feeRecipient,
+            billingType: integratorFee.billingType,
+            volumePercentage: integratorFee.volumePercentage.toString(),
+        };
+    }
+
+    let rawZeroExFee: RawVolumeBasedFee | RawIntegratorShareFee | undefined;
+    if (fees.zeroExFee) {
+        const zeroExFee = fees.zeroExFee;
+
+        if (zeroExFee.type === 'volume') {
+            rawZeroExFee = {
+                type: 'volume',
+                feeToken: zeroExFee.feeToken,
+                feeAmount: zeroExFee.feeAmount.toString(),
+                feeRecipient: zeroExFee.feeRecipient,
+                billingType: zeroExFee.billingType,
+                volumePercentage: zeroExFee.volumePercentage.toString(),
+            };
+        } else if (zeroExFee.type === 'integrator_share') {
+            rawZeroExFee = {
+                type: 'integrator_share',
+                feeToken: zeroExFee.feeToken,
+                feeAmount: zeroExFee.feeAmount.toString(),
+                feeRecipient: zeroExFee.feeRecipient,
+                billingType: zeroExFee.billingType,
+                integratorSharePercentage: zeroExFee.integratorSharePercentage.toString(),
+            };
+        }
+    }
+
+    let rawGasFee: RawGasFee | undefined;
+    if (fees.gasFee) {
+        const gasFee = fees.gasFee;
+
+        rawGasFee = {
+            type: 'gas',
+            feeToken: gasFee.feeToken,
+            feeAmount: gasFee.feeAmount.toString(),
+            feeRecipient: gasFee.feeRecipient,
+            billingType: gasFee.billingType,
+            gasPrice: gasFee.gasPrice.toString(),
+            estimatedGas: gasFee.estimatedGas.toString(),
+            feeTokenAmountPerWei: gasFee.feeTokenAmountPerWei.toString(),
+        };
+    }
+
+    return {
+        integratorFee: rawIntegratorFee,
+        zeroExFee: rawZeroExFee,
+        gasFee: rawGasFee,
+    };
+}
 
 export function rawFeesToFees(rawFees: RawFees | undefined): Fees | undefined {
     if (!rawFees) {

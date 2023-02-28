@@ -1,8 +1,9 @@
 import { createMetricsRouter, MetricsService } from '@0x/api-utils';
 import { Worker } from 'bullmq';
 import * as express from 'express';
+import { Kafka, Producer as KafkaProducer } from 'kafkajs';
 
-import { ENABLE_PROMETHEUS_METRICS, PROMETHEUS_PORT } from '../config';
+import { ENABLE_PROMETHEUS_METRICS, KAFKA_BROKERS, PROMETHEUS_PORT } from '../config';
 import { METRICS_PATH } from '../core/constants';
 import { logger } from '../logger';
 
@@ -60,4 +61,22 @@ export function startMetricsServer(): void {
             logger.error({ errorMessage: error, stack: error.stack }, 'Error in metrics server');
         });
     }
+}
+
+/**
+ * Initialize a kafka producer if KAFKA_BROKERS is set
+ */
+export function getKafkaProducer(): KafkaProducer | undefined {
+    let kafkaProducer: KafkaProducer | undefined;
+    if (KAFKA_BROKERS !== undefined) {
+        const kafka = new Kafka({
+            clientId: '0x-api',
+            brokers: KAFKA_BROKERS,
+        });
+
+        kafkaProducer = kafka.producer();
+        // tslint:disable-next-line: no-floating-promises
+        kafkaProducer.connect();
+    }
+    return kafkaProducer;
 }

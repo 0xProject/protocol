@@ -5,7 +5,6 @@ import { providers } from 'ethers';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 import Redis from 'ioredis';
-import { Kafka, Producer as KafkaProducer } from 'kafkajs';
 
 import {
     ALT_RFQ_MM_API_KEY,
@@ -13,7 +12,6 @@ import {
     ChainConfigurations,
     DEFINED_FI_API_KEY,
     DEFINED_FI_ENDPOINT,
-    KAFKA_BROKERS,
     RFQ_PROXY_ADDRESS,
     RFQ_PROXY_PORT,
     ZERO_EX_API_KEY,
@@ -33,6 +31,7 @@ import { QuoteServerClient } from './quote_server_client';
 import { RfqBalanceCheckUtils, RfqBlockchainUtils } from './rfq_blockchain_utils';
 import { RfqMakerDbUtils } from './rfq_maker_db_utils';
 import { RfqMakerManager } from './rfq_maker_manager';
+import { getKafkaProducer } from './runner_utils';
 import { TokenMetadataManager } from './TokenMetadataManager';
 import { TokenPriceOracle } from './TokenPriceOracle';
 import { ZeroExApiClient } from './ZeroExApiClient';
@@ -158,22 +157,4 @@ export function getAxiosRequestConfigWithProxy(): AxiosRequestConfig {
     }
 
     return axiosRequestConfig;
-}
-
-/**
- * Initialize a kafka producer if KAFKA_BROKERS is set
- */
-function getKafkaProducer(): KafkaProducer | undefined {
-    let kafkaProducer: KafkaProducer | undefined;
-    if (KAFKA_BROKERS !== undefined) {
-        const kafka = new Kafka({
-            clientId: '0x-api',
-            brokers: KAFKA_BROKERS,
-        });
-
-        kafkaProducer = kafka.producer();
-        // tslint:disable-next-line: no-floating-promises
-        kafkaProducer.connect();
-    }
-    return kafkaProducer;
 }

@@ -32,6 +32,12 @@
             "properties": {
                 "metaTransactionServiceUrl": {
                     "type": "string"
+                },
+                "feeEventTopic": {
+                    "type": "string"
+                },
+                "produceFeeEvent": {
+                    "type": "boolean"
                 }
             },
             "type": "object"

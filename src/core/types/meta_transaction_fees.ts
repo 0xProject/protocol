@@ -46,7 +46,7 @@ export interface VolumeBasedFee extends FeeBase {
     volumePercentage: BigNumber;
 }
 
-interface RawVolumeBasedFee extends RawFeeBase {
+export interface RawVolumeBasedFee extends RawFeeBase {
     type: 'volume';
     volumePercentage: string;
 }
@@ -58,7 +58,7 @@ export interface GasFee extends FeeBase {
     feeTokenAmountPerWei: BigNumber;
 }
 
-interface RawGasFee extends RawFeeBase {
+export interface RawGasFee extends RawFeeBase {
     type: 'gas';
     gasPrice: string;
     estimatedGas: string;
@@ -70,7 +70,7 @@ export interface IntegratorShareFee extends FeeBase {
     integratorSharePercentage: BigNumber;
 }
 
-interface RawIntegratorShareFee extends RawFeeBase {
+export interface RawIntegratorShareFee extends RawFeeBase {
     type: 'integrator_share';
     integratorSharePercentage: string;
 }

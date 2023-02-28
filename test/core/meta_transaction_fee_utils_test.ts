@@ -1,5 +1,10 @@
 import { BigNumber } from '@0x/utils';
-import { feesToTruncatedFees, getFeeConfigsFromParams, rawFeesToFees } from '../../src/core/meta_transaction_fee_utils';
+import {
+    feesToRawFees,
+    feesToTruncatedFees,
+    getFeeConfigsFromParams,
+    rawFeesToFees,
+} from '../../src/core/meta_transaction_fee_utils';
 import { MAINET_TOKEN_ADDRESSES } from '../constants';
 
 const FEE_TOKEN = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174';
@@ -7,6 +12,189 @@ const FEE_RECIPIENT = '0x4ea754349ace5303c82f0d1d491041e042f2ad22';
 const INTEGRATOR_ID = '5062340f-87bb-4e1b-8029-eb8c03a9989c';
 
 describe('meta_transaction_fee_utils', () => {
+    describe('feesToRawFees', () => {
+        it('returns empty object if fees is empty / undefined', () => {
+            expect(feesToRawFees({})).toEqual({});
+            expect(feesToRawFees(undefined)).toEqual({});
+        });
+
+        describe('integrator fee', () => {
+            it('returns integrator fee as undefined if integrator fee is not provided', () => {
+                const fees = feesToRawFees({
+                    zeroExFee: {
+                        type: 'volume',
+                        feeToken: FEE_TOKEN,
+                        feeAmount: new BigNumber(100),
+                        feeRecipient: FEE_RECIPIENT,
+                        billingType: 'on-chain',
+                        volumePercentage: new BigNumber(0.1),
+                    },
+                });
+
+                expect(fees).toBeTruthy();
+                expect(fees?.integratorFee).toBeUndefined();
+            });
+
+            it('returns the correct integrator fee if integrator fee is provided', () => {
+                const fees = feesToRawFees({
+                    integratorFee: {
+                        type: 'volume',
+                        feeToken: FEE_TOKEN,
+                        feeAmount: new BigNumber(1000),
+                        feeRecipient: FEE_RECIPIENT,
+                        billingType: 'on-chain',
+                        volumePercentage: new BigNumber(0.1),
+                    },
+                });
+                expect(fees).toBeTruthy();
+                expect(fees?.integratorFee).toEqual({
+                    type: 'volume',
+                    feeToken: FEE_TOKEN,
+                    feeAmount: '1000',
+                    feeRecipient: FEE_RECIPIENT,
+                    billingType: 'on-chain',
+                    volumePercentage: '0.1',
+                });
+            });
+        });
+
+        describe('0x fee', () => {
+            it('returns 0x fee as undefined if 0x fee is not provided', () => {
+                const fees = feesToRawFees({
+                    integratorFee: {
+                        type: 'volume',
+                        feeToken: FEE_TOKEN,
+                        feeAmount: new BigNumber(100000),
+                        feeRecipient: null,
+                        billingType: 'off-chain',
+                        volumePercentage: new BigNumber(0.1),
+                    },
+                });
+                expect(fees).toBeTruthy();
+                expect(fees?.zeroExFee).toBeUndefined();
+            });
+
+            it('returns the correct 0x fee volume fee if 0x fee is provided', () => {
+                const fees = feesToRawFees({
+                    integratorFee: {
+                        type: 'volume',
+                        feeToken: FEE_TOKEN,
+                        feeAmount: new BigNumber(1000),
+                        feeRecipient: FEE_RECIPIENT,
+                        billingType: 'on-chain',
+                        volumePercentage: new BigNumber(0.1),
+                    },
+                    zeroExFee: {
+                        type: 'volume',
+                        feeToken: FEE_TOKEN,
+                        feeAmount: new BigNumber(100000),
+                        feeRecipient: null,
+                        billingType: 'off-chain',
+                        volumePercentage: new BigNumber(0.1),
+                    },
+                });
+                expect(fees).toBeTruthy();
+                expect(fees?.zeroExFee).toEqual({
+                    type: 'volume',
+                    feeToken: FEE_TOKEN,
+                    feeAmount: '100000',
+                    feeRecipient: null,
+                    billingType: 'off-chain',
+                    volumePercentage: '0.1',
+                });
+            });
+
+            it('returns the correct 0x fee integrator share fee if 0x fee is provided', () => {
+                const fees = feesToRawFees({
+                    integratorFee: {
+                        type: 'volume',
+                        feeToken: FEE_TOKEN,
+                        feeAmount: new BigNumber(1000),
+                        feeRecipient: FEE_RECIPIENT,
+                        billingType: 'on-chain',
+                        volumePercentage: new BigNumber(0.1),
+                    },
+                    zeroExFee: {
+                        type: 'integrator_share',
+                        feeToken: FEE_TOKEN,
+                        feeAmount: new BigNumber(100000),
+                        feeRecipient: FEE_RECIPIENT,
+                        billingType: 'on-chain',
+                        integratorSharePercentage: new BigNumber(0.1),
+                    },
+                });
+                expect(fees).toBeTruthy();
+                expect(fees?.zeroExFee).toEqual({
+                    type: 'integrator_share',
+                    feeToken: FEE_TOKEN,
+                    feeAmount: '100000',
+                    feeRecipient: FEE_RECIPIENT,
+                    billingType: 'on-chain',
+                    integratorSharePercentage: '0.1',
+                });
+            });
+        });
+
+        describe('gas fee', () => {
+            it('returns gas fee as undefined if gas fee is not provided', () => {
+                const fees = feesToRawFees({
+                    zeroExFee: {
+                        type: 'integrator_share',
+                        feeToken: FEE_TOKEN,
+                        feeAmount: new BigNumber(1000),
+                        feeRecipient: FEE_RECIPIENT,
+                        billingType: 'on-chain',
+                        integratorSharePercentage: new BigNumber(0.1),
+                    },
+                });
+                expect(fees).toBeTruthy();
+                expect(fees?.gasFee).toBeUndefined();
+            });
+
+            it('returns the correct gas fee if gas is provided', () => {
+                const fees = feesToRawFees({
+                    integratorFee: {
+                        type: 'volume',
+                        feeToken: FEE_TOKEN,
+                        feeAmount: new BigNumber(1000),
+                        feeRecipient: FEE_RECIPIENT,
+                        billingType: 'on-chain',
+                        volumePercentage: new BigNumber(0.1),
+                    },
+                    zeroExFee: {
+                        type: 'integrator_share',
+                        feeToken: FEE_TOKEN,
+                        feeAmount: new BigNumber(100000),
+                        feeRecipient: FEE_RECIPIENT,
+                        billingType: 'on-chain',
+                        integratorSharePercentage: new BigNumber(0.1),
+                    },
+                    gasFee: {
+                        type: 'gas',
+                        feeToken: FEE_TOKEN,
+                        feeAmount: new BigNumber(10),
+                        feeRecipient: FEE_RECIPIENT,
+                        billingType: 'on-chain',
+                        gasPrice: new BigNumber(123),
+                        estimatedGas: new BigNumber(200000),
+                        feeTokenAmountPerWei: new BigNumber(0.0001),
+                    },
+                });
+                expect(fees).toBeTruthy();
+                expect(fees?.gasFee).toEqual({
+                    type: 'gas',
+                    feeToken: FEE_TOKEN,
+                    feeAmount: '10',
+                    feeRecipient: FEE_RECIPIENT,
+                    billingType: 'on-chain',
+                    gasPrice: '123',
+                    estimatedGas: '200000',
+                    feeTokenAmountPerWei: '0.0001',
+                });
+            });
+        });
+    });
+
     describe('rawFeesToFees', () => {
         it('returns undefined if `rawFees` is undefined', () => {
             expect(rawFeesToFees(undefined)).toBeUndefined();

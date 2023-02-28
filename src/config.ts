@@ -73,6 +73,8 @@ export interface ChainConfiguration {
     // Service configuration needs to be present to run the corresponding service.
     gasless?: {
         metaTransactionServiceUrl: string;
+        feeEventTopic?: string;
+        produceFeeEvent?: boolean;
     };
     rfqm?: {
         minExpiryDurationMs?: number;

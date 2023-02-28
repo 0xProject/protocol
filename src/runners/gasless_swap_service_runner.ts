@@ -42,7 +42,7 @@ import {
 } from '../utils/rfqm_service_builder';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
 import { RfqMakerDbUtils } from '../utils/rfq_maker_db_utils';
-import { closeRedisConnectionsAsync } from '../utils/runner_utils';
+import { closeRedisConnectionsAsync, getKafkaProducer } from '../utils/runner_utils';
 import { TokenPriceOracle } from '../utils/TokenPriceOracle';
 
 const redisInstances: Redis[] = [];
@@ -130,6 +130,7 @@ if (require.main === module) {
                     balanceChecker,
                     ethersProvider,
                 );
+                const kafkaProducer = getKafkaProducer();
                 const sqsProducer = Producer.create({
                     queueUrl: chainConfiguration.sqsUrl,
                 });
@@ -142,6 +143,9 @@ if (require.main === module) {
                     rfqmDbUtils,
                     rfqBlockchainUtils,
                     sqsProducer,
+                    kafkaProducer,
+                    gaslessSwapServiceConfiguration.feeEventTopic,
+                    gaslessSwapServiceConfiguration.produceFeeEvent,
                 );
                 result.set(chainId, gaslessSwapService);
 

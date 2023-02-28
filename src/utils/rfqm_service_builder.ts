@@ -7,13 +7,11 @@ import { providers, Wallet } from 'ethers';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 import Redis from 'ioredis';
-import { Kafka, Producer as KafkaProducer } from 'kafkajs';
 import { Producer } from 'sqs-producer';
 
 import {
     ChainConfiguration,
     ChainConfigurations,
-    KAFKA_BROKERS,
     META_TX_WORKER_MNEMONIC,
     REDIS_URI,
     RFQ_PROXY_ADDRESS,
@@ -43,6 +41,7 @@ import { RfqmDbUtils } from './rfqm_db_utils';
 import { RfqBalanceCheckUtils, RfqBlockchainUtils } from './rfq_blockchain_utils';
 import { RfqMakerDbUtils } from './rfq_maker_db_utils';
 import { RfqMakerManager } from './rfq_maker_manager';
+import { getKafkaProducer } from './runner_utils';
 import { TokenMetadataManager } from './TokenMetadataManager';
 import { TokenPriceOracle } from './TokenPriceOracle';
 import { ZeroExApiClient } from './ZeroExApiClient';
@@ -50,24 +49,6 @@ import { ZeroExApiClient } from './ZeroExApiClient';
 export type RfqmServices = Map<number, RfqmService>;
 
 const DEFAULT_AXIOS_TIMEOUT = 600; // ms
-
-/**
- * Initialize a kafka producer if KAFKA_BROKERS is set
- */
-function getKafkaProducer(): KafkaProducer | undefined {
-    let kafkaProducer: KafkaProducer | undefined;
-    if (KAFKA_BROKERS !== undefined) {
-        const kafka = new Kafka({
-            clientId: '0x-api',
-            brokers: KAFKA_BROKERS,
-        });
-
-        kafkaProducer = kafka.producer();
-        // tslint:disable-next-line: no-floating-promises
-        kafkaProducer.connect();
-    }
-    return kafkaProducer;
-}
 
 /**
  * Creates the default Axios Request Config

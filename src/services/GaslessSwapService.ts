@@ -5,15 +5,16 @@ import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import { AxiosInstance } from 'axios';
 import { utils as ethersUtils } from 'ethers';
 import Redis from 'ioredis';
+import { Producer as KafkaProducer } from 'kafkajs';
 import * as _ from 'lodash';
 import { Counter, Summary } from 'prom-client';
-import { Producer } from 'sqs-producer';
+import { Producer as SqsProducer } from 'sqs-producer';
 
 import { META_TRANSACTION_V1_EIP_712_TYPES, ONE_MINUTE_S, ONE_SECOND_MS } from '../core/constants';
 import { MetaTransactionJobConstructorOpts } from '../entities/MetaTransactionJobEntity';
 import { RfqmJobStatus } from '../entities/types';
 import { logger } from '../logger';
-import { feesToTruncatedFees, getFeeConfigsFromParams } from '../core/meta_transaction_fee_utils';
+import { feesToRawFees, feesToTruncatedFees, getFeeConfigsFromParams } from '../core/meta_transaction_fee_utils';
 import { GaslessTypes, Approval } from '../core/types';
 import { FeeConfigs, TruncatedFees } from '../core/types/meta_transaction_fees';
 import { getV1QuoteAsync, getV2QuoteAsync, MetaTransactionClientQuoteResponse } from '../utils/MetaTransactionClient';
@@ -44,6 +45,7 @@ import { getZeroExEip712Domain } from '../eip712registry';
 import { extractEIP712DomainType } from '../utils/Eip712Utils';
 
 import { RfqmService } from './rfqm_service';
+import { quoteReportUtils } from '../utils/quote_report_utils';
 
 /**
  * When a metatransaction quote is issued, the hash
@@ -141,7 +143,10 @@ export class GaslessSwapService {
         private readonly _redis: Redis,
         private readonly _dbUtils: RfqmDbUtils,
         private readonly _blockchainUtils: RfqBlockchainUtils,
-        private readonly _sqsProducer: Producer,
+        private readonly _sqsProducer: SqsProducer,
+        private readonly _kafkaProducer?: KafkaProducer,
+        private readonly _feeEventTopic?: string,
+        private readonly _produceFeeEvent?: boolean,
     ) {}
 
     /**
@@ -377,7 +382,6 @@ export class GaslessSwapService {
                       )
                     : null;
                 const { metaTransaction, hash: metaTransactionHash } = metaTransactionQuote.trade;
-                // TODO: Publish fee event for meta-transaction v2
                 await this._storeMetaTransactionHashAsync(metaTransaction.getHash());
 
                 if (kind === GaslessTypes.MetaTransaction) {
@@ -395,6 +399,27 @@ export class GaslessSwapService {
                 } else {
                     // Response from /meta_transaction/v2 endpoint. The meta-transaction type
                     // can either be meta-transaction v1 / v2
+
+                    // Publish fee event only when it's enabled to give enough buffer time for data team
+                    // to set up the new topic
+                    this._produceFeeEvent &&
+                        (await quoteReportUtils.publishTxRelayV1FeeEvent(
+                            {
+                                tradeHash: metaTransaction.getHash(),
+                                type: metaTransactionQuote.trade.kind,
+                                takerAddress: params.takerAddress,
+                                buyTokenAddress: params.buyToken,
+                                sellTokenAddress: params.sellToken,
+                                requestedBuyAmount: params.buyAmount ?? null,
+                                requestedSellAmount: params.sellAmount ?? null,
+                                quotedBuyAmount: metaTransactionQuote.price.buyAmount,
+                                quotedSellAmount: metaTransactionQuote.price.sellAmount,
+                                integratorId: params.integrator.integratorId,
+                                fee: feesToRawFees(metaTransactionQuote.fees),
+                            },
+                            this._kafkaProducer,
+                            this._feeEventTopic,
+                        ));
                     const trade = await this.getGaslessTradeResponse(metaTransactionQuote);
                     return {
                         ...metaTransactionQuote.price,

@@ -5,6 +5,7 @@ import { logger } from '../logger';
 import { FirmOtcQuote, IndicativeQuote, RfqtV2Quote, StoredFee } from '../core/types';
 
 import { numberUtils } from './number_utils';
+import { RawFees } from '../core/types/meta_transaction_fees';
 import {
     FillQuoteTransformerLimitOrderInfo,
     FillQuoteTransformerRfqOrderInfo,
@@ -216,6 +217,21 @@ interface RfqtV2FeeEvent {
     blockNumber?: number;
 }
 
+interface TxRelayV1FeeEvent {
+    createdAt: number;
+    tradeHash: string;
+    type: string;
+    takerAddress: string;
+    buyTokenAddress: string;
+    sellTokenAddress: string;
+    requestedBuyAmount: BigNumber | null;
+    requestedSellAmount: BigNumber | null;
+    quotedBuyAmount: BigNumber;
+    quotedSellAmount: BigNumber;
+    integratorId: string;
+    fee: RawFees;
+}
+
 export const quoteReportUtils = {
     async publishRFQMQuoteReportAsync(
         logOpts: ExtendedQuoteReportForRFQMLogOptions,
@@ -322,13 +338,36 @@ export const quoteReportUtils = {
         }
         return null;
     },
+    async publishTxRelayV1FeeEvent(
+        logOpts: Omit<TxRelayV1FeeEvent, 'createdAt'>,
+        kafkaProducer?: Producer,
+        feeEventTopic?: string,
+    ) {
+        if (kafkaProducer && feeEventTopic) {
+            const createdAt = Date.now();
+            logger.info('Generating and publishing Tx Relay V1 fee event');
+
+            const feeEvent: TxRelayV1FeeEvent = {
+                createdAt,
+                ...logOpts,
+            };
+            kafkaProducer.send({
+                topic: feeEventTopic,
+                messages: [
+                    {
+                        value: JSON.stringify(feeEvent),
+                    },
+                ],
+            });
+        }
+    },
     async publishRfqtV2FeeEvent(logOpts: RfqtV2FeeEventLogOptions, kafkaProducer: Producer, feeEventTopic?: string) {
         if (kafkaProducer && feeEventTopic) {
             const createdAt = Date.now();
-            logger.info(`Generating and pushing RFQt V2 Quote Report`);
+            logger.info(`Generating and pushing RFQt V2 fee event`);
 
             logOpts.quotes.map((quote) => {
-                const quoteReport: RfqtV2FeeEvent = {
+                const feeEvent: RfqtV2FeeEvent = {
                     createdAt,
                     orderHash: quote.order.getHash(),
                     requestedBuyAmount: logOpts.requestedBuyAmount,
@@ -350,7 +389,7 @@ export const quoteReportUtils = {
                     topic: feeEventTopic,
                     messages: [
                         {
-                            value: JSON.stringify(quoteReport),
+                            value: JSON.stringify(feeEvent),
                         },
                     ],
                 });
