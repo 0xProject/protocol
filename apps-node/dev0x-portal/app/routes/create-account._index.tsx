@@ -5,7 +5,7 @@ import { getSignedInUser, sessionStorage } from '../auth.server';
 import { TextInput } from '../components/TextInput';
 import { validateFormData } from '../utils/utils';
 import { z } from 'zod';
-import { AppBar } from '../components/AppBar';
+import { Button } from '../components/Button/Button';
 
 const firstPageFormModel = z.object({
     firstName: z.string().min(1, 'First name is required'),
@@ -46,8 +46,6 @@ export async function action({ request }: ActionArgs) {
     }
 
     const formData = await request.formData();
-    console.log({ formData });
-    console.log(Object.fromEntries(formData));
 
     const { body, errors } = validateFormData<ActionInput>({
         formData: formData,
@@ -73,13 +71,12 @@ export async function action({ request }: ActionArgs) {
     });
 }
 
-export default function CreateAccounr() {
+export default function CreateAccount() {
     const actionData = useActionData<typeof action>();
     const maybeSessionInfo = useLoaderData<typeof loader>();
 
     return (
         <main className="bg-white h-screen min-h-screen w-full min-w-screen flex flex-col">
-            <AppBar />
             <div className="w-full h-full flex justify-center">
                 <div className="w-full max-w-[456px] mt-40">
                     <h1 className="text-2.5xl text-black mb-6">Create an account</h1>
@@ -116,9 +113,9 @@ export default function CreateAccounr() {
                             error={actionData?.errors.email}
                             initialValue={actionData?.values?.email || maybeSessionInfo?.email}
                         />
-                        <button type="submit" className="col-span-2 bg-black text-white rounded-xl py-4">
+                        <Button type="submit" className="col-span-2">
                             Continue →
-                        </button>
+                        </Button>
                     </Form>
                     <p className="mt-20 text-grey-400 text-center">
                         Do you have an account?{' '}

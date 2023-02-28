@@ -6,5 +6,5 @@ type InputContainerProps = {
 };
 
 export function InputContainer({ className, children }: InputContainerProps) {
-    return <div className={twMerge('flex flex-col w-fit', className)}>{children}</div>;
+    return <div className={twMerge('flex flex-col', className)}>{children}</div>;
 }

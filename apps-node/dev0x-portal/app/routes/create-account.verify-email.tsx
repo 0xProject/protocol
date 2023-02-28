@@ -17,7 +17,7 @@ export async function loader({ request }: LoaderArgs) {
         throw redirect('/apps', { headers: headers || new Headers() });
     }
 
-    // if the user doesn't have the email and token query parameteres, redirect them to the create account page
+    // if the user doesn't have the email and token query parameters, redirect them to the create account page
     const url = new URL(request.url);
     const email = url.searchParams.get('email');
     const token = url.searchParams.get('token');
