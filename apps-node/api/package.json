@@ -8,7 +8,7 @@
     "scripts": {
         "clean": "shx rm -rf __build__ test/generated-artifacts test/generated-wrappers generated-artifacts generated-wrappers",
         "clean:ts": "shx rm -rf __build__",
-        "pre_build": "run-s compile contracts:gen generate_contract_wrappers contracts:copy",
+        "pre_build": "yarn compile && yarn contracts:gen && yarn generate_contract_wrappers && yarn contracts:copy",
         "build": "yarn pre_build && tsc -p tsconfig.json",
         "build:ts": "tsc -b",
         "compile": "sol-compiler",
