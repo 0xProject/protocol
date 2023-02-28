@@ -18,6 +18,7 @@
         "db:revert": "./node_modules/.bin/typeorm migration:revert --config ./__build__/src/ormconfig.js ",
         "test_": "env-cmd -f ./test/test_env mocha --require source-map-support/register --require make-promises-safe --timeout 200000 --exit --bail",
         "test": "yarn test:rest && yarn test:asset-swapper",
+        "test:ci": "yarn test:rest && yarn test:asset-swapper",
         "test:rest": "env-cmd -f ./test/test_env mocha --require source-map-support/register --require make-promises-safe '__build__/test/**/!(rfqt*)_test.js' '__build__/test/!(asset-swapper)/**/!(rfqt*)_test.js' --timeout 200000 --exit --bail",
         "test:asset-swapper": "env-cmd -f ./test/test_env mocha --require source-map-support/register --require make-promises-safe '__build__/test/asset-swapper/**/*_test.js' --timeout 250000 --exit --bail",
         "test:integration": "mocha --require source-map-support/register --require make-promises-safe '__build__/integration-test/**/*_test.js' --timeout 200000 --exit",
@@ -41,7 +42,8 @@
         "start:service:meta_transaction_http": "node -r dotenv/config __build__/src/runners/http_meta_transaction_service_runner.js",
         "start:service:rfq_maker_balance_cache": "node -r dotenv/config __build__/src/runners/rfq_maker_balance_cache_runner.js",
         "sampler-size": "jq .compilerOutput.evm.deployedBytecode.object  -- test/generated-artifacts/ERC20BridgeSampler.json | echo $(( $(wc -c) / 2 - 1 ))",
-        "lint": "ts-prune -e && eslint src test && yarn prettier:ci"
+        "lint": "ts-prune -e && eslint src test && yarn prettier:ci",
+        "lint:ci": "yarn lint && yarn circular"
     },
     "config": {
         "prettier_target": "{*,test/**/*,integration-test/**/*,src/**/*,migrations/*,contracts/**/*}.{ts,tsx,sol,json,md}",

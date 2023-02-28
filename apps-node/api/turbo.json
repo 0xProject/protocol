@@ -1,0 +1,13 @@
+{
+    "extends": ["//"],
+    "pipeline": {
+        "build": {
+            "dependsOn": ["^build"],
+            "outputs": ["__build__/**", "generated-artifacts/**", "generated-wrappers/**"]
+        },
+        "test:ci": {
+            "dependsOn": ["build"],
+            "outputs": ["__build__/**", "test/generated-artifacts/**", "test/generated-wrappers/**"]
+        }
+    }
+}
