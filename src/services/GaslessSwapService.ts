@@ -106,14 +106,6 @@ function decodeTransformErc20Calldata(calldata: string): {
     };
 }
 
-/**
- * Transient function that prunes `/v1` suffixes, if present.
- * Used to roll out MetaTransactionClient URL change in a safe manner.
- */
-function removeV1SuffixFromUrl(url: string): URL {
-    return new URL(url.replace(/\/+v1/, ''));
-}
-
 const ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS = new Summary({
     name: 'zerog_meta_transaction_quote_request_duration_seconds',
     help: 'Histogram of request duration of gasless swap',
@@ -213,7 +205,7 @@ export class GaslessSwapService {
                 case GaslessTypes.MetaTransaction:
                     metaTransactionQuote = await getV1QuoteAsync(
                         this._axiosInstance,
-                        new URL(`${removeV1SuffixFromUrl(this._metaTransactionServiceBaseUrl.toString())}/v1/quote`),
+                        new URL(`${this._metaTransactionServiceBaseUrl.toString()}/v1/quote`),
                         metaTransactionRequestParams,
                         {
                             requestDurationSummary: ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS,
@@ -225,7 +217,7 @@ export class GaslessSwapService {
                 case GaslessTypes.MetaTransactionV2:
                     metaTransactionQuote = await getV2QuoteAsync(
                         this._axiosInstance,
-                        new URL(`${removeV1SuffixFromUrl(this._metaTransactionServiceBaseUrl.toString())}/v2/quote`),
+                        new URL(`${this._metaTransactionServiceBaseUrl.toString()}/v2/quote`),
                         metaTransactionRequestParams,
                         {
                             requestDurationSummary: ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS,
@@ -343,7 +335,7 @@ export class GaslessSwapService {
                 case GaslessTypes.MetaTransaction:
                     metaTransactionQuote = await getV1QuoteAsync(
                         this._axiosInstance,
-                        new URL(`${removeV1SuffixFromUrl(this._metaTransactionServiceBaseUrl.toString())}/v1/quote`),
+                        new URL(`${this._metaTransactionServiceBaseUrl.toString()}/v1/quote`),
                         metaTransactionRequestParams,
                         {
                             requestDurationSummary: ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS,
@@ -355,7 +347,7 @@ export class GaslessSwapService {
                 case GaslessTypes.MetaTransactionV2:
                     metaTransactionQuote = await getV2QuoteAsync(
                         this._axiosInstance,
-                        new URL(`${removeV1SuffixFromUrl(this._metaTransactionServiceBaseUrl.toString())}/v2/quote`),
+                        new URL(`${this._metaTransactionServiceBaseUrl.toString()}/v2/quote`),
                         metaTransactionRequestParams,
                         {
                             requestDurationSummary: ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS,
