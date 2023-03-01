@@ -1,10 +1,9 @@
 import { ChainId } from '@0x/contract-addresses';
 import { SignatureType } from '@0x/protocol-utils';
-import { BigNumber, logUtils } from '@0x/utils';
+import { BigNumber } from '@0x/utils';
 
 import {
     ExchangeProxyContractOpts,
-    LogFunction,
     OrderPrunerOpts,
     OrderPrunerPermittedFeeTypes,
     RfqRequestOpts,
@@ -71,11 +70,6 @@ const DEFAULT_RFQT_REQUEST_OPTS: Partial<RfqRequestOpts> = {
     makerEndpointMaxResponseTimeMs: 1000,
 };
 
-export const DEFAULT_INFO_LOGGER: LogFunction = (obj, msg) =>
-    logUtils.log(`${msg ? `${msg}: ` : ''}${JSON.stringify(obj)}`);
-export const DEFAULT_WARNING_LOGGER: LogFunction = (obj, msg) =>
-    logUtils.warn(`${msg ? `${msg}: ` : ''}${JSON.stringify(obj)}`);
-
 const EMPTY_BYTES32 = '0x0000000000000000000000000000000000000000000000000000000000000000';
 export const INVALID_SIGNATURE = { signatureType: SignatureType.Invalid, v: 1, r: EMPTY_BYTES32, s: EMPTY_BYTES32 };
 
@@ -104,8 +98,6 @@ export const constants = {
     PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
     MARKET_UTILS_AMOUNT_BUFFER_PERCENTAGE,
     BRIDGE_ASSET_DATA_PREFIX: '0xdc1600f3',
-    DEFAULT_INFO_LOGGER,
-    DEFAULT_WARNING_LOGGER,
     EMPTY_BYTES32,
     ALT_MM_IMPUTED_INDICATIVE_EXPIRY_SECONDS,
 };

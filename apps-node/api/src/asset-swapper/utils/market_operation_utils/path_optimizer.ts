@@ -5,9 +5,9 @@ import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
 import * as _ from 'lodash';
 import { performance } from 'perf_hooks';
+import { logger } from '../../../logger';
 
 import { SAMPLER_METRICS } from '../../../utils/sampler_metrics';
-import { DEFAULT_WARNING_LOGGER } from '../../constants';
 import {
     MarketOperation,
     NativeOrderWithFillableAmounts,
@@ -412,7 +412,7 @@ export class PathOptimizer {
 
         for (const [routeInputAmount, outputAmount, routablePath] of routesAndPath) {
             if (!Number.isFinite(outputAmount)) {
-                DEFAULT_WARNING_LOGGER(optimizerCapture, `neon-router: invalid route outputAmount ${outputAmount}`);
+                logger.warn(optimizerCapture, `neon-router: invalid route outputAmount ${outputAmount}`);
                 return undefined;
             }
             if (!routeInputAmount || !routablePath || !outputAmount) {

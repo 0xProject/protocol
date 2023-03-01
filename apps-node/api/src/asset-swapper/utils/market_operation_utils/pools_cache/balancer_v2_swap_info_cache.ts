@@ -13,9 +13,8 @@ import {
     SOR,
 } from '@balancer-labs/sor';
 import { JsonRpcProvider } from '@ethersproject/providers';
+import { logger } from '../../../../logger';
 
-import { DEFAULT_WARNING_LOGGER } from '../../../constants';
-import { LogFunction } from '../../../types';
 import { BALANCER_V2_SUBGRAPH_URL_BY_CHAIN, ONE_SECOND_MS } from '../constants';
 import { BalancerSwapInfo, BalancerSwaps } from '../types';
 
@@ -161,7 +160,6 @@ export class BalancerV2SwapInfoCache extends SwapInfoCache {
     constructor(
         chainId: ChainId,
         subgraphUrl: string | null = BALANCER_V2_SUBGRAPH_URL_BY_CHAIN[chainId],
-        private readonly _warningLogger: LogFunction = DEFAULT_WARNING_LOGGER,
         cache: { [key: string]: CacheValue } = {},
     ) {
         super(cache);
@@ -216,7 +214,7 @@ export class BalancerV2SwapInfoCache extends SwapInfoCache {
                             fromToSwapInfo[from][to] = pairSwapInfo;
                             this._cacheSwapInfoForPair(from, to, fromToSwapInfo[from][to], expiresAt);
                         } catch (err) {
-                            this._warningLogger(err, `Failed to load Balancer V2 top pools`);
+                            logger.warn(err, `Failed to load Balancer V2 top pools`);
                             // soldier on
                         }
                     }

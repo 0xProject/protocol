@@ -313,9 +313,6 @@ export interface AltRfqMakerAssetOfferings {
     [endpoint: string]: AltOffering[];
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
-export type LogFunction = (obj: object, msg?: string, ...args: any[]) => void;
-
 export interface RfqFirmQuoteValidator {
     getRfqtTakerFillableAmountsAsync(quotes: RfqOrder[]): Promise<BigNumber[]>;
 }

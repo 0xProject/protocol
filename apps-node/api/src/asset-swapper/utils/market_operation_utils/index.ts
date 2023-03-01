@@ -3,9 +3,10 @@ import { FillQuoteTransformerOrderType, RfqOrder } from '@0x/protocol-utils';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as _ from 'lodash';
 import { Counter } from 'prom-client';
+import { logger } from '../../../logger';
 
 import { SAMPLER_METRICS } from '../../../utils/sampler_metrics';
-import { DEFAULT_INFO_LOGGER, INVALID_SIGNATURE } from '../../constants';
+import { INVALID_SIGNATURE } from '../../constants';
 import {
     AltRfqMakerAssetOfferings,
     AssetSwapperContractAddresses,
@@ -247,14 +248,14 @@ export class MarketOperationUtils {
         const defaultLabels = ['getMarketSellLiquidityAsync', opts?.endpoint || 'N/A'];
 
         if (outputAmountPerEth.isZero()) {
-            DEFAULT_INFO_LOGGER(
+            logger.info(
                 { token: makerToken, endpoint: opts?.endpoint, inOut: 'output' },
                 'conversion to native token is zero',
             );
             NO_CONVERSION_TO_NATIVE_FOUND.labels(...defaultLabels).inc();
         }
         if (inputAmountPerEth.isZero()) {
-            DEFAULT_INFO_LOGGER(
+            logger.info(
                 { token: takerToken, endpoint: opts?.endpoint, inOut: 'input' },
                 'conversion to native token is zero',
             );
@@ -373,14 +374,14 @@ export class MarketOperationUtils {
         const defaultLabels = ['getMarketBuyLiquidityAsync', opts?.endpoint || 'N/A'];
 
         if (ethToMakerAssetRate.isZero()) {
-            DEFAULT_INFO_LOGGER(
+            logger.info(
                 { token: makerToken, endpoint: opts?.endpoint, inOut: 'output' },
                 'conversion to native token is zero',
             );
             NO_CONVERSION_TO_NATIVE_FOUND.labels(...defaultLabels).inc();
         }
         if (ethToTakerAssetRate.isZero()) {
-            DEFAULT_INFO_LOGGER(
+            logger.info(
                 { token: takerToken, endpoint: opts?.endpoint, inOut: 'input' },
                 'conversion to native token is zero',
             );
@@ -471,7 +472,7 @@ export class MarketOperationUtils {
         // If there is no optimal path then throw.
         if (optimalPath === undefined) {
             //temporary logging for INSUFFICIENT_ASSET_LIQUIDITY
-            DEFAULT_INFO_LOGGER({}, 'NoOptimalPath thrown in _generateOptimizedOrdersAsync');
+            logger.info({}, 'NoOptimalPath thrown in _generateOptimizedOrdersAsync');
             throw new Error(AggregationError.NoOptimalPath);
         }
 
@@ -590,14 +591,14 @@ export class MarketOperationUtils {
                               }),
                           ]);
 
-                DEFAULT_INFO_LOGGER({ v2Prices, isEmpty: v2Prices?.length === 0 }, 'v2Prices from RFQ Client');
+                logger.info({ v2Prices, isEmpty: v2Prices?.length === 0 }, 'v2Prices from RFQ Client');
 
                 const indicativeQuotes = [
                     ...(v1Prices as V4RFQIndicativeQuoteMM[]),
                     ...(v2Prices as V4RFQIndicativeQuoteMM[]),
                 ];
                 const deltaTime = new Date().getTime() - timeStart;
-                DEFAULT_INFO_LOGGER({
+                logger.info({
                     rfqQuoteType: 'indicative',
                     deltaTime,
                 });
@@ -663,7 +664,7 @@ export class MarketOperationUtils {
                               }),
                           ]);
 
-                DEFAULT_INFO_LOGGER({ v2Quotes, isEmpty: v2Quotes?.length === 0 }, 'v2Quotes from RFQ Client');
+                logger.info({ v2Quotes, isEmpty: v2Quotes?.length === 0 }, 'v2Quotes from RFQ Client');
 
                 const v1FirmQuotes = v1Quotes.map((quote) => {
                     // HACK: set the signature on quoteRequestor for future lookup (i.e. in Quote Report)
@@ -678,7 +679,7 @@ export class MarketOperationUtils {
                 });
 
                 const deltaTime = new Date().getTime() - timeStart;
-                DEFAULT_INFO_LOGGER({
+                logger.info({
                     rfqQuoteType: 'firm',
                     deltaTime,
                 });
@@ -744,7 +745,7 @@ export class MarketOperationUtils {
         // `NoOptimalPath` if no optimizer result was ever set.
         if (optimizerResult === undefined) {
             //temporary logging for INSUFFICIENT_ASSET_LIQUIDITY
-            DEFAULT_INFO_LOGGER({}, 'NoOptimalPath thrown in phase 2 routing');
+            logger.info({}, 'NoOptimalPath thrown in phase 2 routing');
             throw new Error(AggregationError.NoOptimalPath);
         }
 
@@ -796,7 +797,7 @@ export class MarketOperationUtils {
                 throw e;
             }
             //temporary logging for INSUFFICIENT_ASSET_LIQUIDITY
-            DEFAULT_INFO_LOGGER({}, 'NoOptimalPath caught in phase 1 routing');
+            logger.info({}, 'NoOptimalPath caught in phase 1 routing');
         }
 
         let wholeOrderPrice: BigNumber | undefined;
