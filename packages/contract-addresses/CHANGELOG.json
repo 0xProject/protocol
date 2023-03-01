@@ -6,7 +6,8 @@
 				"note": "Upgrade Mainnet and Polygon FillQuoteTransformers to support KyberElastic",
 				"pr": 669
 			}
-		]
+		],
+		"timestamp": 1677693479
 	},
 	{
 		"version": "8.0.3",

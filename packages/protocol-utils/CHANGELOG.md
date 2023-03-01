@@ -6,6 +6,9 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v11.18.0 - _March 1, 2023_
+
+    * Add KyberElastic support
 ## v11.17.6 - _February 1, 2023_
 
     * Dependencies updated

@@ -8,7 +8,8 @@
             {
                 "note": "Skip chain id validation in AbstractBridgeAdapter on testnets"
             }
-        ]
+        ],
+        "timestamp": 1677693479
     },
     {
         "timestamp": 1675210931,

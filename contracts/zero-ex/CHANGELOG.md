@@ -5,6 +5,11 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.39.0 - _March 1, 2023_
+
+    * Add KyberElastic mixin for Ethereum, Polygon, Arbitrum, Avalanche
+    * Skip chain id validation in AbstractBridgeAdapter on testnets
+
 ## v0.38.6 - _February 1, 2023_
 
     * Dependencies updated

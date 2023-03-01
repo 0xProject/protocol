@@ -6,6 +6,9 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v8.1.0 - _March 1, 2023_
+
+    * Upgrade Mainnet and Polygon FillQuoteTransformers to support KyberElastic (#669)
 ## v8.0.3 - _February 1, 2023_
 
     * Upgrade Arbitrum FillQuoteTransformer to support Woofi (#653)
