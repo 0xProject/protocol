@@ -48,6 +48,7 @@ import "./UniswapV3Sampler.sol";
 import "./VelodromeSampler.sol";
 import "./WooPPSampler.sol";
 import "./UtilitySampler.sol";
+import "./KyberElasticSampler.sol";
 
 contract ERC20BridgeSampler is
     AaveV2Sampler,
@@ -77,7 +78,8 @@ contract ERC20BridgeSampler is
     UniswapV3Sampler,
     VelodromeSampler,
     WooPPSampler,
-    UtilitySampler
+    UtilitySampler,
+    KyberElasticSampler
 {
     struct CallResults {
         bytes data;

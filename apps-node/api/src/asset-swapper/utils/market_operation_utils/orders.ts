@@ -138,6 +138,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.UniswapV3, 'UniswapV3');
         case ERC20BridgeSource.KyberDmm:
             return encodeBridgeSourceId(BridgeProtocol.KyberDmm, 'KyberDmm');
+        case ERC20BridgeSource.KyberElastic:
+            return encodeBridgeSourceId(BridgeProtocol.KyberElastic, 'KyberElastic');
         case ERC20BridgeSource.QuickSwap:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'QuickSwap');
         case ERC20BridgeSource.Dfyn:
@@ -331,6 +333,11 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             bridgeData = encoder.encode([uniswapV3FillData.router, uniswapV3FillData.path]);
             break;
         }
+        case ERC20BridgeSource.KyberElastic: {
+            const fillData = (order as OptimizedMarketBridgeOrder<FinalTickDEXMultiPathFillData>).fillData;
+            bridgeData = encoder.encode([fillData.router, fillData.path]);
+            break;
+        }
         case ERC20BridgeSource.KyberDmm: {
             const kyberDmmFillData = (order as OptimizedMarketBridgeOrder<KyberDmmFillData>).fillData;
             bridgeData = encoder.encode([
@@ -515,6 +522,10 @@ const BRIDGE_ENCODERS: {
         { name: 'router', type: 'address' },
         { name: 'path', type: 'bytes' },
     ]),
+    [ERC20BridgeSource.KyberElastic]: AbiEncoder.create([
+        { name: 'router', type: 'address' },
+        { name: 'path', type: 'bytes' },
+    ]),
     [ERC20BridgeSource.KyberDmm]: AbiEncoder.create('(address,address[],address[])'),
     [ERC20BridgeSource.Lido]: AbiEncoder.create('(address,address)'),
     [ERC20BridgeSource.AaveV2]: AbiEncoder.create('(address,address)'),
@@ -593,13 +604,14 @@ function toFillBase(fill: Fill): FillBase {
 
 function createFinalBridgeOrderFillDataFromCollapsedFill(fill: Fill): FillData {
     switch (fill.source) {
+        case ERC20BridgeSource.KyberElastic:
         case ERC20BridgeSource.UniswapV3: {
             const fd = fill.fillData as TickDEXMultiPathFillData;
-            const { path: uniswapPath, gasUsed } = getBestUniswapV3PathAmountForInputAmount(fd, fill.input);
+            const { path: dexPath, gasUsed } = getBestTickDEXPathAmountForInputAmount(fd, fill.input);
             const finalFillData: FinalTickDEXMultiPathFillData = {
                 router: fd.router,
                 tokenAddressPath: fd.tokenAddressPath,
-                path: uniswapPath,
+                path: dexPath,
                 gasUsed,
             };
             return finalFillData;
@@ -610,12 +622,12 @@ function createFinalBridgeOrderFillDataFromCollapsedFill(fill: Fill): FillData {
     return fill.fillData;
 }
 
-function getBestUniswapV3PathAmountForInputAmount(
+function getBestTickDEXPathAmountForInputAmount(
     fillData: TickDEXMultiPathFillData,
     inputAmount: BigNumber,
 ): PathAmount {
     if (fillData.pathAmounts.length === 0) {
-        throw new Error(`No Uniswap V3 paths`);
+        throw new Error(`No path amounts.`);
     }
     const pathAmounts = fillData.pathAmounts.filter((p) => p.path != '0x');
 

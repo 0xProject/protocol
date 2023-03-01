@@ -16,6 +16,7 @@ import {
     MarketOperation,
     OrderPrunerPermittedFeeTypes,
     RfqRequestOpts,
+    SamplerOverrides,
     SwapQuote,
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
@@ -29,6 +30,7 @@ import {
     SAMPLER_ADDRESS,
     UNISWAP_V3_MULTIQUOTER_ADDRESS,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
+    KYBER_ELASTIC_MULTI_QUOTER_ADDRESS,
 } from './utils/market_operation_utils/constants';
 import { DexOrderSampler } from './utils/market_operation_utils/sampler';
 import { SourceFilters } from './utils/market_operation_utils/source_filters';
@@ -87,34 +89,8 @@ export class SwapQuoter {
             constants.PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
             options.zeroExGasApiUrl,
         );
-        // Allow the sampler bytecode to be overwritten using geths override functionality
-        const samplerBytecode = _.get(artifacts.ERC20BridgeSampler, 'compilerOutput.evm.deployedBytecode.object');
-        // Allow address of the Sampler to be overridden, i.e in Ganache where overrides do not work
-        const samplerAddress = (options.samplerOverrides && options.samplerOverrides.to) || SAMPLER_ADDRESS;
-
-        const defaultCodeOverrides = samplerBytecode
-            ? {
-                  [samplerAddress]: { code: samplerBytecode },
-              }
-            : {};
-
-        if (
-            SELL_SOURCE_FILTER_BY_CHAIN_ID[this.chainId].isAllowed(ERC20BridgeSource.UniswapV3) ||
-            BUY_SOURCE_FILTER_BY_CHAIN_ID[this.chainId].isAllowed(ERC20BridgeSource.UniswapV3)
-        ) {
-            // Allow the UniV3 MultiQuoter bytecode to be written to a specic address
-            const uniV3MultiQuoterBytecode = _.get(
-                artifacts.UniswapV3MultiQuoter,
-                'compilerOutput.evm.deployedBytecode.object',
-            );
-            defaultCodeOverrides[UNISWAP_V3_MULTIQUOTER_ADDRESS] = { code: uniV3MultiQuoterBytecode };
-        }
-
-        const samplerOverrides = _.assign(
-            { block: BlockParamLiteral.Latest, overrides: defaultCodeOverrides },
-            options.samplerOverrides,
-        );
         const fastAbi = new FastABI(ERC20BridgeSamplerContract.ABI() as MethodAbi[], { BigNumber });
+        const samplerAddress = (options.samplerOverrides && options.samplerOverrides.to) || SAMPLER_ADDRESS;
         const samplerContract = new ERC20BridgeSamplerContract(
             samplerAddress,
             this.provider,
@@ -134,7 +110,7 @@ export class SwapQuoter {
             new DexOrderSampler(
                 this.chainId,
                 samplerContract,
-                samplerOverrides,
+                SwapQuoter.createSamplerOverrides(this.chainId, samplerAddress, options),
                 undefined, // pools caches for balancer
                 tokenAdjacencyGraph,
                 this.chainId === ChainId.Mainnet // Enable Bancor only on Mainnet
@@ -149,6 +125,49 @@ export class SwapQuoter {
         this._integratorIdsSet = new Set(integratorIds);
         this._buySources = BUY_SOURCE_FILTER_BY_CHAIN_ID[chainId];
         this._sellSources = SELL_SOURCE_FILTER_BY_CHAIN_ID[chainId];
+    }
+
+    private static createSamplerOverrides(
+        chainId: ChainId,
+        samplerAddress: string,
+        options: Partial<SwapQuoterOpts>,
+    ): SamplerOverrides {
+        // Allow the sampler bytecode to be overwritten using geths override functionality
+        const samplerBytecode = _.get(artifacts.ERC20BridgeSampler, 'compilerOutput.evm.deployedBytecode.object');
+        // Allow address of the Sampler to be overridden, i.e in Ganache where overrides do not work
+        const defaultCodeOverrides = samplerBytecode
+            ? {
+                  [samplerAddress]: { code: samplerBytecode },
+              }
+            : {};
+
+        if (
+            SELL_SOURCE_FILTER_BY_CHAIN_ID[chainId].isAllowed(ERC20BridgeSource.UniswapV3) ||
+            BUY_SOURCE_FILTER_BY_CHAIN_ID[chainId].isAllowed(ERC20BridgeSource.UniswapV3)
+        ) {
+            // Allow the UniV3 MultiQuoter bytecode to be written to a specific address
+            const univ3MultiQuoterBytecode = _.get(
+                artifacts.UniswapV3MultiQuoter,
+                'compilerOutput.evm.deployedBytecode.object',
+            );
+            defaultCodeOverrides[UNISWAP_V3_MULTIQUOTER_ADDRESS] = { code: univ3MultiQuoterBytecode };
+        }
+
+        if (
+            SELL_SOURCE_FILTER_BY_CHAIN_ID[chainId].isAllowed(ERC20BridgeSource.KyberElastic) ||
+            BUY_SOURCE_FILTER_BY_CHAIN_ID[chainId].isAllowed(ERC20BridgeSource.KyberElastic)
+        ) {
+            const kyberElasticQuoterBytecode = _.get(
+                artifacts.KyberElasticMultiQuoter,
+                'compilerOutput.evm.deployedBytecode.object',
+            );
+            defaultCodeOverrides[KYBER_ELASTIC_MULTI_QUOTER_ADDRESS] = { code: kyberElasticQuoterBytecode };
+        }
+        const samplerOverrides = _.assign(
+            { block: BlockParamLiteral.Latest, overrides: defaultCodeOverrides },
+            options.samplerOverrides,
+        );
+        return samplerOverrides;
     }
 
     /**

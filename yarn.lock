@@ -87,6 +87,11 @@
   resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-8.0.3.tgz#7a867565fd71fdbb59a0cb4b52ce772b266edea3"
   integrity sha512-H5C8aQhBolEBoJOrqtF1M17DbGUykdal8BPrDxum8bGKB25+SpLRqP/ynKLDCPIg0M5Tp9tg4D2jcJjErKBweg==
 
+"@0x/contract-addresses@^8.1.0":
+  version "8.1.0"
+  resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-8.1.0.tgz#cec2fa8374b49b294084e5d7c718d68eeb5ee216"
+  integrity sha512-2KZFcnmWBcI5mnmZBMGcmQNoQbyuJMozsQ58wN/F9V8icO2YlcbjMy7N8MXE/e4fXFv16j2soZojb2KAt8sJZg==
+
 "@0x/contract-wrappers@^13.17.4", "@0x/contract-wrappers@^13.20.0", "@0x/contract-wrappers@^13.22.16":
   version "13.22.16"
   resolved "https://registry.yarnpkg.com/@0x/contract-wrappers/-/contract-wrappers-13.22.16.tgz#c082a5189063ee181f8a09e5c0be8ff78676bd43"
@@ -95,6 +100,21 @@
     "@0x/assert" "^3.0.35"
     "@0x/base-contract" "^7.0.0"
     "@0x/contract-addresses" "^8.0.3"
+    "@0x/json-schemas" "^6.4.4"
+    "@0x/types" "^3.3.6"
+    "@0x/utils" "^7.0.0"
+    "@0x/web3-wrapper" "^8.0.0"
+    ethereum-types "^3.7.1"
+    ethers "~4.0.4"
+
+"@0x/contract-wrappers@^13.22.17":
+  version "13.22.17"
+  resolved "https://registry.yarnpkg.com/@0x/contract-wrappers/-/contract-wrappers-13.22.17.tgz#37c27caa8c03c720b9377cc492e086a095c3dcde"
+  integrity sha512-toppUJhozg/fqdlgATptOJWBgxkXsr3hSVa06Bh40MdUayVYV1nw52ZUiMNv3ST3K5m6IvcJacky9yH9W3sekg==
+  dependencies:
+    "@0x/assert" "^3.0.35"
+    "@0x/base-contract" "^7.0.0"
+    "@0x/contract-addresses" "^8.1.0"
     "@0x/json-schemas" "^6.4.4"
     "@0x/types" "^3.3.6"
     "@0x/utils" "^7.0.0"
@@ -175,13 +195,13 @@
     bn.js "^4.11.8"
     ethereum-types "^3.7.1"
 
-"@0x/contracts-zero-ex@^0.38.6":
-  version "0.38.6"
-  resolved "https://registry.yarnpkg.com/@0x/contracts-zero-ex/-/contracts-zero-ex-0.38.6.tgz#d5e6c19118df8b8964e2828df871004b228a3cc4"
-  integrity sha512-SeDDfexphDVOubNosO6PkvA9Grt5MGgT8bodUF+AODXiJ+CHYxWtBT7WYYkIvEmMYK0RMrtwtHRv8J9FgqV+Og==
+"@0x/contracts-zero-ex@^0.39.0":
+  version "0.39.0"
+  resolved "https://registry.yarnpkg.com/@0x/contracts-zero-ex/-/contracts-zero-ex-0.39.0.tgz#a85828ce089e418385fef290f7cdf2fc8ab71208"
+  integrity sha512-XQfyLPCbVA/87A2imkrbTOj4KpkudHbs0eEpRJpP8O8K+Bdnek5gG4E/mkB5QlOg12bxXmwR9JXaZLelHL6nvQ==
   dependencies:
     "@0x/base-contract" "^7.0.0"
-    "@0x/protocol-utils" "^11.17.6"
+    "@0x/protocol-utils" "^11.18.0"
     "@0x/subproviders" "^7.0.0"
     "@0x/types" "^3.3.6"
     "@0x/typescript-typings" "^5.3.1"
@@ -279,14 +299,14 @@
     ethers "~4.0.4"
     lodash "^4.17.11"
 
-"@0x/protocol-utils@^11.17.6":
-  version "11.17.6"
-  resolved "https://registry.yarnpkg.com/@0x/protocol-utils/-/protocol-utils-11.17.6.tgz#bf5115c08abc376ae74025e69ebc24180d130fc9"
-  integrity sha512-di23Mq2fl2adpEiaE3h/MRCd+ThOHVEJAT6vONqxLTxcRL3ZqCZZo2wDEzXn6WlwnXkMdp4BMNVUncXMoA2VCA==
+"@0x/protocol-utils@^11.18.0":
+  version "11.18.0"
+  resolved "https://registry.yarnpkg.com/@0x/protocol-utils/-/protocol-utils-11.18.0.tgz#8a21928dfa2fccf46de59d3f5de123c5810dc698"
+  integrity sha512-eGUYWj2wQnvcr/hDwmcpT0OgxHswVf+g7yjbM/Jsx8wx2Kx70lh+61w6Vb9QccJrRVe0pqmgnXkDTFdgvQ86Ww==
   dependencies:
     "@0x/assert" "^3.0.35"
-    "@0x/contract-addresses" "^8.0.3"
-    "@0x/contract-wrappers" "^13.22.16"
+    "@0x/contract-addresses" "^8.1.0"
+    "@0x/contract-wrappers" "^13.22.17"
     "@0x/json-schemas" "^6.4.4"
     "@0x/subproviders" "^7.0.0"
     "@0x/utils" "^7.0.0"
@@ -3021,9 +3041,9 @@
   resolved "https://registry.yarnpkg.com/@juggle/resize-observer/-/resize-observer-3.4.0.tgz#08d6c5e20cf7e4cc02fd181c4b0c225cd31dbb60"
   integrity sha512-dfLbk+PwWvFzSxwk3n5ySL0hfBog779o8h68wK/7/APo/7cgyWp5jcXockbxdk5kFRkbeXWm4Fbi9FrdN381sA==
 
-"@kybernetwork/ks-elastic-sc@KyberNetwork/ks-elastic-sc#362d9b6a726bcb286cc47c082c46f6259a5ae82d":
+"@kybernetwork/ks-elastic-sc@0xProject/ks-elastic-sc#362d9b6a726bcb286cc47c082c46f6259a5ae82d":
   version "1.0.0"
-  resolved "https://codeload.github.com/KyberNetwork/ks-elastic-sc/tar.gz/362d9b6a726bcb286cc47c082c46f6259a5ae82d"
+  resolved "https://codeload.github.com/0xProject/ks-elastic-sc/tar.gz/362d9b6a726bcb286cc47c082c46f6259a5ae82d"
   dependencies:
     dotenv "8.2.0"
     solhint "3.3.2"
@@ -11047,15 +11067,7 @@ ethereumjs-abi@0.6.5:
     bn.js "^4.10.0"
     ethereumjs-util "^4.3.0"
 
-ethereumjs-abi@0.6.8:
-  version "0.6.8"
-  resolved "https://registry.yarnpkg.com/ethereumjs-abi/-/ethereumjs-abi-0.6.8.tgz#71bc152db099f70e62f108b7cdfca1b362c6fcae"
-  integrity sha512-Tx0r/iXI6r+lRsdvkFDlut0N08jWMnKRZ6Gkq+Nmw75lZe4e6o3EkSnkaBP5NF6+m5PTGAr9JP43N3LyeoglsA==
-  dependencies:
-    bn.js "^4.11.8"
-    ethereumjs-util "^6.0.0"
-
-"ethereumjs-abi@git+https://github.com/ethereumjs/ethereumjs-abi.git":
+ethereumjs-abi@0.6.8, "ethereumjs-abi@git+https://github.com/ethereumjs/ethereumjs-abi.git":
   version "0.6.8"
   resolved "git+https://github.com/ethereumjs/ethereumjs-abi.git#ee3994657fa7a427238e6ba92a84d0b529bbcde0"
   dependencies:

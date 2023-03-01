@@ -42,6 +42,7 @@ const NULL_BYTES = '0x';
 export const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
 export const SAMPLER_ADDRESS = '0x5555555555555555555555555555555555555555';
 export const UNISWAP_V3_MULTIQUOTER_ADDRESS = '0x5555555555555555555555555555555555555556';
+export const KYBER_ELASTIC_MULTI_QUOTER_ADDRESS = '0x5555555555555555555555555555555555555557';
 export const COMPARISON_PRICE_DECIMALS = 10;
 
 // TODO(kimpers): Consolidate this implementation with the one in @0x/token-metadata
@@ -95,6 +96,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID: Record<ChainId, SourceFilters> = {
         ERC20BridgeSource.Synthetix,
         ERC20BridgeSource.AaveV2,
         ERC20BridgeSource.Compound,
+        ERC20BridgeSource.KyberElastic,
     ]),
     [ChainId.Goerli]: new SourceFilters([
         ERC20BridgeSource.Native,
@@ -153,6 +155,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID: Record<ChainId, SourceFilters> = {
         ERC20BridgeSource.WOOFi,
         ERC20BridgeSource.AaveV3,
         // ERC20BridgeSource.Dystopia, // Temporarily removed until further investigated.
+        ERC20BridgeSource.KyberElastic,
     ]),
     [ChainId.Avalanche]: new SourceFilters([
         ERC20BridgeSource.MultiHop,
@@ -248,6 +251,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID: Record<ChainId, SourceFilters> = {
         ERC20BridgeSource.Synthetix,
         ERC20BridgeSource.AaveV2,
         ERC20BridgeSource.Compound,
+        ERC20BridgeSource.KyberElastic,
     ]),
     [ChainId.Goerli]: new SourceFilters([
         ERC20BridgeSource.Native,
@@ -306,6 +310,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID: Record<ChainId, SourceFilters> = {
         ERC20BridgeSource.WOOFi,
         ERC20BridgeSource.AaveV3,
         // ERC20BridgeSource.Dystopia, // Temporarily removed until further investigated.
+        ERC20BridgeSource.KyberElastic,
     ]),
     [ChainId.Avalanche]: new SourceFilters([
         ERC20BridgeSource.MultiHop,
@@ -1425,6 +1430,15 @@ export const KYBER_DMM_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
+export const KYBER_ELASTIC_CONFIG_BY_CHAIN_ID = valueByChainId(
+    {},
+    {
+        quoter: KYBER_ELASTIC_MULTI_QUOTER_ADDRESS,
+        factory: '0x5f1dddbf348ac2fbe22a163e30f99f9ece3dd50a',
+        router: '0xc1e7dfe73e1598e3910ef4c7845b68a9ab6f4c83',
+    },
+);
+
 export const BISWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.BSC]: '0x3a6d8ca21d1cf76f653a67577fa0d27453350dd8',
@@ -2004,6 +2018,17 @@ export const DEFAULT_GAS_SCHEDULE: GasSchedule = {
         return gas;
     },
     [ERC20BridgeSource.BancorV3]: () => 250e3, // revisit gas costs with wrap/unwrap
+    [ERC20BridgeSource.KyberElastic]: (fillData?: FillData) => {
+        const dexFillData = fillData as TickDEXMultiPathFillData | FinalTickDEXMultiPathFillData;
+        if (isFinalPathFillData(dexFillData)) {
+            // the coefficient is based on linear regression
+            // y = ax + b where y is actual gas used and x is the raw gas estimate
+            // for test data, b was calculated to be ~250k
+            // since FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD == 150k, we set b to 100k
+            return dexFillData.gasUsed * 4 + 100e3;
+        }
+        return 150e3; // average taken from test data
+    },
     [ERC20BridgeSource.KyberDmm]: (fillData?: FillData) => {
         let gas = 170e3;
         const path = (fillData as UniswapV2FillData).tokenAddressPath;

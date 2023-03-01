@@ -3,6 +3,7 @@ import { LimitOrderFields } from '@0x/protocol-utils';
 import { BigNumber, logUtils } from '@0x/utils';
 import { formatBytes32String } from '@ethersproject/strings';
 import * as _ from 'lodash';
+import { KyberElasticSampler } from '../../../samplers/kyber_elastic_sampler';
 import { UniswapV3Sampler } from '../../../samplers/uniswapv3_sampler';
 
 import { ERC20BridgeSamplerContract } from '../../../wrappers';
@@ -128,6 +129,7 @@ export class SamplerOperations {
         };
     }
     private readonly uniswapV3Sampler: UniswapV3Sampler;
+    private readonly kyberElasticSampler: KyberElasticSampler;
 
     constructor(
         public readonly chainId: ChainId,
@@ -169,6 +171,7 @@ export class SamplerOperations {
             .catch(/* do nothing */);
 
         this.uniswapV3Sampler = new UniswapV3Sampler(this.chainId, this._samplerContract);
+        this.kyberElasticSampler = new KyberElasticSampler(this.chainId, this._samplerContract);
     }
 
     public getTokenDecimals(tokens: string[]): BatchedOperation<BigNumber[]> {
@@ -1704,6 +1707,16 @@ export class SamplerOperations {
                             ...intermediateTokens.map((t) => [takerToken, t, makerToken]),
                         ].map((path) => this.uniswapV3Sampler.createSampleSellsOperation(path, takerFillAmounts));
                     }
+                    case ERC20BridgeSource.KyberElastic: {
+                        // Rebasing tokens lead to a high revert rate.
+                        if (REBASING_TOKENS.has(takerToken) || REBASING_TOKENS.has(makerToken)) {
+                            return [];
+                        }
+                        return [
+                            [takerToken, makerToken],
+                            ...intermediateTokens.map((t) => [takerToken, t, makerToken]),
+                        ].map((path) => this.kyberElasticSampler.createSampleSellsOperation(path, takerFillAmounts));
+                    }
                     case ERC20BridgeSource.Lido: {
                         if (!this._isLidoSupported(takerToken, makerToken)) {
                             return [];
@@ -2043,6 +2056,16 @@ export class SamplerOperations {
                             [takerToken, makerToken],
                             ...intermediateTokens.map((t) => [takerToken, t, makerToken]),
                         ].map((path) => this.uniswapV3Sampler.createSampleBuysOperation(path, makerFillAmounts));
+                    }
+                    case ERC20BridgeSource.KyberElastic: {
+                        // Rebasing tokens lead to a high revert rate.
+                        if (REBASING_TOKENS.has(takerToken) || REBASING_TOKENS.has(makerToken)) {
+                            return [];
+                        }
+                        return [
+                            [takerToken, makerToken],
+                            ...intermediateTokens.map((t) => [takerToken, t, makerToken]),
+                        ].map((path) => this.kyberElasticSampler.createSampleBuysOperation(path, makerFillAmounts));
                     }
                     case ERC20BridgeSource.Lido: {
                         if (!this._isLidoSupported(takerToken, makerToken)) {
