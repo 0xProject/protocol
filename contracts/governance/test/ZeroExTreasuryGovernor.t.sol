@@ -24,13 +24,19 @@ contract ZeroExTreasuryGovernorTest is ZeroExGovernorBaseTest {
     function setUp() public {
         governorName = "ZeroExTreasuryGovernor";
         proposalThreshold = 5e11;
-        quorum = 23e11;
 
         address governorAddress;
         (token, wToken, votes, , timelock, , governorAddress) = setupGovernance();
         governor = IZeroExGovernor(governorAddress);
 
         initialiseAccounts();
+    }
+
+    function testShouldReturnCorrectQuorum() public {
+        vm.roll(3);
+        uint256 totalSupplyQuadraticVotes = Math.sqrt(10000000e18) + Math.sqrt(2000000e18) + Math.sqrt(3000000e18);
+        uint256 quorum = (totalSupplyQuadraticVotes * 10) / 100;
+        assertEq(governor.quorum(2), quorum);
     }
 
     function testShouldBeAbleToExecuteASuccessfulProposal() public {

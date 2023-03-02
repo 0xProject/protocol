@@ -231,10 +231,62 @@ contract ZeroExVotes is IZeroExVotes {
     /**
      * @inheritdoc IZeroExVotes
      */
-    function writeCheckpointTotalSupply(uint256 totalSupply) public override onlyToken {
-        // Currently we don't keep track of total supply checkpoints as all governance settings are fixed numbers
-        // i.e. governance quorum is not a percentage of total
-        // _writeCheckpoint(_totalSupplyCheckpoints, totalSupply, Math.sqrt(totalSupply));
+    function writeCheckpointTotalSupplyMint(
+        address account,
+        uint256 amount,
+        uint256 accountBalance
+    ) public override onlyToken {
+        uint256 pos = _totalSupplyCheckpoints.length;
+        Checkpoint memory oldCkptTotalSuply = pos == 0
+            ? Checkpoint(0, 0, 0)
+            : _unsafeAccess(_totalSupplyCheckpoints, pos - 1);
+
+        // Remove the account sqrt balance from total quadratic supply.
+        // `accountBalance` is value _after_ minting
+        if (pos > 0) oldCkptTotalSuply.quadraticVotes -= SafeCast.toUint48(Math.sqrt(accountBalance - amount));
+
+        uint256 newLinearBalance = oldCkptTotalSuply.votes + amount;
+        uint256 newQuadraticBalance = oldCkptTotalSuply.quadraticVotes + Math.sqrt(accountBalance);
+
+        _writeCheckpoint(_totalSupplyCheckpoints, newLinearBalance, newQuadraticBalance);
+
+        emit TotalSupplyChanged(newLinearBalance, newQuadraticBalance);
+        // emit DelegateVotesChanged(dstDelegatee, oldCkptTotalSuply.votes, newLinearBalance);
+
+        // emit DelegateQuadraticVotesChanged(
+        //     dstDelegatee,
+        //     oldCkptTotalSuply.quadraticVotes,
+        //     newQuadraticBalance
+        // );
+    }
+
+    function writeCheckpointTotalSupplyBurn(
+        address account,
+        uint256 amount,
+        uint256 accountBalance
+    ) public override onlyToken {
+        uint256 pos = _totalSupplyCheckpoints.length;
+        Checkpoint memory oldCkptTotalSuply = pos == 0
+            ? Checkpoint(0, 0, 0)
+            : _unsafeAccess(_totalSupplyCheckpoints, pos - 1);
+
+        // Remove the account sqrt balance from total quadratic supply.
+        // `accountBalance` is value _after_ burning
+        if (pos > 0) oldCkptTotalSuply.quadraticVotes -= SafeCast.toUint48(Math.sqrt(accountBalance + amount));
+
+        uint256 newLinearBalance = oldCkptTotalSuply.votes - amount;
+        uint256 newQuadraticBalance = oldCkptTotalSuply.quadraticVotes + Math.sqrt(accountBalance);
+
+        _writeCheckpoint(_totalSupplyCheckpoints, newLinearBalance, newQuadraticBalance);
+
+        emit TotalSupplyChanged(newLinearBalance, newQuadraticBalance);
+        // emit DelegateVotesChanged(dstDelegatee, oldCkptTotalSuply.votes, newLinearBalance);
+
+        // emit DelegateQuadraticVotesChanged(
+        //     dstDelegatee,
+        //     oldCkptTotalSuply.quadraticVotes,
+        //     newQuadraticBalance
+        // );
     }
 
     /**
@@ -300,6 +352,8 @@ contract ZeroExVotes is IZeroExVotes {
             Checkpoint storage chpt = _unsafeAccess(ckpts, pos - 1);
             chpt.votes = SafeCast.toUint96(voteWeight);
             chpt.quadraticVotes = SafeCast.toUint48(quadraticVoteWeight);
+
+            emit CheckpointUpdated(chpt.fromBlock, chpt.votes, chpt.quadraticVotes);
         } else {
             ckpts.push(
                 Checkpoint({
@@ -308,6 +362,8 @@ contract ZeroExVotes is IZeroExVotes {
                     quadraticVotes: SafeCast.toUint48(quadraticVoteWeight)
                 })
             );
+
+            emit CheckpointAdded(ckpts[pos].fromBlock, ckpts[pos].votes, ckpts[pos].quadraticVotes);
         }
     }
 

@@ -25,6 +25,8 @@ import "../src/ZeroExProtocolGovernor.sol";
 contract ZeroExProtocolGovernorTest is ZeroExGovernorBaseTest {
     ZeroExProtocolGovernor internal protocolGovernor;
     ZeroExMock internal zeroExMock;
+    uint256 internal quorum;
+
     event CallExecuted(bytes32 indexed id, uint256 indexed index, address target, uint256 value, bytes data);
 
     function setUp() public {
@@ -38,6 +40,10 @@ contract ZeroExProtocolGovernorTest is ZeroExGovernorBaseTest {
         protocolGovernor = ZeroExProtocolGovernor(payable(governorAddress));
         zeroExMock = new ZeroExMock();
         initialiseAccounts();
+    }
+
+    function testShouldReturnCorrectQuorum() public {
+        assertEq(governor.quorum(block.number), quorum);
     }
 
     function testShouldBeAbleToExecuteASuccessfulProposal() public {

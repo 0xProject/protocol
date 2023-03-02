@@ -36,7 +36,6 @@ abstract contract ZeroExGovernorBaseTest is BaseTest {
 
     string internal governorName;
     uint256 internal proposalThreshold;
-    uint256 internal quorum;
 
     event SecurityCouncilAssigned(address securityCouncil);
     event SecurityCouncilEjected();
@@ -84,10 +83,6 @@ abstract contract ZeroExGovernorBaseTest is BaseTest {
 
     function testShouldReturnCorrectProposalThreshold() public {
         assertEq(governor.proposalThreshold(), proposalThreshold);
-    }
-
-    function testShouldReturnCorrectQuorum() public {
-        assertEq(governor.quorum(block.number), quorum);
     }
 
     function testShouldReturnCorrectToken() public {

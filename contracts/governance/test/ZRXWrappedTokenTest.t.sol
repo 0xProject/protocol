@@ -139,6 +139,95 @@ contract ZRXWrappedTokenTest is BaseTest {
         assertEq(votes.getPastQuadraticTotalSupply(0), 0);
     }
 
+    function testWhenMintingFirstTimeForAccountTotalSupplyCheckpointsAreCorrect() public {
+        vm.startPrank(account2);
+
+        // Approve the wrapped token and deposit 1e18 ZRX
+        token.approve(address(wToken), 1e18);
+        vm.roll(2);
+        wToken.depositFor(account2, 1e18);
+        vm.roll(3);
+
+        // Check the totals are correct
+        uint256 totalSupplyVotes = votes.getPastTotalSupply(2);
+        uint256 totalSupplyQuadraticVotes = votes.getPastQuadraticTotalSupply(2);
+        assertEq(totalSupplyVotes, 1e18);
+        assertEq(totalSupplyQuadraticVotes, Math.sqrt(1e18));
+    }
+
+    function testWhenMintingForAccountWithExistingBalanceTotalSupplyCheckpointsAreCorrect() public {
+        vm.startPrank(account2);
+
+        // Approve the wrapped token and deposit 1e18 ZRX
+        token.approve(address(wToken), 5e18);
+        wToken.depositFor(account2, 1e18);
+
+        vm.roll(2);
+        // Depost 3e18 more for the same account
+        wToken.depositFor(account2, 3e18);
+        vm.roll(3);
+
+        // Check the totals are correct
+        uint256 totalSupplyVotes = votes.getPastTotalSupply(2);
+        uint256 totalSupplyQuadraticVotes = votes.getPastQuadraticTotalSupply(2);
+        assertEq(totalSupplyVotes, 4e18);
+        assertEq(totalSupplyQuadraticVotes, Math.sqrt(4e18));
+    }
+
+    function testWhenMintingForMultipleAccountsTotalSupplyCheckpointsAreCorrect() public {
+        // Deposit 1e18 ZRX by account2
+        vm.startPrank(account2);
+        token.approve(address(wToken), 5e18);
+        wToken.depositFor(account2, 1e18);
+        vm.stopPrank();
+
+        // Deposit 2e18 ZRX by account3
+        vm.startPrank(account3);
+        token.approve(address(wToken), 2e18);
+        wToken.depositFor(account3, 2e18);
+        vm.stopPrank();
+
+        // Deposit 4e18 ZRX by account2
+        vm.startPrank(account2);
+        vm.roll(2);
+        wToken.depositFor(account2, 4e18);
+        vm.stopPrank();
+        vm.roll(3);
+
+        // Check the totals are correct
+        uint256 totalSupplyVotes = votes.getPastTotalSupply(2);
+        uint256 totalSupplyQuadraticVotes = votes.getPastQuadraticTotalSupply(2);
+        assertEq(totalSupplyVotes, 7e18);
+        assertEq(totalSupplyQuadraticVotes, Math.sqrt(5e18) + Math.sqrt(2e18));
+    }
+
+    function testWhenBurningForMultipleAccountsTotalSupplyCheckpointsAreCorrect() public {
+        // Deposit 5e18 ZRX by account2
+        vm.startPrank(account2);
+        token.approve(address(wToken), 5e18);
+        wToken.depositFor(account2, 5e18);
+        vm.stopPrank();
+
+        // Deposit 2e18 ZRX by account3
+        vm.startPrank(account3);
+        token.approve(address(wToken), 2e18);
+        wToken.depositFor(account3, 2e18);
+        vm.stopPrank();
+
+        // Burn 4e18 ZRX by account2
+        vm.startPrank(account2);
+        vm.roll(2);
+        wToken.withdrawTo(account2, 4e18);
+        vm.stopPrank();
+        vm.roll(3);
+
+        // Check the totals are correct
+        uint256 totalSupplyVotes = votes.getPastTotalSupply(2);
+        uint256 totalSupplyQuadraticVotes = votes.getPastQuadraticTotalSupply(2);
+        assertEq(totalSupplyVotes, 3e18);
+        assertEq(totalSupplyQuadraticVotes, Math.sqrt(1e18) + Math.sqrt(2e18));
+    }
+
     function testShouldBeAbleToTransferCorrectly() public {
         assertEq(wToken.balanceOf(account4), 0);
 

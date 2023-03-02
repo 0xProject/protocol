@@ -41,6 +41,12 @@ interface IZeroExVotes {
      */
     event DelegateVotesChanged(address indexed delegate, uint256 previousBalance, uint256 newBalance);
 
+    event TotalSupplyChanged(uint256 totalSupplyVotes, uint256 totalSupplyQuadraticVotes);
+
+    event CheckpointAdded(uint256 blockNumber, uint256 totalSupplyVotes, uint256 totalSupplyQuadraticVotes);
+
+    event CheckpointUpdated(uint256 blockNumber, uint256 totalSupplyVotes, uint256 totalSupplyQuadraticVotes);
+
     /**
      * @dev Get the `pos`-th checkpoint for `account`.
      */
@@ -125,5 +131,7 @@ interface IZeroExVotes {
         uint256 amount
     ) external;
 
-    function writeCheckpointTotalSupply(uint256 totalSupply) external;
+    function writeCheckpointTotalSupplyMint(address account, uint256 amount, uint256 accountBalance) external;
+
+    function writeCheckpointTotalSupplyBurn(address account, uint256 amount, uint256 accountBalance) external;
 }

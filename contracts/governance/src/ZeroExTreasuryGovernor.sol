@@ -22,6 +22,7 @@ import "@openzeppelin/governance/Governor.sol";
 import "@openzeppelin/governance/extensions/GovernorSettings.sol";
 import "@openzeppelin/governance/extensions/GovernorCountingSimple.sol";
 import "@openzeppelin/governance/extensions/GovernorVotes.sol";
+import "@openzeppelin/governance/extensions/GovernorVotesQuorumFraction.sol";
 import "@openzeppelin/governance/extensions/GovernorTimelockControl.sol";
 
 import "./IZeroExVotes.sol";
@@ -33,6 +34,7 @@ contract ZeroExTreasuryGovernor is
     GovernorSettings,
     GovernorCountingSimple,
     GovernorVotes,
+    GovernorVotesQuorumFraction,
     GovernorTimelockControl
 {
     address public securityCouncil;
@@ -45,13 +47,23 @@ contract ZeroExTreasuryGovernor is
         Governor("ZeroExTreasuryGovernor")
         GovernorSettings(14400 /* 2 days */, 50400 /* 7 days */, 5e11)
         GovernorVotes(votes)
+        GovernorVotesQuorumFraction(10)
         GovernorTimelockControl(_timelock)
     {
         securityCouncil = _securityCouncil;
     }
 
-    function quorum(uint256 blockNumber) public pure override returns (uint256) {
-        return 23e11;
+    /**
+     * @dev Returns the "quadratic" quorum for a block number, in terms of number of votes:
+     * `quadratic total supply * numerator / denominator`
+     */
+    function quorum(
+        uint256 blockNumber
+    ) public view override(IGovernor, GovernorVotesQuorumFraction) returns (uint256) {
+        IZeroExVotes votes = IZeroExVotes(address(token));
+        uint256 quorum = (votes.getPastQuadraticTotalSupply(blockNumber) * quorumNumerator(blockNumber)) /
+            quorumDenominator();
+        return quorum;
     }
 
     // The following functions are overrides required by Solidity.
