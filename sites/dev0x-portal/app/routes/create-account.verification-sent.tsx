@@ -2,13 +2,13 @@ import { useLoaderData } from '@remix-run/react';
 import type { LoaderArgs } from '@remix-run/server-runtime';
 import { json, redirect } from '@remix-run/server-runtime';
 import { getSignedInUser, sessionStorage } from '../auth.server';
-import { Button } from '../components/Button/Button';
+import { Button } from '../components/Button';
 
 export async function loader({ request }: LoaderArgs) {
     const [user, headers] = await getSignedInUser(request);
 
     if (user) {
-        throw redirect('/apps', { headers: headers || new Headers() });
+        throw redirect('/apps', { headers });
     }
     const multiformSession = await sessionStorage.getSession(request.headers.get('Cookie'));
 

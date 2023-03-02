@@ -6,7 +6,7 @@ import { TextInput } from '../components/TextInput';
 import { createUserWithEmailAndPassword } from '../data/zippo.server';
 import { validateFormData } from '../utils/utils';
 import { z } from 'zod';
-import { Button } from '../components/Button/Button';
+import { Button } from '../components/Button';
 
 const zodPasswordModel = z.object({
     password: z.string().min(1, 'Please enter a password'),
@@ -18,7 +18,7 @@ export async function loader({ request }: LoaderArgs) {
     const [user, headers] = await getSignedInUser(request);
 
     if (user) {
-        throw redirect('/apps', { headers: headers || new Headers() });
+        throw redirect('/apps', { headers });
     }
     const multiformSession = await sessionStorage.getSession(request.headers.get('Cookie'));
 
@@ -34,7 +34,7 @@ export async function action({ request }: ActionArgs) {
     const [user, headers] = await getSignedInUser(request);
 
     if (user) {
-        throw redirect('/apps', { headers: headers || new Headers() });
+        throw redirect('/apps', { headers });
     }
 
     const multiformSession = await sessionStorage.getSession(request.headers.get('Cookie'));

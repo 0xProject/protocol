@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { LinkButton } from './Button/Button';
+import { LinkButton } from './Button';
 import { tv } from 'tailwind-variants';
 
 type StateConfiguration = {

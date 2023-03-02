@@ -14,7 +14,7 @@ export async function loader({ request }: LoaderArgs) {
     const [user, headers] = await getSignedInUser(request);
 
     if (user) {
-        throw redirect('/apps', { headers: headers || new Headers() });
+        throw redirect('/apps', { headers });
     }
 
     // if the user doesn't have the email and token query parameters, redirect them to the create account page

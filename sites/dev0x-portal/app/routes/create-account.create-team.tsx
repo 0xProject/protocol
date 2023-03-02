@@ -13,11 +13,11 @@ export async function loader({ request }: LoaderArgs) {
 
     // if the user doesn't exist, we want to redirect them to the create account page
     if (!user) {
-        throw redirect('/create-account', { headers: headers || new Headers() });
+        throw redirect('/create-account', { headers });
     }
     // if the user has a team, we don't want them to be able to create a new team
     if (user.team) {
-        throw redirect('/apps', { headers: headers || new Headers() });
+        throw redirect('/apps', { headers });
     }
 
     return null;
@@ -28,10 +28,10 @@ export async function action({ request }: ActionArgs) {
 
     // if the user doesn't exist, we want to redirect them to the create account page
     if (!user) {
-        throw redirect('/create-account', { headers: headers || new Headers() });
+        throw redirect('/create-account', { headers });
     }
     // if the user has a team, we don't want them to be able to create a new team
     if (user.team) {
-        throw redirect('/apps', { headers: headers || new Headers() });
+        throw redirect('/apps', { headers });
     }
 }

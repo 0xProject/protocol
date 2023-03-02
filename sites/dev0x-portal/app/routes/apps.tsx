@@ -1,32 +1,26 @@
-import type { LoaderArgs, ActionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
-import { Form, Outlet, useLoaderData } from "@remix-run/react";
-import { auth, withSignedInUser } from "../auth.server";
-import { AppBar } from "../components/AppBar";
+import { redirect } from '@remix-run/node';
+import { Outlet } from '@remix-run/react';
+import { getSignedInUser } from '../auth.server';
+import { AppBar } from '../components/AppBar';
+
+import type { LoaderArgs } from '@remix-run/node';
 
 export const loader = async ({ request }: LoaderArgs) => {
-  return withSignedInUser(request, async (user) => {
-    return json({ user });
-  });
-};
-
-export const action = async ({ request }: ActionArgs) => {
-  await auth.logout(request, { redirectTo: "/" });
+    const [user, headers] = await getSignedInUser(request);
+    if (!user) {
+        throw redirect('/create-account', { headers });
+    }
+    return new Response(null, {
+        status: 200,
+        headers,
+    });
 };
 
 export default function AppsLayout() {
-  const { user } = useLoaderData<typeof loader>();
-  return (
-    <div>
-      <div>
-        <AppBar />
-        <div>App bar</div>
-        {user.email}
-        <Form method="post">
-          <button>Log Out</button>
-        </Form>
-      </div>
-      <Outlet />
-    </div>
-  );
+    return (
+        <>
+            <AppBar />
+            <Outlet />
+        </>
+    );
 }

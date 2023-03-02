@@ -113,12 +113,9 @@ async function verifySession(user: User) {
 
 export async function getSignedInUser(
   request: Request,
-  failureRedirect?: string
-): Promise<[User | null, Headers | null]> {
+) {
   const user = (await auth.isAuthenticated(request)) || null;
-  if (!user && failureRedirect) {
-    throw redirect(failureRedirect);
-  }
+
   const headers = new Headers();
   if (user && new Date(user.expiresAt) < new Date()) {
     // session has expired, we need to check with the backend if the session is still valid
@@ -138,7 +135,7 @@ export async function getSignedInUser(
   }
 
   // at this point, we know the user is authenticated and the session is valid
-  return [user, headers];
+  return [user, headers] as const;
 }
 
 export function getPasswordStrength(

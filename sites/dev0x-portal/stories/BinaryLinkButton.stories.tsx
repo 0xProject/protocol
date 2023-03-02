@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { BinaryLinkButton } from '../app/components/BinaryLinkButton';
 
 const meta: Meta<typeof BinaryLinkButton> = {
-    title: 'BinaryLinkButton',
+    title: 'Components/BinaryLinkButton',
     component: BinaryLinkButton,
     tags: ['autodocs'],
     args: {

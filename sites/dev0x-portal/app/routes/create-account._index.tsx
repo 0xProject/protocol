@@ -5,7 +5,7 @@ import { getSignedInUser, sessionStorage } from '../auth.server';
 import { TextInput } from '../components/TextInput';
 import { validateFormData } from '../utils/utils';
 import { z } from 'zod';
-import { Button } from '../components/Button/Button';
+import { Button } from '../components/Button';
 
 const firstPageFormModel = z.object({
     firstName: z.string().min(1, 'First name is required'),
@@ -19,7 +19,7 @@ export async function loader({ request }: LoaderArgs) {
     const [user, headers] = await getSignedInUser(request);
 
     if (user) {
-        throw redirect('/apps', { headers: headers || new Headers() });
+        throw redirect('/apps', { headers });
     }
 
     const session = await sessionStorage.getSession(request.headers.get('Cookie'));
@@ -42,7 +42,7 @@ export async function action({ request }: ActionArgs) {
     const [user, headers] = await getSignedInUser(request);
 
     if (user) {
-        return redirect('/apps', { headers: headers || new Headers() });
+        return redirect('/apps', { headers });
     }
 
     const formData = await request.formData();

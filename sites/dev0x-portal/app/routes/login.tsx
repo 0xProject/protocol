@@ -1,14 +1,14 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node';
 import { redirect } from '@remix-run/node';
 import { json } from '@remix-run/node';
-import { Form, Link, useActionData, useLoaderData } from '@remix-run/react';
+import { Form, Link, useActionData } from '@remix-run/react';
 import { AuthorizationError } from 'remix-auth';
 import { z } from 'zod';
 
 import type { User } from '../auth.server';
 import { auth, sessionStorage } from '../auth.server';
 import { Alert } from '../components/Alert';
-import { Button } from '../components/Button/Button';
+import { Button } from '../components/Button';
 import { OnboardingAppBar } from '../components/OnboardingAppBar';
 import { TextInput } from '../components/TextInput';
 import { validateFormData } from '../utils/utils';

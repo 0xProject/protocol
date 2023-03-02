@@ -11,3 +11,4 @@ node_modules
 /api/index.js
 /api/index.js.map
 /playwright-report
+/storybook-static 

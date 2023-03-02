@@ -8,8 +8,8 @@ export async function loader({ request }: LoaderArgs) {
     const [user, headers] = await getSignedInUser(request);
 
     if (user) {
-        throw redirect('/apps', { headers: headers || new Headers() });
+        throw redirect('/apps', { headers });
     } else {
-        throw redirect('/create-account', { headers: headers || new Headers() });
+        throw redirect('/create-account', { headers });
     }
 }
