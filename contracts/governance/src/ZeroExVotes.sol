@@ -251,13 +251,6 @@ contract ZeroExVotes is IZeroExVotes {
         _writeCheckpoint(_totalSupplyCheckpoints, newLinearBalance, newQuadraticBalance);
 
         emit TotalSupplyChanged(newLinearBalance, newQuadraticBalance);
-        // emit DelegateVotesChanged(dstDelegatee, oldCkptTotalSuply.votes, newLinearBalance);
-
-        // emit DelegateQuadraticVotesChanged(
-        //     dstDelegatee,
-        //     oldCkptTotalSuply.quadraticVotes,
-        //     newQuadraticBalance
-        // );
     }
 
     function writeCheckpointTotalSupplyBurn(
@@ -280,13 +273,6 @@ contract ZeroExVotes is IZeroExVotes {
         _writeCheckpoint(_totalSupplyCheckpoints, newLinearBalance, newQuadraticBalance);
 
         emit TotalSupplyChanged(newLinearBalance, newQuadraticBalance);
-        // emit DelegateVotesChanged(dstDelegatee, oldCkptTotalSuply.votes, newLinearBalance);
-
-        // emit DelegateQuadraticVotesChanged(
-        //     dstDelegatee,
-        //     oldCkptTotalSuply.quadraticVotes,
-        //     newQuadraticBalance
-        // );
     }
 
     /**

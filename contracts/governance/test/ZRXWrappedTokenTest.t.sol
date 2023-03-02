@@ -269,7 +269,7 @@ contract ZRXWrappedTokenTest is BaseTest {
     function testShouldBeAbleToDelegateVotingPowerToAnotherAccount() public {
         // Check voting power initially is 0
         uint256 votingPowerAccount3 = votes.getVotes(account3);
-        uint256 votingQuadraticPowerAccount3 = votes.getVotes(account3);
+        uint256 votingQuadraticPowerAccount3 = votes.getQuadraticVotes(account3);
         assertEq(votingPowerAccount3, 0);
         assertEq(votingQuadraticPowerAccount3, 0);
 
@@ -414,5 +414,26 @@ contract ZRXWrappedTokenTest is BaseTest {
         votingQuadraticPowerAccount4 = votes.getQuadraticVotes(account4);
         assertEq(votingPowerAccount4, 0);
         assertEq(votingQuadraticPowerAccount4, 0);
+    }
+
+    function testShouldTransferVotingPowerWhenTransferringTokens() public {
+        // Account 2 wraps ZRX and delegates voting power to itself
+        vm.startPrank(account2);
+        token.approve(address(wToken), 10e18);
+        wToken.depositFor(account2, 10e18);
+        wToken.delegate(account2);
+
+        wToken.transfer(account3, 3e18);
+
+        uint256 votingPowerAccount2 = votes.getVotes(account2);
+        uint256 votingQuadraticPowerAccount2 = votes.getQuadraticVotes(account2);
+        assertEq(votingPowerAccount2, 7e18);
+        assertEq(votingQuadraticPowerAccount2, Math.sqrt(7e18));
+
+        // Since account3 is not delegating to anyone, they should have no voting power
+        uint256 votingPowerAccount3 = votes.getVotes(account3);
+        uint256 votingQuadraticPowerAccount3 = votes.getQuadraticVotes(account3);
+        assertEq(votingPowerAccount3, 0);
+        assertEq(votingQuadraticPowerAccount3, 0);
     }
 }
