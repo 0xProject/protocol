@@ -150,4 +150,9 @@ test.describe('General tests', () => {
         await page.goto('/create-account/verification-sent');
         await expect(page).toHaveURL(/create-account$/);
     });
+    test('Should be able to switch to the login page', async ({ page }) => {
+        await page.goto('/create-account');
+        await page.getByLabel('Navigation').getByText('Log in').click();
+        await expect(page).toHaveURL(/login$/);
+    });
 });

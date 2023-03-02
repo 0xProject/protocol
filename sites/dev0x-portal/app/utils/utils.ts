@@ -13,7 +13,6 @@ export function validateFormData<ActionInput>({
     const body = Object.fromEntries(formData) as ActionInput;
 
     const result = schema.safeParse(body);
-    console.log(body);
     if (!result.success) {
         return {
             body,

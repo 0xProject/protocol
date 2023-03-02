@@ -106,7 +106,7 @@ export default function SetPasswordPage() {
     const navigator = useNavigate();
 
     return (
-        <main className="bg-white h-screen min-h-screen w-full flex flex-col">
+        <main className="bg-white h-full min-h-full w-full min-w-screen flex flex-col">
             <div className=" h-full w-full flex justify-center">
                 <div className="w-full max-w-[456px] mt-40">
                     <button
