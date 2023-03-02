@@ -1,11 +1,11 @@
 import { tv } from 'tailwind-variants';
 import { twMerge } from 'tailwind-merge';
 import { forwardRef } from 'react';
-import type { LinkProps } from '@remix-run/react';
 import { Link } from '@remix-run/react';
+import type { LinkProps } from '@remix-run/react';
 
 const button = tv({
-    base: 'font-sans  text-base focus:outline-none focus-visible:ring-2',
+    base: 'font-sans text-base focus:outline-none focus-visible:ring-2',
     variants: {
         size: {
             base: 'leading-6.5 px-6 py-4',
@@ -42,7 +42,7 @@ type ButtonProps = {
      */
     disabled?: boolean;
     /**
-     * how rounded the button to should be
+     * How rounded the button should be
      */
     roundness?: 'default' | 'lg';
 } & React.ComponentPropsWithRef<'button'>;
