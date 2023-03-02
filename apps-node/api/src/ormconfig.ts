@@ -8,8 +8,6 @@ import {
     OrderWatcherSignedOrderEntity,
     PersistentSignedOrderEntity,
     PersistentSignedOrderV4Entity,
-    RfqMakerPairs,
-    RfqMakerPairsUpdateTimeHash,
     SignedOrderV4Entity,
 } from './entities';
 
@@ -20,8 +18,6 @@ const entities = [
     MakerBalanceChainCacheEntity,
     SignedOrderV4Entity,
     PersistentSignedOrderV4Entity,
-    RfqMakerPairs,
-    RfqMakerPairsUpdateTimeHash,
     OrderWatcherSignedOrderEntity,
 ];
 
