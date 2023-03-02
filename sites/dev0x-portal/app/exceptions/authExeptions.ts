@@ -1,6 +1,6 @@
-export class UserDoesNotExistExeption extends Error {
+export class UserDoesNotExistException extends Error {
   constructor(message: string) {
     super(message);
-    Object.setPrototypeOf(this, UserDoesNotExistExeption.prototype);
+    Object.setPrototypeOf(this, UserDoesNotExistException.prototype);
   }
 }

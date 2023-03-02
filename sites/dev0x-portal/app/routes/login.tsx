@@ -47,14 +47,16 @@ export const action = async ({ request }: ActionArgs) => {
             successRedirect: '/',
         });
     } catch (e) {
-        if (e instanceof AuthorizationError) {
+        //pass through redirect
+        if (e instanceof Response) {
+            throw e;
+        } else if (e instanceof AuthorizationError) {
             error = 'Invalid email or password';
         } else {
             // log the error
             error = 'Something went wrong, please try again later';
         }
     }
-
     if (error !== null && user !== null) {
         // shouldn't happen, but just in case
         error = 'Something went wrong, please try again later';

@@ -1,11 +1,11 @@
-import { createCookieSessionStorage, redirect } from "@remix-run/node";
+import { createCookieSessionStorage } from "@remix-run/node";
 import { addMinutes } from "date-fns";
 import { Authenticator, AuthorizationError } from "remix-auth";
 import { FormStrategy } from "remix-auth-form";
 import { GoogleStrategy } from "remix-auth-socials";
 import { doesSessionExist } from "./data/zippo.server";
 import { env } from "./env";
-import { UserDoesNotExistExeption } from "./exceptions/authExeptions";
+import { UserDoesNotExistException } from "./exceptions/authExeptions";
 import { zxcvbn, zxcvbnOptions } from "@zxcvbn-ts/core";
 import zxcvbnCommonPackage from "@zxcvbn-ts/language-common";
 import zxcvbnEnPackage from "@zxcvbn-ts/language-en";
@@ -99,7 +99,7 @@ auth.use(
         };
       }
       // If the user doesn't exist, notify the app
-      throw new UserDoesNotExistExeption("User does not exist");
+      throw new UserDoesNotExistException("User does not exist");
     }
   ),
   "google"
