@@ -3,6 +3,7 @@ import { LimitOrderFields } from '@0x/protocol-utils';
 import { BigNumber, logUtils } from '@0x/utils';
 import { formatBytes32String } from '@ethersproject/strings';
 import * as _ from 'lodash';
+import { QuickswapV3Sampler } from '../../../samplers/quickswapv3_sampler';
 import { KyberElasticSampler } from '../../../samplers/kyber_elastic_sampler';
 import { UniswapV3Sampler } from '../../../samplers/uniswapv3_sampler';
 
@@ -47,6 +48,7 @@ import {
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
     NULL_ADDRESS,
     PLATYPUS_ROUTER_BY_CHAIN_ID,
+    QUICKSWAPV3_CONFIG_BY_CHAIN_ID,
     REBASING_TOKENS,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
     SYNTHETIX_CURRENCY_KEYS_BY_CHAIN_ID,
@@ -129,6 +131,7 @@ export class SamplerOperations {
         };
     }
     private readonly uniswapV3Sampler: UniswapV3Sampler;
+    private readonly quickswapV3Sampler: QuickswapV3Sampler;
     private readonly kyberElasticSampler: KyberElasticSampler;
 
     constructor(
@@ -171,6 +174,7 @@ export class SamplerOperations {
             .catch(/* do nothing */);
 
         this.uniswapV3Sampler = new UniswapV3Sampler(this.chainId, this._samplerContract);
+        this.quickswapV3Sampler = new QuickswapV3Sampler(this.chainId, this._samplerContract);
         this.kyberElasticSampler = new KyberElasticSampler(this.chainId, this._samplerContract);
     }
 
@@ -1707,6 +1711,20 @@ export class SamplerOperations {
                             ...intermediateTokens.map((t) => [takerToken, t, makerToken]),
                         ].map((path) => this.uniswapV3Sampler.createSampleSellsOperation(path, takerFillAmounts));
                     }
+                    case ERC20BridgeSource.QuickSwapV3: {
+                        // Rebasing tokens lead to a high revert rate.
+                        if (REBASING_TOKENS.has(takerToken) || REBASING_TOKENS.has(makerToken)) {
+                            return [];
+                        }
+                        const { quoter, factory, router } = QUICKSWAPV3_CONFIG_BY_CHAIN_ID[this.chainId];
+                        if (!isValidAddress(quoter) || !isValidAddress(factory) || !isValidAddress(router)) {
+                            return [];
+                        }
+                        return [
+                            [takerToken, makerToken],
+                            ...intermediateTokens.map((t) => [takerToken, t, makerToken]),
+                        ].map((path) => this.quickswapV3Sampler.createSampleSellsOperation(path, takerFillAmounts));
+                    }
                     case ERC20BridgeSource.KyberElastic: {
                         // Rebasing tokens lead to a high revert rate.
                         if (REBASING_TOKENS.has(takerToken) || REBASING_TOKENS.has(makerToken)) {
@@ -2056,6 +2074,20 @@ export class SamplerOperations {
                             [takerToken, makerToken],
                             ...intermediateTokens.map((t) => [takerToken, t, makerToken]),
                         ].map((path) => this.uniswapV3Sampler.createSampleBuysOperation(path, makerFillAmounts));
+                    }
+                    case ERC20BridgeSource.QuickSwapV3: {
+                        // Rebasing tokens lead to a high revert rate.
+                        if (REBASING_TOKENS.has(takerToken) || REBASING_TOKENS.has(makerToken)) {
+                            return [];
+                        }
+                        const { quoter, factory, router } = QUICKSWAPV3_CONFIG_BY_CHAIN_ID[this.chainId];
+                        if (!isValidAddress(quoter) || !isValidAddress(factory) || !isValidAddress(router)) {
+                            return [];
+                        }
+                        return [
+                            [takerToken, makerToken],
+                            ...intermediateTokens.map((t) => [takerToken, t, makerToken]),
+                        ].map((path) => this.quickswapV3Sampler.createSampleBuysOperation(path, makerFillAmounts));
                     }
                     case ERC20BridgeSource.KyberElastic: {
                         // Rebasing tokens lead to a high revert rate.

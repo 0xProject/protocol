@@ -29,6 +29,7 @@ import {
     DEFAULT_GAS_SCHEDULE,
     SAMPLER_ADDRESS,
     UNISWAP_V3_MULTIQUOTER_ADDRESS,
+    ALGEBRA_MULTIQUOTER_ADDRESS,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
     KYBER_ELASTIC_MULTI_QUOTER_ADDRESS,
 } from './utils/market_operation_utils/constants';
@@ -151,6 +152,17 @@ export class SwapQuoter {
                 'compilerOutput.evm.deployedBytecode.object',
             );
             defaultCodeOverrides[UNISWAP_V3_MULTIQUOTER_ADDRESS] = { code: univ3MultiQuoterBytecode };
+        }
+
+        if (
+            SELL_SOURCE_FILTER_BY_CHAIN_ID[chainId].isAllowed(ERC20BridgeSource.QuickSwapV3) ||
+            BUY_SOURCE_FILTER_BY_CHAIN_ID[chainId].isAllowed(ERC20BridgeSource.QuickSwapV3)
+        ) {
+            const algebraQuoterBytecode = _.get(
+                artifacts.AlgebraMultiQuoter,
+                'compilerOutput.evm.deployedBytecode.object',
+            );
+            defaultCodeOverrides[ALGEBRA_MULTIQUOTER_ADDRESS] = { code: algebraQuoterBytecode };
         }
 
         if (

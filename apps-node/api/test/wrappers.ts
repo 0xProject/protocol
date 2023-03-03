@@ -5,6 +5,8 @@
  */
 export * from '../test/generated-wrappers/aave_v2_sampler';
 export * from '../test/generated-wrappers/aave_v3_sampler';
+export * from '../test/generated-wrappers/algebra_multi_quoter';
+export * from '../test/generated-wrappers/algebra_sampler';
 export * from '../test/generated-wrappers/approximate_buys';
 export * from '../test/generated-wrappers/balance_checker';
 export * from '../test/generated-wrappers/balancer_sampler';

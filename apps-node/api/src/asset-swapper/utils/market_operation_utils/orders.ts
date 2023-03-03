@@ -142,6 +142,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.KyberElastic, 'KyberElastic');
         case ERC20BridgeSource.QuickSwap:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'QuickSwap');
+        case ERC20BridgeSource.QuickSwapV3:
+            return encodeBridgeSourceId(BridgeProtocol.UniswapV3, 'QuickSwapV3');
         case ERC20BridgeSource.Dfyn:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'Dfyn');
         case ERC20BridgeSource.CurveV2:
@@ -328,14 +330,11 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             bridgeData = encoder.encode([psmFillData.psmAddress, psmFillData.gemTokenAddress]);
             break;
         }
+        case ERC20BridgeSource.QuickSwapV3:
+        case ERC20BridgeSource.KyberElastic:
         case ERC20BridgeSource.UniswapV3: {
-            const uniswapV3FillData = (order as OptimizedMarketBridgeOrder<FinalTickDEXMultiPathFillData>).fillData;
-            bridgeData = encoder.encode([uniswapV3FillData.router, uniswapV3FillData.path]);
-            break;
-        }
-        case ERC20BridgeSource.KyberElastic: {
-            const fillData = (order as OptimizedMarketBridgeOrder<FinalTickDEXMultiPathFillData>).fillData;
-            bridgeData = encoder.encode([fillData.router, fillData.path]);
+            const tickDexFillData = (order as OptimizedMarketBridgeOrder<FinalTickDEXMultiPathFillData>).fillData;
+            bridgeData = encoder.encode([tickDexFillData.router, tickDexFillData.path]);
             break;
         }
         case ERC20BridgeSource.KyberDmm: {
@@ -454,6 +453,10 @@ const balancerV2BatchEncoder = AbiEncoder.create([
     },
     { name: 'assets', type: 'address[]' },
 ]);
+const routerBytesPathEncoder = AbiEncoder.create([
+    { name: 'router', type: 'address' },
+    { name: 'path', type: 'bytes' },
+]);
 const routerAddressPathEncoder = AbiEncoder.create('(address,address[])');
 
 const BRIDGE_ENCODERS: {
@@ -518,14 +521,9 @@ const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.MakerPsm]: makerPsmEncoder,
     [ERC20BridgeSource.BalancerV2]: balancerV2BatchEncoder,
     [ERC20BridgeSource.Beethovenx]: balancerV2BatchEncoder,
-    [ERC20BridgeSource.UniswapV3]: AbiEncoder.create([
-        { name: 'router', type: 'address' },
-        { name: 'path', type: 'bytes' },
-    ]),
-    [ERC20BridgeSource.KyberElastic]: AbiEncoder.create([
-        { name: 'router', type: 'address' },
-        { name: 'path', type: 'bytes' },
-    ]),
+    [ERC20BridgeSource.QuickSwapV3]: routerBytesPathEncoder,
+    [ERC20BridgeSource.UniswapV3]: routerBytesPathEncoder,
+    [ERC20BridgeSource.KyberElastic]: routerBytesPathEncoder,
     [ERC20BridgeSource.KyberDmm]: AbiEncoder.create('(address,address[],address[])'),
     [ERC20BridgeSource.Lido]: AbiEncoder.create('(address,address)'),
     [ERC20BridgeSource.AaveV2]: AbiEncoder.create('(address,address)'),
@@ -604,6 +602,7 @@ function toFillBase(fill: Fill): FillBase {
 
 function createFinalBridgeOrderFillDataFromCollapsedFill(fill: Fill): FillData {
     switch (fill.source) {
+        case ERC20BridgeSource.QuickSwapV3:
         case ERC20BridgeSource.KyberElastic:
         case ERC20BridgeSource.UniswapV3: {
             const fd = fill.fillData as TickDEXMultiPathFillData;

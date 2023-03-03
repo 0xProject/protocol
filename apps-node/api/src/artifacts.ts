@@ -5,12 +5,14 @@
  */
 import { ContractArtifact } from 'ethereum-types';
 
+import * as AlgebraMultiQuoter from '../generated-artifacts/AlgebraMultiQuoter.json';
 import * as BalanceChecker from '../generated-artifacts/BalanceChecker.json';
 import * as ERC20BridgeSampler from '../generated-artifacts/ERC20BridgeSampler.json';
 import * as FakeTaker from '../generated-artifacts/FakeTaker.json';
 import * as KyberElasticMultiQuoter from '../generated-artifacts/KyberElasticMultiQuoter.json';
 import * as UniswapV3MultiQuoter from '../generated-artifacts/UniswapV3MultiQuoter.json';
 export const artifacts = {
+    AlgebraMultiQuoter: AlgebraMultiQuoter as ContractArtifact,
     ERC20BridgeSampler: ERC20BridgeSampler as ContractArtifact,
     BalanceChecker: BalanceChecker as ContractArtifact,
     FakeTaker: FakeTaker as ContractArtifact,

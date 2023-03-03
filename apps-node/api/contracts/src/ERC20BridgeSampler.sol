@@ -22,6 +22,7 @@ pragma experimental ABIEncoderV2;
 
 import "./AaveV2Sampler.sol";
 import "./AaveV3Sampler.sol";
+import "./AlgebraSampler.sol";
 import "./BalancerSampler.sol";
 import "./BalancerV2Sampler.sol";
 import "./BalancerV2BatchSampler.sol";
@@ -53,6 +54,7 @@ import "./KyberElasticSampler.sol";
 contract ERC20BridgeSampler is
     AaveV2Sampler,
     AaveV3Sampler,
+    AlgebraSampler,
     BalancerSampler,
     BalancerV2Sampler,
     BalancerV2BatchSampler,

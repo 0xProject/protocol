@@ -9,12 +9,7 @@ import {
     PathAmount,
 } from '../asset-swapper/utils/market_operation_utils/types';
 import { NULL_ADDRESS } from '@0x/utils';
-
-interface BridgeSampler<TFillData extends FillData> {
-    createSampleSellsOperation(tokenAddressPath: string[], amounts: BigNumber[]): SourceQuoteOperation<TFillData>;
-    createSampleBuysOperation(tokenAddressPath: string[], amounts: BigNumber[]): SourceQuoteOperation<TFillData>;
-}
-
+import { BridgeSampler } from './types';
 export class KyberElasticSampler implements BridgeSampler<TickDEXMultiPathFillData> {
     private readonly source: ERC20BridgeSource = ERC20BridgeSource.KyberElastic;
     private readonly samplerContract: ERC20BridgeSamplerContract;

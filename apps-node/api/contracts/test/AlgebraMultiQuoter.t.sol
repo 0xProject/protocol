@@ -1,20 +1,18 @@
 pragma solidity >=0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-
 import "forge-std/Test.sol";
 import "../src/AlgebraMultiQuoter.sol";
 import "../src/AlgebraCommon.sol";
 
 contract TestAlgebraMultiQuoter is Test, AlgebraCommon {
-    /// @dev error threshold in wei for comparison between MultiQuoter and UniswapV3's official QuoterV2.
+    /// @dev error threshold for comparison between MultiQuoter and UniswapV3's official QuoterV2.
     /// MultiQuoter results in some rounding errors due to SqrtPriceMath library.
-    uint256 constant ERROR_THRESHOLD = 1250;
+    uint256 constant ERROR_THRESHOLD_10_BPS = 0.001e18;
 
-    IERC20TokenV06 constant WMATIC = IERC20TokenV06(0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270);
-    IERC20TokenV06 constant WETH = IERC20TokenV06(0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619);
-    IERC20TokenV06 constant DAI = IERC20TokenV06(0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063);
+    address constant WMATIC = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
+    address constant WETH = 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619;
+    address constant DAI = 0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063;
 
     IAlgebraPool constant WMATIC_WETH_POOL = IAlgebraPool(0x479e1B71A702a595e19b6d5932CD5c863ab57ee0);
     IAlgebraPool constant WMATIC_DAI_POOL = IAlgebraPool(0x6BaEad5Db7FeE6D5c9F0Ca07Bb5038C4cD279F5c);
@@ -61,7 +59,7 @@ contract TestAlgebraMultiQuoter is Test, AlgebraCommon {
     }
 
     function testSingleHopQuotesForLiquidPools() public {
-        IERC20TokenV06[] memory tokenPath = new IERC20TokenV06[](2);
+        address[] memory tokenPath = new address[](2);
         tokenPath[0] = WMATIC;
         tokenPath[1] = WETH;
 
@@ -69,7 +67,7 @@ contract TestAlgebraMultiQuoter is Test, AlgebraCommon {
     }
 
     function testSingleHopQuotesForIlliquidPools() public {
-        IERC20TokenV06[] memory tokenPath = new IERC20TokenV06[](2);
+        address[] memory tokenPath = new address[](2);
         tokenPath[0] = WMATIC;
         tokenPath[1] = DAI;
 
@@ -77,7 +75,7 @@ contract TestAlgebraMultiQuoter is Test, AlgebraCommon {
     }
 
     function testMultiHopQuotes() public {
-        IERC20TokenV06[] memory tokenPath = new IERC20TokenV06[](3);
+        address[] memory tokenPath = new address[](3);
         tokenPath[0] = WETH;
         tokenPath[1] = WMATIC;
         tokenPath[2] = DAI;
@@ -85,12 +83,12 @@ contract TestAlgebraMultiQuoter is Test, AlgebraCommon {
         testAllAmountsAndPathsForBuysAndSells(tokenPath);
     }
 
-    function testAllAmountsAndPathsForBuysAndSells(IERC20TokenV06[] memory tokenPath) private {
+    function testAllAmountsAndPathsForBuysAndSells(address[] memory tokenPath) private {
         uint256 algebraQuoterGasUsage;
         uint256 multiQuoterGasUsage;
 
         bytes memory path = toAlgebraPath(tokenPath);
-        bytes memory reversePath = toAlgebraPath(reverseTokenPath(tokenPath));
+        bytes memory reversePath = toAlgebraPath(reverseAlgebraTokenPath(tokenPath));
 
         console.log("Quoter Gas Comparison ");
         console.log("Token Path: ");
@@ -137,7 +135,7 @@ contract TestAlgebraMultiQuoter is Test, AlgebraCommon {
         uint256 gas0 = gasleft();
         uint256[] memory multiQuoterAmountsOut;
         try multiQuoter.quoteExactMultiInput(factory, path, amountsIn) {} catch (bytes memory reason) {
-            (, multiQuoterAmountsOut, ) = catchMultiSwapResult(reason);
+            (, multiQuoterAmountsOut, ) = catchAlgebraMultiSwapResult(reason);
         }
         uint256 gas1 = gasleft();
 
@@ -146,16 +144,7 @@ contract TestAlgebraMultiQuoter is Test, AlgebraCommon {
                 uint256 algebraQuoterAmountOut,
                 uint16[] memory /* fees */
             ) {
-                assertLt(
-                    multiQuoterAmountsOut[i],
-                    algebraQuoterAmountOut + ERROR_THRESHOLD,
-                    "compareQuoterSells: MultiQuoter amount is too high compared to UniQuoter amount"
-                );
-                assertGt(
-                    multiQuoterAmountsOut[i],
-                    algebraQuoterAmountOut - ERROR_THRESHOLD,
-                    "compareQuoterSells: MultiQuoter amount is too low compared to UniQuoter amount"
-                );
+                assertApproxEqRel(multiQuoterAmountsOut[i], algebraQuoterAmountOut, ERROR_THRESHOLD_10_BPS);
             } catch {
                 assertEq(
                     multiQuoterAmountsOut[i],
@@ -174,7 +163,7 @@ contract TestAlgebraMultiQuoter is Test, AlgebraCommon {
         uint256 gas0 = gasleft();
         uint256[] memory multiQuoterAmountsIn;
         try multiQuoter.quoteExactMultiOutput(factory, path, amountsOut) {} catch (bytes memory reason) {
-            (, multiQuoterAmountsIn, ) = catchMultiSwapResult(reason);
+            (, multiQuoterAmountsIn, ) = catchAlgebraMultiSwapResult(reason);
         }
         uint256 gas1 = gasleft();
 
@@ -183,16 +172,7 @@ contract TestAlgebraMultiQuoter is Test, AlgebraCommon {
                 uint256 algebraQuoterAmountIn,
                 uint16[] memory /* fees */
             ) {
-                assertLt(
-                    multiQuoterAmountsIn[i],
-                    algebraQuoterAmountIn + ERROR_THRESHOLD,
-                    "compareQuoterBuys: MultiQuoter amount is too high compared to UniQuoter amount"
-                );
-                assertGt(
-                    multiQuoterAmountsIn[i],
-                    algebraQuoterAmountIn - ERROR_THRESHOLD,
-                    "compareQuoterBuys: MultiQuoter amount is too low compared to UniQuoter mamount"
-                );
+                assertApproxEqRel(multiQuoterAmountsIn[i], algebraQuoterAmountIn, ERROR_THRESHOLD_10_BPS);
             } catch {
                 assertEq(
                     multiQuoterAmountsIn[i],

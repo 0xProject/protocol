@@ -43,6 +43,7 @@ export const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
 export const SAMPLER_ADDRESS = '0x5555555555555555555555555555555555555555';
 export const UNISWAP_V3_MULTIQUOTER_ADDRESS = '0x5555555555555555555555555555555555555556';
 export const KYBER_ELASTIC_MULTI_QUOTER_ADDRESS = '0x5555555555555555555555555555555555555557';
+export const ALGEBRA_MULTIQUOTER_ADDRESS = '0x5555555555555555555555555555555555555558';
 export const COMPARISON_PRICE_DECIMALS = 10;
 
 // TODO(kimpers): Consolidate this implementation with the one in @0x/token-metadata
@@ -135,6 +136,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID: Record<ChainId, SourceFilters> = {
         ERC20BridgeSource.Native,
         ERC20BridgeSource.SushiSwap,
         ERC20BridgeSource.QuickSwap,
+        ERC20BridgeSource.QuickSwapV3,
         ERC20BridgeSource.Dfyn,
         ERC20BridgeSource.MStable,
         ERC20BridgeSource.Curve,
@@ -290,6 +292,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID: Record<ChainId, SourceFilters> = {
         ERC20BridgeSource.Native,
         ERC20BridgeSource.SushiSwap,
         ERC20BridgeSource.QuickSwap,
+        ERC20BridgeSource.QuickSwapV3,
         ERC20BridgeSource.Dfyn,
         ERC20BridgeSource.MStable,
         ERC20BridgeSource.Curve,
@@ -1754,6 +1757,17 @@ export const QUICKSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
+export const QUICKSWAPV3_CONFIG_BY_CHAIN_ID = valueByChainId(
+    {
+        [ChainId.Polygon]: {
+            quoter: ALGEBRA_MULTIQUOTER_ADDRESS,
+            factory: '0x411b0facc3489691f28ad58c47006af5e3ab3a28',
+            router: '0xf5b509bb0909a69b1c207e495f687a596c168e12',
+        },
+    },
+    { quoter: NULL_ADDRESS, factory: NULL_ADDRESS, router: NULL_ADDRESS },
+);
+
 export const DFYN_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.Polygon]: '0xa102072a4c07f06ec3b4900fdc4c7b80b6c57429',
@@ -2068,6 +2082,20 @@ export const DEFAULT_GAS_SCHEDULE: GasSchedule = {
         }
 
         return gas;
+    },
+    [ERC20BridgeSource.QuickSwapV3]: (fillData?: FillData) => {
+        const dexFillData = fillData as TickDEXMultiPathFillData | FinalTickDEXMultiPathFillData;
+        if (isFinalPathFillData(dexFillData)) {
+            // the coefficient is based on linear regression
+            // y = a*x + b where y is actual gas used and x is the raw gas estimate
+            // for test data, b was calculated to be ~550k
+            // since FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD = 150k, we set b to 400k
+            return dexFillData.gasUsed * 2.8 + 400e3;
+        }
+        const pathAmountsWithGasUsed = dexFillData.pathAmounts.filter((p) => p.gasUsed > 0);
+        const medianGasUsedForPath =
+            pathAmountsWithGasUsed[Math.floor(pathAmountsWithGasUsed.length / 2)]?.gasUsed ?? 0;
+        return medianGasUsedForPath * 2.8 + 400e3;
     },
     [ERC20BridgeSource.Lido]: (fillData?: FillData) => {
         const lidoFillData = fillData as LidoFillData;

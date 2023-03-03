@@ -20,12 +20,10 @@
 pragma solidity >=0.6;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-
 import "./interfaces/IAlgebra.sol";
 
 contract AlgebraCommon {
-    function toAlgebraPath(IERC20TokenV06[] memory tokenPath) internal pure returns (bytes memory algebraPath) {
+    function toAlgebraPath(address[] memory tokenPath) internal pure returns (bytes memory algebraPath) {
         require(tokenPath.length >= 2, "AlgebraCommon/invalid path lengths");
 
         // Algebra paths are tightly packed as
@@ -36,7 +34,7 @@ contract AlgebraCommon {
             o := add(algebraPath, 32)
         }
         for (uint256 i = 0; i < tokenPath.length; ++i) {
-            IERC20TokenV06 token = tokenPath[i];
+            address token = tokenPath[i];
             assembly {
                 mstore(o, shl(96, token))
                 o := add(o, 20)
@@ -44,16 +42,24 @@ contract AlgebraCommon {
         }
     }
 
-    function reverseTokenPath(
-        IERC20TokenV06[] memory tokenPath
-    ) internal pure returns (IERC20TokenV06[] memory reversed) {
-        reversed = new IERC20TokenV06[](tokenPath.length);
+    function isValidTokenPath(IAlgebraFactory factory, address[] memory tokenPath) internal view returns (bool) {
+        for (uint256 i = 0; i < tokenPath.length - 1; ++i) {
+            IAlgebraPool pool = factory.poolByPair(tokenPath[i], tokenPath[i + 1]);
+            if (address(pool) == address(0)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function reverseAlgebraTokenPath(address[] memory tokenPath) internal pure returns (address[] memory reversed) {
+        reversed = new address[](tokenPath.length);
         for (uint256 i = 0; i < tokenPath.length; ++i) {
             reversed[i] = tokenPath[tokenPath.length - i - 1];
         }
     }
 
-    function catchMultiSwapResult(
+    function catchAlgebraMultiSwapResult(
         bytes memory revertReason
     ) internal pure returns (bool success, uint256[] memory amounts, uint256[] memory gasEstimates) {
         bytes4 selector;

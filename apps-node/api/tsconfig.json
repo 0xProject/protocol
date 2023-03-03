@@ -25,6 +25,7 @@
     },
     "include": ["src/**/*.ts", "test/**/*.ts", "integration-test/**/*.ts", "migrations/*.ts", "src/schemas/*.json"],
     "files": [
+        "generated-artifacts/AlgebraMultiQuoter.json",
         "generated-artifacts/BalanceChecker.json",
         "generated-artifacts/ERC20BridgeSampler.json",
         "generated-artifacts/FakeTaker.json",
@@ -32,6 +33,8 @@
         "generated-artifacts/UniswapV3MultiQuoter.json",
         "test/generated-artifacts/AaveV2Sampler.json",
         "test/generated-artifacts/AaveV3Sampler.json",
+        "test/generated-artifacts/AlgebraMultiQuoter.json",
+        "test/generated-artifacts/AlgebraSampler.json",
         "test/generated-artifacts/ApproximateBuys.json",
         "test/generated-artifacts/BalanceChecker.json",
         "test/generated-artifacts/BalancerSampler.json",
