@@ -37,7 +37,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'yarn'
+          cache: "yarn"
 
       - name: Cache node modules
         uses: actions/cache@v3
@@ -46,7 +46,14 @@ jobs:
           key: ${{ runner.os }}-build-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        # See https://github.com/yarnpkg/yarn/issues/5840
+        run: |
+          yarn install
+          git diff yarn.lock
+          if ! git diff --exit-code yarn.lock; then
+            echo "Changes were detected in yarn.lock file after running 'yarn install', which is not expected. Please run 'yarn install' locally and commit the changes.";
+            exit 1;
+          fi
 
       - name: Build
         run: yarn build
@@ -70,7 +77,7 @@ jobs:
         uses: ./packages/workspace-commit-comment-action
         with:
           dry-run-result: ${{ steps.turbo-info.outputs.dry-run-output }}
-          require-consistent-names: 'true'
+          require-consistent-names: "true"
 
       - name: Get node app hashes
         id: app-hashes
