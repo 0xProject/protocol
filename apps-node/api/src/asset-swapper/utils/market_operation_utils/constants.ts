@@ -2090,12 +2090,12 @@ export const DEFAULT_GAS_SCHEDULE: GasSchedule = {
             // y = a*x + b where y is actual gas used and x is the raw gas estimate
             // for test data, b was calculated to be ~550k
             // since FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD = 150k, we set b to 400k
-            return dexFillData.gasUsed * 2.8 + 400e3;
+            return Math.ceil(dexFillData.gasUsed * 2.8) + 400e3;
         }
         const pathAmountsWithGasUsed = dexFillData.pathAmounts.filter((p) => p.gasUsed > 0);
         const medianGasUsedForPath =
             pathAmountsWithGasUsed[Math.floor(pathAmountsWithGasUsed.length / 2)]?.gasUsed ?? 0;
-        return medianGasUsedForPath * 2.8 + 400e3;
+        return Math.ceil(medianGasUsedForPath * 2.8) + 400e3;
     },
     [ERC20BridgeSource.Lido]: (fillData?: FillData) => {
         const lidoFillData = fillData as LidoFillData;
