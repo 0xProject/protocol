@@ -1,5 +1,5 @@
 import { ContractTxFunctionObj } from '@0x/base-contract';
-import { BigNumber, ChainId, ERC20BridgeSamplerContract, ERC20BridgeSource, FillData } from '../asset-swapper';
+import { BigNumber, ChainId, ERC20BridgeSamplerContract, ERC20BridgeSource } from '../asset-swapper';
 import { QUICKSWAPV3_CONFIG_BY_CHAIN_ID } from '../asset-swapper/utils/market_operation_utils/constants';
 import { SamplerContractOperation } from '../asset-swapper/utils/market_operation_utils/sampler_contract_operation';
 import {
