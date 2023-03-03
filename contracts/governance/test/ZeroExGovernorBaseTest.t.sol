@@ -69,6 +69,43 @@ abstract contract ZeroExGovernorBaseTest is BaseTest {
         callReceiverMock = new CallReceiverMock();
     }
 
+    function setSecurityCouncil(address council) internal {
+        address[] memory targets = new address[](1);
+        targets[0] = address(governor);
+
+        uint256[] memory values = new uint256[](1);
+        values[0] = 0;
+
+        bytes[] memory calldatas = new bytes[](1);
+        calldatas[0] = abi.encodeWithSelector(governor.assignSecurityCouncil.selector, council);
+
+        vm.roll(2);
+        vm.startPrank(account2);
+        uint256 proposalId = governor.propose(targets, values, calldatas, "Assign new security council");
+        vm.stopPrank();
+
+        // Fast forward to after vote start
+        vm.roll(governor.proposalSnapshot(proposalId) + 1);
+
+        // Vote
+        vm.prank(account2);
+        governor.castVote(proposalId, 1); // Vote "for"
+        vm.stopPrank();
+
+        // Fast forward to vote end
+        vm.roll(governor.proposalDeadline(proposalId) + 1);
+
+        // Queue proposal
+        governor.queue(targets, values, calldatas, keccak256(bytes("Assign new security council")));
+        vm.warp(governor.proposalEta(proposalId) + 1);
+
+        // Execute proposal
+        governor.execute(targets, values, calldatas, keccak256("Assign new security council"));
+
+        address newSecurityCouncil = governor.securityCouncil();
+        assertEq(newSecurityCouncil, council);
+    }
+
     function testShouldReturnCorrectName() public {
         assertEq(governor.name(), governorName);
     }
@@ -189,6 +226,65 @@ abstract contract ZeroExGovernorBaseTest is BaseTest {
         assertEq(uint256(state), uint256(IGovernor.ProposalState.Canceled));
 
         assertEq(governor.securityCouncil(), address(0));
+    }
+
+    function testWhenNoSecurityCouncilCannottSubmitProposals() public {
+        setSecurityCouncil(address(0));
+
+        address[] memory targets = new address[](1);
+        targets[0] = address(callReceiverMock);
+
+        uint256[] memory values = new uint256[](1);
+        values[0] = 0;
+
+        bytes[] memory calldatas = new bytes[](1);
+        calldatas[0] = abi.encodeWithSignature("mockFunction()");
+
+        vm.expectRevert("SecurityCouncil: security council not assigned and this is not an assignment call");
+        governor.propose(targets, values, calldatas, "Proposal description");
+    }
+
+    function testWhenNoSecurityCouncilCannotQueueSuccessfulProposals() public {
+        // Create a proposal
+        address[] memory targets = new address[](1);
+        targets[0] = address(callReceiverMock);
+
+        uint256[] memory values = new uint256[](1);
+        values[0] = 0;
+
+        bytes[] memory calldatas = new bytes[](1);
+        calldatas[0] = abi.encodeWithSignature("mockFunction()");
+
+        vm.roll(2);
+        vm.startPrank(account2);
+        uint256 proposalId = governor.propose(targets, values, calldatas, "Proposal description");
+        vm.stopPrank();
+
+        // Fast forward to after vote start
+        vm.roll(governor.proposalSnapshot(proposalId) + 1);
+
+        // Vote
+        vm.prank(account2);
+        governor.castVote(proposalId, 1); // Vote "for"
+        vm.stopPrank();
+
+        // Fast forward to vote end
+        vm.roll(governor.proposalDeadline(proposalId) + 1);
+
+        // Set security council to address(0)
+        setSecurityCouncil(address(0));
+
+        vm.expectRevert("SecurityCouncil: security council not assigned and this is not an assignment call");
+        governor.queue(targets, values, calldatas, keccak256(bytes("Proposal description")));
+
+        IGovernor.ProposalState state = governor.state(proposalId);
+        assertEq(uint256(state), uint256(IGovernor.ProposalState.Succeeded));
+    }
+
+    function testWhenNoSecurityCouncilCanPassProposalToAssignSecurityCouncil() public {
+        setSecurityCouncil(address(0));
+
+        setSecurityCouncil(account1);
     }
 
     function testCanUpdateVotingDelaySetting() public {

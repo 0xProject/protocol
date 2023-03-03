@@ -34,8 +34,6 @@ contract ZeroExProtocolGovernor is
     GovernorVotes,
     GovernorTimelockControl
 {
-    address public securityCouncil;
-
     constructor(
         IVotes _token,
         ZeroExTimelock _timelock,
@@ -72,7 +70,7 @@ contract ZeroExProtocolGovernor is
         uint256[] memory values,
         bytes[] memory calldatas,
         string memory description
-    ) public override(Governor, IGovernor) returns (uint256) {
+    ) public override(Governor, IGovernor) securityCouncilAssigned(calldatas) returns (uint256) {
         return super.propose(targets, values, calldatas, description);
     }
 
@@ -85,13 +83,10 @@ contract ZeroExProtocolGovernor is
         uint256[] memory values,
         bytes[] memory calldatas,
         bytes32 descriptionHash
-    ) public {
-        require(msg.sender == securityCouncil, "ZeroExProtocolGovernor: Only security council allowed");
+    ) public override onlySecurityCouncil {
         _cancel(targets, values, calldatas, descriptionHash);
 
-        // Eject security council
-        securityCouncil = address(0);
-        emit SecurityCouncilEjected();
+        ejectSecurityCouncil();
     }
 
     // Like the GovernorTimelockControl.queue function but without the proposal checks,
@@ -109,15 +104,20 @@ contract ZeroExProtocolGovernor is
         ZeroExTimelock timelockController = ZeroExTimelock(payable(timelock()));
         timelockController.executeRollbackBatch(targets, values, calldatas, 0, descriptionHash);
 
-        // Eject security council
-        securityCouncil = address(0);
-        emit SecurityCouncilEjected();
+        ejectSecurityCouncil();
     }
 
-    function assignSecurityCouncil(address _securityCouncil) public onlyGovernance {
-        securityCouncil = _securityCouncil;
+    function assignSecurityCouncil(address _securityCouncil) public override onlyGovernance {
+        super.assignSecurityCouncil(_securityCouncil);
+    }
 
-        emit SecurityCouncilAssigned(securityCouncil);
+    function queue(
+        address[] memory targets,
+        uint256[] memory values,
+        bytes[] memory calldatas,
+        bytes32 descriptionHash
+    ) public override securityCouncilAssigned(calldatas) returns (uint256) {
+        return super.queue(targets, values, calldatas, descriptionHash);
     }
 
     function _execute(

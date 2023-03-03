@@ -18,19 +18,51 @@
 */
 pragma solidity ^0.8.19;
 
-interface ISecurityCouncil {
+abstract contract ISecurityCouncil {
+    address public securityCouncil;
+
     event SecurityCouncilAssigned(address securityCouncil);
 
     event SecurityCouncilEjected();
 
-    function securityCouncil() external returns (address);
+    modifier onlySecurityCouncil() {
+        require(msg.sender == securityCouncil, "ZeroExProtocolGovernor: Only security council allowed");
+        _;
+    }
 
-    function assignSecurityCouncil(address _securityCouncil) external;
+    modifier securityCouncilAssigned(bytes[] memory payloads) {
+        if (securityCouncil == address(0) && !_payloadIsAssignSecurityCouncil(payloads)) {
+            revert("SecurityCouncil: security council not assigned and this is not an assignment call");
+        }
+        _;
+    }
+
+    function assignSecurityCouncil(address _securityCouncil) public virtual {
+        securityCouncil = _securityCouncil;
+
+        emit SecurityCouncilAssigned(securityCouncil);
+    }
+
+    function ejectSecurityCouncil() internal {
+        securityCouncil = address(0);
+        emit SecurityCouncilEjected();
+    }
 
     function cancel(
         address[] memory targets,
         uint256[] memory values,
         bytes[] memory calldatas,
         bytes32 descriptionHash
-    ) external;
+    ) public virtual;
+
+    function _payloadIsAssignSecurityCouncil(bytes[] memory payloads) private pure returns (bool) {
+        require(payloads.length == 1, "SecurityCouncil: there should be exactly 1 transaction in proposal");
+        bytes memory payload = payloads[0];
+        // Check this is as assignSecurityCouncil(address) transaction
+        // function signature for assignSecurityCouncil(address)
+        // = bytes4(keccak256("assignSecurityCouncil(address)"))
+        // = 0x2761c3cd
+        if (bytes4(payload) == bytes4(0x2761c3cd)) return true;
+        else return false;
+    }
 }
