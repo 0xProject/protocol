@@ -4,7 +4,7 @@ import * as _ from 'lodash';
 import 'mocha';
 
 import { SOURCE_FLAGS } from '../../src/asset-swapper';
-import { MarketOperation, ERC20BridgeSource, FeeEstimate } from '../../src/asset-swapper/types';
+import { MarketOperation, ERC20BridgeSource, FeeEstimateFn } from '../../src/asset-swapper/types';
 import { getComparisonPrices } from '../../src/asset-swapper/utils/market_operation_utils/comparison_price';
 import { SourceFilters } from '../../src/asset-swapper/utils/market_operation_utils/source_filters';
 import { DexSample, MarketSideLiquidity } from '../../src/asset-swapper/utils/market_operation_utils/types';
@@ -34,7 +34,7 @@ const uniswapSample1: DexSample = {
 };
 const dexQuotes: DexSample[] = [curveSample, uniswapSample1];
 
-const nativeOrderFeeEstimate: FeeEstimate = _.constant({
+const nativeOrderFeeEstimate: FeeEstimateFn = _.constant({
     gas: NATIVE_ORDER_GAS,
     fee: GAS_PRICE.times(NATIVE_ORDER_GAS),
 });

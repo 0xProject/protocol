@@ -513,11 +513,11 @@ export enum ERC20BridgeSource {
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface FillData {}
 
-export type FeeEstimate = (fillData: FillData) => { gas: number; fee: BigNumber };
-export type FeeSchedule = Record<ERC20BridgeSource, FeeEstimate>;
+export type FeeEstimateFn = (fillData: FillData) => { gas: number; fee: BigNumber };
+export type FeeSchedule = Record<ERC20BridgeSource, FeeEstimateFn>;
 
-type GasEstimate = (fillData: FillData) => number;
-export type GasSchedule = Record<ERC20BridgeSource, GasEstimate>;
+type GasEstimateFn = (fillData: FillData) => number;
+export type GasSchedule = Record<ERC20BridgeSource, GasEstimateFn>;
 
 export interface FillBase {
     // Input fill amount (taker asset amount in a sell, maker asset amount in a buy).

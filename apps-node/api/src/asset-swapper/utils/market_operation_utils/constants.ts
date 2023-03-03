@@ -3,6 +3,7 @@ import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { formatBytes32String, parseBytes32String } from '@ethersproject/strings';
 import { Set } from 'immutable';
+import * as _ from 'lodash';
 
 import { TokenAdjacencyGraph, TokenAdjacencyGraphBuilder } from '../token_adjacency_graph';
 import { IdentityFillAdjustor } from './identity_fill_adjustor';
@@ -1950,14 +1951,8 @@ const uniswapV2CloneGasSchedule = (fillData?: FillData) => {
     return gas;
 };
 
-/**
- * Calculated gross gas cost of the underlying exchange.
- * The cost of switching from one source to another, assuming
- * we are in the middle of a transaction.
- * I.e remove the overhead cost of ExchangeProxy (130k) and
- * the ethereum transaction cost (21k)
- */
-export const DEFAULT_GAS_SCHEDULE: GasSchedule = {
+// Do not directly use UNSAFE_GAS_SCHEDULE. Use DEFAULT_GAS_SCHEDULE below instead.
+const UNSAFE_GAS_SCHEDULE: GasSchedule = {
     [ERC20BridgeSource.Native]: (fillData) => {
         // TODO jacob re-order imports so there is no circular rependency with SignedNativeOrder
         const nativeFillData = fillData as { type: FillQuoteTransformerOrderType };
@@ -2090,12 +2085,12 @@ export const DEFAULT_GAS_SCHEDULE: GasSchedule = {
             // y = a*x + b where y is actual gas used and x is the raw gas estimate
             // for test data, b was calculated to be ~550k
             // since FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD = 150k, we set b to 400k
-            return Math.ceil(dexFillData.gasUsed * 2.8) + 400e3;
+            return dexFillData.gasUsed * 2.8 + 400e3;
         }
         const pathAmountsWithGasUsed = dexFillData.pathAmounts.filter((p) => p.gasUsed > 0);
         const medianGasUsedForPath =
             pathAmountsWithGasUsed[Math.floor(pathAmountsWithGasUsed.length / 2)]?.gasUsed ?? 0;
-        return Math.ceil(medianGasUsedForPath * 2.8) + 400e3;
+        return medianGasUsedForPath * 2.8 + 400e3;
     },
     [ERC20BridgeSource.Lido]: (fillData?: FillData) => {
         const lidoFillData = fillData as LidoFillData;
@@ -2200,29 +2195,14 @@ export const DEFAULT_GAS_SCHEDULE: GasSchedule = {
             }
         }
     },
-    //
-    // Polygon
-    //
     [ERC20BridgeSource.QuickSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.Dfyn]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.MeshSwap]: uniswapV2CloneGasSchedule,
-
-    //
-    // Avalanche
-    //
     [ERC20BridgeSource.Pangolin]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.TraderJoe]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.GMX]: () => 450e3,
     [ERC20BridgeSource.Platypus]: () => 450e3,
-
-    //
-    // Celo
-    //
     [ERC20BridgeSource.UbeSwap]: uniswapV2CloneGasSchedule,
-
-    //
-    // Fantom
-    //
     [ERC20BridgeSource.MorpheusSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.SpiritSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.SpookySwap]: uniswapV2CloneGasSchedule,
@@ -2234,12 +2214,19 @@ export const DEFAULT_GAS_SCHEDULE: GasSchedule = {
         }
         return 305e3 + (balancerFillData.swapSteps.length - 1) * 100e3;
     },
-    //
-    // Optimism
-    //
     [ERC20BridgeSource.Velodrome]: () => 160e3,
     [ERC20BridgeSource.Dystopia]: () => 160e3,
 };
+
+/**
+ * Calculated gross gas cost of the underlying liquidty source.
+ *
+ * It excludes ExchangeProxy overhead and Ethereum transaction cost).
+ */
+export const DEFAULT_GAS_SCHEDULE: GasSchedule = _.mapValues(UNSAFE_GAS_SCHEDULE, (gasEstimateFn) => {
+    // gas esitmate must be integer.
+    return (fillData: FillData) => Math.ceil(gasEstimateFn(fillData));
+});
 
 const DEFAULT_FEE_SCHEDULE: FeeSchedule = Object.keys(DEFAULT_GAS_SCHEDULE).reduce((acc, key) => {
     acc[key as ERC20BridgeSource] = (fillData: FillData) => {

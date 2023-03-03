@@ -17,7 +17,7 @@ import {
     ExtendedQuoteReportSources,
     QuoteReport,
     SignedLimitOrder,
-    FeeEstimate,
+    FeeEstimateFn,
     ExchangeProxyOverhead,
     FillData,
 } from '../../types';
@@ -783,7 +783,7 @@ export class MarketOperationUtils {
         marketSideLiquidity: MarketSideLiquidity;
         amount: BigNumber;
         optimizerOpts: GenerateOptimizedOrdersOpts;
-        nativeOrderFeeEstimate: FeeEstimate;
+        nativeOrderFeeEstimate: FeeEstimateFn;
         exchangeProxyOverhead: ExchangeProxyOverhead;
     }): { optimizerResult?: OptimizerResult; wholeOrderPrice?: BigNumber } {
         let optimizerResult: OptimizerResult | undefined;

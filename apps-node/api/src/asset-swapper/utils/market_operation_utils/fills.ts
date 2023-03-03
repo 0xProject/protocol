@@ -5,7 +5,7 @@ import {
     MarketOperation,
     NativeOrderWithFillableAmounts,
     ERC20BridgeSource,
-    FeeEstimate,
+    FeeEstimateFn,
     FeeSchedule,
     Fill,
 } from '../../types';
@@ -142,7 +142,7 @@ export function twoHopSampleToFill(
     side: MarketOperation,
     twoHopSample: DexSample<MultiHopFillData>,
     outputAmountPerEth: BigNumber,
-    multihopFeeEstimate: FeeEstimate,
+    multihopFeeEstimate: FeeEstimateFn,
 ): Fill {
     const { fillData } = twoHopSample;
 

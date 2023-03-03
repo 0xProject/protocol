@@ -1,6 +1,7 @@
 import * as chai from 'chai';
 import 'mocha';
 import { DEFAULT_GAS_SCHEDULE, ERC20BridgeSource, FillQuoteTransformerOrderType } from '../../src/asset-swapper';
+import { FinalTickDEXMultiPathFillData } from '../../src/asset-swapper/utils/market_operation_utils/types';
 
 import { chaiSetup } from './utils/chai_setup';
 
@@ -42,5 +43,16 @@ describe('DEFAULT_GAS_SCHEDULE', () => {
         const fillData = { type: FillQuoteTransformerOrderType.Bridge };
         const gasSchedule = DEFAULT_GAS_SCHEDULE[ERC20BridgeSource.Native](fillData);
         expect(gasSchedule).to.eq(100e3);
+    });
+
+    it('Returns rounded up gas estimate', () => {
+        const fillData: FinalTickDEXMultiPathFillData = {
+            gasUsed: 100e3 + 1,
+            path: 'fake-path',
+            tokenAddressPath: [],
+            router: '',
+        };
+        const gasSchedule = DEFAULT_GAS_SCHEDULE[ERC20BridgeSource.QuickSwapV3](fillData);
+        expect(gasSchedule).to.eq(680_003); // Math.ceil(683002.8)
     });
 });
