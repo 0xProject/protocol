@@ -18,7 +18,7 @@
 */
 pragma solidity ^0.8.19;
 
-interface IZeroExSecurityCouncil {
+interface ISecurityCouncil {
     event SecurityCouncilAssigned(address securityCouncil);
 
     event SecurityCouncilEjected();
