@@ -287,6 +287,27 @@ abstract contract ZeroExGovernorBaseTest is BaseTest {
         setSecurityCouncil(account1);
     }
 
+    function testCannotPassABadProposalToSetSecurityCouncil() public {
+        setSecurityCouncil(address(0));
+
+        address[] memory targets = new address[](2);
+        targets[0] = address(governor);
+        targets[1] = address(callReceiverMock);
+
+        uint256[] memory values = new uint256[](2);
+        values[0] = 0;
+        values[1] = 0;
+
+        bytes[] memory calldatas = new bytes[](2);
+        calldatas[0] = abi.encodeWithSelector(governor.assignSecurityCouncil.selector, account1);
+        calldatas[1] = abi.encodeWithSignature("mockFunction()");
+
+        vm.roll(2);
+        vm.startPrank(account2);
+        vm.expectRevert("SecurityCouncil: there should be exactly 1 transaction in proposal");
+        governor.propose(targets, values, calldatas, "Assign new security council");
+    }
+
     function testCanUpdateVotingDelaySetting() public {
         // Create a proposal
         address[] memory targets = new address[](1);

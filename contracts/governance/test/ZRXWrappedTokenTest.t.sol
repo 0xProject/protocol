@@ -45,8 +45,7 @@ contract ZRXWrappedTokenTest is BaseTest {
         assertEq(wZRXName, "Wrapped ZRX");
     }
 
-    function shouldReturnCorrectNumberOfDecimals() public {
-        // TODO: decimals is set to 0
+    function testshouldReturnCorrectNumberOfDecimals() public {
         uint8 wZRXDecimals = wToken.decimals();
         assertEq(wZRXDecimals, 18);
     }
