@@ -46,7 +46,7 @@ contract ZRXWrappedToken is ERC20, ERC20Permit, ERC20Wrapper {
     // The functions below are the required overrides from the base contracts
 
     function decimals() public view override(ERC20, ERC20Wrapper) returns (uint8) {
-        super.decimals();
+        return 18;
     }
 
     function _afterTokenTransfer(address from, address to, uint256 amount) internal override(ERC20) {
@@ -67,8 +67,6 @@ contract ZRXWrappedToken is ERC20, ERC20Permit, ERC20Wrapper {
         super._mint(account, amount);
 
         // Snapshots the totalSupply after it has been increased.
-        require(totalSupply() <= _maxSupply(), "ERC20Votes: total supply risks overflowing votes");
-
         zeroExVotes.writeCheckpointTotalSupplyMint(account, amount, balanceOf(account));
     }
 
