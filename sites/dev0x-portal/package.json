@@ -36,6 +36,7 @@
         "remix-auth": "^3.4.0",
         "remix-auth-form": "^1.3.0",
         "remix-auth-socials": "^2.0.4",
+        "remix-utils": "^6.0.0",
         "tailwind-merge": "^1.10.0",
         "tailwind-variants": "^0.0.30",
         "zod": "^3.20.6"

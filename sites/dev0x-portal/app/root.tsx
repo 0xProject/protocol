@@ -1,5 +1,7 @@
 import type { LinksFunction, MetaFunction } from '@remix-run/node';
 import { Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration } from '@remix-run/react';
+import { createPortal } from 'react-dom';
+import { ClientOnly } from 'remix-utils';
 
 import styles from './styles/tailwind.css';
 
@@ -21,19 +23,23 @@ export const links: LinksFunction = () => [
     },
 ];
 
+export function Head() {
+    return (
+        <>
+            <Meta />
+            <Links />
+        </>
+    );
+}
+
 export default function App() {
     return (
-        <html lang="en">
-            <head>
-                <Meta />
-                <Links />
-            </head>
-            <body>
-                <Outlet />
-                <ScrollRestoration />
-                <Scripts />
-                <LiveReload />
-            </body>
-        </html>
+        <>
+            <ClientOnly>{() => createPortal(<Head />, document.head)}</ClientOnly>
+            <Outlet />
+            <ScrollRestoration />
+            <Scripts />
+            <LiveReload />
+        </>
     );
 }
