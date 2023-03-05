@@ -45,7 +45,7 @@ contract ZRXWrappedTokenTest is BaseTest {
         assertEq(wZRXName, "Wrapped ZRX");
     }
 
-    function testshouldReturnCorrectNumberOfDecimals() public {
+    function testShouldReturnCorrectNumberOfDecimals() public {
         uint8 wZRXDecimals = wToken.decimals();
         assertEq(wZRXDecimals, 18);
     }
@@ -284,6 +284,38 @@ contract ZRXWrappedTokenTest is BaseTest {
         // Check quadratic voting power is now = sqrt(token balance)
         votingQuadraticPowerAccount3 = votes.getQuadraticVotes(account3);
         assertEq(votingQuadraticPowerAccount3, Math.sqrt(10e18));
+    }
+
+    function testShouldBeAbleToDelegateVotingPowerToAnotherAccountWithSignature() public {
+        uint256 nonce = 0;
+        uint256 expiry = type(uint256).max;
+        uint256 privateKey = 2;
+
+        // Account 2 wraps ZRX and delegates voting power to account3
+        vm.startPrank(account2);
+        token.approve(address(wToken), 10e18);
+        wToken.depositFor(account2, 10e18);
+        vm.stopPrank();
+
+        assertEq(wToken.delegates(account2), address(0));
+        assertEq(votes.getVotes(account3), 0);
+        assertEq(votes.getQuadraticVotes(account3), 0);
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
+            privateKey,
+            keccak256(
+                abi.encodePacked(
+                    "\x19\x01",
+                    wToken.DOMAIN_SEPARATOR(),
+                    keccak256(abi.encode(DELEGATION_TYPEHASH, account3, nonce, expiry))
+                )
+            )
+        );
+        wToken.delegateBySig(account3, nonce, expiry, v, r, s);
+
+        assertEq(wToken.delegates(account2), account3);
+        assertEq(votes.getVotes(account3), 10e18);
+        assertEq(votes.getQuadraticVotes(account3), Math.sqrt(10e18));
     }
 
     function testMultipleAccountsShouldBeAbleToDelegateVotingPowerToAccountWithNoTokensOnSameBlock() public {

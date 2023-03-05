@@ -37,6 +37,9 @@ contract BaseTest is Test {
     address payable internal account4 = payable(vm.addr(4));
     address payable internal securityCouncil = payable(vm.addr(5));
 
+    bytes32 internal constant DELEGATION_TYPEHASH =
+        keccak256("Delegation(address delegatee,uint256 nonce,uint256 expiry)");
+
     constructor() public {
         vm.deal(account1, 1e20);
         vm.deal(account2, 1e20);
