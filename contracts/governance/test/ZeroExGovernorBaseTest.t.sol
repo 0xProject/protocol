@@ -455,4 +455,10 @@ abstract contract ZeroExGovernorBaseTest is BaseTest {
         uint256 timelockDelay = timelock.getMinDelay();
         assertEq(timelockDelay, 7 days);
     }
+
+    function testSupportsGovernanceInterfaces() public {
+        assertTrue(governor.supportsInterface(type(IGovernorTimelock).interfaceId));
+        assertTrue(governor.supportsInterface(type(IGovernor).interfaceId));
+        assertTrue(governor.supportsInterface(type(IERC1155Receiver).interfaceId));
+    }
 }
