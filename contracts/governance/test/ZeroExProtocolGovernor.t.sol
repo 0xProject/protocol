@@ -149,7 +149,7 @@ contract ZeroExProtocolGovernorTest is ZeroExGovernorBaseTest {
             0,
             keccak256(bytes("Proposal description"))
         );
-        vm.expectRevert("TimelockController: Not a rollback call");
+        vm.expectRevert("ZeroExTimelock: not rollback");
         protocolGovernor.executeRollback(targets, values, calldatas, keccak256(bytes("Proposal description")));
     }
 
@@ -177,7 +177,7 @@ contract ZeroExProtocolGovernorTest is ZeroExGovernorBaseTest {
             keccak256(bytes("Emergency rollback"))
         );
 
-        vm.expectRevert("ZeroExProtocolGovernor: Only security council allowed");
+        vm.expectRevert("ZeroExProtocolGovernor: only security council allowed");
         protocolGovernor.executeRollback(targets, values, calldatas, keccak256(bytes("Emergency rollback")));
     }
 }

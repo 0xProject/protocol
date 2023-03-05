@@ -304,7 +304,7 @@ abstract contract ZeroExGovernorBaseTest is BaseTest {
 
         vm.roll(2);
         vm.startPrank(account2);
-        vm.expectRevert("SecurityCouncil: there should be exactly 1 transaction in proposal");
+        vm.expectRevert("SecurityCouncil: more than 1 transaction in proposal");
         governor.propose(targets, values, calldatas, "Assign new security council");
     }
 

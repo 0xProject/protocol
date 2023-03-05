@@ -48,8 +48,8 @@ contract ZeroExTimelock is TimelockController {
         bytes32 predecessor,
         bytes32 salt
     ) public payable onlyRoleOrOpenRole(EXECUTOR_ROLE) {
-        require(targets.length == values.length, "TimelockController: length mismatch");
-        require(targets.length == payloads.length, "TimelockController: length mismatch");
+        require(targets.length == values.length, "ZeroExTimelock: length mismatch");
+        require(targets.length == payloads.length, "ZeroExTimelock: length mismatch");
 
         bytes32 id = hashOperationBatch(targets, values, payloads, predecessor, salt);
 
@@ -61,7 +61,7 @@ contract ZeroExTimelock is TimelockController {
             // function signature for rollback(bytes4,address)
             // = bytes4(keccak256("rollback(bytes4,address)"))
             // = 0x9db64a40
-            require(bytes4(payload) == bytes4(0x9db64a40), "TimelockController: Not a rollback call");
+            require(bytes4(payload) == bytes4(0x9db64a40), "ZeroExTimelock: not rollback");
 
             _execute(target, value, payload);
             emit CallExecuted(id, i, target, value, payload);

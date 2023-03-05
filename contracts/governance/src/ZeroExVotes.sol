@@ -31,12 +31,12 @@ contract ZeroExVotes is IZeroExVotes {
     Checkpoint[] private _totalSupplyCheckpoints;
 
     modifier onlyToken() {
-        require(msg.sender == token, "Only the token is allowed to perform this operation");
+        require(msg.sender == token, "ZeroExVotes: only token allowed");
         _;
     }
 
     function initialize(address _token) public {
-        require(token == address(0), "ZeroExVotes: Already initialized");
+        require(token == address(0), "ZeroExVotes: already initialized");
         token = _token;
     }
 

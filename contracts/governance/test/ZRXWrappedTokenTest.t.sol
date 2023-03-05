@@ -240,7 +240,7 @@ contract ZRXWrappedTokenTest is BaseTest {
     }
 
     function testShouldNotBeAbleToReinitialiseTheZeroExVotes() public {
-        vm.expectRevert("ZeroExVotes: Already initialized");
+        vm.expectRevert("ZeroExVotes: already initialized");
         votes.initialize(account2);
     }
 

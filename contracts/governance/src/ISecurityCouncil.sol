@@ -26,7 +26,7 @@ abstract contract ISecurityCouncil {
     event SecurityCouncilEjected();
 
     modifier onlySecurityCouncil() {
-        require(msg.sender == securityCouncil, "ZeroExProtocolGovernor: Only security council allowed");
+        require(msg.sender == securityCouncil, "ZeroExProtocolGovernor: only security council allowed");
         _;
     }
 
@@ -56,7 +56,7 @@ abstract contract ISecurityCouncil {
     ) public virtual;
 
     function _payloadIsAssignSecurityCouncil(bytes[] memory payloads) private pure returns (bool) {
-        require(payloads.length == 1, "SecurityCouncil: there should be exactly 1 transaction in proposal");
+        require(payloads.length == 1, "SecurityCouncil: more than 1 transaction in proposal");
         bytes memory payload = payloads[0];
         // Check this is as assignSecurityCouncil(address) transaction
         // function signature for assignSecurityCouncil(address)
