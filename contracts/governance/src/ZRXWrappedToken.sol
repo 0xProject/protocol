@@ -56,13 +56,6 @@ contract ZRXWrappedToken is ERC20, ERC20Permit, ERC20Wrapper {
         zeroExVotes.movePartialVotingPower(delegates(from), delegates(to), balanceOf(from), balanceOf(to), amount);
     }
 
-    /**
-     * @dev Maximum token supply. Defaults to `type(uint224).max` (2^224^ - 1).
-     */
-    function _maxSupply() internal view virtual returns (uint224) {
-        return type(uint224).max;
-    }
-
     function _mint(address account, uint256 amount) internal override(ERC20) {
         super._mint(account, amount);
 
