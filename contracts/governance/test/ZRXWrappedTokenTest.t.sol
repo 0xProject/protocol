@@ -318,6 +318,33 @@ contract ZRXWrappedTokenTest is BaseTest {
         assertEq(votes.getQuadraticVotes(account3), Math.sqrt(10e18));
     }
 
+    function testShouldNotBeAbleToDelegateWithSignatureAfterExpiry() public {
+        uint256 nonce = 0;
+        uint256 expiry = block.timestamp;
+        uint256 privateKey = 2;
+
+        // Account 2 wraps ZRX and delegates voting power to account3
+        vm.startPrank(account2);
+        token.approve(address(wToken), 10e18);
+        wToken.depositFor(account2, 10e18);
+        vm.stopPrank();
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
+            privateKey,
+            keccak256(
+                abi.encodePacked(
+                    "\x19\x01",
+                    wToken.DOMAIN_SEPARATOR(),
+                    keccak256(abi.encode(DELEGATION_TYPEHASH, account3, nonce, expiry))
+                )
+            )
+        );
+
+        vm.warp(block.timestamp + 1);
+        vm.expectRevert("ERC20Votes: signature expired");
+        wToken.delegateBySig(account3, nonce, expiry, v, r, s);
+    }
+
     function testMultipleAccountsShouldBeAbleToDelegateVotingPowerToAccountWithNoTokensOnSameBlock() public {
         // Check account4 voting power initially is 0
         uint256 votingPowerAccount4 = votes.getVotes(account4);
