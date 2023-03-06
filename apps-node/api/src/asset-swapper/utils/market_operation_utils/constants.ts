@@ -395,7 +395,7 @@ export const FEE_QUOTE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.Lido,
         ],
-        [ChainId.BSC]: [ERC20BridgeSource.PancakeSwap, ERC20BridgeSource.Mooniswap, ERC20BridgeSource.SushiSwap],
+        [ChainId.BSC]: [ERC20BridgeSource.PancakeSwapV2, ERC20BridgeSource.SushiSwap],
         [ChainId.Goerli]: [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap],
         [ChainId.PolygonMumbai]: [ERC20BridgeSource.UniswapV3],
         [ChainId.Polygon]: [ERC20BridgeSource.QuickSwap, ERC20BridgeSource.SushiSwap, ERC20BridgeSource.UniswapV3],
