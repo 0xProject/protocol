@@ -280,6 +280,14 @@ describe('Rfqt Service', () => {
             rfqmUri: null,
             rfqtUri: 'maker.uri',
         });
+        const maker2 = new RfqMaker({
+            makerId: 'maker2-id',
+            chainId: 1337,
+            updatedAt: new Date(),
+            pairs: [['0x1', '0x2']],
+            rfqmUri: null,
+            rfqtUri: 'maker2.uri',
+        });
         const integrator: Integrator = {
             allowedChainIds: [1337], // tslint:disable-line: custom-no-magic-numbers
             apiKeys: [],
@@ -680,6 +688,7 @@ describe('Rfqt Service', () => {
         describe('getV2QuotesAsync', () => {
             const makerToken = '0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE';
             const makerAddress = '0x79b7a69d90c82E014Bf0315e164208119B510FA0';
+            const maker2Address = '0xe1bA72a87fb38bd7323f61177f158Fbb2D4549f4';
             const takerToken = '0x42d6622deCe394b54999Fbd73D108123806f6a18';
             const takerAddress = '0xE06fFA8146bBdECcBaaF72B6043b29091071AEB8';
             const fakeNow = new Date(1657069278103);
@@ -745,6 +754,117 @@ describe('Rfqt Service', () => {
                 const result = await rfqtService.getV2QuotesAsync(quoteContext);
 
                 expect(result.length).toEqual(0);
+            });
+
+            it('filters out quotes with no signatures and still handles fillable amounts correctly', async () => {
+                const quoteContext: FirmQuoteContext = {
+                    isFirm: true,
+                    workflow: 'rfqt',
+                    isUnwrap: false,
+                    originalMakerToken: '0x1',
+                    takerTokenDecimals: 18,
+                    makerTokenDecimals: 18,
+                    feeModelVersion: 1,
+                    assetFillAmount: new BigNumber(1000),
+                    chainId: 1337,
+                    integrator,
+                    makerToken,
+                    isSelling: false,
+                    takerAddress,
+                    trader: takerAddress,
+                    takerToken,
+                    txOrigin: takerAddress,
+                };
+
+                mockRfqMakerManager.getRfqtV2MakersForPair = jest.fn().mockReturnValue([maker, maker2]);
+                mockQuoteServerClient.batchGetPriceV2Async = jest.fn().mockResolvedValue([
+                    {
+                        maker: makerAddress,
+                        makerUri: maker.rfqtUri,
+                        makerToken,
+                        takerToken,
+                        makerAmount: new BigNumber(999),
+                        takerAmount: new BigNumber(1000),
+                        expiry,
+                    },
+                    {
+                        maker: maker2Address,
+                        makerUri: maker2.rfqtUri,
+                        makerToken,
+                        takerToken,
+                        makerAmount: new BigNumber(999),
+                        takerAmount: new BigNumber(1000),
+                        expiry,
+                    },
+                ]);
+                // First maker has no signature
+                mockQuoteServerClient.signV2Async = jest.fn().mockResolvedValueOnce(undefined).mockResolvedValueOnce({
+                    v: 27,
+                    r: '0x123',
+                    s: '0x456',
+                    signatureType: SignatureType.EIP712,
+                });
+                mockFeeService.calculateFeeAsync = jest.fn().mockResolvedValue({
+                    feeWithDetails: {
+                        token: '0x0b1ba0af832d7c05fd64161e0db78e85978e8082',
+                        amount: new BigNumber(100),
+                        type: 'fixed',
+                    },
+                });
+
+                // Second maker has a smaller fillable amount
+                mockRfqMakerBalanceCacheService.getERC20OwnerBalancesAsync = jest
+                    .fn()
+                    .mockResolvedValue([new BigNumber(1000), new BigNumber(100)]);
+
+                const rfqtService = new RfqtService(
+                    1337, // tslint:disable-line: custom-no-magic-numbers
+                    mockRfqMakerManager,
+                    mockQuoteRequestor,
+                    mockQuoteServerClient,
+                    DEFAULT_MIN_EXPIRY_DURATION_MS,
+                    mockRfqBlockchainUtils,
+                    mockTokenMetadataManager,
+                    mockContractAddresses,
+                    mockFeeService,
+                    1,
+                    mockRfqMakerBalanceCacheService,
+                    mockCacheClient,
+                );
+
+                const result = await rfqtService.getV2QuotesAsync(quoteContext, fakeNow);
+                const order = new OtcOrder({
+                    chainId: 1337,
+                    makerAmount: new BigNumber(999),
+                    takerAmount: new BigNumber(1000),
+                    taker: NULL_ADDRESS,
+                    makerToken,
+                    takerToken,
+                    maker: maker2Address,
+                    txOrigin: quoteContext.txOrigin,
+                    expiryAndNonce: new BigNumber(
+                        '10401598717691489530826623925864187439861993812812831231287826374367',
+                    ),
+                    verifyingContract: mockContractAddresses.exchangeProxy,
+                });
+
+                expect(result.length).toEqual(1);
+                expect(result).toEqual([
+                    {
+                        fillableMakerAmount: new BigNumber(100),
+                        fillableTakerAmount: new BigNumber(100),
+                        fillableTakerFeeAmount: new BigNumber(0),
+                        makerId: maker2.makerId,
+                        makerUri: maker2.rfqtUri,
+                        order,
+                        signature: {
+                            v: 27,
+                            r: '0x0000000000000000000000000000000000000000000000000000000000000123',
+                            s: '0x0000000000000000000000000000000000000000000000000000000000000456',
+                            signatureType: SignatureType.EIP712,
+                        },
+                    },
+                ]);
             });
 
             it("doesn't blow up if a sign request fails", async () => {

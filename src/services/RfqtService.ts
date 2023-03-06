@@ -410,19 +410,28 @@ export class RfqtService {
         }
 
         const fillableAmounts = getRfqtV2FillableAmounts(prices, this._chainId, quotedMakerBalances);
+        const tuples = pricesAndOrdersAndSignatures.map(({ price, order, signature }, i) => ({
+            price,
+            order,
+            signature,
+            fillableAmount: fillableAmounts[i],
+        }));
 
-        const quotes = pricesAndOrdersAndSignatures
-            .filter((pos) => pos.signature)
-            .map(({ price, order, signature }, i) => ({
-                ...fillableAmounts[i],
-                fillableTakerFeeAmount: new BigNumber(0),
-                makerId: price.makerId,
-                makerUri: price.makerUri,
-                order,
-                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                signature: signature!, // `null` signatures already filtered out
-            }));
+        const quotes = tuples
+            .filter(({ signature }) => signature !== null)
+            .map(({ price, order, signature, fillableAmount }) => {
+                const { makerUri, makerId } = price;
+                return {
+                    ...fillableAmount,
+                    fillableTakerFeeAmount: new BigNumber(0),
+                    makerUri,
+                    makerId,
+                    order,
+                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    signature: signature!, // `null` signatures already filtered out
+                };
+            });
 
         // Write to Fee Event Report
         if (this._kafkaProducer) {
