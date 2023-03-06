@@ -1,7 +1,6 @@
 /**
  * Runs the RFQM MetaTransaction Consumer
  */
-import { pino } from '@0x/api-utils';
 import * as Sentry from '@sentry/node';
 // Workaround for Sentry tracing to work: https://github.com/getsentry/sentry-javascript/issues/4731
 import '@sentry/tracing';
@@ -44,25 +43,20 @@ const RFQM_JOB_DEQUEUED = new Counter({
 
 const redisInstances: Redis[] = [];
 
-process.on(
-    'uncaughtException',
-    // see https://github.com/pinojs/pino/blob/master/docs/help.md#exit-logging
-    pino.final(logger, (error, finalLogger) => {
-        finalLogger.error(
-            { errorMessage: error.message, workerGroupIndex: RFQM_WORKER_GROUP_INDEX },
-            'RFQM worker group exiting due to uncaught exception',
-        );
-        process.exit(1);
-    }),
-);
+process.on('uncaughtException', (e) => {
+    logger.error(
+        { errorMessage: e.message, workerGroupIndex: RFQM_WORKER_GROUP_INDEX },
+        'RFQM worker group exiting due to uncaught exception',
+    );
+    process.exit(1);
+});
 
 process.on('unhandledRejection', (reason, promise) => {
-    const finalLogger = pino.final(logger);
     let errorMessage = '';
     if (reason instanceof Error) {
         errorMessage = reason.message;
     }
-    finalLogger.error(
+    logger.error(
         { errorMessage, promise, workerGroupIndex: RFQM_WORKER_GROUP_INDEX },
         'RFQM worker group exiting due to unhandled rejection',
     );

@@ -1,4 +1,4 @@
-import { createDefaultServer, HttpServiceConfig, pino } from '@0x/api-utils';
+import { createDefaultServer, HttpServiceConfig } from '@0x/api-utils';
 import * as Sentry from '@sentry/node';
 import * as Tracing from '@sentry/tracing';
 import Axios from 'axios';
@@ -48,29 +48,25 @@ import { TokenPriceOracle } from '../utils/TokenPriceOracle';
 const redisInstances: Redis[] = [];
 
 process.on('uncaughtException', (e) => {
-    const finalLogger = pino.final(logger);
-    finalLogger.error(e);
+    logger.error(e);
     process.exit(1);
 });
 
 process.on('unhandledRejection', (e) => {
     if (e && e instanceof Error) {
-        const finalLogger = pino.final(logger);
-        finalLogger.error(e);
+        logger.error(e);
     }
 });
 
 process.on('SIGTERM', async () => {
-    const finalLogger = pino.final(logger);
-    finalLogger.info('Received SIGTERM. Start to shutdown gasless swap service');
+    logger.info('Received SIGTERM. Start to shutdown gasless swap service');
     await closeRedisConnectionsAsync(redisInstances);
     process.exit(0);
 });
 
 // Used for shutting down locally
 process.on('SIGINT', async () => {
-    const finalLogger = pino.final(logger);
-    finalLogger.info('Received SIGINT. Start to shutdown gasless swap service');
+    logger.info('Received SIGINT. Start to shutdown gasless swap service');
     await closeRedisConnectionsAsync(redisInstances);
     process.exit(0);
 });

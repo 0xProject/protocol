@@ -1,4 +1,4 @@
-import { pino } from '@0x/api-utils';
+import pino from 'pino';
 import { BigNumber } from '@0x/utils';
 import { createHash } from 'crypto';
 

@@ -1,4 +1,5 @@
-import { pino, ValidationError, ValidationErrorCodes, ValidationErrorItem } from '@0x/api-utils';
+import { ValidationError, ValidationErrorCodes, ValidationErrorItem } from '@0x/api-utils';
+import pino from 'pino';
 import { MetaTransaction, MetaTransactionFields } from '@0x/protocol-utils';
 import { EIP712DomainWithDefaultSchema } from '@0x/types';
 import { BigNumber } from '@0x/utils';

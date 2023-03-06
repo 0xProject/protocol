@@ -1,7 +1,6 @@
 /**
  * This runner script creates workers that would process background jobs from queues when available.
  */
-import { pino } from '@0x/api-utils';
 import { Job, Worker } from 'bullmq';
 import Redis from 'ioredis';
 import { Counter } from 'prom-client';
@@ -21,28 +20,22 @@ const BACKGROUND_JOB_EVENTS_COUNT = new Counter({
     help: 'Number of events for a background job type',
 });
 
-process.on('uncaughtException', async (error) => {
-    const finalLogger = pino.final(logger);
-    finalLogger.error({ errorMessage: error.message, stack: error.stack }, 'uncaughtException in processor_runner');
+process.on('uncaughtException', (error) => {
+    logger.error({ errorMessage: error.message, stack: error.stack }, 'uncaughtException in processor_runner');
     process.exit(1);
 });
 
-process.on('unhandledRejection', async (reason, promise) => {
-    const finalLogger = pino.final(logger);
+process.on('unhandledRejection', (reason, promise) => {
     if (reason instanceof Error) {
-        finalLogger.error(
-            { errorMessage: reason, stack: reason.stack, promise },
-            'unhandledRejection in processor_runner',
-        );
+        logger.error({ errorMessage: reason, stack: reason.stack, promise }, 'unhandledRejection in processor_runner');
     } else {
-        finalLogger.error('unhandledRejection in processor_runner');
+        logger.error('unhandledRejection in processor_runner');
     }
     process.exit(1);
 });
 
 process.on('SIGTERM', async () => {
-    const finalLogger = pino.final(logger);
-    finalLogger.info('Received SIGTERM. Start to shutdown workers and redis connections');
+    logger.info('Received SIGTERM. Start to shutdown workers and redis connections');
     await closeWorkersAsync(workers);
     await closeRedisConnectionsAsync(connections);
     process.exit(0);
@@ -50,8 +43,7 @@ process.on('SIGTERM', async () => {
 
 // Used for shutting down locall y
 process.on('SIGINT', async () => {
-    const finalLogger = pino.final(logger);
-    finalLogger.info('Received SIGINT. Start to shutdown workers and redis connections');
+    logger.info('Received SIGINT. Start to shutdown workers and redis connections');
     await closeWorkersAsync(workers);
     await closeRedisConnectionsAsync(connections);
     process.exit(0);

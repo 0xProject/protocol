@@ -1,7 +1,7 @@
 /**
  * This runner script creates the bull board to visualize queues.
  */
-import { createDefaultServer, HttpServiceConfig, pino } from '@0x/api-utils';
+import { createDefaultServer, HttpServiceConfig } from '@0x/api-utils';
 import { createBullBoard } from '@bull-board/api';
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 import { ExpressAdapter } from '@bull-board/express';
@@ -20,35 +20,28 @@ const BULLMQ_UI_PORT = 3002;
 const connections: Redis[] = [];
 
 process.on('uncaughtException', async (error) => {
-    const finalLogger = pino.final(logger);
-    finalLogger.error({ errorMessage: error.message, stack: error.stack }, 'uncaughtException in bull_board_runner');
+    logger.error({ errorMessage: error.message, stack: error.stack }, 'uncaughtException in bull_board_runner');
     process.exit(1);
 });
 
 process.on('unhandledRejection', async (reason, promise) => {
-    const finalLogger = pino.final(logger);
     if (reason instanceof Error) {
-        finalLogger.error(
-            { errorMessage: reason, stack: reason.stack, promise },
-            'unhandledRejection in bull_board_runner',
-        );
+        logger.error({ errorMessage: reason, stack: reason.stack, promise }, 'unhandledRejection in bull_board_runner');
     } else {
-        finalLogger.error('unhandledRejection in scheduler_runner');
+        logger.error('unhandledRejection in scheduler_runner');
     }
     process.exit(1);
 });
 
 process.on('SIGTERM', async () => {
-    const finalLogger = pino.final(logger);
-    finalLogger.info('Received SIGTERM. Start to shutdown the bull board and redis connections');
+    logger.info('Received SIGTERM. Start to shutdown the bull board and redis connections');
     await closeRedisConnectionsAsync(connections);
     process.exit(0);
 });
 
 // Used for shutting down locally
 process.on('SIGINT', async () => {
-    const finalLogger = pino.final(logger);
-    finalLogger.info('Received SIGINT. Start to shutdown the bull board and redis connections');
+    logger.info('Received SIGINT. Start to shutdown the bull board and redis connections');
     await closeRedisConnectionsAsync(connections);
     process.exit(0);
 });

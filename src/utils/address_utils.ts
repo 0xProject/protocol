@@ -9,7 +9,7 @@ import { ERC20Owner } from '../core/types';
  * Checks top level attributes of an object for values matching an ETH address
  * and normalizes the address by turning it to lowercase
  */
-export const objectETHAddressNormalizer = <T>(obj: T) => {
+export const objectETHAddressNormalizer = <T extends Record<string, unknown>>(obj: T) => {
     // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const normalized: { [key: string]: any } = {};
