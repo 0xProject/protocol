@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { IconButton } from '../app/components/IconButton';
-import { HamburgerIcon } from '../app/icons/Hamburger';
+import { Bars } from '../app/icons/Bars';
 
 const meta = {
     title: 'Components/IconButton',
@@ -8,7 +8,7 @@ const meta = {
     tags: ['autodocs'],
     args: {
         className: '',
-        children: <HamburgerIcon />,
+        children: <Bars />,
     },
 } satisfies Meta<typeof IconButton>;
 
@@ -17,25 +17,25 @@ type Story = StoryObj<typeof IconButton>;
 
 export const Default: Story = {
     args: {
-        children: <HamburgerIcon color="#fff" />,
+        children: <Bars color="#fff" />,
     },
 };
 export const Grey: Story = {
     args: {
-        children: <HamburgerIcon color="black" />,
+        children: <Bars color="black" />,
         color: 'grey',
     },
 };
 export const Rounded: Story = {
     args: {
-        children: <HamburgerIcon />,
+        children: <Bars />,
         color: 'grey',
         roundness: 'lg',
     },
 };
 export const Transparent: Story = {
     args: {
-        children: <HamburgerIcon />,
+        children: <Bars />,
         color: 'transparent',
     },
 };
