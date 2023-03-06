@@ -59,7 +59,7 @@ export const createConfig = (postgresUri: string = POSTGRES_URI): DataSourceOpti
         max: 15,
         statement_timeout: 10000,
     },
-    migrations: ['./lib/migrations/*.js'],
+    migrations: ['./__build__/migrations/*.js'],
     ...(POSTGRES_READ_REPLICA_URIS
         ? {
               replication: {

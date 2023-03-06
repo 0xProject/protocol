@@ -8,7 +8,7 @@
         "module": "commonjs",
         "noUnusedLocals": false,
         "noUnusedParameters": false,
-        "outDir": "lib",
+        "outDir": "__build__",
         "resolveJsonModule": true,
         "skipLibCheck": true,
         "sourceMap": true,

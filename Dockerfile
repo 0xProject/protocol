@@ -26,4 +26,4 @@ COPY . .
 RUN yarn build
 
 EXPOSE 3000
-CMD [ "node", "lib/src/index.js" ]
+CMD [ "echo", "\"use the docker cli to run a command when starting the container\"" ]
