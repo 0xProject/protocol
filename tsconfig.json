@@ -15,7 +15,12 @@
         "strict": true,
         "target": "es2019",
         "types": ["jest", "node"],
-        "typeRoots": ["node_modules/@0x/typescript-typings/types", "node_modules/@types"],
+        "typeRoots": [
+            "../../node_modules/@0x/typescript-typings/types",
+            "../../node_modules/@types",
+            "node_modules/@0x/typescript-typings/types",
+            "node_modules/@types"
+        ],
         "useUnknownInCatchVariables": false
     },
     "include": [
