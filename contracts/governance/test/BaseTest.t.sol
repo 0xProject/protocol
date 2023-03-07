@@ -109,6 +109,4 @@ contract BaseTest is Test {
 
         return (zrxToken, token, votes);
     }
-
-    function test() public {}
 }
