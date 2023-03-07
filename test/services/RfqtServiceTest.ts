@@ -83,6 +83,7 @@ const mockRfqMakerBalanceCacheService = jest.mocked(
     new RfqMakerBalanceCacheService({} as CacheClient, {} as RfqBalanceCheckUtils),
 );
 const mockCacheClient = jest.mocked({} as CacheClient);
+const mockTokenPriceOracle = jest.mocked({} as TokenPriceOracle);
 
 describe('Rfqt Service', () => {
     beforeEach(() => {
@@ -108,6 +109,7 @@ describe('Rfqt Service', () => {
                     1,
                     mockRfqMakerBalanceCacheService,
                     mockCacheClient,
+                    mockTokenPriceOracle,
                 );
 
                 await rfqtService.getV1PricesAsync({
@@ -197,6 +199,7 @@ describe('Rfqt Service', () => {
                     1,
                     mockRfqMakerBalanceCacheService,
                     mockCacheClient,
+                    mockTokenPriceOracle,
                 );
 
                 await rfqtService.getV1QuotesAsync({
@@ -339,6 +342,7 @@ describe('Rfqt Service', () => {
                     1,
                     mockRfqMakerBalanceCacheService,
                     mockCacheClient,
+                    mockTokenPriceOracle,
                 );
 
                 await rfqtService.getV2PricesAsync(quoteContext);
@@ -416,6 +420,7 @@ describe('Rfqt Service', () => {
                     1,
                     mockRfqMakerBalanceCacheService,
                     mockCacheClient,
+                    mockTokenPriceOracle,
                 );
 
                 await rfqtService.getV2PricesAsync(quoteContext);
@@ -492,6 +497,7 @@ describe('Rfqt Service', () => {
                     1,
                     mockRfqMakerBalanceCacheService,
                     mockCacheClient,
+                    mockTokenPriceOracle,
                 );
 
                 await rfqtService.getV2PricesAsync(quoteContext);
@@ -582,6 +588,7 @@ describe('Rfqt Service', () => {
                     1,
                     mockRfqMakerBalanceCacheService,
                     mockCacheClient,
+                    mockTokenPriceOracle,
                 );
 
                 const result = await rfqtService.getV2PricesAsync(quoteContext);
@@ -666,6 +673,7 @@ describe('Rfqt Service', () => {
                     1,
                     mockRfqMakerBalanceCacheService,
                     mockCacheClient,
+                    mockTokenPriceOracle,
                 );
 
                 const result = await rfqtService.getV2PricesAsync(quoteContext);
@@ -749,6 +757,7 @@ describe('Rfqt Service', () => {
                     1,
                     mockRfqMakerBalanceCacheService,
                     mockCacheClient,
+                    mockTokenPriceOracle,
                 );
 
                 const result = await rfqtService.getV2QuotesAsync(quoteContext);
@@ -830,6 +839,7 @@ describe('Rfqt Service', () => {
                     1,
                     mockRfqMakerBalanceCacheService,
                     mockCacheClient,
+                    mockTokenPriceOracle,
                 );
 
                 const result = await rfqtService.getV2QuotesAsync(quoteContext, fakeNow);
@@ -921,6 +931,7 @@ describe('Rfqt Service', () => {
                     1,
                     mockRfqMakerBalanceCacheService,
                     mockCacheClient,
+                    mockTokenPriceOracle,
                 );
 
                 const result = await rfqtService.getV2QuotesAsync(quoteContext);
@@ -996,6 +1007,7 @@ describe('Rfqt Service', () => {
                     1,
                     mockRfqMakerBalanceCacheService,
                     mockCacheClient,
+                    mockTokenPriceOracle,
                 );
 
                 const result = await rfqtService.getV2QuotesAsync(quoteContext, fakeNow);
@@ -1079,6 +1091,7 @@ describe('Rfqt Service', () => {
                     1,
                     mockRfqMakerBalanceCacheService,
                     mockCacheClient,
+                    mockTokenPriceOracle,
                 );
 
                 const result = await rfqtService.getV2QuotesAsync(quoteContext, fakeNow);
@@ -1153,6 +1166,7 @@ describe('Rfqt Service', () => {
                     1,
                     mockRfqMakerBalanceCacheService,
                     mockCacheClient,
+                    mockTokenPriceOracle,
                 );
 
                 const result = await rfqtService.getV2QuotesAsync(quoteContext, fakeNow);

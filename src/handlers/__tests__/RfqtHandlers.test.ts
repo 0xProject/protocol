@@ -24,6 +24,7 @@ import { RfqtHandlers } from '../RfqtHandlers';
 import { RfqBlockchainUtils } from '../../utils/rfq_blockchain_utils';
 import { DEFAULT_MIN_EXPIRY_DURATION_MS } from '../../core/constants';
 import { CacheClient } from '../../utils/cache_client';
+import { TokenPriceOracle } from '../../utils/TokenPriceOracle';
 
 jest.mock('../../services/RfqtService', () => {
     return {
@@ -33,6 +34,7 @@ jest.mock('../../services/RfqtService', () => {
                 getV1QuotesAsync: jest.fn(),
                 getV2PricesAsync: jest.fn(),
                 getV2QuotesAsync: jest.fn(),
+                getVolumeUSDAsync: jest.fn(),
             };
         }),
     };
@@ -63,6 +65,7 @@ const mockRfqtService = jest.mocked(
         1,
         {} as RfqMakerBalanceCacheService,
         {} as CacheClient,
+        {} as TokenPriceOracle,
     ),
 );
 // Jest workaround for getter
@@ -788,6 +791,7 @@ describe('RfqtHandlers', () => {
                     "takerTokenDecimals": 18,
                     "trader": "0xtakeraddress",
                     "txOrigin": "0xtxorigin",
+                    "volumeUSD": undefined,
                     "workflow": "rfqt",
                   },
                 ]
@@ -955,6 +959,7 @@ describe('RfqtHandlers', () => {
                     "takerTokenDecimals": 18,
                     "trader": "0xtakeraddress",
                     "txOrigin": "0xtxorigin",
+                    "volumeUSD": undefined,
                     "workflow": "rfqt",
                   },
                 ]

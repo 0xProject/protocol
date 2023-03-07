@@ -381,6 +381,11 @@ export class RfqtHandlers {
         }
         const takerTokenDecimals = await service.getTokenDecimalsAsync(takerToken);
         const makerTokenDecimals = await service.getTokenDecimalsAsync(makerToken);
+        const volumeUSD = await service.getVolumeUSDAsync({
+            tokenAddress: isSelling ? takerToken : makerToken,
+            tokenDecimals: isSelling ? takerTokenDecimals : makerTokenDecimals,
+            amount: assetFillAmount,
+        });
 
         return {
             workflow: gasless ? 'gasless-rfqt' : 'rfqt',
@@ -402,6 +407,7 @@ export class RfqtHandlers {
             assetFillAmount,
             feeModelVersion: service.feeModelVersion,
             bucket,
+            volumeUSD,
         } as QuoteContext;
     }
 

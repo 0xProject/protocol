@@ -35,6 +35,7 @@ import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
 import { RfqMakerManager } from '../utils/rfq_maker_manager';
 import { getSignerFromHash, padSignature } from '../utils/signature_utils';
 import { TokenMetadataManager } from '../utils/TokenMetadataManager';
+import { TokenPriceOracle } from '../utils/TokenPriceOracle';
 
 import { FeeService } from './fee_service';
 import { RfqMakerBalanceCacheService } from './rfq_maker_balance_cache_service';
@@ -142,6 +143,7 @@ export class RfqtService {
         private readonly _feeModelVersion: FeeModelVersion,
         private readonly _rfqMakerBalanceCacheService: RfqMakerBalanceCacheService,
         private readonly _cacheClient: CacheClient,
+        private readonly _tokenPriceOracle: TokenPriceOracle,
         private readonly _kafkaProducer?: KafkaProducer,
         private readonly _feeEventTopic?: string,
     ) {
@@ -479,6 +481,28 @@ export class RfqtService {
      */
     public async getTokenDecimalsAsync(tokenAddress: string): Promise<number> {
         return this._tokenMetadataManager.getTokenDecimalsAsync(tokenAddress);
+    }
+
+    // Calculate the volume USD for a given token, decimals, and amount
+    public async getVolumeUSDAsync(input: {
+        tokenAddress: string;
+        tokenDecimals: number;
+        amount: BigNumber;
+    }): Promise<BigNumber | undefined> {
+        const { tokenAddress, tokenDecimals, amount } = input;
+        const [price] = await this._tokenPriceOracle.batchFetchTokenPriceAsync([
+            {
+                tokenAddress,
+                tokenDecimals,
+                chainId: this._chainId,
+            },
+        ]);
+
+        if (price === null) {
+            return undefined;
+        }
+
+        return price.times(amount);
     }
 
     /**

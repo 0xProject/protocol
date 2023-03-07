@@ -125,6 +125,7 @@ export async function buildRfqtServicesAsync(
                 rfqtConfiguration.feeModelVersion || 0,
                 rfqMakerBalanceCacheService,
                 cacheClient,
+                tokenPriceOracle,
                 kafkaProducer,
                 rfqtConfiguration.feeEventTopic,
             );
