@@ -45,7 +45,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
         _;
     }
 
-    function initialize(address _token, uint256 _quadraticThreshold) public initializer {
+    function initialize(address _token, uint256 _quadraticThreshold) public onlyProxy initializer {
         __Ownable_init();
         __UUPSUpgradeable_init();
 
