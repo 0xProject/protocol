@@ -4,7 +4,6 @@
 
 import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
-import { expect } from 'chai';
 import { BlockParamLiteral } from 'ethereum-types';
 import { providers } from 'ethers';
 import { anything, instance, mock, when } from 'ts-mockito';
@@ -37,7 +36,7 @@ describe('RFQM Worker balance utils', () => {
                         gasPrice,
                         RFQM_TX_GAS_ESTIMATE,
                     ),
-                ).to.eql(isSuccessful);
+                ).toEqual(isSuccessful);
             }
         });
         it('should fail with an outstanding transaction', async () => {
@@ -52,7 +51,7 @@ describe('RFQM Worker balance utils', () => {
                     Web3Wrapper.toBaseUnitAmount(120, 9),
                     RFQM_TX_GAS_ESTIMATE,
                 ),
-            ).to.eql(false);
+            ).toEqual(false);
         });
     });
 });

@@ -2,7 +2,6 @@
 // tslint:disable:no-empty
 // tslint:disable:max-file-line-count
 
-import { expect } from 'chai';
 import { Server } from 'http';
 import * as HttpStatus from 'http-status-codes';
 import * as request from 'supertest';
@@ -86,7 +85,7 @@ describe('RFQ maker API tests', () => {
                 .expect(HttpStatus.UNAUTHORIZED)
                 .expect('Content-Type', /json/);
 
-            expect(response.body.error).to.be.eq('Invalid api key.');
+            expect(response.body.error).toEqual('Invalid api key.');
             verify(mockRfqMakerService.mapMakerApiKeyToId(undefined)).once();
             verify(mockRfqMakerService.getRfqMakerAsync(anything(), anything())).never();
             verify(
@@ -107,7 +106,7 @@ describe('RFQ maker API tests', () => {
                 .expect(HttpStatus.UNAUTHORIZED)
                 .expect('Content-Type', /json/);
 
-            expect(response.body.error).to.be.eq('Invalid api key.');
+            expect(response.body.error).toEqual('Invalid api key.');
             verify(mockRfqMakerService.mapMakerApiKeyToId(unknownMakerApiKey)).once();
             verify(mockRfqMakerService.getRfqMakerAsync(anything(), anything())).never();
             verify(
@@ -128,7 +127,7 @@ describe('RFQ maker API tests', () => {
                 .expect(HttpStatus.BAD_REQUEST)
                 .expect('Content-Type', /json/);
 
-            expect(response.body.error).to.be.eq('Invalid chainId.');
+            expect(response.body.error).toEqual('Invalid chainId.');
             verify(mockRfqMakerService.mapMakerApiKeyToId(makerApiKey)).once();
             verify(mockRfqMakerService.getRfqMakerAsync(anything(), anything())).never();
             verify(
@@ -149,9 +148,9 @@ describe('RFQ maker API tests', () => {
                 .expect(HttpStatus.OK)
                 .expect('Content-Type', /json/);
 
-            expect(response.body.makerId).to.be.eq(makerId);
-            expect(response.body.chainId).to.be.eq(chainId);
-            expect(response.body.pairs).to.deep.equal(pairs);
+            expect(response.body.makerId).toEqual(makerId);
+            expect(response.body.chainId).toEqual(chainId);
+            expect(response.body.pairs).toEqual(pairs);
             verify(mockRfqMakerService.mapMakerApiKeyToId(makerApiKey)).once();
             verify(mockRfqMakerService.getRfqMakerAsync(makerId, chainId)).once();
             verify(
@@ -174,7 +173,7 @@ describe('RFQ maker API tests', () => {
                 .expect(HttpStatus.UNAUTHORIZED)
                 .expect('Content-Type', /json/);
 
-            expect(response.body.error).to.be.eq('Invalid api key.');
+            expect(response.body.error).toEqual('Invalid api key.');
             verify(mockRfqMakerService.mapMakerApiKeyToId(undefined)).once();
             verify(mockRfqMakerService.getRfqMakerAsync(anything(), anything())).never();
             verify(
@@ -196,7 +195,7 @@ describe('RFQ maker API tests', () => {
                 .expect(HttpStatus.UNAUTHORIZED)
                 .expect('Content-Type', /json/);
 
-            expect(response.body.error).to.be.eq('Invalid api key.');
+            expect(response.body.error).toEqual('Invalid api key.');
             verify(mockRfqMakerService.mapMakerApiKeyToId(unknownMakerApiKey)).once();
             verify(mockRfqMakerService.getRfqMakerAsync(anything(), anything())).never();
             verify(
@@ -218,7 +217,7 @@ describe('RFQ maker API tests', () => {
                 .expect(HttpStatus.BAD_REQUEST)
                 .expect('Content-Type', /json/);
 
-            expect(response.body.error).to.be.eq('Invalid chainId.');
+            expect(response.body.error).toEqual('Invalid chainId.');
             verify(mockRfqMakerService.mapMakerApiKeyToId(makerApiKey)).once();
             verify(mockRfqMakerService.getRfqMakerAsync(anything(), anything())).never();
             verify(
@@ -240,7 +239,7 @@ describe('RFQ maker API tests', () => {
                 .expect(HttpStatus.BAD_REQUEST)
                 .expect('Content-Type', /json/);
 
-            expect(response.body.error).to.be.eq('address of second token for pair 0 is invalid.');
+            expect(response.body.error).toEqual('address of second token for pair 0 is invalid.');
             verify(mockRfqMakerService.mapMakerApiKeyToId(makerApiKey)).once();
             verify(mockRfqMakerService.getRfqMakerAsync(anything(), anything())).never();
             verify(
@@ -262,9 +261,9 @@ describe('RFQ maker API tests', () => {
                 .expect(HttpStatus.CREATED)
                 .expect('Content-Type', /json/);
 
-            expect(response.body.makerId).to.be.eq(makerId);
-            expect(response.body.chainId).to.be.eq(chainId);
-            expect(response.body.pairs).to.deep.equal(pairs);
+            expect(response.body.makerId).toEqual(makerId);
+            expect(response.body.chainId).toEqual(chainId);
+            expect(response.body.pairs).toEqual(pairs);
             verify(mockRfqMakerService.mapMakerApiKeyToId(makerApiKey)).once();
             verify(mockRfqMakerService.getRfqMakerAsync(anything(), anything())).never();
             verify(

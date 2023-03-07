@@ -2,7 +2,6 @@
 // tslint:disable:max-file-line-count
 
 import { eip712SignTypedDataWithKey, ethSignHashWithKey, LimitOrder, OtcOrder } from '@0x/protocol-utils';
-import { expect } from 'chai';
 
 import { getSignerFromHash, padSignature } from '../../src/utils/signature_utils';
 
@@ -21,7 +20,7 @@ describe('Signature utils', () => {
             const signer = getSignerFromHash(orderHash, signature);
 
             // Then
-            expect(signer).to.equal(address.toLowerCase());
+            expect(signer).toEqual(address.toLowerCase());
         });
 
         it('should recover an address for an EIP712 Signature', () => {
@@ -34,7 +33,7 @@ describe('Signature utils', () => {
             const signer = getSignerFromHash(orderHash, signature);
 
             // Then
-            expect(signer).to.equal(address.toLowerCase());
+            expect(signer).toEqual(address.toLowerCase());
         });
 
         it('should not recover an address when signature is for something else', () => {
@@ -50,7 +49,7 @@ describe('Signature utils', () => {
             const signer = getSignerFromHash(otcOrderHash, signatureForLimitOrder);
 
             // Then
-            expect(signer.toLowerCase()).to.not.eq(address.toLowerCase());
+            expect(signer.toLowerCase()).not.toEqual(address.toLowerCase());
         });
     });
     describe('padSignature', () => {
@@ -64,7 +63,7 @@ describe('Signature utils', () => {
 
             const result = padSignature(validSignature);
 
-            expect(validSignature).to.deep.equal(result);
+            expect(validSignature).toEqual(result);
         });
 
         it('pads a signature missing bytes', () => {
@@ -77,7 +76,7 @@ describe('Signature utils', () => {
 
             const result = padSignature(signature);
 
-            expect(result).to.deep.equal({
+            expect(result).toEqual({
                 r: '0x0000000000000000000000000000000000000000000000000000000000059ca6',
                 s: '0x0000000000000000000000000000000000000000000000000000000000eca084',
                 v: 28,

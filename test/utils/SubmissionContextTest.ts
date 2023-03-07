@@ -1,5 +1,4 @@
 import { BigNumber } from '@0x/utils';
-import { expect } from 'chai';
 import { BigNumber as EthersBigNumber, providers } from 'ethers';
 import { deepEqual, instance, mock, when } from 'ts-mockito';
 
@@ -23,7 +22,7 @@ describe('SubmissionContext', () => {
     });
     describe('constructor', () => {
         it('requires a transaction', () => {
-            expect(() => new SubmissionContext(instance(mockBlockchainUtils), [])).to.throw('nonzero');
+            expect(() => new SubmissionContext(instance(mockBlockchainUtils), [])).toThrow('nonzero');
         });
 
         it('requires all transactions to have unique hashes', () => {
@@ -46,7 +45,7 @@ describe('SubmissionContext', () => {
                 gasPrice: new BigNumber(1),
             });
 
-            expect(() => new SubmissionContext(instance(mockBlockchainUtils), [transaction1, transaction2])).to.throw(
+            expect(() => new SubmissionContext(instance(mockBlockchainUtils), [transaction1, transaction2])).toThrow(
                 'unique',
             );
         });
@@ -71,7 +70,7 @@ describe('SubmissionContext', () => {
                 gasPrice: new BigNumber(1),
             });
 
-            expect(() => new SubmissionContext(instance(mockBlockchainUtils), [transaction1, transaction2])).to.throw(
+            expect(() => new SubmissionContext(instance(mockBlockchainUtils), [transaction1, transaction2])).toThrow(
                 'nonce',
             );
         });
@@ -97,7 +96,7 @@ describe('SubmissionContext', () => {
                 maxPriorityFeePerGas: new BigNumber(1),
             });
 
-            expect(() => new SubmissionContext(instance(mockBlockchainUtils), [transaction1, transaction2])).to.throw(
+            expect(() => new SubmissionContext(instance(mockBlockchainUtils), [transaction1, transaction2])).toThrow(
                 'type',
             );
         });
@@ -113,7 +112,7 @@ describe('SubmissionContext', () => {
                 maxPriorityFeePerGas: new BigNumber(1),
             });
 
-            expect(() => new SubmissionContext(instance(mockBlockchainUtils), [transaction])).to.throw();
+            expect(() => new SubmissionContext(instance(mockBlockchainUtils), [transaction])).toThrow();
         });
     });
     describe('get transactionType', () => {
@@ -130,7 +129,7 @@ describe('SubmissionContext', () => {
 
             const submissionContext = new SubmissionContext(instance(mockBlockchainUtils), [transaction]);
 
-            expect(submissionContext.transactionType).to.equal(0);
+            expect(submissionContext.transactionType).toEqual(0);
         });
 
         it('handles type-2 transactions', () => {
@@ -147,7 +146,7 @@ describe('SubmissionContext', () => {
 
             const submissionContext = new SubmissionContext(instance(mockBlockchainUtils), [transaction]);
 
-            expect(submissionContext.transactionType).to.equal(2);
+            expect(submissionContext.transactionType).toEqual(2);
         });
     });
 
@@ -166,7 +165,7 @@ describe('SubmissionContext', () => {
 
             const submissionContext = new SubmissionContext(instance(mockBlockchainUtils), [transaction]);
 
-            expect(() => submissionContext.maxGasPrice).to.throw('EIP-1559');
+            expect(() => submissionContext.maxGasPrice).toThrow('EIP-1559');
         });
 
         it('gets the max gas price', () => {
@@ -194,7 +193,7 @@ describe('SubmissionContext', () => {
                 transaction2,
             ]);
 
-            expect(submissionContext.maxGasPrice.toNumber()).to.equal(new BigNumber(2).toNumber());
+            expect(submissionContext.maxGasPrice.toNumber()).toEqual(new BigNumber(2).toNumber());
         });
     });
 
@@ -212,7 +211,7 @@ describe('SubmissionContext', () => {
 
             const submissionContext = new SubmissionContext(instance(mockBlockchainUtils), [transaction]);
 
-            expect(() => submissionContext.maxGasFees).to.throw('non-EIP-1559');
+            expect(() => submissionContext.maxGasFees).toThrow('non-EIP-1559');
         });
 
         it('gets the max gas fees', () => {
@@ -242,8 +241,8 @@ describe('SubmissionContext', () => {
                 transaction2,
             ]);
 
-            expect(submissionContext.maxGasFees.maxFeePerGas.toNumber()).to.equal(new BigNumber(1).toNumber());
-            expect(submissionContext.maxGasFees.maxPriorityFeePerGas.toNumber()).to.equal(new BigNumber(1).toNumber());
+            expect(submissionContext.maxGasFees.maxFeePerGas.toNumber()).toEqual(new BigNumber(1).toNumber());
+            expect(submissionContext.maxGasFees.maxPriorityFeePerGas.toNumber()).toEqual(new BigNumber(1).toNumber());
         });
     });
 
@@ -279,7 +278,7 @@ describe('SubmissionContext', () => {
                 transaction2,
             ]);
 
-            expect(submissionContext.firstSubmissionTimestampS).to.equal(Math.round(fakeEarlierMs / ONE_SECOND_MS));
+            expect(submissionContext.firstSubmissionTimestampS).toEqual(Math.round(fakeEarlierMs / ONE_SECOND_MS));
         });
     });
 
@@ -300,7 +299,7 @@ describe('SubmissionContext', () => {
 
             const submissionContext = new SubmissionContext(instance(mockBlockchainUtils), [transaction]);
 
-            expect(await submissionContext.getReceiptAsync()).to.equal(null);
+            expect(await submissionContext.getReceiptAsync()).toEqual(null);
         });
 
         it('returns one transaction receipt have been mined', async () => {
@@ -352,7 +351,7 @@ describe('SubmissionContext', () => {
                 transaction2,
             ]);
 
-            expect(await submissionContext.getReceiptAsync()).to.equal(receipt);
+            expect(await submissionContext.getReceiptAsync()).toEqual(receipt);
         });
 
         it('throws if multiple receipts are returned', () => {
@@ -404,8 +403,8 @@ describe('SubmissionContext', () => {
                 transaction2,
             ]);
 
-            expect(submissionContext.getReceiptAsync()).to.eventually.be.rejectedWith(
-                'more than one transaction receipt',
+            expect(submissionContext.getReceiptAsync()).rejects.toEqual(
+                new Error('Found more than one transaction receipt'),
             );
         });
 
@@ -414,13 +413,13 @@ describe('SubmissionContext', () => {
                 const receiptBlock = 100;
                 const currentBlock = 102;
 
-                expect(SubmissionContext.isBlockConfirmed(currentBlock, receiptBlock)).to.equal(false);
+                expect(SubmissionContext.isBlockConfirmed(currentBlock, receiptBlock)).toEqual(false);
             });
             it('should say yes if the receipt block is at least 3 blocks deep', async () => {
                 const receiptBlock = 100;
                 const currentBlock = 103;
 
-                expect(SubmissionContext.isBlockConfirmed(currentBlock, receiptBlock)).to.equal(true);
+                expect(SubmissionContext.isBlockConfirmed(currentBlock, receiptBlock)).toEqual(true);
             });
         });
 
@@ -455,9 +454,7 @@ describe('SubmissionContext', () => {
                     transaction2,
                 ]);
 
-                expect(submissionContext.submissionContextStatus).to.deep.equal(
-                    SubmissionContextStatus.PendingSubmitted,
-                );
+                expect(submissionContext.submissionContextStatus).toEqual(SubmissionContextStatus.PendingSubmitted);
             });
 
             it('should return the correct status if one of the transactions is resolved', async () => {
@@ -490,9 +487,7 @@ describe('SubmissionContext', () => {
                     transaction2,
                 ]);
 
-                expect(submissionContext.submissionContextStatus).to.deep.equal(
-                    SubmissionContextStatus.SucceededConfirmed,
-                );
+                expect(submissionContext.submissionContextStatus).toEqual(SubmissionContextStatus.SucceededConfirmed);
             });
         });
     });

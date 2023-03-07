@@ -1,6 +1,5 @@
 // tslint:disable custom-no-magic-numbers
 import { BigNumber } from '@0x/utils';
-import { expect } from 'chai';
 import { Producer } from 'sqs-producer';
 import { instance, mock, when } from 'ts-mockito';
 
@@ -30,7 +29,7 @@ describe('RFQm Health Check', () => {
 
                 const issues = await checkSqsQueueAsync(instance(producerMock));
 
-                expect(issues).to.have.length(0);
+                expect(issues.length).toEqual(0);
             });
 
             it('creates a DEGRADED issue if there are more than 5 messages in the queue', async () => {
@@ -38,8 +37,8 @@ describe('RFQm Health Check', () => {
 
                 const issues = await checkSqsQueueAsync(instance(producerMock));
 
-                expect(issues).to.have.length(1);
-                expect(issues[0].status).to.equal(HealthCheckStatus.Degraded);
+                expect(issues.length).toEqual(1);
+                expect(issues[0].status).toEqual(HealthCheckStatus.Degraded);
             });
 
             it('creates a FAILED issue if there are more than 20 messages in the queue', async () => {
@@ -47,8 +46,8 @@ describe('RFQm Health Check', () => {
 
                 const issues = await checkSqsQueueAsync(instance(producerMock));
 
-                expect(issues).to.have.length(1);
-                expect(issues[0].status).to.equal(HealthCheckStatus.Failed);
+                expect(issues.length).toEqual(1);
+                expect(issues[0].status).toEqual(HealthCheckStatus.Failed);
             });
         });
     });
@@ -57,8 +56,8 @@ describe('RFQm Health Check', () => {
         it('creates a failed issue when no heartbeats are found', async () => {
             const issues = await checkWorkerHeartbeatsAsync([]);
 
-            expect(issues).to.have.length(1);
-            expect(issues[0].status).to.equal(HealthCheckStatus.Failed);
+            expect(issues.length).toEqual(1);
+            expect(issues[0].status).toEqual(HealthCheckStatus.Failed);
         });
 
         describe('Heartbeat age', () => {
@@ -76,7 +75,7 @@ describe('RFQm Health Check', () => {
                 const issues = await checkWorkerHeartbeatsAsync([heartbeat], now);
                 const failedIssues = issues.filter(({ status }) => status === HealthCheckStatus.Failed);
 
-                expect(failedIssues).to.have.length(1);
+                expect(failedIssues.length).toEqual(1);
             });
 
             it('creates degraded issues for stale heartbeats', async () => {
@@ -99,10 +98,10 @@ describe('RFQm Health Check', () => {
 
                 const issues = await checkWorkerHeartbeatsAsync([heartbeat1, heartbeat2], now);
                 const failedIssues = issues.filter(({ status }) => status === HealthCheckStatus.Failed);
-                expect(failedIssues).to.have.length(0);
+                expect(failedIssues.length).toEqual(0);
                 const degradedIssues = issues.filter(({ status }) => status === HealthCheckStatus.Degraded);
-                expect(degradedIssues).to.have.length(1);
-                expect(degradedIssues[0].description).to.contain('0x01');
+                expect(degradedIssues.length).toEqual(1);
+                expect(degradedIssues[0].description).toContain('0x01');
             });
         });
 
@@ -120,7 +119,7 @@ describe('RFQm Health Check', () => {
                 const issues = await checkWorkerHeartbeatsAsync([heartbeat], now);
                 const failedIssues = issues.filter(({ status }) => status === HealthCheckStatus.Failed);
 
-                expect(failedIssues).to.have.length(1);
+                expect(failedIssues.length).toEqual(1);
             });
 
             it('creates degraded issues for low worker balances', async () => {
@@ -142,12 +141,12 @@ describe('RFQm Health Check', () => {
 
                 const issues = await checkWorkerHeartbeatsAsync([heartbeat1, heartbeat2], now);
                 const failedIssues = issues.filter(({ status }) => status === HealthCheckStatus.Failed);
-                expect(failedIssues).to.have.length(0);
+                expect(failedIssues.length).toEqual(0);
 
                 const degradedIssues = issues.filter(({ status }) => status === HealthCheckStatus.Degraded);
 
-                expect(degradedIssues).to.have.length(1);
-                expect(degradedIssues[0].description).to.contain(
+                expect(degradedIssues.length).toEqual(1);
+                expect(degradedIssues[0].description).toContain(
                     'Less than two workers have a balance above the degraded threshold',
                 );
             });
@@ -158,7 +157,7 @@ describe('RFQm Health Check', () => {
         it('goes into maintainence mode', async () => {
             const issues = getHttpIssues(/* isMaintainenceMode */ true);
 
-            expect(issues[0].status).to.equal(HealthCheckStatus.Maintenance);
+            expect(issues[0].status).toEqual(HealthCheckStatus.Maintenance);
         });
     });
 });

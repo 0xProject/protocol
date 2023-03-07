@@ -3,7 +3,6 @@
 // tslint:disable:max-file-line-count
 
 import { ChainId } from '@0x/contract-addresses';
-import { expect } from 'chai';
 import { anything, instance, mock, when } from 'ts-mockito';
 import { Connection, Repository } from 'typeorm';
 
@@ -46,10 +45,10 @@ describe('RfqMakerService', () => {
             const rfqMakerFromSevice = await rfqMakerService.getRfqMakerAsync(makerId, chainId);
 
             // Then
-            expect(rfqMakerFromSevice.makerId).to.be.eq(makerId);
-            expect(rfqMakerFromSevice.chainId).to.be.eq(chainId);
-            expect(rfqMakerFromSevice.updatedAt).to.be.eq(updatedAt);
-            expect(rfqMakerFromSevice.pairs).to.be.eq(pairs);
+            expect(rfqMakerFromSevice.makerId).toEqual(makerId);
+            expect(rfqMakerFromSevice.chainId).toEqual(chainId);
+            expect(rfqMakerFromSevice.updatedAt).toEqual(updatedAt);
+            expect(rfqMakerFromSevice.pairs).toEqual(pairs);
         });
 
         it('should get default RfqMaker entity if there is no information in DB', async () => {
@@ -68,10 +67,10 @@ describe('RfqMakerService', () => {
             const rfqMakerFromSevice = await rfqMakerService.getRfqMakerAsync(makerId, chainId);
 
             // Then
-            expect(rfqMakerFromSevice.makerId).to.be.eq(makerId);
-            expect(rfqMakerFromSevice.chainId).to.be.eq(chainId);
-            expect(rfqMakerFromSevice.updatedAt).to.be.eq(null);
-            expect(rfqMakerFromSevice.pairs.length).to.be.eq(0);
+            expect(rfqMakerFromSevice.makerId).toEqual(makerId);
+            expect(rfqMakerFromSevice.chainId).toEqual(chainId);
+            expect(rfqMakerFromSevice.updatedAt).toEqual(null);
+            expect(rfqMakerFromSevice.pairs.length).toEqual(0);
         });
     });
 
@@ -81,9 +80,9 @@ describe('RfqMakerService', () => {
             const repositoryMock = mock(Repository);
             when(repositoryMock.save(anything())).thenCall((rfqMaker) => {
                 // Then
-                expect(rfqMaker.makerId).to.be.eq(makerId);
-                expect(rfqMaker.chainId).to.be.eq(chainId);
-                expect(rfqMaker.pairs).to.be.eq(pairs);
+                expect(rfqMaker.makerId).toEqual(makerId);
+                expect(rfqMaker.chainId).toEqual(chainId);
+                expect(rfqMaker.pairs).toEqual(pairs);
             });
             const connectionMock = mock(Connection);
             when(connectionMock.getRepository(RfqMaker)).thenReturn(instance(repositoryMock));
@@ -122,11 +121,11 @@ describe('RfqMakerService', () => {
                     anything(),
                 ),
             ).thenCall((makerIdToSave, chainIdToSave, pairsToSave, rfqtUriToSave, rfqmUriToSave) => {
-                expect(makerIdToSave).to.be.eq(originalRfqMaker.makerId);
-                expect(chainIdToSave).to.be.eq(originalRfqMaker.chainId);
-                expect(pairsToSave).to.be.eq(newPairs);
-                expect(rfqtUriToSave).to.be.eq(originalRfqMaker.rfqtUri);
-                expect(rfqmUriToSave).to.be.eq(originalRfqMaker.rfqmUri);
+                expect(makerIdToSave).toEqual(originalRfqMaker.makerId);
+                expect(chainIdToSave).toEqual(originalRfqMaker.chainId);
+                expect(pairsToSave).toEqual(newPairs);
+                expect(rfqtUriToSave).toEqual(originalRfqMaker.rfqtUri);
+                expect(rfqmUriToSave).toEqual(originalRfqMaker.rfqmUri);
             });
             const rfqMakerService = instance(rfqMakerServiceMock);
 
@@ -159,11 +158,11 @@ describe('RfqMakerService', () => {
                     anything(),
                 ),
             ).thenCall((makerIdToSave, chainIdToSave, pairsToSave, rfqtUriToSave, rfqmUriToSave) => {
-                expect(makerIdToSave).to.be.eq(originalRfqMaker.makerId);
-                expect(chainIdToSave).to.be.eq(originalRfqMaker.chainId);
-                expect(pairsToSave).to.be.eq(originalRfqMaker.pairs);
-                expect(rfqtUriToSave).to.be.eq(newRfqtUri);
-                expect(rfqmUriToSave).to.be.eq(originalRfqMaker.rfqmUri);
+                expect(makerIdToSave).toEqual(originalRfqMaker.makerId);
+                expect(chainIdToSave).toEqual(originalRfqMaker.chainId);
+                expect(pairsToSave).toEqual(originalRfqMaker.pairs);
+                expect(rfqtUriToSave).toEqual(newRfqtUri);
+                expect(rfqmUriToSave).toEqual(originalRfqMaker.rfqmUri);
             });
             const rfqMakerService = instance(rfqMakerServiceMock);
 
@@ -193,11 +192,11 @@ describe('RfqMakerService', () => {
                     anything(),
                 ),
             ).thenCall((makerIdToSave, chainIdToSave, pairsToSave, rfqtUriToSave, rfqmUriToSave) => {
-                expect(makerIdToSave).to.be.eq(originalRfqMaker.makerId);
-                expect(chainIdToSave).to.be.eq(originalRfqMaker.chainId);
-                expect(pairsToSave).to.be.eq(originalRfqMaker.pairs);
-                expect(rfqtUriToSave).to.be.eq(originalRfqMaker.rfqtUri);
-                expect(rfqmUriToSave).to.be.eq(null);
+                expect(makerIdToSave).toEqual(originalRfqMaker.makerId);
+                expect(chainIdToSave).toEqual(originalRfqMaker.chainId);
+                expect(pairsToSave).toEqual(originalRfqMaker.pairs);
+                expect(rfqtUriToSave).toEqual(originalRfqMaker.rfqtUri);
+                expect(rfqmUriToSave).toEqual(null);
             });
             const rfqMakerService = instance(rfqMakerServiceMock);
 
@@ -219,7 +218,7 @@ describe('RfqMakerService', () => {
             const makerIdFromService = rfqMakerService.mapMakerApiKeyToId(makerApiKey);
 
             // Then
-            expect(makerIdFromService).to.be.eq(makerId);
+            expect(makerIdFromService).toEqual(makerId);
         });
 
         it('should return null for undefined api key', async () => {
@@ -234,7 +233,7 @@ describe('RfqMakerService', () => {
             const makerIdFromService = rfqMakerService.mapMakerApiKeyToId(undefined);
 
             // Then
-            expect(makerIdFromService).to.be.eq(null);
+            expect(makerIdFromService).toEqual(null);
         });
     });
 
@@ -247,7 +246,7 @@ describe('RfqMakerService', () => {
             const isValidChainId = RfqMakerService.isValidChainId(invalidChainId);
 
             // Then
-            expect(isValidChainId).to.be.eq(false);
+            expect(isValidChainId).toEqual(false);
         });
 
         it('should return false for unknown number chainId', async () => {
@@ -258,7 +257,7 @@ describe('RfqMakerService', () => {
             const isValidChainId = RfqMakerService.isValidChainId(invalidChainId);
 
             // Then
-            expect(isValidChainId).to.be.eq(false);
+            expect(isValidChainId).toEqual(false);
         });
 
         it('should return number ChainId for well formated chainId', async () => {
@@ -269,15 +268,13 @@ describe('RfqMakerService', () => {
             const isValidChainId = RfqMakerService.isValidChainId(validChainId);
 
             // Then
-            expect(isValidChainId).to.be.eq(true);
+            expect(isValidChainId).toEqual(true);
         });
     });
 
     describe('validatePairsPayload', () => {
         it('should pass with valid input pairs', async () => {
-            expect(() => {
-                RfqMakerService.validatePairsPayloadOrThrow(pairs);
-            }).to.not.throw();
+            await RfqMakerService.validatePairsPayloadOrThrow(pairs);
         });
 
         it('should throw for non array input', async () => {
@@ -285,7 +282,7 @@ describe('RfqMakerService', () => {
                 // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 RfqMakerService.validatePairsPayloadOrThrow('123' as any);
-            }).to.throw();
+            }).toThrow();
         });
 
         it('should throw for array of non arrays', async () => {
@@ -293,7 +290,7 @@ describe('RfqMakerService', () => {
                 // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 RfqMakerService.validatePairsPayloadOrThrow(['123'] as any);
-            }).to.throw();
+            }).toThrow();
         });
 
         it('should throw for incorrect sub-array length', async () => {
@@ -301,13 +298,13 @@ describe('RfqMakerService', () => {
                 // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 RfqMakerService.validatePairsPayloadOrThrow(['123'] as any);
-            }).to.throw();
+            }).toThrow();
         });
 
         it('should throw for pairs of invalid ethereum addresses', async () => {
             expect(() => {
                 RfqMakerService.validatePairsPayloadOrThrow([['123', '234']]);
-            }).to.throw();
+            }).toThrow();
         });
 
         it('should throw for pairs of identical ethereum addresses', async () => {
@@ -315,7 +312,7 @@ describe('RfqMakerService', () => {
                 RfqMakerService.validatePairsPayloadOrThrow([
                     ['0x374a16f5e686c09b0cc9e8bc3466b3b645c74aa7', '0x374a16f5e686c09b0cc9e8bc3466b3b645c74aa7'],
                 ]);
-            }).to.throw();
+            }).toThrow();
         });
     });
 });

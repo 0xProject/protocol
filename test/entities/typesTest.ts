@@ -1,17 +1,15 @@
-import { expect } from 'chai';
-
 import { RfqmJobStatus, UnresolvedRfqmJobStatuses } from '../../src/entities/types';
 
 describe('entity types', () => {
     describe('UnresolvedJobStatuses', () => {
         it('should not contain resolved statuses', () => {
-            expect(UnresolvedRfqmJobStatuses).to.not.contain(RfqmJobStatus.SucceededConfirmed);
-            expect(UnresolvedRfqmJobStatuses).to.not.contain(RfqmJobStatus.FailedLastLookDeclined);
+            expect(UnresolvedRfqmJobStatuses).not.toContain(RfqmJobStatus.SucceededConfirmed);
+            expect(UnresolvedRfqmJobStatuses).not.toContain(RfqmJobStatus.FailedLastLookDeclined);
         });
         it('should contain unresolved statuses', () => {
-            expect(UnresolvedRfqmJobStatuses).to.contain(RfqmJobStatus.FailedRevertedUnconfirmed);
-            expect(UnresolvedRfqmJobStatuses).to.contain(RfqmJobStatus.SucceededUnconfirmed);
-            expect(UnresolvedRfqmJobStatuses).to.contain(RfqmJobStatus.PendingEnqueued);
+            expect(UnresolvedRfqmJobStatuses).toContain(RfqmJobStatus.FailedRevertedUnconfirmed);
+            expect(UnresolvedRfqmJobStatuses).toContain(RfqmJobStatus.SucceededUnconfirmed);
+            expect(UnresolvedRfqmJobStatuses).toContain(RfqmJobStatus.PendingEnqueued);
         });
     });
 });

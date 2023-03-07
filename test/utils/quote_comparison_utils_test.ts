@@ -3,7 +3,6 @@
 // tslint:disable:max-file-line-count
 import { OtcOrder, SignatureType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
-import { expect } from 'chai';
 
 import { DEFAULT_MIN_EXPIRY_DURATION_MS, ONE_SECOND_MS, ZERO } from '../../src/core/constants';
 import { FirmOtcQuote, IndicativeQuote } from '../../src/core/types';
@@ -150,13 +149,13 @@ describe('Quote Comparison Utils', () => {
                         );
 
                         if (bestQuote === null) {
-                            expect(expectations?.isNull).to.equal(true);
+                            expect(expectations?.isNull).toEqual(true);
                             return;
                         }
 
-                        expect(expectations?.isNull).to.equal(false);
-                        expect(bestQuote.makerAmount.toNumber()).to.be.eq(expectations?.makerAmount);
-                        expect(bestQuote.takerAmount.toNumber()).to.be.eq(expectations?.takerAmount);
+                        expect(expectations?.isNull).toEqual(false);
+                        expect(bestQuote.makerAmount.toNumber()).toEqual(expectations?.makerAmount);
+                        expect(bestQuote.takerAmount.toNumber()).toEqual(expectations?.takerAmount);
                     });
                 });
             });
@@ -263,13 +262,13 @@ describe('Quote Comparison Utils', () => {
                         );
 
                         if (bestQuote === null) {
-                            expect(expectations?.isNull).to.equal(true);
+                            expect(expectations?.isNull).toEqual(true);
                             return;
                         }
 
-                        expect(expectations?.isNull).to.equal(false);
-                        expect(bestQuote.makerAmount.toNumber()).to.be.eq(expectations?.makerAmount);
-                        expect(bestQuote.takerAmount.toNumber()).to.be.eq(expectations?.takerAmount);
+                        expect(expectations?.isNull).toEqual(false);
+                        expect(bestQuote.makerAmount.toNumber()).toEqual(expectations?.makerAmount);
+                        expect(bestQuote.takerAmount.toNumber()).toEqual(expectations?.takerAmount);
                     });
                 });
             });
@@ -444,13 +443,13 @@ describe('Quote Comparison Utils', () => {
                         );
 
                         if (bestQuote === null) {
-                            expect(expectations?.isNull).to.equal(true);
+                            expect(expectations?.isNull).toEqual(true);
                             return;
                         }
 
-                        expect(expectations?.isNull).to.equal(false);
-                        expect(bestQuote.order.makerAmount.toNumber()).to.be.eq(expectations?.makerAmount);
-                        expect(bestQuote.order.takerAmount.toNumber()).to.be.eq(expectations?.takerAmount);
+                        expect(expectations?.isNull).toEqual(false);
+                        expect(bestQuote.order.makerAmount.toNumber()).toEqual(expectations?.makerAmount);
+                        expect(bestQuote.order.takerAmount.toNumber()).toEqual(expectations?.takerAmount);
                     });
                 });
             });
@@ -613,13 +612,13 @@ describe('Quote Comparison Utils', () => {
                         );
 
                         if (bestQuote === null) {
-                            expect(expectations?.isNull).to.equal(true);
+                            expect(expectations?.isNull).toEqual(true);
                             return;
                         }
 
-                        expect(expectations?.isNull).to.equal(false);
-                        expect(bestQuote.order.makerAmount.toNumber()).to.be.eq(expectations?.makerAmount);
-                        expect(bestQuote.order.takerAmount.toNumber()).to.be.eq(expectations?.takerAmount);
+                        expect(expectations?.isNull).toEqual(false);
+                        expect(bestQuote.order.makerAmount.toNumber()).toEqual(expectations?.makerAmount);
+                        expect(bestQuote.order.takerAmount.toNumber()).toEqual(expectations?.takerAmount);
                     });
                 });
             });

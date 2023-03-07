@@ -1,6 +1,5 @@
 import { ChainId } from '@0x/contract-addresses';
 import { BigNumber } from '@0x/utils';
-import { expect } from 'chai';
 import Redis from 'ioredis';
 
 import { ONE_MINUTE_MS } from '../../src/core/constants';
@@ -47,9 +46,7 @@ describe('CacheClient', () => {
 
     describe('addERC20OwnerAsync', () => {
         it('adds pending address to observed addresses without error', async () => {
-            expect(cacheClient.addERC20OwnerAsync(chainId, { owner: makerA, token: tokenA })).to.eventually.be.equal(
-                void 0,
-            );
+            expect(cacheClient.addERC20OwnerAsync(chainId, { owner: makerA, token: tokenA })).resolves.toEqual(void 0);
         });
     });
 
@@ -65,11 +62,11 @@ describe('CacheClient', () => {
                 await cacheClient.addERC20OwnerAsync(chainId, address);
             });
             const cachedAddresses = await cacheClient.getERC20OwnersAsync(chainId);
-            expect(cachedAddresses.sort(compareFn)).to.deep.eq(addresses.sort(compareFn));
+            expect(cachedAddresses.sort(compareFn)).toEqual(addresses.sort(compareFn));
         });
 
         it('fetches empty arrays if no addresses are found in the set', async () => {
-            expect(await cacheClient.getERC20OwnersAsync(chainId)).to.deep.eq([]);
+            expect(await cacheClient.getERC20OwnersAsync(chainId)).toEqual([]);
         });
     });
 
@@ -82,17 +79,17 @@ describe('CacheClient', () => {
         const balances = [new BigNumber(1), new BigNumber(2), new BigNumber(3)];
 
         it('sets balances in the cache without error', async () => {
-            expect(cacheClient.setERC20OwnerBalancesAsync(chainId, addresses, balances)).to.eventually.be.equal(void 0);
+            expect(cacheClient.setERC20OwnerBalancesAsync(chainId, addresses, balances)).resolves.toEqual(void 0);
         });
 
         it('should fail when addresses do not match balances', async () => {
-            expect(
-                cacheClient.setERC20OwnerBalancesAsync(chainId, addresses, balances.slice(0, -1)),
-            ).to.be.rejectedWith('balances');
+            expect(cacheClient.setERC20OwnerBalancesAsync(chainId, addresses, balances.slice(0, -1))).rejects.toThrow(
+                'balances',
+            );
         });
 
         it('should not fail when addresses are empty', async () => {
-            expect(cacheClient.setERC20OwnerBalancesAsync(chainId, [], [])).to.eventually.be.equal(void 0);
+            expect(cacheClient.setERC20OwnerBalancesAsync(chainId, [], [])).resolves.toEqual(void 0);
         });
     });
 
@@ -109,7 +106,7 @@ describe('CacheClient', () => {
         });
 
         it('fetches correct balances from the cache', async () => {
-            expect(await cacheClient.getERC20OwnerBalancesAsync(chainId, addresses)).to.deep.eq([
+            expect(await cacheClient.getERC20OwnerBalancesAsync(chainId, addresses)).toEqual([
                 new BigNumber(1),
                 new BigNumber(2),
                 new BigNumber(3),
@@ -122,7 +119,7 @@ describe('CacheClient', () => {
                 { owner: makerB, token: tokenB },
                 { owner: '0x0000000000000000000000000000000000000000', token: tokenC },
             ];
-            expect(await cacheClient.getERC20OwnerBalancesAsync(chainId, badAddresses)).to.deep.eq([
+            expect(await cacheClient.getERC20OwnerBalancesAsync(chainId, badAddresses)).toEqual([
                 new BigNumber(1),
                 new BigNumber(2),
                 null,
@@ -130,7 +127,7 @@ describe('CacheClient', () => {
         });
 
         it('returns null balances if addresses from a different chain are supplied', async () => {
-            expect(await cacheClient.getERC20OwnerBalancesAsync(ChainId.PolygonMumbai, addresses)).to.deep.eq([
+            expect(await cacheClient.getERC20OwnerBalancesAsync(ChainId.PolygonMumbai, addresses)).toEqual([
                 null,
                 null,
                 null,
@@ -138,7 +135,7 @@ describe('CacheClient', () => {
         });
 
         it('returns an empty array if addresses are empty', async () => {
-            expect(await cacheClient.getERC20OwnerBalancesAsync(chainId, [])).to.deep.eq([]);
+            expect(await cacheClient.getERC20OwnerBalancesAsync(chainId, [])).toEqual([]);
         });
     });
 
@@ -154,15 +151,15 @@ describe('CacheClient', () => {
                 await cacheClient.addERC20OwnerAsync(chainId, address);
             });
             let cachedAddresses = await cacheClient.getERC20OwnersAsync(chainId);
-            expect(cachedAddresses.sort(compareFn)).to.deep.eq(addresses.sort(compareFn));
+            expect(cachedAddresses.sort(compareFn)).toEqual(addresses.sort(compareFn));
 
             const balances = [new BigNumber(1), new BigNumber(2), new BigNumber(0)];
             await cacheClient.setERC20OwnerBalancesAsync(chainId, addresses, balances);
 
             const numEvicted = await cacheClient.evictZeroBalancesAsync(chainId);
-            expect(numEvicted).to.eq(1);
+            expect(numEvicted).toEqual(1);
             cachedAddresses = await cacheClient.getERC20OwnersAsync(chainId);
-            expect(cachedAddresses.sort(compareFn)).to.deep.eq(addresses.slice(0, 2).sort(compareFn));
+            expect(cachedAddresses.sort(compareFn)).toEqual(addresses.slice(0, 2).sort(compareFn));
         });
 
         it('does not evict any entries if there are no stale balances', async () => {
@@ -170,21 +167,22 @@ describe('CacheClient', () => {
                 await cacheClient.addERC20OwnerAsync(chainId, address);
             });
             let cachedAddresses = await cacheClient.getERC20OwnersAsync(chainId);
-            expect(cachedAddresses.sort(compareFn)).to.deep.eq(addresses.sort(compareFn));
+            expect(cachedAddresses.sort(compareFn)).toEqual(addresses.sort(compareFn));
 
             const balances = [new BigNumber(1), new BigNumber(2), new BigNumber(3)];
             await cacheClient.setERC20OwnerBalancesAsync(chainId, addresses, balances);
 
             const numEvicted = await cacheClient.evictZeroBalancesAsync(chainId);
-            expect(numEvicted).to.eq(0);
+            expect(numEvicted).toEqual(0);
             cachedAddresses = await cacheClient.getERC20OwnersAsync(chainId);
-            expect(cachedAddresses.sort(compareFn)).to.deep.eq(addresses.sort(compareFn));
+            expect(cachedAddresses.sort(compareFn)).toEqual(addresses.sort(compareFn));
         });
 
         it('does not error if the address set is empty', async () => {
-            expect(await cacheClient.getERC20OwnersAsync(chainId)).to.have.length(0);
+            const owners = await cacheClient.getERC20OwnersAsync(chainId);
+            expect(owners.length).toEqual(0);
             const numEvicted = await cacheClient.evictZeroBalancesAsync(chainId);
-            expect(numEvicted).to.eq(0);
+            expect(numEvicted).toEqual(0);
         });
     });
 
@@ -201,7 +199,7 @@ describe('CacheClient', () => {
                 takerToken,
                 makerToken,
             );
-            expect(isUpdated).to.eq(true);
+            expect(isUpdated).toEqual(true);
         });
 
         it('should update endTime to a time later than existing endTime', async () => {
@@ -215,7 +213,7 @@ describe('CacheClient', () => {
                 makerToken,
                 takerToken,
             );
-            expect(isUpdated).to.eq(true);
+            expect(isUpdated).toEqual(true);
         });
 
         it('should not update endTime to a time earlier than existing endTime', async () => {
@@ -229,7 +227,7 @@ describe('CacheClient', () => {
                 takerToken,
                 makerToken,
             );
-            expect(isUpdated).to.eq(false);
+            expect(isUpdated).toEqual(false);
         });
     });
 
@@ -246,7 +244,7 @@ describe('CacheClient', () => {
             await cacheClient.addMakerToCooldownAsync(makerId1, oneMinuteLater, chainId, takerToken, makerToken);
             await cacheClient.addMakerToCooldownAsync(makerId2, oneMinuteLater, chainId, takerToken, makerToken);
             const result = await cacheClient.getMakersInCooldownForPairAsync(chainId, takerToken, makerToken, now);
-            expect(result).to.deep.eq([makerId1, makerId2]);
+            expect(result).toEqual([makerId1, makerId2]);
         });
 
         it('should not include makers whose cooling down periods already ended', async () => {
@@ -256,7 +254,7 @@ describe('CacheClient', () => {
             await cacheClient.addMakerToCooldownAsync(makerId1, oneMinuteEarlier, chainId, takerToken, makerToken);
             await cacheClient.addMakerToCooldownAsync(makerId2, oneMinuteLater, chainId, takerToken, makerToken);
             const result = await cacheClient.getMakersInCooldownForPairAsync(chainId, takerToken, makerToken, now);
-            expect(result).to.deep.eq([makerId2]);
+            expect(result).toEqual([makerId2]);
         });
 
         it('should only include makers that are cooling down for this pair', async () => {
@@ -265,7 +263,7 @@ describe('CacheClient', () => {
             await cacheClient.addMakerToCooldownAsync(makerId1, oneMinuteLater, chainId, takerToken, makerToken);
             await cacheClient.addMakerToCooldownAsync(makerId2, oneMinuteLater, chainId, otherTakerToken, makerToken);
             const result = await cacheClient.getMakersInCooldownForPairAsync(chainId, takerToken, makerToken, now);
-            expect(result).to.deep.eq([makerId1]);
+            expect(result).toEqual([makerId1]);
         });
     });
 });

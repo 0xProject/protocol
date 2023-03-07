@@ -1,14 +1,10 @@
 import { ChainId } from '@0x/contract-addresses';
 import { Job, Queue } from 'bullmq';
-import { expect } from 'chai';
 import Redis from 'ioredis';
 import { anything, instance, mock, spy, when } from 'ts-mockito';
 
 import backgroundJobMBCEvict from '../src/background-jobs/maker_balance_cache_evict';
-import backgroundJobMBCUpdate, {
-    BackgroundJobMBCUpdateData,
-    BackgroundJobMBCUpdateResult,
-} from '../src/background-jobs/maker_balance_cache_update';
+import backgroundJobMBCUpdate from '../src/background-jobs/maker_balance_cache_update';
 import { CHAIN_CONFIGURATIONS } from '../src/config';
 import { RfqMakerBalanceCacheService } from '../src/services/rfq_maker_balance_cache_service';
 import * as serviceBuilder from '../src/utils/rfqm_service_builder';
@@ -37,20 +33,16 @@ describe('Background Jobs Unit Tests', () => {
             const badChainId = 11111111;
             const timestamp = Date.now();
 
-            try {
-                const job = await createAsync(queue, {
-                    chainId: badChainId,
-                    timestamp,
-                });
-                expect(job.queueName).to.eq(backgroundJobMBCEvict.queueName);
+            const job = await createAsync(queue, {
+                chainId: badChainId,
+                timestamp,
+            });
+            expect(job.queueName).toEqual(backgroundJobMBCEvict.queueName);
 
-                const spiedJobInstance = spy(job);
-                when(spiedJobInstance.updateProgress(anything())).thenResolve();
+            const spiedJobInstance = spy(job);
+            when(spiedJobInstance.updateProgress(anything())).thenResolve();
 
-                expect(processAsync(job)).to.be.rejectedWith('chain configuration');
-            } catch (error) {
-                expect.fail('should create background job without error');
-            }
+            expect(processAsync(job)).rejects.toThrow('chain configuration');
         });
 
         it('processes maker balance cache eviction without error', async () => {
@@ -82,22 +74,18 @@ describe('Background Jobs Unit Tests', () => {
             const chainId = ChainId.Ganache;
             const timestamp = Date.now();
 
-            try {
-                const job = await createAsync(queue, {
-                    chainId,
-                    timestamp,
-                });
-                expect(job.queueName).to.eq(backgroundJobMBCEvict.queueName);
+            const job = await createAsync(queue, {
+                chainId,
+                timestamp,
+            });
+            expect(job.queueName).toEqual(backgroundJobMBCEvict.queueName);
 
-                const spiedJobInstance = spy(job);
-                when(spiedJobInstance.updateProgress(anything())).thenResolve();
+            const spiedJobInstance = spy(job);
+            when(spiedJobInstance.updateProgress(anything())).thenResolve();
 
-                const result = await processAsync(job);
-                expect(result.chainId).to.eq(chainId);
-                expect(result.numEvicted).to.eq(1);
-            } catch (error) {
-                expect.fail('should create and update background job without error');
-            }
+            const result = await processAsync(job);
+            expect(result.chainId).toEqual(chainId);
+            expect(result.numEvicted).toEqual(1);
         });
 
         it('should fail to process job when malformed cache service is passed', async () => {
@@ -124,20 +112,16 @@ describe('Background Jobs Unit Tests', () => {
             const chainId = ChainId.Ganache;
             const timestamp = Date.now();
 
-            try {
-                const job = await createAsync(queue, {
-                    chainId,
-                    timestamp,
-                });
-                expect(job.queueName).to.eq(backgroundJobMBCEvict.queueName);
+            const job = await createAsync(queue, {
+                chainId,
+                timestamp,
+            });
+            expect(job.queueName).toEqual(backgroundJobMBCEvict.queueName);
 
-                const spiedJobInstance = spy(job);
-                when(spiedJobInstance.updateProgress(anything())).thenResolve();
+            const spiedJobInstance = spy(job);
+            when(spiedJobInstance.updateProgress(anything())).thenResolve();
 
-                expect(processAsync(job)).to.be.rejectedWith('initialize dependencies');
-            } catch (error) {
-                expect.fail('should create background job without error');
-            }
+            expect(processAsync(job)).rejects.toThrow('initialize dependencies');
         });
 
         it('should fail to process job when the cache service fails to evict entries', async () => {
@@ -171,20 +155,16 @@ describe('Background Jobs Unit Tests', () => {
             const chainId = ChainId.Ganache;
             const timestamp = Date.now();
 
-            try {
-                const job = await createAsync(queue, {
-                    chainId,
-                    timestamp,
-                });
-                expect(job.queueName).to.eq(backgroundJobMBCEvict.queueName);
+            const job = await createAsync(queue, {
+                chainId,
+                timestamp,
+            });
+            expect(job.queueName).toEqual(backgroundJobMBCEvict.queueName);
 
-                const spiedJobInstance = spy(job);
-                when(spiedJobInstance.updateProgress(anything())).thenResolve();
+            const spiedJobInstance = spy(job);
+            when(spiedJobInstance.updateProgress(anything())).thenResolve();
 
-                expect(processAsync(job)).to.be.rejectedWith('evict maker balance cache');
-            } catch (error) {
-                expect.fail('should create background job without error');
-            }
+            expect(processAsync(job)).rejects.toThrow('evict maker balance cache');
         });
     });
 
@@ -211,20 +191,16 @@ describe('Background Jobs Unit Tests', () => {
             const badChainId = 11111111;
             const timestamp = Date.now();
 
-            try {
-                const job = await createAsync(queue, {
-                    chainId: badChainId,
-                    timestamp,
-                });
-                expect(job.queueName).to.eq(backgroundJobMBCUpdate.queueName);
+            const job = await createAsync(queue, {
+                chainId: badChainId,
+                timestamp,
+            });
+            expect(job.queueName).toEqual(backgroundJobMBCUpdate.queueName);
 
-                const spiedJobInstance = spy(job);
-                when(spiedJobInstance.updateProgress(anything())).thenResolve();
+            const spiedJobInstance = spy(job);
+            when(spiedJobInstance.updateProgress(anything())).thenResolve();
 
-                expect(processAsync(job)).to.be.rejectedWith('chain configuration');
-            } catch (error) {
-                expect.fail('should create background job without error');
-            }
+            expect(processAsync(job)).rejects.toThrow('chain configuration');
         });
 
         it('processes maker balance cache update without error', async () => {
@@ -256,22 +232,17 @@ describe('Background Jobs Unit Tests', () => {
             const chainId = ChainId.Ganache;
             const timestamp = Date.now();
 
-            let job: Job<BackgroundJobMBCUpdateData, BackgroundJobMBCUpdateResult>;
-            try {
-                job = await createAsync(queue, {
-                    chainId,
-                    timestamp,
-                });
-                expect(job.queueName).to.eq(backgroundJobMBCUpdate.queueName);
+            const job = await createAsync(queue, {
+                chainId,
+                timestamp,
+            });
+            expect(job.queueName).toEqual(backgroundJobMBCUpdate.queueName);
 
-                const spiedJobInstance = spy(job);
-                when(spiedJobInstance.updateProgress(anything())).thenResolve();
+            const spiedJobInstance = spy(job);
+            when(spiedJobInstance.updateProgress(anything())).thenResolve();
 
-                const result = await processAsync(job);
-                expect(result.chainId).to.eq(chainId);
-            } catch (error) {
-                expect.fail('should create and update background job without error');
-            }
+            const result = await processAsync(job);
+            expect(result.chainId).toEqual(chainId);
         });
 
         it('should fail to process job when the cache service fails to update entries', async () => {
@@ -305,21 +276,16 @@ describe('Background Jobs Unit Tests', () => {
             const chainId = ChainId.Ganache;
             const timestamp = Date.now();
 
-            let job: Job<BackgroundJobMBCUpdateData, BackgroundJobMBCUpdateResult>;
-            try {
-                job = await createAsync(queue, {
-                    chainId,
-                    timestamp,
-                });
-                expect(job.queueName).to.eq(backgroundJobMBCUpdate.queueName);
+            const job = await createAsync(queue, {
+                chainId,
+                timestamp,
+            });
+            expect(job.queueName).toEqual(backgroundJobMBCUpdate.queueName);
 
-                const spiedJobInstance = spy(job);
-                when(spiedJobInstance.updateProgress(anything())).thenResolve();
+            const spiedJobInstance = spy(job);
+            when(spiedJobInstance.updateProgress(anything())).thenResolve();
 
-                expect(processAsync(job)).to.be.rejectedWith('update maker balance cache');
-            } catch (error) {
-                expect.fail('should create background job without error');
-            }
+            expect(processAsync(job)).rejects.toThrow('update maker balance cache');
         });
     });
 });

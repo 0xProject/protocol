@@ -1,6 +1,5 @@
 import { ChainId } from '@0x/contract-addresses';
 import { BigNumber } from '@0x/utils';
-import { expect } from 'chai';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 
 import { RfqMakerBalanceCacheService } from '../../src/services/rfq_maker_balance_cache_service';
@@ -39,7 +38,7 @@ describe('RfqMakerBalanceCacheService', () => {
                 instance(balanceCheckUtilsMock),
             );
 
-            expect(await makerBalanceCacheService.getERC20OwnerBalancesAsync(chainId, addresses)).to.deep.eq([
+            expect(await makerBalanceCacheService.getERC20OwnerBalancesAsync(chainId, addresses)).toEqual([
                 new BigNumber(1),
                 new BigNumber(2),
                 new BigNumber(3),
@@ -71,7 +70,7 @@ describe('RfqMakerBalanceCacheService', () => {
                 instance(balanceCheckUtilsMock),
             );
 
-            expect(await makerBalanceCacheService.getERC20OwnerBalancesAsync(chainId, addresses)).to.deep.eq([
+            expect(await makerBalanceCacheService.getERC20OwnerBalancesAsync(chainId, addresses)).toEqual([
                 new BigNumber(1),
                 new BigNumber(2),
                 new BigNumber(3),
@@ -100,7 +99,7 @@ describe('RfqMakerBalanceCacheService', () => {
                 instance(balanceCheckUtilsMock),
             );
 
-            expect(await makerBalanceCacheService.getERC20OwnerBalancesAsync(chainId, addresses)).to.deep.eq([
+            expect(await makerBalanceCacheService.getERC20OwnerBalancesAsync(chainId, addresses)).toEqual([
                 new BigNumber(0),
                 new BigNumber(2),
                 new BigNumber(0),
@@ -125,13 +124,10 @@ describe('RfqMakerBalanceCacheService', () => {
                 instance(balanceCheckUtilsMock),
             );
 
-            try {
-                await makerBalanceCacheService.getERC20OwnerBalancesAsync(chainId, addresses);
-                expect.fail();
-            } catch (error) {
-                expect(error.message).to.contain('maker balance cache');
-                verify(balanceCheckUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).never();
-            }
+            expect(makerBalanceCacheService.getERC20OwnerBalancesAsync(chainId, addresses)).rejects.toThrow(
+                'maker balance cache',
+            );
+            verify(balanceCheckUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).never();
         });
 
         it('should get empty array when addresses are empty', async () => {
@@ -145,7 +141,7 @@ describe('RfqMakerBalanceCacheService', () => {
                 instance(balanceCheckUtilsMock),
             );
 
-            expect(await makerBalanceCacheService.getERC20OwnerBalancesAsync(chainId, emptyAddresses)).to.deep.eq([]);
+            expect(await makerBalanceCacheService.getERC20OwnerBalancesAsync(chainId, emptyAddresses)).toEqual([]);
             verify(balanceCheckUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).never();
         });
     });
@@ -171,12 +167,8 @@ describe('RfqMakerBalanceCacheService', () => {
                 instance(balanceCheckUtilsMock),
             );
 
-            try {
-                await makerBalanceCacheService.updateERC20OwnerBalancesAsync(chainId);
-                verify(balanceCheckUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).once();
-            } catch (error) {
-                expect.fail();
-            }
+            await makerBalanceCacheService.updateERC20OwnerBalancesAsync(chainId);
+            verify(balanceCheckUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).once();
         });
     });
 
@@ -202,13 +194,10 @@ describe('RfqMakerBalanceCacheService', () => {
             instance(balanceCheckUtilsMock),
         );
 
-        try {
-            await makerBalanceCacheService.updateERC20OwnerBalancesAsync(chainId);
-            expect.fail();
-        } catch (error) {
-            expect(error.message).to.contain('maker balance cache');
-            verify(balanceCheckUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).once();
-        }
+        await expect(makerBalanceCacheService.updateERC20OwnerBalancesAsync(chainId)).rejects.toThrow(
+            'maker balance cache',
+        );
+        verify(balanceCheckUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).once();
     });
 
     describe('evictZeroBalancesAsync', () => {
@@ -221,13 +210,9 @@ describe('RfqMakerBalanceCacheService', () => {
                 instance(balanceCheckUtilsMock),
             );
 
-            try {
-                const numEvicted = await makerBalanceCacheService.evictZeroBalancesAsync(chainId);
-                expect(numEvicted).to.eq(1);
-                verify(cacheClientMock.evictZeroBalancesAsync(chainId)).once();
-            } catch (error) {
-                expect.fail();
-            }
+            const numEvicted = await makerBalanceCacheService.evictZeroBalancesAsync(chainId);
+            expect(numEvicted).toEqual(1);
+            verify(cacheClientMock.evictZeroBalancesAsync(chainId)).once();
         });
     });
 });

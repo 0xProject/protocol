@@ -1,8 +1,5 @@
 // tslint:disable:custom-no-magic-numbers
 // tslint:disable:max-file-line-count
-
-import { expect } from 'chai';
-
 import { RFQM_TX_GAS_ESTIMATE } from '../../src/core/constants';
 import { calculateGasEstimate } from '../../src/utils/rfqm_gas_estimate_utils';
 
@@ -14,7 +11,7 @@ describe('RFQM Gas Estimate utils', () => {
 
             const result = calculateGasEstimate(makerToken, takerToken, 'rfq', false);
 
-            expect(result).to.equal(RFQM_TX_GAS_ESTIMATE);
+            expect(result).toEqual(RFQM_TX_GAS_ESTIMATE);
         });
 
         it('should add a token premium for maker token', () => {
@@ -23,7 +20,7 @@ describe('RFQM Gas Estimate utils', () => {
 
             const result = calculateGasEstimate(makerToken, takerToken, 'rfq', false);
 
-            expect(result).to.be.greaterThan(RFQM_TX_GAS_ESTIMATE);
+            expect(result).toBeGreaterThan(RFQM_TX_GAS_ESTIMATE);
         });
 
         it('should add a token premium for taker token', () => {
@@ -32,7 +29,7 @@ describe('RFQM Gas Estimate utils', () => {
 
             const result = calculateGasEstimate(makerToken, takerToken, 'rfq', false);
 
-            expect(result).to.be.greaterThan(RFQM_TX_GAS_ESTIMATE);
+            expect(result).toBeGreaterThan(RFQM_TX_GAS_ESTIMATE);
         });
 
         it('token premiums for maker and taker token should be additive', () => {
@@ -43,7 +40,7 @@ describe('RFQM Gas Estimate utils', () => {
             const result1 = calculateGasEstimate(USDC, unknown, 'rfq', false);
             const result2 = calculateGasEstimate(USDC, USDT, 'rfq', false);
 
-            expect(result2).to.be.greaterThan(result1);
+            expect(result2).toBeGreaterThan(result1);
         });
 
         it('should be case insensitive to the input tokens', () => {
@@ -55,8 +52,8 @@ describe('RFQM Gas Estimate utils', () => {
             const result1 = calculateGasEstimate(USDC_uppercase, unknown, 'rfq', false);
             const result2 = calculateGasEstimate(USDC_uppercase, USDT_uppercase, 'rfq', false);
 
-            expect(result1).to.be.greaterThan(result0);
-            expect(result2).to.be.greaterThan(result1);
+            expect(result1).toBeGreaterThan(result0);
+            expect(result2).toBeGreaterThan(result1);
         });
     });
 });
