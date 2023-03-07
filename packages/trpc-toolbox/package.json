@@ -1,9 +1,9 @@
 {
     "dependencies": {
-        "@trpc/client": "^10.12.0",
-        "@trpc/server": "^10.12.0",
+        "@trpc/client": "10.14.1",
+        "@trpc/server": "10.14.1",
         "typescript": "^4.9.5",
-        "zod": "3.21.3"
+        "zod": "3.21.4"
     },
     "devDependencies": {
         "eslint": "^8.34.0",

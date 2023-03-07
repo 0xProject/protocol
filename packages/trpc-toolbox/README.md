@@ -12,7 +12,6 @@ Create your interface package:
 
 ```ts
 import type { defineTrpcRouter, TProcedureTree } from 'trpc-toolbox';
-import { z } from 'trpc-toolbox';
 
 // Define rpc setup
 type RpcSetup = {
@@ -21,17 +20,17 @@ type RpcSetup = {
 };
 
 // Define router setup
-export const myRouterProcedures = {
+type RouterProcedures = {
     greeter: {
         greet: {
-            type: 'query',
-            input: z.coerce.number(),
-            output: z.object({ greeting: z.string() }),
-        },
-    },
-} satisfies TProcedureTree; // Don't forget the `satisfies`! (requires TypeScript 4.9.x)
+            type: 'query';
+            input: { times: number };
+            output: { greeting: string };
+        };
+    };
+};
 
-export type MyRouter = defineTrpcRouter<typeof myRouterProcedures, RpcSetup>;
+export type TRouter = defineTrpcRouter<RouterProcedures, RpcSetup>;
 ```
 
 ## Implementing the router
@@ -41,19 +40,19 @@ In your router implementation, import your router settings and type.
 ```ts
 import { inferRouterContext, inferRouterMeta, initTRPC } from '@trpc/server';
 import { z } from 'zod';
-import { TMyRouter, myRouterProcedures } from 'my-router-interface';
+import { TRouter } from 'my-router-interface';
 
-const t = initTRPC.context<inferRouterContext<TMyRouter>>().meta<inferRouterMeta<TMyRouter>>().create();
-export const myRouter = t.router({
+const t = initTRPC.context<inferRouterContext<TRouter>>().meta<inferRouterMeta<TRouter>>().create();
+export const router = t.router({
     greeter: t.router({
         greet: t.procedure
-            .input(myRouterProcedures.greeter.greet.input)
-            .output(myRouterProcedures.greeter.greet.output)
+            .input(z.object({ times: z.number() }))
+            .output(z.object({ greeting: z.string() }))
             .query(({ input, ctx }) => {
-                return { greeting: `Hello ${ctx.userName} ${input} times!` };
+                return { greeting: `Hello ${ctx.userName} ${input.times} times!` };
             }),
     }),
-}) satisfies TMyRouter; // Don't forget the `satisfies` for type safety!
+}) satisfies TRouter; // Don't forget the `satisfies` for type safety!
 ```
 
 ## Creating a client
@@ -63,8 +62,8 @@ To create a typed client all you need is the router type:
 ```ts
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 
-import { TMyRouter } from 'my-router-interface';
-const client = createTRPCProxyClient<TMyRouter>({
+import { TRouter } from 'my-router-interface';
+const client = createTRPCProxyClient<TRouter>({
     links: [
         httpBatchLink({
             url: 'http://localhost:3000/trpc',
@@ -72,5 +71,7 @@ const client = createTRPCProxyClient<TMyRouter>({
     ],
 });
 
-const myGreeting /* { greeting: string } */ = await client.greeting.greet(93939939393932438032480285094573954809537);
+const myGreeting /* { greeting: string } */ = await client.greeting.greet({
+    times: 93939939393932438032480285094573954809537,
+});
 ```
