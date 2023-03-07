@@ -2,8 +2,8 @@
     "name": "integrator-db",
     "version": "0.0.0",
     "private": true,
-    "main": "./index.ts",
-    "types": "./index.ts",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
     "scripts": {
         "build": "prisma generate",
         "db:migrate": "prisma migrate dev",
