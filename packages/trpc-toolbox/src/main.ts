@@ -11,9 +11,12 @@ import { RouterDef } from '@trpc/server/dist/core/router';
 import { DefaultErrorData } from '@trpc/server/dist/error/formatter';
 import { TRPCErrorShape, TRPC_ERROR_CODE_NUMBER } from '@trpc/server/rpc';
 import { ProcedureRouterRecord } from '@trpc/server/src';
-import type { z } from 'zod';
+import { z } from 'zod';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+// Re-export zod to allow interface packages to depend on the same zod version and avoid potential type inconsistency.
+export { z };
 
 /**
  * Setup interfaces for `initTRPC`
