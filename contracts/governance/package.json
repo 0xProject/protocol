@@ -8,7 +8,9 @@
     "test": "test"
   },
   "scripts": {
-    "test": "forge test"
+    "test": "forge test",
+    "build": "forge build",
+    "build:smt": "FOUNDRY_PROFILE=smt forge build"
   },
   "repository": {
     "type": "git",

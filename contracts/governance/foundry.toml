@@ -9,3 +9,15 @@ remappings = [
 ]
 solc = '0.8.19'
 optimizer_runs = 20_000
+
+[profile.smt.model_checker]
+engine = 'chc'
+timeout = 10_000
+targets = [
+    'assert',
+    'constantCondition',
+    'divByZero',
+    'outOfBounds',
+    'underflow'
+]
+contracts = { 'src/ZeroExProtocolGovernor.sol' = [ 'ZeroExProtocolGovernor' ] }
