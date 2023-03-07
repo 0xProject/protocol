@@ -7,6 +7,10 @@ import { createUserWithEmailAndPassword } from '../data/zippo.server';
 import { validateFormData } from '../utils/utils';
 import { z } from 'zod';
 import { Button } from '../components/Button';
+import { IconButton } from '../components/IconButton';
+import React from 'react';
+import { Eye } from '../icons/Eye';
+import { EyeOff } from '../icons/EyeOff';
 
 const zodPasswordModel = z.object({
     password: z.string().min(1, 'Please enter a password'),
@@ -105,6 +109,8 @@ export default function SetPasswordPage() {
     const actionData = useActionData<typeof action>();
     const navigator = useNavigate();
 
+    const [showPassword, setShowPassword] = React.useState(false);
+
     return (
         <main className="bg-white h-full min-h-full w-full min-w-screen flex flex-col">
             <div className=" h-full w-full flex justify-center">
@@ -120,7 +126,7 @@ export default function SetPasswordPage() {
                     <Form method="post" className="flex flex-col gap-x-[18px] gap-y-4 w-full">
                         <TextInput
                             placeholder="Enter your password"
-                            type="password"
+                            type={showPassword ? 'text' : 'password'}
                             name="password"
                             id="password"
                             label="Password"
@@ -128,6 +134,19 @@ export default function SetPasswordPage() {
                             className="col-span-2 w-full"
                             error={actionData?.errors.password}
                             initialValue={actionData?.values?.password}
+                            endDecorator={
+                                <IconButton
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    color="white"
+                                    className="shadow-md h-11 w-11"
+                                    size="xs"
+                                    roundness="sm"
+                                    type="button"
+                                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                >
+                                    {showPassword ? <EyeOff /> : <Eye />}
+                                </IconButton>
+                            }
                         />
                         <Button type="submit" className="col-span-2">
                             Continue →

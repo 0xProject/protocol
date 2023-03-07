@@ -2,6 +2,7 @@ import type { ActionArgs, LoaderArgs } from '@remix-run/node';
 import { redirect } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import { Form, Link, useActionData } from '@remix-run/react';
+import React from 'react';
 import { AuthorizationError } from 'remix-auth';
 import { z } from 'zod';
 
@@ -9,8 +10,11 @@ import type { User } from '../auth.server';
 import { auth, sessionStorage } from '../auth.server';
 import { Alert } from '../components/Alert';
 import { Button } from '../components/Button';
+import { IconButton } from '../components/IconButton';
 import { OnboardingAppBar } from '../components/OnboardingAppBar';
 import { TextInput } from '../components/TextInput';
+import { Eye } from '../icons/Eye';
+import { EyeOff } from '../icons/EyeOff';
 import { validateFormData } from '../utils/utils';
 
 const zodLoginModel = z.object({
@@ -79,6 +83,9 @@ export const action = async ({ request }: ActionArgs) => {
 
 export default function Login() {
     const actionData = useActionData<typeof action>();
+
+    const [showPassword, setShowPassword] = React.useState(false);
+
     return (
         <div>
             <OnboardingAppBar showNavSwitch={true} />
@@ -106,10 +113,23 @@ export default function Login() {
                                 name="password"
                                 id="password"
                                 label="Password"
-                                type="password"
+                                type={showPassword ? 'text' : 'password'}
                                 hiddenLabel
                                 className="w-full"
                                 initialValue={actionData?.values?.password}
+                                endDecorator={
+                                    <IconButton
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        color="white"
+                                        className="shadow-md h-11 w-11"
+                                        size="xs"
+                                        roundness="sm"
+                                        type="button"
+                                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                    >
+                                        {showPassword ? <EyeOff /> : <Eye />}
+                                    </IconButton>
+                                }
                             />
                             <Button type="submit" className="col-span-2">
                                 Continue →

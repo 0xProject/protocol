@@ -6,7 +6,7 @@ test.describe('login page', () => {
     });
     test('should redirect to apps page after successful login', async ({ page }) => {
         await page.getByLabel('E-Mail address').fill('freshmeat@0xproject.com');
-        await page.getByLabel('Password').fill('test');
+        await page.getByLabel('Password', { exact: true }).fill('test');
         await page.getByText('Continue').click();
         await expect(page).toHaveURL(/apps$/);
     });
@@ -29,9 +29,21 @@ test.describe('login page', () => {
 
     test('should show an error if wrong credentials are input', async ({ page }) => {
         await page.getByLabel('E-Mail address').fill('valid@email.com');
-        await page.getByLabel('Password').fill('invalid');
+        await page.getByLabel('Password', { exact: true }).fill('invalid');
         await page.getByText('Continue').click();
         await expect(page.getByText('Invalid email or password')).toBeVisible();
+    });
+    test("should not show the typed password if the 'show password' button has not been clicked", async ({ page }) => {
+        const password = 'KKLjlsdakifjeiow0(*79384890sdfjl';
+        await page.getByLabel('Password', { exact: true }).fill(password);
+        await expect(page.getByLabel('Password', { exact: true })).toHaveAttribute('type', 'password');
+    });
+
+    test('should show the typed password if the "show password" button has been clicked', async ({ page }) => {
+        const password = 'KKLjlsdakifjeiow0(*79384890sdfjl';
+        await page.getByLabel('Password', { exact: true }).fill(password);
+        await page.getByLabel('Show password').click();
+        await expect(page.getByLabel('Password', { exact: true })).toHaveAttribute('type', 'text');
     });
 
     test('should be able to switch to the create account page', async ({ page }) => {

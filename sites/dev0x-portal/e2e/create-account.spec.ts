@@ -67,9 +67,22 @@ test.describe('create account second page', () => {
         await expect(page.getByText('Please enter a password')).toBeVisible();
     });
 
+    test("should not show the typed password if the 'show password' button has not been clicked", async ({ page }) => {
+        const password = 'KKLjlsdakifjeiow0(*79384890sdfjl';
+        await page.getByLabel('Password', { exact: true }).fill(password);
+        await expect(page.getByLabel('Password', { exact: true })).toHaveAttribute('type', 'password');
+    });
+
+    test('should show the typed password if the "show password" button has been clicked', async ({ page }) => {
+        const password = 'KKLjlsdakifjeiow0(*79384890sdfjl';
+        await page.getByLabel('Password', { exact: true }).fill(password);
+        await page.getByLabel('Show password').click();
+        await expect(page.getByLabel('Password', { exact: true })).toHaveAttribute('type', 'text');
+    });
+
     test('should show an error if the password is not strong enough', async ({ page }) => {
+        await page.getByLabel('Password', { exact: true }).fill('123456');
         await page.getByText('Continue').click();
-        await page.getByLabel('Password').fill('123456');
         expect(page.locator('[id=password-error]').innerText).toBeTruthy();
     });
 
@@ -82,7 +95,7 @@ test.describe('create account second page', () => {
     });
 
     test('should redirect the user to the verification-sent page when the password is valid', async ({ page }) => {
-        await page.getByLabel('Password').fill('KKLjlsdakifjeiow0(*79384890sdfjl');
+        await page.getByLabel('Password', { exact: true }).fill('KKLjlsdakifjeiow0(*79384890sdfjl');
         await page.getByText('Continue').click();
         await expect(page).toHaveURL(/create-account\/verification-sent/);
     });
@@ -96,7 +109,7 @@ test.describe('create account verification-sent page', () => {
         await page.getByLabel('E-Mail address').fill('valid@email.com');
         await page.getByText('Continue').click();
         await expect(page).toHaveURL(/create-account\/set-password/);
-        await page.getByLabel('Password').fill('KKLjlsdakifjeiow0(*79384890sdfjl');
+        await page.getByLabel('Password', { exact: true }).fill('KKLjlsdakifjeiow0(*79384890sdfjl');
         await page.getByText('Continue').click();
         await expect(page).toHaveURL(/create-account\/verification-sent/);
     });
