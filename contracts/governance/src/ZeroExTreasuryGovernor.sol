@@ -59,9 +59,7 @@ contract ZeroExTreasuryGovernor is
         uint256 blockNumber
     ) public view override(IGovernor, GovernorVotesQuorumFraction) returns (uint256) {
         IZeroExVotes votes = IZeroExVotes(address(token));
-        uint256 quorum = (votes.getPastQuadraticTotalSupply(blockNumber) * quorumNumerator(blockNumber)) /
-            quorumDenominator();
-        return quorum;
+        return (votes.getPastQuadraticTotalSupply(blockNumber) * quorumNumerator(blockNumber)) / quorumDenominator();
     }
 
     // The following functions are overrides required by Solidity.

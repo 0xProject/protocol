@@ -231,11 +231,7 @@ contract ZeroExVotes is IZeroExVotes {
     /**
      * @inheritdoc IZeroExVotes
      */
-    function writeCheckpointTotalSupplyMint(
-        address account,
-        uint256 amount,
-        uint256 accountBalance
-    ) public override onlyToken {
+    function writeCheckpointTotalSupplyMint(uint256 amount, uint256 accountBalance) public override onlyToken {
         uint256 pos = _totalSupplyCheckpoints.length;
         Checkpoint memory oldCkptTotalSuply = pos == 0
             ? Checkpoint(0, 0, 0)
@@ -253,11 +249,7 @@ contract ZeroExVotes is IZeroExVotes {
         emit TotalSupplyChanged(newLinearBalance, newQuadraticBalance);
     }
 
-    function writeCheckpointTotalSupplyBurn(
-        address account,
-        uint256 amount,
-        uint256 accountBalance
-    ) public override onlyToken {
+    function writeCheckpointTotalSupplyBurn(uint256 amount, uint256 accountBalance) public override onlyToken {
         uint256 pos = _totalSupplyCheckpoints.length;
         Checkpoint memory oldCkptTotalSuply = pos == 0
             ? Checkpoint(0, 0, 0)

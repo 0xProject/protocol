@@ -45,7 +45,7 @@ contract ZRXWrappedToken is ERC20, ERC20Permit, ERC20Wrapper {
 
     // The functions below are the required overrides from the base contracts
 
-    function decimals() public view override(ERC20, ERC20Wrapper) returns (uint8) {
+    function decimals() public pure override(ERC20, ERC20Wrapper) returns (uint8) {
         return 18;
     }
 
@@ -60,14 +60,14 @@ contract ZRXWrappedToken is ERC20, ERC20Permit, ERC20Wrapper {
         super._mint(account, amount);
 
         // Snapshots the totalSupply after it has been increased.
-        zeroExVotes.writeCheckpointTotalSupplyMint(account, amount, balanceOf(account));
+        zeroExVotes.writeCheckpointTotalSupplyMint(amount, balanceOf(account));
     }
 
     function _burn(address account, uint256 amount) internal override(ERC20) {
         super._burn(account, amount);
 
         // Snapshots the totalSupply after it has been decreased.
-        zeroExVotes.writeCheckpointTotalSupplyBurn(account, amount, balanceOf(account));
+        zeroExVotes.writeCheckpointTotalSupplyBurn(amount, balanceOf(account));
     }
 
     /**

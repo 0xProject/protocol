@@ -141,7 +141,7 @@ interface IZeroExVotes {
         uint256 amount
     ) external;
 
-    function writeCheckpointTotalSupplyMint(address account, uint256 amount, uint256 accountBalance) external;
+    function writeCheckpointTotalSupplyMint(uint256 amount, uint256 accountBalance) external;
 
-    function writeCheckpointTotalSupplyBurn(address account, uint256 amount, uint256 accountBalance) external;
+    function writeCheckpointTotalSupplyBurn(uint256 amount, uint256 accountBalance) external;
 }

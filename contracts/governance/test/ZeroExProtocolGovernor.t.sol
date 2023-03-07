@@ -139,16 +139,7 @@ contract ZeroExProtocolGovernorTest is ZeroExGovernorBaseTest {
         bytes[] memory calldatas = new bytes[](1);
         calldatas[0] = abi.encodeWithSignature("mockFunction()");
 
-        // Security council tries to
         vm.startPrank(securityCouncil);
-
-        bytes32 proposalId = timelock.hashOperationBatch(
-            targets,
-            values,
-            calldatas,
-            0,
-            keccak256(bytes("Proposal description"))
-        );
         vm.expectRevert("ZeroExTimelock: not rollback");
         protocolGovernor.executeRollback(targets, values, calldatas, keccak256(bytes("Proposal description")));
     }
@@ -166,17 +157,7 @@ contract ZeroExProtocolGovernorTest is ZeroExGovernorBaseTest {
         address testFunctionImpl = 0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f;
         calldatas[0] = abi.encodeWithSignature("rollback(bytes4,address)", testFunctionSig, testFunctionImpl);
 
-        // Security council adds the batch of rollbacks to the queue
         vm.startPrank(account2);
-
-        bytes32 proposalId = timelock.hashOperationBatch(
-            targets,
-            values,
-            calldatas,
-            0,
-            keccak256(bytes("Emergency rollback"))
-        );
-
         vm.expectRevert("ZeroExProtocolGovernor: only security council allowed");
         protocolGovernor.executeRollback(targets, values, calldatas, keccak256(bytes("Emergency rollback")));
     }

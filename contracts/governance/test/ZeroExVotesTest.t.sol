@@ -40,8 +40,8 @@ contract ZeroExVotesTest is BaseTest {
     }
 
     function testShouldNotBeAbleToInitialiseWithZeroAddressToken() public {
-        ZeroExVotes votes = new ZeroExVotes();
-        votes.initialize(address(0));
+        ZeroExVotes _votes = new ZeroExVotes();
+        _votes.initialize(address(0));
     }
 
     function testShouldNotBeAbleToReinitialise() public {

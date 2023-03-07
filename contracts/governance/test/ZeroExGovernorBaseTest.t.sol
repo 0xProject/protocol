@@ -102,8 +102,7 @@ abstract contract ZeroExGovernorBaseTest is BaseTest {
         // Execute proposal
         governor.execute(targets, values, calldatas, keccak256("Assign new security council"));
 
-        address newSecurityCouncil = governor.securityCouncil();
-        assertEq(newSecurityCouncil, council);
+        assertEq(governor.securityCouncil(), council);
     }
 
     function testShouldReturnCorrectName() public {
@@ -170,8 +169,7 @@ abstract contract ZeroExGovernorBaseTest is BaseTest {
         emit SecurityCouncilAssigned(account1);
         governor.execute(targets, values, calldatas, keccak256("Assign new security council"));
 
-        address newSecurityCouncil = governor.securityCouncil();
-        assertEq(newSecurityCouncil, account1);
+        assertEq(governor.securityCouncil(), account1);
     }
 
     function testCannotAssignSecurityCouncilOutsideOfGovernance() public {
@@ -341,8 +339,7 @@ abstract contract ZeroExGovernorBaseTest is BaseTest {
         // Execute proposal
         governor.execute(targets, values, calldatas, keccak256("Increase voting delay to 3 days"));
 
-        uint256 votingDelay = governor.votingDelay();
-        assertEq(votingDelay, 3 days);
+        assertEq(governor.votingDelay(), 3 days);
     }
 
     function testCanUpdateVotingPeriodSetting() public {
@@ -378,8 +375,7 @@ abstract contract ZeroExGovernorBaseTest is BaseTest {
         // Execute proposal
         governor.execute(targets, values, calldatas, keccak256("Increase voting period to 14 days"));
 
-        uint256 votingPeriod = governor.votingPeriod();
-        assertEq(votingPeriod, 14 days);
+        assertEq(governor.votingPeriod(), 14 days);
     }
 
     function testCanUpdateProposalThresholdSetting() public {
@@ -415,8 +411,7 @@ abstract contract ZeroExGovernorBaseTest is BaseTest {
         // Execute proposal
         governor.execute(targets, values, calldatas, keccak256("Increase proposal threshold to 2000000e18"));
 
-        uint256 proposalThreshold = governor.proposalThreshold();
-        assertEq(proposalThreshold, 2000000e18);
+        assertEq(governor.proposalThreshold(), 2000000e18);
     }
 
     function testCanUpdateTimelockDelay() public {
@@ -452,8 +447,7 @@ abstract contract ZeroExGovernorBaseTest is BaseTest {
         // Execute proposal
         governor.execute(targets, values, calldatas, keccak256("Increase timelock delay to 7 days"));
 
-        uint256 timelockDelay = timelock.getMinDelay();
-        assertEq(timelockDelay, 7 days);
+        assertEq(timelock.getMinDelay(), 7 days);
     }
 
     function testSupportsGovernanceInterfaces() public {
