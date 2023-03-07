@@ -49,6 +49,22 @@ contract ZeroExVotesTest is BaseTest {
         votes.initialize(account2);
     }
 
+    function testShouldBeAbleToReadCheckpoints() public {
+        // Account 2 wraps ZRX and delegates voting power to account3
+        vm.startPrank(account2);
+        token.approve(address(wToken), 10e18);
+        wToken.depositFor(account2, 10e18);
+        vm.roll(2);
+        wToken.delegate(account3);
+
+        assertEq(votes.numCheckpoints(account3), 1);
+
+        IZeroExVotes.Checkpoint memory checkpoint = votes.checkpoints(account3, 0);
+        assertEq(checkpoint.fromBlock, 2);
+        assertEq(checkpoint.votes, 10e18);
+        assertEq(checkpoint.quadraticVotes, Math.sqrt(10e18));
+    }
+
     function testShouldBeAbleToSelfDelegateVotingPower() public {
         // Check voting power initially is 0
         uint256 votingPowerAccount2 = votes.getVotes(account2);
