@@ -52,9 +52,9 @@ contract BaseTest is Test {
         internal
         returns (IERC20, ZRXWrappedToken, ZeroExVotes, ZeroExTimelock, ZeroExTimelock, address, address)
     {
-        vm.startPrank(account1);
         (IERC20 zrxToken, ZRXWrappedToken token, ZeroExVotes votes) = setupZRXWrappedToken();
 
+        vm.startPrank(account1);
         address[] memory proposers = new address[](0);
         address[] memory executors = new address[](0);
 
@@ -92,6 +92,7 @@ contract BaseTest is Test {
     }
 
     function setupZRXWrappedToken() internal returns (IERC20, ZRXWrappedToken, ZeroExVotes) {
+        vm.startPrank(account1);
         bytes memory _bytecode = vm.getCode("./ZRXToken.json");
         address _address;
         assembly {
@@ -106,6 +107,7 @@ contract BaseTest is Test {
 
         ZRXWrappedToken token = new ZRXWrappedToken(zrxToken, IZeroExVotes(address(votesProxy)));
         votes.initialize(address(token));
+        vm.stopPrank();
 
         return (zrxToken, token, votes);
     }

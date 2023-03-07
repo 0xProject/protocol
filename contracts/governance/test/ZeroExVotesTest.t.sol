@@ -28,14 +28,23 @@ contract ZeroExVotesTest is BaseTest {
     ZeroExVotes private votes;
 
     function setUp() public {
-        (token, wToken, votes, , , , ) = setupGovernance();
+        (token, wToken, votes) = setupZRXWrappedToken();
         vm.startPrank(account1);
         token.transfer(account2, 100e18);
         token.transfer(account3, 200e18);
         vm.stopPrank();
     }
 
-    function testShouldNotBeAbleToReinitialiseTheZeroExVotes() public {
+    function testShouldCorrectlyInitialiseToken() public {
+        assertEq(votes.token(), address(wToken));
+    }
+
+    function testShouldNotBeAbleToInitialiseWithZeroAddressToken() public {
+        ZeroExVotes votes = new ZeroExVotes();
+        votes.initialize(address(0));
+    }
+
+    function testShouldNotBeAbleToReinitialise() public {
         vm.expectRevert("ZeroExVotes: already initialized");
         votes.initialize(account2);
     }
