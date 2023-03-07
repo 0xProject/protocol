@@ -41,10 +41,20 @@ interface IZeroExVotes {
      */
     event DelegateVotesChanged(address indexed delegate, uint256 previousBalance, uint256 newBalance);
 
+    /**
+     * @dev Emitted when the total supply of the token is changed due to minting and burning which results in
+     * the total supply checkpoint being writtenor updated.
+     */
     event TotalSupplyChanged(uint256 totalSupplyVotes, uint256 totalSupplyQuadraticVotes);
 
+    /**
+     * @dev Emitted a new checkpoint is written.
+     */
     event CheckpointAdded(uint256 blockNumber, uint256 totalSupplyVotes, uint256 totalSupplyQuadraticVotes);
 
+    /**
+     * @dev Emitted when an existing checkpoint is updated.
+     */
     event CheckpointUpdated(uint256 blockNumber, uint256 totalSupplyVotes, uint256 totalSupplyQuadraticVotes);
 
     /**

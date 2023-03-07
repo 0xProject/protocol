@@ -30,6 +30,9 @@ abstract contract ISecurityCouncil {
         _;
     }
 
+    /**
+     * @dev Checks that either a security council is assigned or the payloads array is a council assignment call.
+     */
     modifier securityCouncilAssigned(bytes[] memory payloads) {
         if (securityCouncil == address(0) && !_payloadIsAssignSecurityCouncil(payloads)) {
             revert("SecurityCouncil: security council not assigned and this is not an assignment call");
@@ -37,17 +40,27 @@ abstract contract ISecurityCouncil {
         _;
     }
 
+    /**
+     * @dev Assigns new security council.
+     */
     function assignSecurityCouncil(address _securityCouncil) public virtual {
         securityCouncil = _securityCouncil;
 
         emit SecurityCouncilAssigned(securityCouncil);
     }
 
+    /**
+     * @dev Ejects the current security council via setting the security council address to 0.
+     * Security council is ejected after they either cancel a proposal or execute a protocol rollback.
+     */
     function ejectSecurityCouncil() internal {
         securityCouncil = address(0);
         emit SecurityCouncilEjected();
     }
 
+    /**
+     * @dev Cancel existing proposal with the submitted `targets`, `values`, `calldatas` and `descriptionHash`.
+     */
     function cancel(
         address[] memory targets,
         uint256[] memory values,
