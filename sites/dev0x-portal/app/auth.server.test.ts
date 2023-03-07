@@ -1,68 +1,68 @@
-import type { User } from "./auth.server";
-import { withSignedInUser, auth, sessionStorage } from "./auth.server";
-import { faker } from "@faker-js/faker";
-import { addMinutes, startOfMinute } from "date-fns";
-import type { Mock } from "vitest";
-import { vi } from "vitest";
-import { doesSessionExist } from "./data/zippo.server";
+import type { User } from './auth.server';
+import { withSignedInUser, auth, sessionStorage } from './auth.server';
+import { faker } from '@faker-js/faker';
+import { addMinutes, startOfMinute } from 'date-fns';
+import type { Mock } from 'vitest';
+import { vi } from 'vitest';
+import { doesSessionExist } from './data/zippo.server';
 
 // mock the zippo.server module
-vi.mock("./data/zippo.server", () => ({
-  doesSessionExist: vi.fn(),
+vi.mock('./data/zippo.server', () => ({
+    doesSessionExist: vi.fn(),
 }));
 
 function createUser(overwrites: Partial<User> = {}): User {
-  return {
-    id: faker.datatype.uuid(),
-    email: faker.internet.email(),
-    team: faker.company.name(),
-    sessionToken: faker.datatype.uuid(),
-    expiresAt: addMinutes(new Date(), 15).toISOString(),
-    ...overwrites,
-  };
+    return {
+        id: faker.datatype.uuid(),
+        email: faker.internet.email(),
+        team: faker.company.name(),
+        sessionToken: faker.datatype.uuid(),
+        expiresAt: addMinutes(new Date(), 15).toISOString(),
+        ...overwrites,
+    };
 }
 
 const createUserSessionCookie = async (user: User) => {
-  const session = await sessionStorage.getSession();
-  session.set(auth.sessionKey, user);
-  return sessionStorage.commitSession(session);
+    const session = await sessionStorage.getSession();
+    session.set(auth.sessionKey, user);
+    return sessionStorage.commitSession(session);
 };
 
 const createRequestWithSession = async (user: User) => {
-  const request = new Request("/", {
-    headers: {
-      cookie: await createUserSessionCookie(user),
-    },
-  });
-  return request;
+    const request = new Request('/', {
+        headers: {
+            cookie: await createUserSessionCookie(user),
+        },
+    });
+    return request;
 };
 
-describe("withSignedInUser", () => {
-  const doesSessionExistMock = doesSessionExist as Mock;
+describe('withSignedInUser', () => {
+    const doesSessionExistMock = doesSessionExist as Mock;
 
-  afterEach(() => {
-    doesSessionExistMock.mockReset();
-  });
-
-  it("should return the user if the session is valid", async () => {
-    const user = createUser();
-    doesSessionExistMock.mockReturnValue(true);
-
-    const request = await createRequestWithSession(user);
-
-    let result: User | undefined;
-
-    await withSignedInUser(request, async (user) => {
-      result = user;
-      return new Response();
+    afterEach(() => {
+        doesSessionExistMock.mockReset();
     });
 
-    expect(result).toEqual(user);
-  });
+    it('should return the user if the session is valid', async () => {
+        const user = createUser();
+        doesSessionExistMock.mockReturnValue(true);
 
-  it("should redirect to the landing page if the session is invalid", async () => {
-    await expect(withSignedInUser(new Request("/"), async () => new Response()))
-      .rejects.toThrowErrorMatchingInlineSnapshot(`
+        const request = await createRequestWithSession(user);
+
+        let result: User | undefined;
+
+        await withSignedInUser(request, async (user) => {
+            result = user;
+            return new Response();
+        });
+
+        expect(result).toEqual(user);
+    });
+
+    it('should redirect to the landing page if the session is invalid', async () => {
+        await expect(withSignedInUser(new Request('/'), async () => new Response())).rejects
+            .toThrowErrorMatchingInlineSnapshot(`
       NodeResponse {
         "size": 0,
         Symbol(Body internals): {
@@ -89,63 +89,63 @@ describe("withSignedInUser", () => {
         },
       }
     `);
-  });
-
-  it("should return the user if the session is expired but still valid", async () => {
-    const user = createUser({
-      expiresAt: addMinutes(new Date(), -15).toISOString(),
-    });
-    doesSessionExistMock.mockReturnValue(true);
-
-    const request = await createRequestWithSession(user);
-
-    let result: User | undefined;
-
-    await withSignedInUser(request, async (user) => {
-      result = user;
-      return new Response();
     });
 
-    expect(result?.id).toEqual(user.id);
-  });
+    it('should return the user if the session is expired but still valid', async () => {
+        const user = createUser({
+            expiresAt: addMinutes(new Date(), -15).toISOString(),
+        });
+        doesSessionExistMock.mockReturnValue(true);
 
-  it("should update the session expiry by 15 minutes if the session is expired but still valid", async () => {
-    const user = createUser({
-      expiresAt: startOfMinute(addMinutes(new Date(), -15)).toISOString(),
+        const request = await createRequestWithSession(user);
+
+        let result: User | undefined;
+
+        await withSignedInUser(request, async (user) => {
+            result = user;
+            return new Response();
+        });
+
+        expect(result?.id).toEqual(user.id);
     });
-    doesSessionExistMock.mockReturnValue(true);
 
-    const request = await createRequestWithSession(user);
+    it('should update the session expiry by 15 minutes if the session is expired but still valid', async () => {
+        const user = createUser({
+            expiresAt: startOfMinute(addMinutes(new Date(), -15)).toISOString(),
+        });
+        doesSessionExistMock.mockReturnValue(true);
 
-    let result: User | undefined;
+        const request = await createRequestWithSession(user);
 
-    await withSignedInUser(request, async (user) => {
-      result = user;
-      return new Response();
+        let result: User | undefined;
+
+        await withSignedInUser(request, async (user) => {
+            result = user;
+            return new Response();
+        });
+
+        expect(startOfMinute(new Date(result?.expiresAt || 0)).toISOString()).toEqual(
+            startOfMinute(addMinutes(new Date(), 15)).toISOString(),
+        );
     });
 
-    expect(
-      startOfMinute(new Date(result?.expiresAt || 0)).toISOString()
-    ).toEqual(startOfMinute(addMinutes(new Date(), 15)).toISOString());
-  });
+    it('should redirect to the login page if the session is expired and invalid', async () => {
+        const user = createUser({
+            expiresAt: addMinutes(new Date(), -15).toISOString(),
+        });
+        doesSessionExistMock.mockReturnValue(false);
 
-  it("should redirect to the login page if the session is expired and invalid", async () => {
-    const user = createUser({
-      expiresAt: addMinutes(new Date(), -15).toISOString(),
-    });
-    doesSessionExistMock.mockReturnValue(false);
+        const request = await createRequestWithSession(user);
 
-    const request = await createRequestWithSession(user);
+        let result: Response | undefined;
 
-    let result: Response | undefined;
-
-    // the redirect gets thrown as an exception, so we need to assert the exception
-    await expect(
-      withSignedInUser(request, async (user) => {
-        result = new Response();
-        return result;
-      })
-    ).rejects.toThrowErrorMatchingInlineSnapshot(`
+        // the redirect gets thrown as an exception, so we need to assert the exception
+        await expect(
+            withSignedInUser(request, async (user) => {
+                result = new Response();
+                return result;
+            }),
+        ).rejects.toThrowErrorMatchingInlineSnapshot(`
       NodeResponse {
         "size": 0,
         Symbol(Body internals): {
@@ -174,5 +174,5 @@ describe("withSignedInUser", () => {
         },
       }
     `); // redirect to login page
-  });
+    });
 });

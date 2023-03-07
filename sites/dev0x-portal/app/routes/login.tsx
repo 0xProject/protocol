@@ -89,16 +89,16 @@ export default function Login() {
     return (
         <div>
             <OnboardingAppBar showNavSwitch={true} />
-            <main className="bg-white h-full min-h-full w-full min-w-screen flex flex-col mt-[103px]">
-                <div className="w-full h-full flex justify-center">
-                    <div className="w-full max-w-[456px] mt-40">
+            <main className="min-w-screen mt-[103px] flex h-full min-h-full w-full flex-col bg-white">
+                <div className="flex h-full w-full justify-center">
+                    <div className="mt-40 w-full max-w-[456px]">
                         {actionData?.error && (
                             <Alert variant="error" className="mb-6">
                                 {actionData.error}
                             </Alert>
                         )}
-                        <h1 className="text-2.5xl text-black mb-6">Log in</h1>
-                        <Form method="post" className="flex flex-col gap-x-[18px] gap-y-4 w-full">
+                        <h1 className="text-2.5xl mb-6 text-black">Log in</h1>
+                        <Form method="post" className="flex w-full flex-col gap-x-[18px] gap-y-4">
                             <TextInput
                                 placeholder="Enter your email address"
                                 name="email"
@@ -137,7 +137,7 @@ export default function Login() {
                         </Form>
                         <Link
                             to="/forgot-password"
-                            className="text-sm text-[#A9A9A9] mt-20 block text-center font-sans font-normal"
+                            className="mt-20 block text-center font-sans text-sm font-normal text-[#A9A9A9]"
                         >
                             Forgot your password?
                         </Link>

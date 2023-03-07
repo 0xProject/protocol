@@ -1,3 +1,3 @@
 export default function AppSettings() {
-  return <div>App settings</div>;
+    return <div>App settings</div>;
 }

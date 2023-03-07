@@ -2,9 +2,7 @@ export default function Apps() {
     return (
         <div className="px-24">
             <h3 className="font-sans text-5xl font-normal">Welcome to 0x.</h3>
-            <div className="">
-
-            </div>
+            <div className=""></div>
             <p>
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus tristique est metus, eget malesuada
                 dolor vestibulum ac. Donec lacinia metus eu quam molestie ullamcorper. Phasellus molestie risus id erat

@@ -24,10 +24,10 @@ export default function VerificationSent() {
     const loaderData = useLoaderData<{ email: string }>();
 
     return (
-        <main className="bg-white h-full min-h-full w-full min-w-screen flex flex-col">
-            <div className=" h-full w-full flex justify-center">
-                <div className="w-full max-w-[456px] mt-40">
-                    <h1 className="text-2.5xl text-black mb-4">First, let's verify your email</h1>
+        <main className="min-w-screen flex h-full min-h-full w-full flex-col bg-white">
+            <div className=" flex h-full w-full justify-center">
+                <div className="mt-40 w-full max-w-[456px]">
+                    <h1 className="text-2.5xl mb-4 text-black">First, let's verify your email</h1>
                     <p className="mb-3">
                         Check <b>{loaderData.email}</b> to verify your account and get started.
                     </p>

@@ -63,7 +63,7 @@ export function BinaryLinkButton({ active, states, render }: BinaryStateButtonPr
     );
 
     return (
-        <div className="bg-grey-100 rounded-[14px] w-fit">
+        <div className="bg-grey-100 w-fit rounded-[14px]">
             {render ? render(leftProps) : <LinkButton {...leftProps}>{states.left.label}</LinkButton>}
             {render ? render(rightProps) : <LinkButton {...rightProps}>{states.right.label}</LinkButton>}
         </div>

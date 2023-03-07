@@ -14,7 +14,7 @@ export function OnboardingAppBar({ showNavSwitch }: OnboardingAppBarProps) {
             <img src="/assets/logo.svg" alt="Dev0x" height={28} width={45.55} />
             {showNavSwitch && (
                 <div aria-label="Navigation" className="ml-10 w-full">
-                    <nav className="w-full flex justify-center -ml-[45.55px]">
+                    <nav className="-ml-[45.55px] flex w-full justify-center">
                         <BinaryLinkButton
                             active={location.pathname === '/login' ? 'left' : 'right'}
                             states={{

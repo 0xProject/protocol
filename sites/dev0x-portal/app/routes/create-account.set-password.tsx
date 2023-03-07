@@ -112,18 +112,18 @@ export default function SetPasswordPage() {
     const [showPassword, setShowPassword] = React.useState(false);
 
     return (
-        <main className="bg-white h-full min-h-full w-full min-w-screen flex flex-col">
-            <div className=" h-full w-full flex justify-center">
-                <div className="w-full max-w-[456px] mt-40">
+        <main className="min-w-screen flex h-full min-h-full w-full flex-col bg-white">
+            <div className=" flex h-full w-full justify-center">
+                <div className="mt-40 w-full max-w-[456px]">
                     <button
-                        className="h-11 w-11 bg-grey-100 rounded-xl mb-6"
+                        className="bg-grey-100 mb-6 h-11 w-11 rounded-xl"
                         onClick={() => navigator(-1)}
                         title="Go Back"
                     >
                         ←
                     </button>
-                    <h1 className="text-2.5xl text-black mb-6">Create your password</h1>
-                    <Form method="post" className="flex flex-col gap-x-[18px] gap-y-4 w-full">
+                    <h1 className="text-2.5xl mb-6 text-black">Create your password</h1>
+                    <Form method="post" className="flex w-full flex-col gap-x-[18px] gap-y-4">
                         <TextInput
                             placeholder="Enter your password"
                             type={showPassword ? 'text' : 'password'}

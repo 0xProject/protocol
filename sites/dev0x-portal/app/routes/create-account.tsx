@@ -12,7 +12,7 @@ export default function CreateAccountLayout() {
     return (
         <div>
             <OnboardingAppBar showNavSwitch={showNavSwitch} />
-            <div className="h-full w-full mt-[103px]">
+            <div className="mt-[103px] h-full w-full">
                 <Outlet />
             </div>
         </div>

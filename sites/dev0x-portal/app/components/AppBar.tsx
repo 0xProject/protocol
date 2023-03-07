@@ -6,8 +6,8 @@ import { IconButton } from './IconButton';
 
 export const AppBar = () => {
     return (
-        <Toolbar.Root className="border-grey-100 border-solid border-b min-h-[82px] sticky bg-white top-0 flex items-center py-4 px-24">
-            <div className="-translate-x-[71px] w-0">
+        <Toolbar.Root className="border-grey-100 sticky top-0 flex min-h-[82px] items-center border-b border-solid bg-white py-4 px-24">
+            <div className="w-0 -translate-x-[71px]">
                 <IconButton color="transparent" aria-label="Show Menu">
                     <Bars />
                 </IconButton>

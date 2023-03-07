@@ -80,12 +80,12 @@ export default function CreateAccount() {
     const maybeSessionInfo = useLoaderData<typeof loader>();
 
     return (
-        <main className="bg-white h-full min-h-full w-full min-w-screen flex flex-col">
-            <div className="w-full h-full flex justify-center">
-                <div className="w-full max-w-[456px] mt-40">
-                    <h1 className="text-2.5xl text-black mb-6">Create an account</h1>
-                    <Form method="post" className="flex flex-col gap-x-[18px] gap-y-4 w-full">
-                        <div className="grid grid-cols-2 gap-[18px] w-full max-w-full">
+        <main className="min-w-screen flex h-full min-h-full w-full flex-col bg-white">
+            <div className="flex h-full w-full justify-center">
+                <div className="mt-40 w-full max-w-[456px]">
+                    <h1 className="text-2.5xl mb-6 text-black">Create an account</h1>
+                    <Form method="post" className="flex w-full flex-col gap-x-[18px] gap-y-4">
+                        <div className="grid w-full max-w-full grid-cols-2 gap-[18px]">
                             <TextInput
                                 placeholder="Enter first name"
                                 name="firstName"
@@ -121,7 +121,7 @@ export default function CreateAccount() {
                             Continue →
                         </Button>
                     </Form>
-                    <p className="mt-20 text-grey-400 text-center">
+                    <p className="text-grey-400 mt-20 text-center">
                         Do you have an account?{' '}
                         <Link className="text-black" to="/login">
                             Login
