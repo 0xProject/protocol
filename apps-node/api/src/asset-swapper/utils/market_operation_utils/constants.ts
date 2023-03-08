@@ -553,22 +553,23 @@ export const BSC_TOKENS = {
 };
 
 export const POLYGON_TOKENS = {
-    DAI: '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063',
-    USDC: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
-    USDT: '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
     amDAI: '0x27f8d03b3a2196956ed754badc28d73be8830a6e',
     amUSDC: '0x1a13f4ca1d028320a707d99520abfefca3998b7f',
     amUSDT: '0x60d55f02a771d515e077c9c2403a1ef324885cec',
-    WBTC: '0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6',
-    WMATIC: '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270',
-    WETH: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
-    renBTC: '0xdbf31df14b66535af65aac99c32e9ea844e14501',
-    QUICK: '0x831753dd7087cac61ab5644b308642cc1c33dc13',
-    DFYN: '0xc168e40227e4ebd8c1cae80f7a55a4f0e6d66c97',
-    BANANA: '0x5d47baba0d66083c52009271faf3f50dcc01023c',
-    WEXPOLY: '0x4c4bf319237d98a30a929a96112effa8da3510eb',
-    nUSD: '0xb6c473756050de474286bed418b77aeac39b02af',
     ANY: '0x6ab6d61428fde76768d7b45d8bfeec19c6ef91a8',
+    BANANA: '0x5d47baba0d66083c52009271faf3f50dcc01023c',
+    DAI: '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063',
+    DFYN: '0xc168e40227e4ebd8c1cae80f7a55a4f0e6d66c97',
+    GHST: '0x385eeac5cb85a38a9a07a70c73e0a3271cfb54a7',
+    GLTR: '0x3801c3b3b5c98f88a9c9005966aa96aa440b9afc',
+    nUSD: '0xb6c473756050de474286bed418b77aeac39b02af',
+    QUICK: '0x831753dd7087cac61ab5644b308642cc1c33dc13',
+    renBTC: '0xdbf31df14b66535af65aac99c32e9ea844e14501',
+    USDC: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
+    USDT: '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
+    WBTC: '0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6',
+    WETH: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
+    WMATIC: '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270',
     WOO: '0x1b815d120b3ef02039ee11dc2d33de7aa4a8c603',
 };
 
@@ -963,6 +964,7 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID: Record<ChainId, TokenAdj
     [ChainId.Polygon]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Polygon])
         .tap((builder) => {
             builder.addBidirectional(POLYGON_TOKENS.QUICK, POLYGON_TOKENS.ANY);
+            builder.addBidirectional(POLYGON_TOKENS.GHST, POLYGON_TOKENS.GLTR);
         })
         .build(),
     [ChainId.Avalanche]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Avalanche])
