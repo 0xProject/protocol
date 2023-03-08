@@ -54,6 +54,11 @@ import {
     MultiHopFillData,
 } from './types';
 
+const CONVERSION_TO_NATIVE = new Counter({
+    name: 'conversion_to_native',
+    help: 'conversion to native token',
+    labelNames: ['source', 'endpoint'],
+});
 const NO_CONVERSION_TO_NATIVE_FOUND = new Counter({
     name: 'no_conversion_to_native_found',
     help: 'unable to get conversion to native token',
@@ -161,6 +166,7 @@ export class MarketOperationUtils {
             ),
         );
 
+        CONVERSION_TO_NATIVE.labels('getTokenAmountPerWei', opts?.endpoint ?? 'N/A').inc();
         if (tokenAmountPerWei.isZero()) {
             NO_CONVERSION_TO_NATIVE_FOUND.labels('getTokenAmountPerWei', opts?.endpoint ?? 'N/A').inc();
         }
@@ -373,6 +379,8 @@ export class MarketOperationUtils {
 
         const defaultLabels = ['getMarketBuyLiquidityAsync', opts?.endpoint || 'N/A'];
 
+        // sell & buy token to native token conversion
+        CONVERSION_TO_NATIVE.labels(...defaultLabels).inc(2);
         if (ethToMakerAssetRate.isZero()) {
             logger.info(
                 { token: makerToken, endpoint: opts?.endpoint, inOut: 'output' },
