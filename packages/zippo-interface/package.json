@@ -1,0 +1,23 @@
+{
+    "dependencies": {
+        "eslint-config-common": "*",
+        "trpc-toolbox": "*",
+        "tsconfig": "*",
+        "zod": "^3.21.4"
+    },
+    "description": "Public interface for zippo",
+    "license": "UNLICENSED",
+    "main": "__build__/main.js",
+    "name": "zippo-interface",
+    "private": true,
+    "types": "src/main.ts",
+    "version": "0.0.0",
+    "scripts": {
+        "build": "tsc",
+        "fix": "prettier --write .",
+        "lint:ci": "prettier --check . && eslint ."
+    },
+    "devDependencies": {
+        "typescript": "^4.9.5"
+    }
+}

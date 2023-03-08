@@ -1,30 +1,7 @@
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'integrator-db';
 import prisma from '../prisma';
 import { z } from 'zod';
-
-/**
- * Validation shape for getting a user by ID.
- */
-export const userGetByIdInputShape = z.string().cuid();
-
-/**
- * Input type to get a user by ID.
- */
-export type UserGetByIdInput = z.infer<typeof userGetByIdInputShape>;
-
-/**
- * Validation shape for creating a user.
- */
-export const userCreateInputShape = z.object({
-    name: z.string().min(1, { message: 'Name is required' }),
-    email: z.string().email().optional(),
-    image: z.string().url().optional(),
-});
-
-/**
- * Input type to create a user.
- */
-export type UserCreateInput = z.infer<typeof userCreateInputShape>;
+import { zippoRouterDefinition } from 'zippo-interface';
 
 const defaultUserSelect = Prisma.validator<Prisma.UserSelect>()({
     id: true,
@@ -40,25 +17,25 @@ const defaultUserSelect = Prisma.validator<Prisma.UserSelect>()({
  *
  * @param input User ID
  */
-export async function getById(input: UserGetByIdInput) {
+export async function getById(
+    id: z.infer<typeof zippoRouterDefinition.user.get.input>,
+): Promise<z.infer<typeof zippoRouterDefinition.user.get.output>> {
     return prisma.user.findUnique({
-        where: { id: input },
+        where: { id },
         select: defaultUserSelect,
     });
 }
 
 /**
  * Create a new user.
- *
- * @param input User information
  */
-export async function create(input: UserCreateInput) {
+export async function create(createUserParameters: z.infer<typeof zippoRouterDefinition.user.create.input>) {
     // for now, we automatically create a new team for every new user
     const integratorTeam = await createIntegratorTeam();
 
     return prisma.user.create({
         data: {
-            ...input,
+            ...createUserParameters,
             integratorTeamId: integratorTeam.id,
         },
         select: defaultUserSelect,

@@ -1,13 +1,30 @@
 import { env } from './env';
 import { logger } from './logger';
 import { createHTTPServer } from '@trpc/server/adapters/standalone';
-import { appRouter } from './routers';
+import { initTRPC } from '@trpc/server';
+import { zippoRouterDefinition, TZippoRouter } from 'zippo-interface';
+import { create as userCreate, getById as userGetById } from './services/userService';
 
-logger.info(`Starting ZIPPO on port ${env.ZIPPO_PORT}`);
+const t = initTRPC.create();
 
-createHTTPServer({
-    router: appRouter,
+const router = t.router({
+    user: t.router({
+        get: t.procedure
+            .input(zippoRouterDefinition.user.get.input)
+            .output(zippoRouterDefinition.user.get.output)
+            .query(({ input }) => userGetById(input)),
+        create: t.procedure.input(zippoRouterDefinition.user.create.input).mutation(({ input }) => {
+            userCreate(input);
+        }),
+    }),
+}) satisfies TZippoRouter;
+
+const server = createHTTPServer({
+    router,
     createContext() {
         return {};
     },
-}).listen(env.ZIPPO_PORT);
+});
+
+logger.debug(`🔥 Starting ZIPPO on port ${env.ZIPPO_PORT}`);
+server.listen(env.ZIPPO_PORT);
