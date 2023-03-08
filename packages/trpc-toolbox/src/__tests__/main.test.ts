@@ -146,7 +146,6 @@ type clientCases = [
 type TProcedures = {
     increment: {
         type: 'mutation';
-        input: undefined;
         output: { count: number };
     };
 };

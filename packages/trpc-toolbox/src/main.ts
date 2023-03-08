@@ -26,8 +26,8 @@ export interface RpcSetup<TErrorData extends DefaultErrorData> {
 /**
  * The definition of a procedure used in a trpc router
  */
-export interface TProcedureDefinition<TOutput, TInput = UnsetMarker> {
-    input: TInput;
+export interface TProcedureDefinition<TInput, TOutput> {
+    input?: TInput;
     output: TOutput;
     type: 'query' | 'mutation';
 }
@@ -48,8 +48,12 @@ export type defineTrpcRouter<
     {
         [TKey in keyof TProcedures]: TKey extends string
             ? TProcedures[TKey] extends infer TValue
-                ? TValue extends TProcedureDefinition<any, any>
-                    ? defineProcedure<TValue['type'], TValue['input'], TValue['output']>
+                ? TValue extends TProcedureDefinition<unknown, unknown>
+                    ? defineProcedure<
+                          TValue['type'],
+                          'input' extends keyof TValue ? TValue['input'] : undefined,
+                          TValue['output']
+                      >
                     : TValue extends TProcedureTree
                     ? defineTrpcRouter<TValue, TRpcSetup, TErrorData>
                     : never
