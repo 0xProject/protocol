@@ -29,7 +29,7 @@ export interface RpcSetup<TErrorData extends DefaultErrorData> {
  */
 export interface TProcedureDefinition<TInput, TOutput> {
     input?: TInput;
-    output: TOutput;
+    output?: TOutput;
     type: 'query' | 'mutation';
 }
 
@@ -54,7 +54,7 @@ export type defineTrpcRouter<
                     ? defineProcedure<
                           TValue['type'],
                           'input' extends keyof TValue ? TValue['input'] : undefined,
-                          TValue['output']
+                          'output' extends keyof TValue ? TValue['output'] : undefined
                       >
                     : TValue extends TProcedureTree
                     ? defineTrpcRouter<TValue, TRpcSetup, TErrorData>
@@ -80,10 +80,14 @@ type defineProcedure<TType extends 'query' | 'mutation', TInput, TOutput> = Buil
             : TInput extends Parser
             ? inferParser<TInput>['out']
             : TInput;
-        _output_in: TOutput extends Parser ? inferParser<TOutput>['in'] : any;
-        _output_out: TOutput extends Parser ? inferParser<TOutput>['out'] : any;
+        _output_in: TOutput extends undefined ? UnsetMarker : TOutput extends Parser ? inferParser<TOutput>['in'] : any;
+        _output_out: TOutput extends undefined
+            ? UnsetMarker
+            : TOutput extends Parser
+            ? inferParser<TOutput>['out']
+            : any;
     },
-    TOutput extends Parser ? inferParser<TOutput>['out'] : TOutput
+    TOutput extends undefined ? void : TOutput extends Parser ? inferParser<TOutput>['out'] : TOutput
 >;
 
 /**

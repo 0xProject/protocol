@@ -167,6 +167,28 @@ tNoInputRpc.router({
     }),
 }) satisfies TNoInputProcedureRouter;
 
+// describe procedure with no output
+
+type TNoOutputProcedureRouter = defineTrpcRouter<{
+    setColor: {
+        type: 'mutation';
+        input: { color: 'red' | 'green' | 'blue' };
+    };
+}>;
+
+// it creates a typed router
+const tNoOutputRpc = initTRPC
+    .context<inferRouterContext<TNoOutputProcedureRouter>>()
+    .meta<inferRouterMeta<TNoOutputProcedureRouter>>()
+    .create();
+tNoOutputRpc.router({
+    setColor: tNoOutputRpc.procedure
+        .input(z.object({ color: z.enum(['red', 'blue', 'green']) }))
+        .mutation(({ input: color }) => {
+            console.log(`color is now ${color}`);
+        }),
+}) satisfies TNoOutputProcedureRouter;
+
 // describe with zod validators
 
 const input = z.object({ times: z.number() });
