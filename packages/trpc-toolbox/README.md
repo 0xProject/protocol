@@ -75,3 +75,45 @@ const myGreeting /* { greeting: string } */ = await client.greeting.greet({
     times: 93939939393932438032480285094573954809537,
 });
 ```
+
+## Usage with Zod (or other validators)
+
+Router interfaces may be created with Zod validators as inputs or outputs.
+This may be useful in a case where you'd like tooling to auto-generate documentation
+based on Zod objects, which it may not be able to do from types in the type
+system.
+
+To use this technique, define your input and output formats, then
+use the `typeof` each in the router definition:
+
+```ts
+export const incrementInput = z.object({ times: z.number() });
+export const incrementOutput = z.object({ countString: z.string() });
+
+export type TZodRouter = defineTrpcRouter<{
+    increment: {
+        type: 'mutation';
+        input: typeof input;
+        output: typeof output;
+    };
+}>;
+```
+
+Your implementation can then import the zod validators and use them
+in the router:
+
+```ts
+import { incrementInput, incrementOutput, TZodRouter } from 'zod-interface';
+
+const tZodRpc = initTRPC.context<inferRouterContext<TZodRouter>>().meta<inferRouterMeta<TZodRouter>>().create();
+
+const zodRouter = tZodRpc.router({
+    increment: tZodRpc.procedure
+        .input(incrementInput)
+        .output(incrementOutput)
+        .mutation(({ input }) => {
+            count *= input.times;
+            return { countString: `Count is ${count}` };
+        }),
+}) satisfies TZodRouter;
+```

@@ -106,7 +106,7 @@ t.router({
 t.router({
     greeter: t.router({
         greet: t.procedure
-            .input(z.object({ times: z.string() }))
+            .input(z.object({ times: z.coerce.string() }))
             .output(z.object({ greeting: z.string() }))
             .query(({ input, ctx }) => {
                 return { greeting: `Hello ${ctx.userName} ${input} times!` };
@@ -143,18 +143,13 @@ type clientCases = [
 
 // describe procedure with no input
 
-type TProcedures = {
-    increment: {
-        type: 'mutation';
-        output: { count: number };
-    };
-};
-
-/**
- * This is what you'd export from your router definition workspace
- */
 type TNoInputProcedureRouter = defineTrpcRouter<
-    TProcedures,
+    {
+        increment: {
+            type: 'mutation';
+            output: { count: number };
+        };
+    },
     // eslint-disable-next-line @typescript-eslint/ban-types
     { ctx: {}; meta: {} }
 >;
@@ -166,8 +161,56 @@ const tNoInputRpc = initTRPC
     .create();
 let count = 0;
 tNoInputRpc.router({
-    increment: tNoInputRpc.procedure.output(z.object({ count: z.number() })).mutation(() => {
+    increment: tNoInputRpc.procedure.mutation(() => {
         count += 1;
         return { count };
     }),
 }) satisfies TNoInputProcedureRouter;
+
+// describe with zod validators
+
+const input = z.object({ times: z.number() });
+const output = z.object({ countString: z.string() });
+
+type TZodRouter = defineTrpcRouter<{
+    increment: {
+        type: 'mutation';
+        input: typeof input;
+        output: typeof output;
+    };
+}>;
+
+const tZodRpc = initTRPC.context<inferRouterContext<TZodRouter>>().meta<inferRouterMeta<TZodRouter>>().create();
+
+// it creates a typed router
+tZodRpc.router({
+    increment: tZodRpc.procedure
+        .input(input)
+        .output(output)
+        .mutation(({ input }) => {
+            count *= input.times;
+            return { countString: `Count is ${count}` };
+        }),
+}) satisfies TZodRouter;
+
+// it fails if a validator is not specified
+tZodRpc.router({
+    increment: tZodRpc.procedure.input(input).mutation(({ input }) => {
+        count *= input.times;
+        return { countString: `Count is ${count}` };
+    }),
+    // @ts-expect-error - output validator is not specified
+}) satisfies TZodRouter;
+
+// it fails if a validator isn't correct
+tZodRpc.router({
+    increment: tZodRpc.procedure
+        .input(input)
+        .output(z.object({ count: z.number() }))
+        // @ts-expect-error - output validator is not correct
+        .mutation(({ input }) => {
+            count *= input.times;
+            return { countString: `Count is ${count}` };
+        }),
+    // @ts-expect-error - output validator is not correct
+}) satisfies TZodRouter;

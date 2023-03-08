@@ -11,6 +11,7 @@ import { RouterDef } from '@trpc/server/dist/core/router';
 import { DefaultErrorData } from '@trpc/server/dist/error/formatter';
 import { TRPCErrorShape, TRPC_ERROR_CODE_NUMBER } from '@trpc/server/rpc';
 import { ProcedureRouterRecord } from '@trpc/server/src';
+import { inferParser, Parser } from '@trpc/server/src/core/parser';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- Framework code requires `any`s */
 
@@ -42,7 +43,8 @@ export type TProcedureTree = { [key: string]: TProcedureTree | TProcedureDefinit
  */
 export type defineTrpcRouter<
     TProcedures extends TProcedureTree,
-    TRpcSetup extends RpcSetup<TErrorData>,
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    TRpcSetup extends RpcSetup<TErrorData> = {},
     TErrorData extends DefaultErrorData = DefaultErrorData,
 > = defineRouter<
     {
@@ -72,12 +74,16 @@ type defineProcedure<TType extends 'query' | 'mutation', TInput, TOutput> = Buil
         _config: AnyRootConfig;
         _meta: any;
         _ctx_out: any;
-        _input_in: TInput extends undefined ? UnsetMarker : TInput;
-        _input_out: TInput extends undefined ? UnsetMarker : TInput;
-        _output_in: any;
-        _output_out: TOutput;
+        _input_in: TInput extends undefined ? UnsetMarker : TInput extends Parser ? inferParser<TInput>['in'] : TInput;
+        _input_out: TInput extends undefined
+            ? UnsetMarker
+            : TInput extends Parser
+            ? inferParser<TInput>['out']
+            : TInput;
+        _output_in: TOutput extends Parser ? inferParser<TOutput>['in'] : any;
+        _output_out: TOutput extends Parser ? inferParser<TOutput>['out'] : any;
     },
-    TOutput
+    TOutput extends Parser ? inferParser<TOutput>['out'] : TOutput
 >;
 
 /**
