@@ -1,0 +1,8 @@
+{
+    "compileroptions": {
+        "outdir": "__build__",
+        "rootdir": "src"
+    },
+    "extends": "tsconfig/tsconfig.common.json",
+    "include": ["src/**/*", "examples"]
+}
