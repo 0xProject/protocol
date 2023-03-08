@@ -1,0 +1,23 @@
+{
+    "name": "pool-cache-api-interfaces",
+    "version": "0.0.0",
+    "description": "Pool Cache Service API Interfaces",
+    "author": "0x Labs",
+    "license": "UNLICENSED",
+    "private": true,
+    "types": "src/index.ts",
+    "scripts": {
+        "fix": "prettier --write .",
+        "lint:ci": "prettier --check . && eslint .",
+        "test:ci": "tsc --noEmit"
+    },
+    "dependencies": {
+        "typescript": "^4.9.5",
+        "trpc-toolbox": "*"
+    },
+    "devDependencies": {
+        "eslint": "^8.34.0",
+        "eslint-config-common": "*",
+        "tsconfig": "*"
+    }
+}

@@ -11,7 +11,7 @@ and when creating a client.
 Create your interface package:
 
 ```ts
-import type { defineTrpcRouter, TProcedureTree } from 'trpc-toolbox';
+import type { defineTrpcRouter } from 'trpc-toolbox';
 
 // Define rpc setup
 type RpcSetup = {
