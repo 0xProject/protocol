@@ -56,8 +56,12 @@ export class GasOracleType0 {
             throw new Error('Failed to request base fee from gas price oracle');
         }
         try {
-            const gasFee = response.data.result[speed];
-            return new BigNumber(gasFee);
+            const gasFee = new BigNumber(response.data.result[speed]);
+            if (gasFee.isNaN()) {
+                throw new Error(`Malformed gas fee response: ${response.data.result[speed]}`);
+            }
+
+            return gasFee;
         } catch (e) {
             throw new Error(
                 `Response from gas price oracle did not include the expected values:

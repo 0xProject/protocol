@@ -29,6 +29,14 @@ describe('GasStationAttendantPolygon', () => {
                 new BigNumber(146_410_000).times(Math.pow(10, GWEI_DECIMALS)).toPrecision(2).toString(),
             );
         });
+
+        it('throws if gas oracle rejects', async () => {
+            when(gasOracleMock.getGasWeiAsync('fast')).thenReject();
+
+            const attendant = new GasStationAttendantPolygon(instance(gasOracleMock));
+
+            expect(attendant.getWorkerBalanceForTradeAsync()).rejects.toThrow();
+        });
     });
 
     describe('getExpectedTransactionGasRateAsync', () => {
@@ -47,6 +55,14 @@ describe('GasStationAttendantPolygon', () => {
                     .integerValue(BigNumber.ROUND_CEIL)
                     .toString(),
             );
+        });
+
+        it('throws if gas oracle rejects', async () => {
+            when(gasOracleMock.getGasWeiAsync('fast')).thenReject();
+
+            const attendant = new GasStationAttendantPolygon(instance(gasOracleMock));
+
+            expect(attendant.getExpectedTransactionGasRateAsync()).rejects.toThrow();
         });
     });
 });

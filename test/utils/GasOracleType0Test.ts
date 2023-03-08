@@ -14,6 +14,16 @@ const fakeResponse = {
         low: 266513290000,
     },
 };
+const malformedResponse = {
+    result: {
+        source: 'MEDIAN',
+        timestamp: 1676403824,
+        instant: null,
+        fast: null,
+        standard: null,
+        low: null,
+    },
+};
 
 let axiosClient: AxiosInstance;
 let axiosMock: AxiosMockAdapter;
@@ -66,6 +76,18 @@ describe('GasOracleType0', () => {
 
             const result = await gasOracle.getGasWeiAsync('standard');
             expect(result.toString()).toEqual('353113290000');
+        });
+        it('throws if response is malformed', async () => {
+            axiosMock
+                .onGet(`http://gas-price-oracle-svc.gas-price-oracle/source/median`)
+                .replyOnce(HttpStatus.OK, malformedResponse);
+
+            const gasOracle = GasOracleType0.create(
+                'http://gas-price-oracle-svc.gas-price-oracle/source/median',
+                axiosClient,
+            );
+
+            await expect(gasOracle.getGasWeiAsync('fast')).rejects.toThrow();
         });
     });
 });

@@ -34,6 +34,16 @@ const fakeEip1559Response = {
         },
     },
 };
+const malformedResponse = {
+    result: {
+        source: 'MEDIAN',
+        timestamp: 1676403824,
+        instant: null,
+        fast: null,
+        standard: null,
+        low: null,
+    },
+};
 
 let axiosClient: AxiosInstance;
 let axiosMock: AxiosMockAdapter;
@@ -74,6 +84,19 @@ describe('GasOracleType2', () => {
             const baseFee = await gasOracle.getBaseFeePerGasWeiAsync();
             expect(baseFee.toString()).toEqual('78383362949');
         });
+
+        it('throws if response is malformed', async () => {
+            axiosMock
+                .onGet(`http://gas-price-oracle-svc.gas-price-oracle/v2/source/median`)
+                .replyOnce(HttpStatus.OK, malformedResponse);
+
+            const gasOracle = GasOracleType2.create(
+                'http://gas-price-oracle-svc.gas-price-oracle/v2/source/median',
+                axiosClient,
+            );
+
+            expect(gasOracle.getBaseFeePerGasWeiAsync()).rejects.toThrow();
+        });
     });
 
     describe('getMaxPriorityFeePerGasWeiAsync', () => {
@@ -89,6 +112,19 @@ describe('GasOracleType2', () => {
 
             const baseFee = await gasOracle.getMaxPriorityFeePerGasWeiAsync('low');
             expect(baseFee.toString()).toEqual('1240000000');
+        });
+
+        it('throws if response is malformed', async () => {
+            axiosMock
+                .onGet(`http://gas-price-oracle-svc.gas-price-oracle/v2/source/median`)
+                .replyOnce(HttpStatus.OK, malformedResponse);
+
+            const gasOracle = GasOracleType2.create(
+                'http://gas-price-oracle-svc.gas-price-oracle/v2/source/median',
+                axiosClient,
+            );
+
+            expect(gasOracle.getMaxPriorityFeePerGasWeiAsync('low')).rejects.toThrow();
         });
     });
 });

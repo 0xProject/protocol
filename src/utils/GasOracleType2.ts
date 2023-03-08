@@ -67,8 +67,12 @@ export class GasOracleType2 {
         }
         try {
             // All the speed levels have the same base fee, so just use 'instant'
-            const baseFee = response.data.result.instant.baseFeePerGas;
-            return new BigNumber(baseFee);
+            const baseFee = new BigNumber(response.data.result.instant.baseFeePerGas);
+            if (baseFee.isNaN()) {
+                throw new Error(`Malformed base fee response: ${response.data.result.instant.baseFeePerGas}`);
+            }
+
+            return baseFee;
         } catch (e) {
             throw new Error(`Response from gas price oracle did not include the base fee: ${e.message}`);
         }
@@ -85,8 +89,14 @@ export class GasOracleType2 {
             throw new Error('Failed to request base fee from gas price oracle');
         }
         try {
-            const maxPriorityFee = response.data.result[speed].maxPriorityFeePerGas;
-            return new BigNumber(maxPriorityFee);
+            const maxPriorityFee = new BigNumber(response.data.result[speed].maxPriorityFeePerGas);
+            if (maxPriorityFee.isNaN()) {
+                throw new Error(
+                    `Malformed maxPriorityFee response: ${response.data.result[speed].maxPriorityFeePerGas}`,
+                );
+            }
+
+            return maxPriorityFee;
         } catch (e) {
             throw new Error(
                 `Response from gas price oracle did not include the expected maxPriorityFeePerGas: ${e.message}`,

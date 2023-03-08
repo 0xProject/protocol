@@ -36,6 +36,14 @@ describe('GasStationAttendantEthereum', () => {
                 new BigNumber(1771.561).plus(666).times(gasEstimate).toPrecision(2).toString(),
             );
         });
+
+        it('throws if gas oracle rejects', async () => {
+            when(gasOracleMock.getBaseFeePerGasWeiAsync()).thenResolve(new BigNumber(1000));
+            when(gasOracleMock.getMaxPriorityFeePerGasWeiAsync('instant')).thenReject();
+
+            const attendant = new GasStationAttendantEthereum(instance(gasOracleMock));
+            expect(attendant.getWorkerBalanceForTradeAsync()).rejects.toThrow();
+        });
     });
 
     describe('getExpectedTransactionGasRateAsync', () => {
@@ -54,6 +62,14 @@ describe('GasStationAttendantEthereum', () => {
                 // tslint:disable-next-line: custom-no-magic-numbers
                 new BigNumber(1000).plus(tipEstimate).toString(),
             );
+        });
+
+        it('throws if gas oracle rejects', async () => {
+            when(gasOracleMock.getBaseFeePerGasWeiAsync()).thenReject();
+
+            const attendant = new GasStationAttendantEthereum(instance(gasOracleMock));
+
+            expect(attendant.getExpectedTransactionGasRateAsync()).rejects.toThrow();
         });
     });
 });
