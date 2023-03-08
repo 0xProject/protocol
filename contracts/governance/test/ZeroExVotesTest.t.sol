@@ -294,4 +294,71 @@ contract ZeroExVotesTest is BaseTest {
         assertEq(votingPowerAccount4, 0);
         assertEq(votingQuadraticPowerAccount4, 0);
     }
+
+    function testCheckpointIsCorrectlyUpdatedOnTheSameBlock() public {
+        // Account 2 wraps ZRX and delegates 20e18 to itself
+        vm.startPrank(account2);
+        token.approve(address(wToken), 20e18);
+        wToken.depositFor(account2, 20e18);
+        wToken.delegate(account2);
+        vm.stopPrank();
+
+        uint256 numCheckpointsAccount2 = votes.numCheckpoints(account2);
+        assertEq(numCheckpointsAccount2, 1);
+        IZeroExVotes.Checkpoint memory checkpoint1Account2 = votes.checkpoints(account2, 0);
+        assertEq(checkpoint1Account2.fromBlock, 1);
+        assertEq(checkpoint1Account2.votes, 20e18);
+        assertEq(checkpoint1Account2.quadraticVotes, Math.sqrt(20e18));
+
+        // Account 3 wraps ZRX and delegates 10e18 to account2
+        vm.startPrank(account3);
+        token.approve(address(wToken), 10e18);
+        wToken.depositFor(account3, 10e18);
+        wToken.delegate(account2);
+        vm.stopPrank();
+
+        numCheckpointsAccount2 = votes.numCheckpoints(account2);
+        assertEq(numCheckpointsAccount2, 1);
+        checkpoint1Account2 = votes.checkpoints(account2, 0);
+        assertEq(checkpoint1Account2.fromBlock, 1);
+        assertEq(checkpoint1Account2.votes, 30e18);
+        assertEq(checkpoint1Account2.quadraticVotes, Math.sqrt(20e18) + Math.sqrt(10e18));
+    }
+
+    function testCheckpointIsCorrectlyUpdatedOnDifferentBlocks() public {
+        // Account 2 wraps ZRX and delegates 20e18 to itself
+        vm.startPrank(account2);
+        token.approve(address(wToken), 20e18);
+        wToken.depositFor(account2, 20e18);
+        wToken.delegate(account2);
+        vm.stopPrank();
+
+        uint256 numCheckpointsAccount2 = votes.numCheckpoints(account2);
+        assertEq(numCheckpointsAccount2, 1);
+        IZeroExVotes.Checkpoint memory checkpoint1Account2 = votes.checkpoints(account2, 0);
+        assertEq(checkpoint1Account2.fromBlock, 1);
+        assertEq(checkpoint1Account2.votes, 20e18);
+        assertEq(checkpoint1Account2.quadraticVotes, Math.sqrt(20e18));
+
+        vm.roll(2);
+        // Account 3 wraps ZRX and delegates 10e18 to account2
+        vm.startPrank(account3);
+        token.approve(address(wToken), 10e18);
+        wToken.depositFor(account3, 10e18);
+        wToken.delegate(account2);
+        vm.stopPrank();
+
+        numCheckpointsAccount2 = votes.numCheckpoints(account2);
+        assertEq(numCheckpointsAccount2, 2);
+        IZeroExVotes.Checkpoint memory checkpoint2Account2 = votes.checkpoints(account2, 1);
+        assertEq(checkpoint2Account2.fromBlock, 2);
+        assertEq(checkpoint2Account2.votes, 30e18);
+        assertEq(checkpoint2Account2.quadraticVotes, Math.sqrt(20e18) + Math.sqrt(10e18));
+
+        // Check the old checkpoint hasn't changed
+        checkpoint1Account2 = votes.checkpoints(account2, 0);
+        assertEq(checkpoint1Account2.fromBlock, 1);
+        assertEq(checkpoint1Account2.votes, 20e18);
+        assertEq(checkpoint1Account2.quadraticVotes, Math.sqrt(20e18));
+    }
 }
