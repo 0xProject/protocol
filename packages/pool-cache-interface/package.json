@@ -1,7 +1,7 @@
 {
-    "name": "pool-cache-api-interfaces",
+    "name": "pool-cache-interface",
     "version": "0.0.0",
-    "description": "Pool Cache Service API Interfaces",
+    "description": "Pool Cache Service Interface",
     "author": "0x Labs",
     "license": "UNLICENSED",
     "private": true,
