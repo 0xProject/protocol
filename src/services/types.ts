@@ -262,7 +262,7 @@ interface QuoteContextBase {
 /**
  * Context for indicative quote
  */
-interface IndicativeQuoteContext extends QuoteContextBase {
+export interface IndicativeQuoteContext extends QuoteContextBase {
     isFirm: false;
     trader?: string;
     takerAddress?: string;

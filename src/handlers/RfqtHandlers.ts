@@ -9,7 +9,7 @@ import { Integrator } from '../config';
 import { logger } from '../logger';
 import { V4RFQIndicativeQuoteMM } from '../quoteRequestor/QuoteRequestor';
 import { RfqtService } from '../services/RfqtService';
-import { FirmQuoteContext, QuoteContext } from '../services/types';
+import { FirmQuoteContext, IndicativeQuoteContext, QuoteContext } from '../services/types';
 import type { RfqtV2Price, RfqtV2Quote, RfqtV2Request, SignedNativeOrder } from '../core/types';
 import { ConfigManager } from '../utils/config_manager';
 import { RfqtServices } from '../utils/rfqtServiceBuilder';
@@ -387,10 +387,9 @@ export class RfqtHandlers {
             amount: assetFillAmount,
         });
 
-        return {
-            workflow: gasless ? 'gasless-rfqt' : 'rfqt',
+        // Return the QuoteContext
+        const quoteContextBase = {
             chainId,
-            isFirm,
             takerToken,
             makerToken,
             originalMakerToken: makerToken,
@@ -408,7 +407,27 @@ export class RfqtHandlers {
             feeModelVersion: service.feeModelVersion,
             bucket,
             volumeUSD,
-        } as QuoteContext;
+        };
+        if (isFirm === true) {
+            if (!txOrigin) {
+                throw new Error('Received firm quote request with missing parameter txOrigin');
+            }
+            const firmResult: FirmQuoteContext = {
+                ...quoteContextBase,
+                isFirm: true,
+                txOrigin,
+                workflow: gasless ? 'gasless-rfqt' : 'rfqt',
+            };
+            return firmResult;
+        } else {
+            // isFirm === false (indicating indicative quote)
+            const indicativeResult: IndicativeQuoteContext = {
+                ...quoteContextBase,
+                isFirm: false,
+                workflow: gasless ? 'gasless-rfqt' : 'rfqt',
+            };
+            return indicativeResult;
+        }
     }
 
     /**
