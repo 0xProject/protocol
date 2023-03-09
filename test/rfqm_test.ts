@@ -149,7 +149,6 @@ const MOCK_RFQM_JOB = new RfqmV2JobEntity({
     lastLookResult: null,
     affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
     takerSpecifiedSide: 'makerToken',
-    workflow: 'rfqm',
 });
 
 jest.setTimeout(ONE_MINUTE_MS * 2);
@@ -235,7 +234,6 @@ describe('RFQM Integration', () => {
             rfqm: true,
             plp: false,
             rfqt: false,
-            gaslessRfqtVip: true,
         });
         const configManager = instance(configManagerMock);
 
@@ -351,7 +349,6 @@ describe('RFQM Integration', () => {
             rfqMakerBalanceCacheService,
             rfqMakerManager,
             tokenMetadataManager,
-            /* gaslessRfqtVipRolloutPercentage */ 0,
         );
 
         // Create another RFQM Service for chain ID 3 that returns 0 offering
@@ -375,7 +372,6 @@ describe('RFQM Integration', () => {
             rfqMakerBalanceCacheService,
             rfqMakerManagerChainId3,
             tokenMetadataManager,
-            /* gaslessRfqtVipRolloutPercentage */ 0,
         );
 
         const rfqAdminService = buildRfqAdminService(dbUtils);
@@ -1086,7 +1082,6 @@ describe('RFQM Integration', () => {
                 chainId: 1337,
                 affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
                 takerSpecifiedSide: 'makerToken',
-                workflow: 'rfqm',
             });
 
             // write a corresponding quote entity to validate against
@@ -1168,7 +1163,6 @@ describe('RFQM Integration', () => {
                 chainId: 1337,
                 affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
                 takerSpecifiedSide: 'makerToken',
-                workflow: 'rfqm',
             });
 
             // write a corresponding quote entity to validate against
@@ -1207,7 +1201,6 @@ describe('RFQM Integration', () => {
                 chainId: 1337,
                 affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
                 takerSpecifiedSide: 'makerToken',
-                workflow: 'rfqm',
             });
 
             await dataSource.getRepository(RfqmV2QuoteEntity).insert(mockQuote);
@@ -1236,7 +1229,6 @@ describe('RFQM Integration', () => {
                 chainId: 1337,
                 affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
                 takerSpecifiedSide: 'makerToken',
-                workflow: 'rfqm',
             });
 
             await dataSource.getRepository(RfqmV2QuoteEntity).insert(mockQuote);
@@ -1327,7 +1319,6 @@ describe('RFQM Integration', () => {
                 chainId: 1337,
                 affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
                 takerSpecifiedSide: 'makerToken',
-                workflow: 'rfqm',
             });
 
             // write a corresponding quote entity to validate against

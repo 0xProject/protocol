@@ -52,9 +52,6 @@
                 },
                 "feeModelVersion": {
                     "type": "number"
-                },
-                "gaslessRfqtVipRolloutPercentage": {
-                    "type": "number"
                 }
             },
             "type": "object"

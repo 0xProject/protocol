@@ -50,9 +50,8 @@ export const DEFAULT_EXPECTED_MINED_SEC = 120 * 1.5;
 export const ETH_DECIMALS = 18;
 export const GWEI_DECIMALS = 9;
 
-// RFQ quote expiry
+// RFQ quote minimum expiry
 export const DEFAULT_MIN_EXPIRY_DURATION_MS = ONE_MINUTE_MS;
-export const GASLESS_RFQT_QUOTE_EXPIRY_DURATION_MS = ONE_SECOND_MS * 30;
 
 // MetaTransactionClient endpoint timeouts
 export const META_TRANSACTION_V1_CLIENT_TIMEOUT_MS = 10000;

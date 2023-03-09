@@ -11,7 +11,7 @@ export type RfqmV2JobApprovalOpts = Pick<RfqmV2JobEntity, 'approval' | 'approval
 
 export type RfqmV2JobConstructorOpts = Pick<
     RfqmV2JobEntity,
-    'chainId' | 'expiry' | 'fee' | 'makerUri' | 'order' | 'orderHash' | 'workflow'
+    'chainId' | 'expiry' | 'fee' | 'makerUri' | 'order' | 'orderHash'
 > &
     Partial<RfqmV2JobEntity>;
 
@@ -71,9 +71,6 @@ export class RfqmV2JobEntity {
     // Should be deleted upon job failure.
     @Column({ name: 'maker_signature', type: 'jsonb', nullable: true })
     public makerSignature: Signature | null;
-
-    @Column({ name: 'workflow', type: 'varchar' })
-    public workflow: 'rfqm' | 'gasless-rfqt';
 
     // Whether the maker wrapped native token will be unwrapped to the native token
     // when passed to the taker
@@ -141,9 +138,8 @@ export class RfqmV2JobEntity {
         this.orderHash = opts.orderHash;
         this.status = opts.status ?? RfqmJobStatus.PendingEnqueued;
         this.takerSignature = opts.takerSignature ?? null;
-        this.takerSpecifiedSide = opts.takerSpecifiedSide ?? null;
         this.updatedAt = opts.updatedAt ?? null;
         this.workerAddress = opts.workerAddress ?? null;
-        this.workflow = opts.workflow;
+        this.takerSpecifiedSide = opts.takerSpecifiedSide ?? null;
     }
 }

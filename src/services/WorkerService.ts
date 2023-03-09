@@ -473,7 +473,7 @@ export class WorkerService {
             let tradeCalldata;
             switch (kind) {
                 case 'rfqm_v2_job':
-                    tradeCalldata = await this.prepareRfqmV2TradeAsync(job, workerAddress, false);
+                    tradeCalldata = await this.preparerfqmV2TradeAsync(job, workerAddress, false);
                     break;
                 case 'meta_transaction_job':
                     tradeCalldata = await this.prepareMetaTransactionTradeAsync(job, workerAddress, false);
@@ -515,7 +515,7 @@ export class WorkerService {
         switch (kind) {
             case 'rfqm_v2_job':
                 identifier = job.orderHash;
-                calldata = await this.prepareRfqmV2TradeAsync(job, workerAddress);
+                calldata = await this.preparerfqmV2TradeAsync(job, workerAddress);
                 break;
             case 'meta_transaction_job':
                 identifier = job.id;
@@ -712,7 +712,7 @@ export class WorkerService {
      * @returns The generated calldata for trade submission type.
      * @throws If the trade cannot be submitted (e.g. it is expired).
      */
-    public async prepareRfqmV2TradeAsync(
+    public async preparerfqmV2TradeAsync(
         job: RfqmV2JobEntity,
         workerAddress: string,
         // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
@@ -1025,50 +1025,13 @@ export class WorkerService {
         workerAddress: string,
         shouldCheckAllowance: boolean,
     ): Promise<void> {
-        const { makerUri, order, orderHash, takerSignature, workflow } = job;
+        const { makerUri, order, orderHash, takerSignature } = job;
         const otcOrder = storedOtcOrderToOtcOrder(order);
         let { makerSignature } = job;
 
         if (makerSignature) {
-            if (workflow === 'gasless-rfqt') {
-                // validate that order is fillable by both the maker and the taker according to balances (and allowances
-                // when `shouldCheckAllowance` is true)
-                const [makerBalance] = await this._rfqMakerBalanceCacheService.getERC20OwnerBalancesAsync(
-                    this._chainId,
-                    {
-                        owner: otcOrder.maker,
-                        token: otcOrder.makerToken,
-                    },
-                );
-                const [takerBalance] = shouldCheckAllowance
-                    ? await this._blockchainUtils.getMinOfBalancesAndAllowancesAsync({
-                          owner: otcOrder.taker,
-                          token: otcOrder.takerToken,
-                      })
-                    : await this._blockchainUtils.getTokenBalancesAsync({
-                          owner: otcOrder.taker,
-                          token: otcOrder.takerToken,
-                      });
-
-                if (makerBalance.lt(otcOrder.makerAmount) || takerBalance.lt(otcOrder.takerAmount)) {
-                    logger.error(
-                        {
-                            orderHash,
-                            makerBalance,
-                            takerBalance,
-                            makerAmount: otcOrder.makerAmount,
-                            takerAmount: otcOrder.takerAmount,
-                        },
-                        'Order failed pre-submit validation',
-                    );
-                    job.status = RfqmJobStatus.FailedPresubmitValidationFailed;
-                    await this._dbUtils.updateRfqmJobAsync(job);
-                    throw new Error('Order failed pre-submit validation');
-                }
-            } else {
-                // Market Maker had already signed order
-                logger.info({ workerAddress, orderHash }, 'Order already signed');
-            }
+            // Market Maker had already signed order
+            logger.info({ workerAddress, orderHash }, 'Order already signed');
         } else {
             // validate that order is fillable by both the maker and the taker according to balances (and allowances
             // when `shouldCheckAllowance` is true)
@@ -1324,26 +1287,25 @@ export class WorkerService {
             job.lastLookResult = true;
             job.status = RfqmJobStatus.PendingLastLookAccepted;
             await this._dbUtils.updateRfqmJobAsync(job);
+        }
 
-            // Maker signature must already be defined here -- refine the type
-            if (!makerSignature) {
-                throw new Error('Maker signature does not exist');
-            }
+        // Maker signature must already be defined here -- refine the type
+        if (!makerSignature) {
+            throw new Error('Maker signature does not exist');
+        }
 
-            // Verify the signer was the maker
-            const signerAddress = getSignerFromHash(orderHash, makerSignature).toLowerCase();
-            const makerAddress = order.order.maker.toLowerCase();
-            if (signerAddress !== makerAddress) {
-                logger.info(
-                    { signerAddress, makerAddress, orderHash, makerUri },
-                    'Possible use of smart contract wallet',
-                );
-                const isValidSigner = await this._blockchainUtils.isValidOrderSignerAsync(makerAddress, signerAddress);
-                if (!isValidSigner) {
-                    job.status = RfqmJobStatus.FailedSignFailed;
-                    await this._dbUtils.updateRfqmJobAsync(job);
-                    throw new Error('Invalid order signer address');
-                }
+        // Verify the signer was the maker
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const signerAddress = getSignerFromHash(orderHash, makerSignature!).toLowerCase();
+        const makerAddress = order.order.maker.toLowerCase();
+        if (signerAddress !== makerAddress) {
+            logger.info({ signerAddress, makerAddress, orderHash, makerUri }, 'Possible use of smart contract wallet');
+            const isValidSigner = await this._blockchainUtils.isValidOrderSignerAsync(makerAddress, signerAddress);
+            if (!isValidSigner) {
+                job.status = RfqmJobStatus.FailedSignFailed;
+                await this._dbUtils.updateRfqmJobAsync(job);
+                throw new Error('Invalid order signer address');
             }
         }
     }

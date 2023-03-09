@@ -134,7 +134,6 @@ const mockRfqmService = jest.mocked(
         {} as RfqMakerBalanceCacheService,
         {} as RfqMakerManager,
         {} as TokenMetadataManager,
-        0,
     ),
 );
 

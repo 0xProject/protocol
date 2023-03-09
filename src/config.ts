@@ -80,8 +80,6 @@ export interface ChainConfiguration {
         minExpiryDurationMs?: number;
         quoteReportTopic?: string;
         feeModelVersion?: FeeModelVersion;
-        // Determines the percentage of RFQm traffic that goes through Gasless RFQt VIP workflow
-        gaslessRfqtVipRolloutPercentage?: number;
     };
     rfqt?: {
         minExpiryDurationMs?: number;
@@ -430,7 +428,6 @@ export interface Integrator {
     plp: boolean;
     rfqm: boolean;
     rfqt: boolean;
-    gaslessRfqtVip?: boolean;
 }
 export type IntegratorsAcl = Integrator[];
 

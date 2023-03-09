@@ -15,13 +15,8 @@ import * as _ from 'lodash';
 import { Counter } from 'prom-client';
 import { Producer } from 'sqs-producer';
 
-import { ENABLE_LLR_COOLDOWN, RFQM_MAINTENANCE_MODE, TAKER_SPECIFIED_SIDE_ENABLED } from '../config';
-import {
-    GASLESS_OTC_ORDER_NUM_BUCKETS,
-    GASLESS_RFQT_QUOTE_EXPIRY_DURATION_MS,
-    NULL_ADDRESS,
-    ONE_SECOND_MS,
-} from '../core/constants';
+import { ENABLE_LLR_COOLDOWN, RFQM_MAINTENANCE_MODE } from '../config';
+import { GASLESS_OTC_ORDER_NUM_BUCKETS, NULL_ADDRESS, ONE_SECOND_MS } from '../core/constants';
 import { MetaTransactionSubmissionEntity, RfqmV2TransactionSubmissionEntity } from '../entities';
 import { RfqmV2JobApprovalOpts, RfqmV2JobConstructorOpts } from '../entities/RfqmV2JobEntity';
 import {
@@ -79,10 +74,6 @@ import {
 } from './types';
 import { MarketOperation } from '@0x/types';
 import { ContractAddresses } from '@0x/contract-addresses';
-import { isHashSmallEnough } from '../utils/HashUtils';
-import { Signature } from '@0x/protocol-utils';
-import { SignRequest } from '../quote-server/types';
-import { transformRfqtV2PricesParameters } from './RfqtService';
 
 const RFQM_QUOTE_INSERTED = new Counter({
     name: 'rfqm_quote_inserted',
@@ -116,24 +107,6 @@ const RFQM_MM_RETURNED_DIFFERENT_AMOUNT = new Counter({
     name: 'rfqm_mm_returned_different_amount_total',
     help: 'A maker responded a quote with different amount than requested',
     labelNames: ['maker_uri', 'chain_id', 'modification_type'],
-});
-
-const GASLESS_RFQT_VIP_QUOTE_INSERTED = new Counter({
-    name: 'gasless_rfqt_vip_quote_inserted',
-    help: 'A Gasless RFQt VIP quote was inserted in the DB',
-    labelNames: ['apiKey', 'integratorId', 'makerUri', 'chain_id'],
-});
-
-const GASLESS_RFQT_VIP_MM_SIGNATURE_FAILED = new Counter({
-    name: 'gasless_rfqt_vip_mm_signature_failed',
-    help: 'Failed to fetch Gasless RFQt VIP quote because the market maker signature process failed',
-    labelNames: ['integratorId', 'makerUri', 'chain_id'],
-});
-
-const GASLESS_RFQT_VIP_SUBMIT_BALANCE_CHECK_FAILED = new Counter({
-    name: 'gasless_rfqt_vip_submit_balance_check_failed',
-    labelNames: ['makerAddress', 'chain_id'],
-    help: 'A trade was submitted but our on-chain balance check failed',
 });
 
 const PRICE_DECIMAL_PLACES = 6;
@@ -260,7 +233,6 @@ export class RfqmService {
         private readonly _rfqMakerBalanceCacheService: RfqMakerBalanceCacheService,
         private readonly _rfqMakerManager: RfqMakerManager,
         private readonly _tokenMetadataManager: TokenMetadataManager,
-        private readonly _gaslessRfqtVipRolloutPercentage: number,
         private readonly _kafkaProducer?: KafkaProducer,
         private readonly _quoteReportTopic?: string,
     ) {
@@ -404,13 +376,7 @@ export class RfqmService {
             isUnwrap,
             isSelling,
             assetFillAmount,
-            workflow,
         } = quoteContext;
-
-        // narrow workflow type
-        if (workflow !== 'rfqm' && workflow !== 'gasless-rfqt') {
-            throw new Error('Quote workflow is not RFQm or Gaslesss RFQt VIP');
-        }
 
         // (Optimization) When `quotesWithGasFee` is returned, we can sometimes reuse it, to avoid another fetch to MMs
         // NOTE: this optimization differs from the optimization for indicative quotes because we do NOT revise firm quotes
@@ -496,19 +462,16 @@ export class RfqmService {
             return { quote: null, quoteReportId };
         }
 
-        // Parse fields from best quote
-        const { order, makerUri } = bestQuote;
-        const orderHash = order.getHash();
-        const makerAddress = order.maker.toLowerCase();
-
+        // Get the makerUri
+        const makerUri = bestQuote.makerUri;
         if (makerUri === undefined) {
-            logger.error({ makerAddress, orderHash }, 'makerUri unknown for maker address');
-            throw new Error(`makerUri unknown for maker address ${makerAddress}`);
+            logger.error({ makerAddress: bestQuote.order.maker }, 'makerUri unknown for maker address');
+            throw new Error(`makerUri unknown for maker address ${bestQuote.order.maker}`);
         }
 
         // Prepare the price
-        const makerAmountInUnit = Web3Wrapper.toUnitAmount(order.makerAmount, makerTokenDecimals);
-        const takerAmountInUnit = Web3Wrapper.toUnitAmount(order.takerAmount, takerTokenDecimals);
+        const makerAmountInUnit = Web3Wrapper.toUnitAmount(bestQuote.order.makerAmount, makerTokenDecimals);
+        const takerAmountInUnit = Web3Wrapper.toUnitAmount(bestQuote.order.takerAmount, takerTokenDecimals);
         const price = isSelling ? makerAmountInUnit.div(takerAmountInUnit) : takerAmountInUnit.div(makerAmountInUnit);
         // The way the BigNumber round down behavior (https://mikemcl.github.io/bignumber.js/#dp) works requires us
         // to add 1 to PRICE_DECIMAL_PLACES in order to actually come out with the decimal places specified.
@@ -523,8 +486,8 @@ export class RfqmService {
                   // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
                   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                   makerAmount!,
-                  order.takerAmount,
-                  order.makerAmount,
+                  bestQuote.order.takerAmount,
+                  bestQuote.order.makerAmount,
               );
 
         const buyAmount = isSelling
@@ -532,134 +495,28 @@ export class RfqmService {
                   // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
                   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                   takerAmount!,
-                  order.takerAmount,
-                  order.makerAmount,
+                  bestQuote.order.takerAmount,
+                  bestQuote.order.makerAmount,
               )
             : // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               makerAmount!;
 
-        const takerSpecifiedSide = isSelling ? 'takerToken' : 'makerToken';
+        // Get the Order and its hash
+        const orderHash = bestQuote.order.getHash();
 
-        // [Gasless RFQt VIP] fetch and verify MM signature
-        // Also verifies if the order is fillable by market maker.
-        let makerSignature: Signature | null | undefined;
-        if (workflow === 'gasless-rfqt') {
-            const signRequest: SignRequest = {
-                expiry: bestQuote.order.expiry,
-                fee: feeWithDetails,
-                order,
-                orderHash,
-                workflow,
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                trader: takerAddress!,
-                ...(TAKER_SPECIFIED_SIDE_ENABLED && { takerSpecifiedSide }),
-            };
-            try {
-                makerSignature = await retry(
-                    async () =>
-                        this._quoteServerClient
-                            .signV2Async(
-                                makerUri,
-                                integrator?.integratorId ?? '',
-                                signRequest,
-                                (u: string) => `${u}/rfqt/v2/sign`,
-                                /* requireProceedWithFill */ false,
-                            )
-                            .then((s) => s ?? null),
-                    {
-                        delay: ONE_SECOND_MS,
-                        factor: 2,
-                        maxAttempts: 3,
-                        handleError: (error, context, _options) => {
-                            const { attemptNum: attemptNumber, attemptsRemaining } = context;
-                            logger.warn(
-                                { orderHash, makerUri, attemptNumber, attemptsRemaining, error: error.message },
-                                'Error encountered while attempting to get market maker signature',
-                            );
-                        },
-                    },
-                );
-
-                logger.info(
-                    { makerUri, signed: !!makerSignature, orderHash },
-                    'Got signature response from market maker',
-                );
-
-                if (makerSignature) {
-                    // Some market makers may use smart contract wallets. In such a case, check if the
-                    // wallet can sign for the maker.
-                    const signerAddress = getSignerFromHash(orderHash, makerSignature).toLowerCase();
-                    if (signerAddress !== makerAddress) {
-                        logger.info(
-                            { signerAddress, makerAddress: makerAddress, orderHash, makerUri },
-                            'Possible use of smart contract wallet',
-                        );
-                        const isValidSigner = await this._blockchainUtils.isValidOrderSignerAsync(
-                            makerAddress,
-                            signerAddress,
-                        );
-                        if (!isValidSigner) {
-                            logger.warn(
-                                { signerAddress, makerAddress, orderHash, makerUri },
-                                'Invalid order signer address',
-                            );
-                            throw new Error('Invalid order signer address');
-                        }
-                    }
-
-                    // Certain market makers are returning signature components which are missing
-                    // leading bytes. Add them if they don't exist.
-                    const paddedSignature = padSignature(makerSignature);
-                    if (paddedSignature.r !== makerSignature.r || paddedSignature.s !== makerSignature.s) {
-                        logger.warn(
-                            { orderHash, r: paddedSignature.r, s: paddedSignature.s },
-                            'Got market maker signature with missing bytes',
-                        );
-                        makerSignature = paddedSignature;
-                    }
-                } else {
-                    // MM returned an empty signature
-                    throw new Error('Maker signature does not exist');
-                }
-            } catch (error) {
-                GASLESS_RFQT_VIP_MM_SIGNATURE_FAILED.labels(
-                    integrator.integratorId,
-                    makerUri,
-                    this._chainId.toString(),
-                ).inc();
-                logger.error(
-                    { orderHash, makerUri, error: error.message },
-                    'Failed to return Gasless RFQt VIP quote due to market maker sign failure',
-                );
-                throw new Error('Failed to return Gasless RFQt VIP quote due to market maker sign failure');
-            }
-        }
-
+        const otcOrder = bestQuote.order;
         await this._dbUtils.writeV2QuoteAsync({
             orderHash,
             chainId: this._chainId,
             fee: storedFeeWithDetails,
-            order: otcOrderToStoredOtcOrder(order),
+            order: otcOrderToStoredOtcOrder(otcOrder),
             makerUri,
-            makerSignature,
             affiliateAddress,
             integratorId: integrator.integratorId,
             isUnwrap,
-            takerSpecifiedSide,
-            workflow,
+            takerSpecifiedSide: params.sellAmount ? 'takerToken' : 'makerToken',
         });
-
-        if (workflow === 'gasless-rfqt') {
-            GASLESS_RFQT_VIP_QUOTE_INSERTED.labels(
-                integrator.integratorId,
-                integrator.integratorId,
-                makerUri,
-                this._chainId.toString(),
-            ).inc();
-        } else {
-            RFQM_QUOTE_INSERTED.labels(integrator.integratorId, integrator.integratorId, makerUri).inc();
-        }
 
         const approval = params.checkApproval
             ? // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
@@ -667,6 +524,7 @@ export class RfqmService {
               await this.getGaslessApprovalResponseAsync(takerAddress!, takerToken, sellAmount)
             : null;
 
+        RFQM_QUOTE_INSERTED.labels(integrator.integratorId, integrator.integratorId, makerUri).inc();
         return {
             quote: {
                 type: GaslessTypes.OtcOrder,
@@ -675,9 +533,9 @@ export class RfqmService {
                 buyAmount,
                 buyTokenAddress: originalMakerToken,
                 sellAmount,
-                sellTokenAddress: order.takerToken,
+                sellTokenAddress: bestQuote.order.takerToken,
                 allowanceTarget: this._contractAddresses.exchangeProxy,
-                order,
+                order: bestQuote.order,
                 orderHash,
                 // use approval variable directly is not ideal as we don't want to include approval field if `approval` is null
                 ...(approval && { approval }),
@@ -808,7 +666,6 @@ export class RfqmService {
             case RfqmJobStatus.FailedExpired:
             case RfqmJobStatus.FailedLastLookDeclined:
             case RfqmJobStatus.FailedPresignValidationFailed:
-            case RfqmJobStatus.FailedPresubmitValidationFailed:
             case RfqmJobStatus.FailedRevertedConfirmed:
             case RfqmJobStatus.FailedRevertedUnconfirmed:
             case RfqmJobStatus.FailedSignFailed:
@@ -986,21 +843,8 @@ export class RfqmService {
             throw new NotFoundError('quote not found');
         }
 
-        const currentTimeMs = new Date().getTime();
-        if (
-            quote.workflow === 'gasless-rfqt' &&
-            currentTimeMs >= quote.createdAt.getTime() + GASLESS_RFQT_QUOTE_EXPIRY_DURATION_MS
-        ) {
-            throw new ValidationError([
-                {
-                    field: 'n/a',
-                    code: ValidationErrorCodes.InvalidOrder,
-                    reason: `order has been outstanding for too long`,
-                },
-            ]);
-        }
-
         // validate that the expiration window is long enough to fill quote
+        const currentTimeMs = new Date().getTime();
         if (!order.expiry.times(ONE_SECOND_MS).isGreaterThan(currentTimeMs + this._minExpiryDurationMs)) {
             throw new ValidationError([
                 {
@@ -1071,11 +915,7 @@ export class RfqmService {
               });
 
         if (makerBalance.lt(order.makerAmount) || takerBalance.lt(order.takerAmount)) {
-            if (quote.workflow === 'gasless-rfqt') {
-                GASLESS_RFQT_VIP_SUBMIT_BALANCE_CHECK_FAILED.labels(makerAddress, this._chainId.toString()).inc();
-            } else {
-                RFQM_SUBMIT_BALANCE_CHECK_FAILED.labels(makerAddress, this._chainId.toString()).inc();
-            }
+            RFQM_SUBMIT_BALANCE_CHECK_FAILED.labels(makerAddress, this._chainId.toString()).inc();
             logger.warn(
                 {
                     makerBalance,
@@ -1110,11 +950,9 @@ export class RfqmService {
             fee: quote.fee,
             order: quote.order,
             takerSignature,
-            makerSignature: quote.makerSignature,
             affiliateAddress: quote.affiliateAddress,
             isUnwrap: quote.isUnwrap,
             takerSpecifiedSide: quote.takerSpecifiedSide,
-            workflow: quote.workflow,
         };
 
         // if approval opts are supplied, add params to job table
@@ -1180,17 +1018,8 @@ export class RfqmService {
             makerToken = this._nativeWrappedTokenAddress;
         }
 
-        // [Gasless RFQt VIP] determine workflow according to rollout percentage
-        // If approval is needed, default the workflow to `rfqm`
-        const isGaslessRfqtVip =
-            !('checkApproval' in params && params.checkApproval) &&
-            isHashSmallEnough({
-                message: `${takerAddress}-${takerToken}-${makerToken}-${assetFillAmount}-${isSelling}`.toLowerCase(),
-                threshold: integrator.gaslessRfqtVip ? this._gaslessRfqtVipRolloutPercentage / 100 : 0,
-            });
-
         return {
-            workflow: isGaslessRfqtVip ? 'gasless-rfqt' : 'rfqm',
+            workflow: 'rfqm',
             chainId: this._chainId,
             isFirm,
             takerAmount,
@@ -1221,31 +1050,7 @@ export class RfqmService {
      */
     private async _fetchIndicativeQuotesAsync(quoteContext: QuoteContext, fee: Fee): Promise<IndicativeQuote[]> {
         // Extract quote context
-        const { isSelling, assetFillAmount, takerToken, makerToken, integrator, workflow } = quoteContext;
-
-        // Gasless RFQt VIP workflow
-        if (workflow === 'gasless-rfqt') {
-            const otcOrderMakerUris = this._rfqMakerManager.getRfqtV2MakerUrisForPair(
-                makerToken,
-                takerToken,
-                integrator.whitelistMakerIds || null,
-            );
-
-            // short circuit if no MMs are available
-            if (!otcOrderMakerUris.length) {
-                return [];
-            }
-
-            // use shared RFQt flow to create request params and fetch prices from MMs
-            const prices = await this._quoteServerClient.batchGetPriceV2Async(
-                otcOrderMakerUris,
-                integrator,
-                transformRfqtV2PricesParameters(quoteContext, fee, this._chainId),
-                (url) => `${url}/rfqt/v2/price`,
-            );
-
-            return prices;
-        }
+        const { isSelling, assetFillAmount, takerToken, makerToken, integrator } = quoteContext;
 
         // Create Otc Order request options
         const otcOrderParams = QuoteServerClient.makeQueryParameters({

@@ -231,7 +231,6 @@ describe('WorkerService', () => {
                 },
                 updatedAt: new Date(),
                 workerAddress,
-                workflow: 'rfqm',
             });
 
             const gasStationAttendantMock = mock(GasStationAttendantEthereum);
@@ -315,7 +314,6 @@ describe('WorkerService', () => {
                     status: RfqmJobStatus.PendingEnqueued,
                     updatedAt: new Date(),
                     workerAddress: '0xwrongworkeraddress',
-                    workflow: 'rfqm',
                 }),
             );
 
@@ -436,7 +434,6 @@ describe('WorkerService', () => {
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
-                workflow: 'rfqm',
             });
 
             const rfqmService = buildWorkerServiceForUnitTest();
@@ -496,7 +493,6 @@ describe('WorkerService', () => {
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
-                workflow: 'rfqm',
                 approval: MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
                 approvalSignature: {
                     signatureType: SignatureType.EthSign,
@@ -675,7 +671,6 @@ describe('WorkerService', () => {
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
-                workflow: 'rfqm',
                 approval: MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
                 approvalSignature: {
                     signatureType: SignatureType.EthSign,
@@ -1252,7 +1247,6 @@ describe('WorkerService', () => {
                 },
                 updatedAt: new Date(),
                 workerAddress: '0xworkeraddress',
-                workflow: 'rfqm',
             });
 
             const mockTransactionRequest: providers.TransactionRequest = {};
@@ -1569,7 +1563,6 @@ describe('WorkerService', () => {
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
-                workflow: 'rfqm',
             });
 
             const result = WorkerService.validateRfqmV2Job(job, new Date(fakeClockMs));
@@ -1616,7 +1609,6 @@ describe('WorkerService', () => {
                 takerSignature: null,
                 updatedAt: new Date(),
                 workerAddress: '',
-                workflow: 'rfqm',
             });
 
             const result = WorkerService.validateRfqmV2Job(job, new Date(fakeClockMs));
@@ -1762,7 +1754,6 @@ describe('WorkerService', () => {
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
-                workflow: 'rfqm',
             });
 
             const mockDbUtils = mock(RfqmDbUtils);
@@ -1818,7 +1809,6 @@ describe('WorkerService', () => {
                 takerSignature: null,
                 updatedAt: new Date(),
                 workerAddress: '',
-                workflow: 'rfqm',
             });
 
             const mockDbUtils = mock(RfqmDbUtils);
@@ -1879,7 +1869,6 @@ describe('WorkerService', () => {
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
-                workflow: 'rfqm',
             });
 
             const mockDbUtils = mock(RfqmDbUtils);
@@ -2022,7 +2011,6 @@ describe('WorkerService', () => {
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
-                workflow: 'rfqm',
             });
             const mockTransaction = new RfqmV2TransactionSubmissionEntity({
                 createdAt: new Date(1233),
@@ -2115,7 +2103,6 @@ describe('WorkerService', () => {
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
-                workflow: 'rfqm',
             });
             const mockTransaction = new RfqmV2TransactionSubmissionEntity({
                 createdAt: new Date(1233),
@@ -2209,7 +2196,6 @@ describe('WorkerService', () => {
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
-                workflow: 'rfqm',
             });
 
             const mockDbUtils = mock(RfqmDbUtils);
@@ -2292,7 +2278,6 @@ describe('WorkerService', () => {
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
-                workflow: 'rfqm',
             });
 
             const mockDbUtils = mock(RfqmDbUtils);
@@ -2525,7 +2510,7 @@ describe('WorkerService', () => {
         });
     });
 
-    describe('prepareRfqmV2TradeAsync', () => {
+    describe('preparerfqmV2TradeAsync', () => {
         it('updates the job and throws upon validation failure when `shouldCheckLastLook` is true', async () => {
             const expiredJob = new RfqmV2JobEntity({
                 affiliateAddress: '',
@@ -2569,7 +2554,6 @@ describe('WorkerService', () => {
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
-                workflow: 'rfqm',
             });
             const _job = _.cloneDeep(expiredJob);
 
@@ -2578,7 +2562,7 @@ describe('WorkerService', () => {
             const rfqmService = buildWorkerServiceForUnitTest({ dbUtils: instance(mockDbUtils) });
 
             try {
-                await rfqmService.prepareRfqmV2TradeAsync(expiredJob, '0xworkeraddress', true, new Date(fakeClockMs));
+                await rfqmService.preparerfqmV2TradeAsync(expiredJob, '0xworkeraddress', true, new Date(fakeClockMs));
                 expect.fail();
             } catch (e) {
                 expect(e.message).to.contain('Job failed validation');
@@ -2630,7 +2614,6 @@ describe('WorkerService', () => {
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
-                workflow: 'rfqm',
             });
             const _job = _.cloneDeep(job);
 
@@ -2654,7 +2637,7 @@ describe('WorkerService', () => {
             });
 
             try {
-                await rfqmService.prepareRfqmV2TradeAsync(job, '0xworkeraddress', true, new Date(fakeClockMs));
+                await rfqmService.preparerfqmV2TradeAsync(job, '0xworkeraddress', true, new Date(fakeClockMs));
                 expect.fail();
             } catch (e) {
                 expect(e.message).to.contain('Order failed pre-sign validation');
@@ -2717,7 +2700,6 @@ describe('WorkerService', () => {
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
-                workflow: 'rfqm',
             });
             const _job = _.cloneDeep(job);
 
@@ -2746,7 +2728,7 @@ describe('WorkerService', () => {
             });
 
             try {
-                await rfqmService.prepareRfqmV2TradeAsync(job, '0xworkeraddress', true, new Date(fakeClockMs));
+                await rfqmService.preparerfqmV2TradeAsync(job, '0xworkeraddress', true, new Date(fakeClockMs));
                 expect.fail();
             } catch (e) {
                 expect(e.message).to.contain('Market Maker declined to sign');
@@ -2802,7 +2784,6 @@ describe('WorkerService', () => {
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
-                workflow: 'rfqm',
             });
             const _job = _.cloneDeep(job);
 
@@ -2829,7 +2810,7 @@ describe('WorkerService', () => {
             });
 
             try {
-                await rfqmService.prepareRfqmV2TradeAsync(job, '0xworkeraddress', true, new Date(fakeClockMs));
+                await rfqmService.preparerfqmV2TradeAsync(job, '0xworkeraddress', true, new Date(fakeClockMs));
                 expect.fail();
             } catch (e) {
                 expect(e.message).to.contain('Job failed during market maker sign attempt');
@@ -2884,7 +2865,6 @@ describe('WorkerService', () => {
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
-                workflow: 'rfqm',
             });
 
             const mockDbUtils = mock(RfqmDbUtils);
@@ -2914,7 +2894,7 @@ describe('WorkerService', () => {
             });
 
             try {
-                await rfqmService.prepareRfqmV2TradeAsync(job, '0xworkeraddress', true, new Date(fakeClockMs));
+                await rfqmService.preparerfqmV2TradeAsync(job, '0xworkeraddress', true, new Date(fakeClockMs));
                 expect.fail();
             } catch (e) {
                 expect(e.message).to.contain('Invalid order signer address');
@@ -2966,7 +2946,6 @@ describe('WorkerService', () => {
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
-                workflow: 'rfqm',
             });
             const _job = _.cloneDeep(job);
 
@@ -3000,7 +2979,7 @@ describe('WorkerService', () => {
             });
 
             try {
-                await rfqmService.prepareRfqmV2TradeAsync(job, '0xworkeraddress', true, new Date(fakeClockMs));
+                await rfqmService.preparerfqmV2TradeAsync(job, '0xworkeraddress', true, new Date(fakeClockMs));
                 expect.fail();
             } catch (e) {
                 expect(e.message).to.contain('Eth call validation failed');
@@ -3057,7 +3036,6 @@ describe('WorkerService', () => {
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
-                workflow: 'rfqm',
             });
             const _job = _.cloneDeep(job);
 
@@ -3100,7 +3078,7 @@ describe('WorkerService', () => {
                 rfqMakerBalanceCacheService: instance(mockRfqMakerBalanceCacheService),
             });
 
-            await rfqmService.prepareRfqmV2TradeAsync(job, '0xworkeraddress', true, new Date(fakeClockMs));
+            await rfqmService.preparerfqmV2TradeAsync(job, '0xworkeraddress', true, new Date(fakeClockMs));
             expect(job).to.deep.equal({
                 ..._job,
                 lastLookResult: true,
@@ -3153,7 +3131,6 @@ describe('WorkerService', () => {
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
-                workflow: 'rfqm',
             });
             const transaction = new RfqmV2TransactionSubmissionEntity({
                 orderHash,
@@ -3200,7 +3177,7 @@ describe('WorkerService', () => {
                 rfqMakerBalanceCacheService: instance(mockRfqMakerBalanceCacheService),
             });
 
-            const calldata = await rfqmService.prepareRfqmV2TradeAsync(
+            const calldata = await rfqmService.preparerfqmV2TradeAsync(
                 job,
                 '0xworkeraddress',
                 true,
@@ -3276,7 +3253,6 @@ describe('WorkerService', () => {
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
-                workflow: 'rfqm',
             });
 
             const transaction = new RfqmV2TransactionSubmissionEntity({
@@ -3308,7 +3284,7 @@ describe('WorkerService', () => {
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
             });
 
-            await rfqmService.prepareRfqmV2TradeAsync(expiredJob, '0xworkeraddress', true, new Date(fakeClockMs));
+            await rfqmService.preparerfqmV2TradeAsync(expiredJob, '0xworkeraddress', true, new Date(fakeClockMs));
             expect(expiredJob.status).to.equal(RfqmJobStatus.PendingSubmitted);
         });
 
@@ -3356,7 +3332,6 @@ describe('WorkerService', () => {
                 },
                 updatedAt: new Date(),
                 workerAddress: '0xworkeraddress',
-                workflow: 'rfqm',
             });
             const _job = _.cloneDeep(job);
 
@@ -3402,7 +3377,7 @@ describe('WorkerService', () => {
                 rfqMakerBalanceCacheService: instance(mockRfqMakerBalanceCacheService),
             });
 
-            const calldata = await rfqmService.prepareRfqmV2TradeAsync(
+            const calldata = await rfqmService.preparerfqmV2TradeAsync(
                 job,
                 '0xworkeraddress',
                 true,
@@ -3471,7 +3446,6 @@ describe('WorkerService', () => {
                 },
                 updatedAt: new Date(),
                 workerAddress: '0xworkeraddress',
-                workflow: 'rfqm',
             });
             const _job = _.cloneDeep(job);
 
@@ -3511,7 +3485,7 @@ describe('WorkerService', () => {
             });
             const spiedRfqmService = spy(rfqmService);
 
-            const calldata = await rfqmService.prepareRfqmV2TradeAsync(
+            const calldata = await rfqmService.preparerfqmV2TradeAsync(
                 job,
                 '0xworkeraddress',
                 false,
@@ -3521,100 +3495,6 @@ describe('WorkerService', () => {
             expect(calldata).to.equal('0xvalidcalldata');
             verify(spiedRfqmService.checkJobPreprocessingAsync(anything(), anything())).never();
             verify(spiedRfqmService.checkLastLookAsync(anything(), anything(), anything())).never();
-        });
-
-        describe('Gasless RFQt VIP', () => {
-            it('handles a balance check failure', async () => {
-                const job = new RfqmV2JobEntity({
-                    affiliateAddress: '',
-                    chainId: 1,
-                    createdAt: new Date(),
-                    expiry: new BigNumber(fakeFiveMinutesLater),
-                    fee: {
-                        amount: '0',
-                        token: '',
-                        type: 'fixed',
-                    },
-                    integratorId: '',
-                    lastLookResult: null,
-                    makerUri: 'http://foo.bar',
-                    makerSignature: validEIP712Sig,
-                    order: {
-                        order: {
-                            chainId: '1',
-                            expiryAndNonce: OtcOrder.encodeExpiryAndNonce(
-                                new BigNumber(fakeFiveMinutesLater.toString()),
-                                new BigNumber(1),
-                                new BigNumber(1),
-                            ).toString(),
-                            maker: '0xmaker',
-                            makerAmount: '1000000',
-                            makerToken: '0xmakertoken',
-                            taker: '0xtaker',
-                            takerAmount: '10000000',
-                            takerToken: '0xtakertoken',
-                            txOrigin: '',
-                            verifyingContract: '',
-                        },
-                        type: RfqmOrderTypes.Otc,
-                    },
-                    orderHash: '0x01234567',
-                    status: RfqmJobStatus.PendingEnqueued,
-                    takerSignature: {
-                        signatureType: SignatureType.EthSign,
-                        v: 27,
-                        r: '0x01',
-                        s: '0x02',
-                    },
-                    updatedAt: new Date(),
-                    workerAddress: '',
-                    workflow: 'gasless-rfqt',
-                });
-                const _job = _.cloneDeep(job);
-
-                const mockDbUtils = mock(RfqmDbUtils);
-                when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0x01234567')).thenResolve([]);
-                const updateRfqmJobCalledArgs: RfqmJobEntity[] = [];
-                when(mockDbUtils.updateRfqmJobAsync(anything())).thenCall(async (jobArg) => {
-                    updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
-                });
-                const mockQuoteServerClient = mock(QuoteServerClient);
-                const mockBlockchainUtils = mock(RfqBlockchainUtils);
-                when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
-                    new BigNumber(100),
-                ]);
-                const mockRfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
-                when(mockRfqMakerBalanceCacheService.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
-                    new BigNumber(5),
-                ]);
-
-                const rfqmService = buildWorkerServiceForUnitTest({
-                    dbUtils: instance(mockDbUtils),
-                    quoteServerClient: instance(mockQuoteServerClient),
-                    rfqBlockchainUtils: instance(mockBlockchainUtils),
-                    rfqMakerBalanceCacheService: instance(mockRfqMakerBalanceCacheService),
-                });
-
-                try {
-                    await rfqmService.prepareRfqmV2TradeAsync(job, '0xworkeraddress', true, new Date(fakeClockMs));
-                    expect.fail();
-                } catch (e) {
-                    expect(e.message).to.contain('Order failed pre-submit validation');
-                    verify(mockQuoteServerClient.signV2Async(anything(), anything(), anything())).never();
-                    expect(updateRfqmJobCalledArgs[0]).to.deep.equal({
-                        ..._job,
-                        status: RfqmJobStatus.PendingProcessing,
-                    });
-                    expect(updateRfqmJobCalledArgs[1]).to.deep.equal({
-                        ..._job,
-                        status: RfqmJobStatus.FailedPresubmitValidationFailed,
-                    });
-                    expect(job).to.deep.equal({
-                        ..._job,
-                        status: RfqmJobStatus.FailedPresubmitValidationFailed,
-                    });
-                }
-            });
         });
     });
 
@@ -3935,7 +3815,6 @@ describe('WorkerService', () => {
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
-                workflow: 'rfqm',
             });
             const _job = _.cloneDeep(job);
 
@@ -4019,7 +3898,6 @@ describe('WorkerService', () => {
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
-                workflow: 'rfqm',
             });
             const _job = _.cloneDeep(job);
 
@@ -4099,7 +3977,6 @@ describe('WorkerService', () => {
                 takerSignature: null,
                 updatedAt: new Date(),
                 workerAddress: '',
-                workflow: 'rfqm',
             });
             const _job = _.cloneDeep(job);
 
@@ -4183,7 +4060,6 @@ describe('WorkerService', () => {
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
-                workflow: 'rfqm',
             });
             const _job = _.cloneDeep(job);
 
@@ -4197,7 +4073,6 @@ describe('WorkerService', () => {
                     makerUri: job.makerUri,
                     order: job.order,
                     orderHash: job.orderHash,
-                    workflow: 'rfqm',
                 }),
             );
             const updateRfqmJobCalledArgs: RfqmJobEntity[] = [];
@@ -4309,7 +4184,6 @@ describe('WorkerService', () => {
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
-                workflow: 'rfqm',
             });
             const _job = _.cloneDeep(job);
 
@@ -4391,7 +4265,6 @@ describe('WorkerService', () => {
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
-                workflow: 'rfqm',
             });
 
             const mockDbUtils = mock(RfqmDbUtils);
@@ -4473,7 +4346,6 @@ describe('WorkerService', () => {
                 },
                 updatedAt: new Date(),
                 workerAddress: '',
-                workflow: 'rfqm',
             });
             const _job = _.cloneDeep(job);
 
@@ -4524,75 +4396,6 @@ describe('WorkerService', () => {
                 status: RfqmJobStatus.PendingLastLookAccepted,
             });
         });
-
-        it('does not sign if maker signature is already present', async () => {
-            const job = new RfqmV2JobEntity({
-                affiliateAddress: '',
-                chainId: 1,
-                createdAt: new Date(),
-                expiry: new BigNumber(fakeFiveMinutesLater),
-                fee: {
-                    amount: '0',
-                    token: '',
-                    type: 'fixed',
-                },
-                integratorId: '',
-                lastLookResult: true,
-                makerUri: 'http://foo.bar',
-                makerSignature: validEIP712Sig,
-                order: {
-                    order: {
-                        chainId: '1',
-                        expiryAndNonce: OtcOrder.encodeExpiryAndNonce(
-                            new BigNumber(fakeFiveMinutesLater.toString()),
-                            new BigNumber(1),
-                            new BigNumber(1),
-                        ).toString(),
-                        maker,
-                        makerAmount: '1000000',
-                        makerToken: '0xmakertoken',
-                        taker: '0xtaker',
-                        takerAmount: '10000000',
-                        takerToken: '0xtakertoken',
-                        txOrigin: '',
-                        verifyingContract: '',
-                    },
-                    type: RfqmOrderTypes.Otc,
-                },
-                orderHash,
-                status: RfqmJobStatus.PendingLastLookAccepted,
-                takerSignature: {
-                    signatureType: SignatureType.EthSign,
-                    v: 27,
-                    r: '0x01',
-                    s: '0x02',
-                },
-                updatedAt: new Date(),
-                workerAddress: '',
-                workflow: 'rfqm',
-            });
-            const _job = _.cloneDeep(job);
-
-            const mockDbUtils = mock(RfqmDbUtils);
-            const mockQuoteServerClient = mock(QuoteServerClient);
-            const mockBlockchainUtils = mock(RfqBlockchainUtils);
-            const mockRfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
-
-            const rfqmService = buildWorkerServiceForUnitTest({
-                dbUtils: instance(mockDbUtils),
-                quoteServerClient: instance(mockQuoteServerClient),
-                rfqBlockchainUtils: instance(mockBlockchainUtils),
-                rfqMakerBalanceCacheService: instance(mockRfqMakerBalanceCacheService),
-            });
-
-            await rfqmService.checkLastLookAsync(job, '0xworkeraddress', true);
-            expect(job).to.deep.equal({
-                ..._job,
-                lastLookResult: true,
-                makerSignature: validEIP712Sig,
-                status: RfqmJobStatus.PendingLastLookAccepted,
-            });
-        });
     });
 
     describe('submitToChainAsync', () => {
@@ -4635,7 +4438,6 @@ describe('WorkerService', () => {
                     status: RfqmJobStatus.PendingLastLookAccepted,
                     updatedAt: new Date(),
                     workerAddress: '',
-                    workflow: 'rfqm',
                 });
 
                 const mockTransactionRequest: providers.TransactionRequest = {};
@@ -4817,7 +4619,6 @@ describe('WorkerService', () => {
                     status: RfqmJobStatus.PendingLastLookAccepted,
                     updatedAt: new Date(),
                     workerAddress: '',
-                    workflow: 'rfqm',
                 });
 
                 const mockPresubmitTransaction = new RfqmV2TransactionSubmissionEntity({
@@ -5017,7 +4818,6 @@ describe('WorkerService', () => {
                     status: RfqmJobStatus.PendingLastLookAccepted,
                     updatedAt: new Date(),
                     workerAddress: '',
-                    workflow: 'rfqm',
                 });
 
                 const mockPresubmitTransaction = new RfqmV2TransactionSubmissionEntity({
@@ -5210,7 +5010,6 @@ describe('WorkerService', () => {
                     status: RfqmJobStatus.PendingLastLookAccepted,
                     updatedAt: new Date(),
                     workerAddress: '',
-                    workflow: 'rfqm',
                 });
 
                 const mockPresubmitTransaction = new RfqmV2TransactionSubmissionEntity({
@@ -5404,7 +5203,6 @@ describe('WorkerService', () => {
                     status: RfqmJobStatus.PendingSubmitted,
                     updatedAt: new Date(),
                     workerAddress: '',
-                    workflow: 'rfqm',
                 });
 
                 const mockTransaction = new RfqmV2TransactionSubmissionEntity({
@@ -5508,7 +5306,6 @@ describe('WorkerService', () => {
                     status: RfqmJobStatus.PendingLastLookAccepted,
                     updatedAt: new Date(),
                     workerAddress: '',
-                    workflow: 'rfqm',
                 });
 
                 const mockTransactionRequest: providers.TransactionRequest = {};
@@ -5697,7 +5494,6 @@ describe('WorkerService', () => {
                     status: RfqmJobStatus.PendingLastLookAccepted,
                     updatedAt: new Date(),
                     workerAddress: '',
-                    workflow: 'rfqm',
                 });
 
                 const mockTransactionRequest: providers.TransactionRequest = {};

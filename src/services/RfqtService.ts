@@ -49,7 +49,7 @@ const getTokenAddressFromSymbol = (symbol: string, chainId: number): string => {
  * Converts the parameters of an RFQt v2 prices request from 0x API
  * into the format needed for `QuoteServerClient` to call the market makers
  */
-export function transformRfqtV2PricesParameters(p: QuoteContext, fee: Fee, chainId: number): QuoteServerPriceParams {
+function transformRfqtV2PricesParameters(p: QuoteContext, fee: Fee, chainId: number): QuoteServerPriceParams {
     const buyTokenAddress = p.makerToken;
     const sellTokenAddress = p.takerToken;
     // Typescript gymnastics with `baseUnits` to caputure the "oneof" nature--

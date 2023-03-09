@@ -42,9 +42,6 @@
         },
         "rfqt": {
             "type": "boolean"
-        },
-        "gaslessRfqtVip": {
-            "type": "boolean"
         }
     },
     "required": ["label", "integratorId", "apiKeys", "allowedChainIds", "rfqt", "rfqm", "plp"],
