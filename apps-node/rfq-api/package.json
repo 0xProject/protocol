@@ -23,7 +23,6 @@
         "dev:service:bull_board": "nodemon -r dotenv/config src/runners/background/bull_board_runner.ts | pino-pretty",
         "fix": "eslint . --ext .ts --fix && yarn prettier",
         "lint": "eslint . --ext .ts && yarn prettier:ci",
-        "lint:ci": "yarn lint",
         "prettier:ci": "prettier --list-different ${npm_package_config_prettier_target} --config .prettierrc",
         "prettier": "prettier --write ${npm_package_config_prettier_target} --config .prettierrc",
         "start:service:dummy_mm_http": "nodemon -r dotenv/config __build__/src/runners/http_dummy_mm_runner.js",
