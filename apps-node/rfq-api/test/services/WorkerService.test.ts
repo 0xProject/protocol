@@ -587,27 +587,6 @@ describe('WorkerService', () => {
             ]);
             when(mockBlockchainUtils.getBlockAsync('0xblockhash')).thenResolve(mockMinedBlock);
             when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
-            when(mockBlockchainUtils.getDecodedRfqOrderFillEventLogFromLogs(anything())).thenReturn({
-                event: '',
-                logIndex: null,
-                transactionIndex: null,
-                transactionHash: '',
-                blockHash: '',
-                address: '',
-                data: '',
-                blockNumber: 0,
-                topics: [],
-                args: {
-                    maker: '',
-                    makerToken: '',
-                    makerTokenFilledAmount: new BigNumber(1234),
-                    orderHash: '',
-                    pool: '',
-                    taker: '',
-                    takerToken: '',
-                    takerTokenFilledAmount: new BigNumber(5),
-                },
-            });
 
             const mockRfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
             when(mockRfqMakerBalanceCacheService.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
@@ -805,27 +784,6 @@ describe('WorkerService', () => {
             ]);
             when(mockBlockchainUtils.getBlockAsync('0xblockhash')).thenResolve(mockMinedBlock);
             when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
-            when(mockBlockchainUtils.getDecodedRfqOrderFillEventLogFromLogs(anything())).thenReturn({
-                event: '',
-                logIndex: null,
-                transactionIndex: null,
-                transactionHash: '',
-                blockHash: '',
-                address: '',
-                data: '',
-                blockNumber: 0,
-                topics: [],
-                args: {
-                    maker: '',
-                    makerToken: '',
-                    makerTokenFilledAmount: new BigNumber(1234),
-                    orderHash: '',
-                    pool: '',
-                    taker: '',
-                    takerToken: '',
-                    takerTokenFilledAmount: new BigNumber(5),
-                },
-            });
 
             const mockRfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
             when(mockRfqMakerBalanceCacheService.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
@@ -4716,27 +4674,6 @@ describe('WorkerService', () => {
                     mockTransactionReceipt,
                 ]);
                 when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
-                when(mockBlockchainUtils.getDecodedRfqOrderFillEventLogFromLogs(anything())).thenReturn({
-                    event: '',
-                    logIndex: null,
-                    transactionIndex: null,
-                    transactionHash: '',
-                    blockHash: '',
-                    address: '',
-                    data: '',
-                    blockNumber: 0,
-                    topics: [],
-                    args: {
-                        maker: '',
-                        makerToken: '',
-                        makerTokenFilledAmount: new BigNumber(1234),
-                        orderHash: '',
-                        pool: '',
-                        taker: '',
-                        takerToken: '',
-                        takerTokenFilledAmount: new BigNumber(5),
-                    },
-                });
                 const rfqmService = buildWorkerServiceForUnitTest({
                     dbUtils: instance(mockDbUtils),
                     gasStationAttendant: instance(gasStationAttendantMock),
@@ -4914,27 +4851,7 @@ describe('WorkerService', () => {
                     mockTransactionReceipt,
                 ]);
                 when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
-                when(mockBlockchainUtils.getDecodedRfqOrderFillEventLogFromLogs(anything())).thenReturn({
-                    event: '',
-                    logIndex: null,
-                    transactionIndex: null,
-                    transactionHash: '',
-                    blockHash: '',
-                    address: '',
-                    data: '',
-                    blockNumber: 0,
-                    topics: [],
-                    args: {
-                        maker: '',
-                        makerToken: '',
-                        makerTokenFilledAmount: new BigNumber(1234),
-                        orderHash: '',
-                        pool: '',
-                        taker: '',
-                        takerToken: '',
-                        takerTokenFilledAmount: new BigNumber(5),
-                    },
-                });
+
                 const rfqmService = buildWorkerServiceForUnitTest({
                     dbUtils: instance(mockDbUtils),
                     gasStationAttendant: instance(gasStationAttendantMock),
@@ -5114,27 +5031,7 @@ describe('WorkerService', () => {
                     mockTransactionReceipt,
                 ]);
                 when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
-                when(mockBlockchainUtils.getDecodedRfqOrderFillEventLogFromLogs(anything())).thenReturn({
-                    event: '',
-                    logIndex: null,
-                    transactionIndex: null,
-                    transactionHash: '',
-                    blockHash: '',
-                    address: '',
-                    data: '',
-                    blockNumber: 0,
-                    topics: [],
-                    args: {
-                        maker: '',
-                        makerToken: '',
-                        makerTokenFilledAmount: new BigNumber(1234),
-                        orderHash: '',
-                        pool: '',
-                        taker: '',
-                        takerToken: '',
-                        takerTokenFilledAmount: new BigNumber(5),
-                    },
-                });
+
                 const rfqmService = buildWorkerServiceForUnitTest({
                     dbUtils: instance(mockDbUtils),
                     gasStationAttendant: instance(gasStationAttendantMock),
@@ -5300,27 +5197,6 @@ describe('WorkerService', () => {
                 ]);
                 when(mockBlockchainUtils.getBlockAsync('0xblockhash')).thenResolve(mockMinedBlock);
                 when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
-                when(mockBlockchainUtils.getDecodedRfqOrderFillEventLogFromLogs(anything())).thenReturn({
-                    event: '',
-                    logIndex: null,
-                    transactionIndex: null,
-                    transactionHash: '',
-                    blockHash: '',
-                    address: '',
-                    data: '',
-                    blockNumber: 0,
-                    topics: [],
-                    args: {
-                        maker: '',
-                        makerToken: '',
-                        makerTokenFilledAmount: new BigNumber(1234),
-                        orderHash: '',
-                        pool: '',
-                        taker: '',
-                        takerToken: '',
-                        takerTokenFilledAmount: new BigNumber(5),
-                    },
-                });
                 const rfqmService = buildWorkerServiceForUnitTest({
                     dbUtils: instance(mockDbUtils),
                     gasStationAttendant: instance(gasStationAttendantMock),
@@ -5589,27 +5465,6 @@ describe('WorkerService', () => {
                     mockTransactionReceipt,
                 ]);
                 when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
-                when(mockBlockchainUtils.getDecodedRfqOrderFillEventLogFromLogs(anything())).thenReturn({
-                    event: '',
-                    logIndex: null,
-                    transactionIndex: null,
-                    transactionHash: '',
-                    blockHash: '',
-                    address: '',
-                    data: '',
-                    blockNumber: 0,
-                    topics: [],
-                    args: {
-                        maker: '',
-                        makerToken: '',
-                        makerTokenFilledAmount: new BigNumber(1234),
-                        orderHash: '',
-                        pool: '',
-                        taker: '',
-                        takerToken: '',
-                        takerTokenFilledAmount: new BigNumber(5),
-                    },
-                });
                 when(mockBlockchainUtils.createAccessListForAsync(anything())).thenResolve({
                     accessList: {
                         '0x1234': ['0x0'],
@@ -5778,27 +5633,6 @@ describe('WorkerService', () => {
                     mockTransactionReceipt,
                 ]);
                 when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
-                when(mockBlockchainUtils.getDecodedRfqOrderFillEventLogFromLogs(anything())).thenReturn({
-                    event: '',
-                    logIndex: null,
-                    transactionIndex: null,
-                    transactionHash: '',
-                    blockHash: '',
-                    address: '',
-                    data: '',
-                    blockNumber: 0,
-                    topics: [],
-                    args: {
-                        maker: '',
-                        makerToken: '',
-                        makerTokenFilledAmount: new BigNumber(1234),
-                        orderHash: '',
-                        pool: '',
-                        taker: '',
-                        takerToken: '',
-                        takerTokenFilledAmount: new BigNumber(5),
-                    },
-                });
                 when(mockBlockchainUtils.createAccessListForAsync(anything())).thenReject(new Error('error'));
                 const rfqmService = buildWorkerServiceForUnitTest({
                     dbUtils: instance(mockDbUtils),

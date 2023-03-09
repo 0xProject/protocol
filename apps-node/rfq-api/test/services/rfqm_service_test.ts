@@ -553,7 +553,6 @@ describe('RfqmService HTTP Logic', () => {
             when(blockchainUtilsMock.generateApprovalCalldataAsync(anything(), anything(), anything())).thenResolve(
                 '0xvalidcalldata',
             );
-            when(blockchainUtilsMock.simulateTransactionAsync(anything(), anything())).thenResolve();
             const rfqMakerBalanceCacheServiceMock = mock(RfqMakerBalanceCacheService);
             when(rfqMakerBalanceCacheServiceMock.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
                 new BigNumber(10000),

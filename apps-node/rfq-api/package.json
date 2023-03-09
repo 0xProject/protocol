@@ -97,7 +97,7 @@
         "@0x/subproviders": "~6.6.5",
         "@0x/token-metadata": "^0.1.16",
         "@0x/types": "^3.3.4",
-        "@0x/utils": "^6.5.3",
+        "@0x/utils": "6.5.3",
         "@0x/web3-wrapper": "^7.6.1",
         "@bull-board/api": "^4.0.0",
         "@bull-board/express": "^4.0.0",

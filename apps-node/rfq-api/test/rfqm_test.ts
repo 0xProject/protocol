@@ -1,6 +1,5 @@
-// tslint:disable:max-file-line-count custom-no-magic-numbers
 import { ContractAddresses } from '@0x/contract-addresses';
-import { ethSignHashWithKey, MetaTransaction, OtcOrder, SignatureType } from '@0x/protocol-utils';
+import { ethSignHashWithKey, OtcOrder, SignatureType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import Axios, { AxiosInstance } from 'axios';
@@ -54,7 +53,6 @@ import {
     MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
     MOCK_EXECUTE_META_TRANSACTION_HASH,
     MOCK_PERMIT_APPROVAL,
-    TEST_DECODED_RFQ_ORDER_FILLED_EVENT_LOG,
     TEST_RFQ_ORDER_FILLED_EVENT_LOG,
 } from './constants';
 import { setupDependenciesAsync, TeardownDependenciesFunctionHandle } from './test_utils/deployment';
@@ -244,17 +242,10 @@ describe('RFQM Integration', () => {
         mockAxios = new AxiosMockAdapter(axiosClient);
 
         // Create the mock rfqBlockchainUtils
-        const validationResponse: [BigNumber, BigNumber] = [new BigNumber(1), new BigNumber(1)];
         rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
-        when(
-            rfqBlockchainUtilsMock.generateMetaTransaction(anything(), anything(), anything(), anything(), anything()),
-        ).thenCall((_rfqOrder, _signature, _taker, _takerAmount, chainId) => new MetaTransaction({ chainId }));
         when(rfqBlockchainUtilsMock.generateMetaTransactionCallData(anything(), anything(), anything())).thenReturn(
             MOCK_META_TX_CALL_DATA,
         );
-        when(
-            rfqBlockchainUtilsMock.validateMetaTransactionOrThrowAsync(anything(), anything(), anything(), anything()),
-        ).thenResolve(validationResponse);
         when(rfqBlockchainUtilsMock.getTokenBalancesAsync(anything())).thenResolve([new BigNumber(1)]);
         when(rfqBlockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([new BigNumber(1)]);
         when(rfqBlockchainUtilsMock.getNonceAsync(anything())).thenResolve(1);
@@ -271,12 +262,6 @@ describe('RFQM Integration', () => {
         ]);
         when(rfqBlockchainUtilsMock.getCurrentBlockAsync()).thenResolve(CURRENT_BLOCK);
         when(rfqBlockchainUtilsMock.getExchangeProxyAddress()).thenReturn(MOCK_EXCHANGE_PROXY);
-        when(
-            rfqBlockchainUtilsMock.decodeMetaTransactionCallDataAndValidateAsync(anyString(), anyString(), anything()),
-        ).thenResolve(validationResponse);
-        when(rfqBlockchainUtilsMock.getDecodedRfqOrderFillEventLogFromLogs(anything())).thenReturn(
-            TEST_DECODED_RFQ_ORDER_FILLED_EVENT_LOG,
-        );
         when(rfqBlockchainUtilsMock.getAccountBalanceAsync(MOCK_WORKER_REGISTRY_ADDRESS)).thenResolve(
             WORKER_FULL_BALANCE_WEI,
         );

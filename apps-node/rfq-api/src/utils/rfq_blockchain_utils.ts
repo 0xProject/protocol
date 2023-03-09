@@ -1,26 +1,21 @@
-// tslint:disable:max-file-line-count
-
 import { ChainId } from '@0x/contract-addresses';
-import { IZeroExOtcOrderFilledEventArgs, IZeroExRfqOrderFilledEventArgs } from '@0x/contract-wrappers';
 import { IZeroExContract } from '@0x/contracts-zero-ex';
-import { MetaTransaction, OtcOrder, RfqOrder, Signature } from '@0x/protocol-utils';
+import { MetaTransaction, OtcOrder, Signature } from '@0x/protocol-utils';
 import { PrivateKeyWalletSubprovider, SupportedProvider, Web3ProviderEngine } from '@0x/subproviders';
-import { AbiDecoder, BigNumber, providerUtils } from '@0x/utils';
+import { BigNumber, providerUtils } from '@0x/utils';
 import { HDNode } from '@ethersproject/hdnode';
 import { AccessList } from '@ethersproject/transactions';
-import { CallData, LogEntry, LogWithDecodedArgs, TxAccessList, TxData } from 'ethereum-types';
+import { TxAccessList, TxData } from 'ethereum-types';
 import { BigNumber as EthersBigNumber, constants, Contract, providers, utils, Wallet } from 'ethers';
 import { resolveProperties } from 'ethers/lib/utils';
 
 import { abis } from '../abis';
 import {
     EXECUTE_META_TRANSACTION_EIP_712_TYPES,
-    NULL_ADDRESS,
     ONE_MINUTE_MS,
     ONE_SECOND_MS,
     PERMIT_EIP_712_TYPES,
     RFQM_TX_GAS_ESTIMATE,
-    ZERO,
     ZEROG_METATX_GAS_ESTIMATE,
 } from '../core/constants';
 import { EIP_712_REGISTRY } from '../eip712registry';
@@ -41,44 +36,6 @@ import { isWorkerReadyAndAbleAsync } from './rfqm_worker_balance_utils';
 import { serviceUtils } from './service_utils';
 import { SubproviderAdapter } from './subprovider_adapter';
 
-// allow a wide range for gas price for flexibility
-const MIN_GAS_PRICE = new BigNumber(0);
-// 10K Gwei
-const MAX_GAS_PRICE = new BigNumber(1e13);
-const RFQ_ORDER_FILLED_EVENT_TOPIC0 = '0x829fa99d94dc4636925b38632e625736a614c154d55006b7ab6bea979c210c32';
-const OTC_ORDER_FILLED_EVENT_TOPIC0 = '0xac75f773e3a92f1a02b12134d65e1f47f8a14eabe4eaf1e24624918e6a8b269f';
-const ZERO_EX_FILL_EVENT_ABI = [
-    {
-        anonymous: false,
-        inputs: [
-            { indexed: false, internalType: 'bytes32', name: 'orderHash', type: 'bytes32' },
-            { indexed: false, internalType: 'address', name: 'maker', type: 'address' },
-            { indexed: false, internalType: 'address', name: 'taker', type: 'address' },
-            { indexed: false, internalType: 'address', name: 'makerToken', type: 'address' },
-            { indexed: false, internalType: 'address', name: 'takerToken', type: 'address' },
-            { indexed: false, internalType: 'uint128', name: 'takerTokenFilledAmount', type: 'uint128' },
-            { indexed: false, internalType: 'uint128', name: 'makerTokenFilledAmount', type: 'uint128' },
-            { indexed: false, internalType: 'bytes32', name: 'pool', type: 'bytes32' },
-        ],
-        name: 'RfqOrderFilled',
-        type: 'event',
-    },
-    {
-        anonymous: false,
-        inputs: [
-            { indexed: false, internalType: 'bytes32', name: 'orderHash', type: 'bytes32' },
-            { indexed: false, internalType: 'address', name: 'maker', type: 'address' },
-            { indexed: false, internalType: 'address', name: 'taker', type: 'address' },
-            { indexed: false, internalType: 'address', name: 'makerToken', type: 'address' },
-            { indexed: false, internalType: 'address', name: 'takerToken', type: 'address' },
-            { indexed: false, internalType: 'uint128', name: 'makerTokenFilledAmount', type: 'uint128' },
-            { indexed: false, internalType: 'uint128', name: 'takerTokenFilledAmount', type: 'uint128' },
-        ],
-        name: 'OtcOrderFilled',
-        type: 'event',
-    },
-];
-
 function toBigNumber(ethersBigNumber: EthersBigNumber): BigNumber {
     return new BigNumber(ethersBigNumber.toString());
 }
@@ -87,7 +44,6 @@ export class RfqBlockchainUtils {
     public readonly balanceCheckUtils: RfqBalanceCheckUtils;
 
     private readonly _exchangeProxy: IZeroExContract;
-    private readonly _abiDecoder: AbiDecoder;
     // An ethers.js provider.
     private readonly _ethersProvider: providers.JsonRpcProvider;
     // An ethers.js Wallet. Must be populated for RfqBlockchainUtils instances used by RFQM Workers.
@@ -133,7 +89,6 @@ export class RfqBlockchainUtils {
         ethersProvider: providers.JsonRpcProvider,
         ethersWallet?: Wallet,
     ) {
-        this._abiDecoder = new AbiDecoder([ZERO_EX_FILL_EVENT_ABI]);
         this.balanceCheckUtils = new RfqBalanceCheckUtils(balanceChecker, _exchangeProxyAddress);
         this._ethersProvider = ethersProvider;
         this._ethersWallet = ethersWallet;
@@ -154,102 +109,6 @@ export class RfqBlockchainUtils {
      */
     public async getTokenBalancesAsync(erc20Owners: ERC20Owner | ERC20Owner[]): Promise<BigNumber[]> {
         return this.balanceCheckUtils.getTokenBalancesAsync(erc20Owners);
-    }
-
-    // for use when 0x API operator submits an order on-chain on behalf of taker
-    public generateMetaTransaction(
-        rfqOrder: RfqOrder,
-        signature: Signature,
-        taker: string,
-        takerAmount: BigNumber,
-        chainId: ChainId,
-    ): MetaTransaction {
-        // generate call data for fillRfqOrder
-        const callData = this._exchangeProxy
-            .fillRfqOrder(rfqOrder, signature, takerAmount)
-            .getABIEncodedTransactionData();
-
-        return new MetaTransaction({
-            signer: taker,
-            sender: NULL_ADDRESS,
-            minGasPrice: MIN_GAS_PRICE,
-            maxGasPrice: MAX_GAS_PRICE,
-            expirationTimeSeconds: rfqOrder.expiry,
-            salt: new BigNumber(Date.now()),
-            callData,
-            value: ZERO,
-            feeToken: NULL_ADDRESS,
-            feeAmount: ZERO,
-            chainId,
-            verifyingContract: this._exchangeProxy.address,
-        });
-    }
-
-    public async decodeMetaTransactionCallDataAndValidateAsync(
-        calldata: string,
-        sender: string,
-        txOptions?: Partial<CallData>,
-    ): Promise<[BigNumber, BigNumber]> {
-        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const metaTxInput: any = this._exchangeProxy.getABIDecodedTransactionData('executeMetaTransaction', calldata);
-        return this.validateMetaTransactionOrThrowAsync(metaTxInput[0], metaTxInput[1], sender, txOptions);
-    }
-
-    /**
-     * Validates a metatransaction and its signature for a given sender
-     *
-     * @returns a Promise of [takerTokenFilledAmount, makerTokenFilledAmount]
-     * @throws an error if the metatransaction is not valid
-     */
-    public async validateMetaTransactionOrThrowAsync(
-        metaTx: MetaTransaction,
-        metaTxSig: Signature,
-        sender: string,
-        txOptions?: Partial<CallData>,
-    ): Promise<[BigNumber, BigNumber]> {
-        try {
-            const results = await this._exchangeProxy
-                .executeMetaTransaction(metaTx, metaTxSig)
-                .callAsync({ from: sender, ...txOptions });
-            const takerTokenFillAmount = // $eslint-fix-me github.com/rhinodavid/eslint-fix-me
-                /* eslint-disable @typescript-eslint/no-explicit-any */
-                (
-                    this._exchangeProxy.getABIDecodedTransactionData('fillRfqOrder', metaTx.callData) as any
-                ) /* eslint-enable @typescript-eslint/no-explicit-any */[2];
-            const decodedResults: [BigNumber, BigNumber] = this._exchangeProxy.getABIDecodedReturnData(
-                'fillRfqOrder',
-                results,
-            );
-            if (decodedResults[0].isLessThan(takerTokenFillAmount)) {
-                logger.error('validation failed because filled amount is less than requested fill amount');
-                throw new Error(`filled amount is less than requested fill amount`);
-            }
-            return decodedResults;
-        } catch (err) {
-            logger.error({ errorMessage: err?.message }, 'eth_call validation failed for executeMetaTransaction');
-            throw new Error(err);
-        }
-    }
-
-    /**
-     * Simulate the transaction with calldata.
-     *
-     * NOTE: In ethers.js, provider.call and provider.send('eth_call', ...) might not throw exception.
-     *       The behavior might be dependent on providers. Revisit this later.
-     */
-    public async simulateTransactionAsync(to: string, calldata: string): Promise<void> {
-        try {
-            await this._ethersProvider.call({
-                to,
-                data: calldata,
-            });
-        } catch (e) {
-            if (e instanceof Error) {
-                e.message = `simulateTransactionAsync: ${e.message}`;
-            }
-            throw e;
-        }
     }
 
     /**
@@ -423,35 +282,6 @@ export class RfqBlockchainUtils {
         }
     }
 
-    public getDecodedRfqOrderFillEventLogFromLogs(
-        logs: LogEntry[],
-    ): LogWithDecodedArgs<IZeroExRfqOrderFilledEventArgs> {
-        for (const log of logs) {
-            if (log.topics[0] === RFQ_ORDER_FILLED_EVENT_TOPIC0) {
-                return this._abiDecoder.tryToDecodeLogOrNoop(log) as LogWithDecodedArgs<IZeroExRfqOrderFilledEventArgs>;
-            }
-        }
-        throw new Error(
-            `no RfqOrderFilledEvent logs among the logs passed into getDecodedRfqOrderFillEventLogFromLogs`,
-        );
-    }
-
-    /**
-     * Decode the OtcOrder Filled Event
-     */
-    public getDecodedOtcOrderFillEventLogFromLogs(
-        logs: LogEntry[],
-    ): LogWithDecodedArgs<IZeroExOtcOrderFilledEventArgs> {
-        for (const log of logs) {
-            if (log.topics[0] === OTC_ORDER_FILLED_EVENT_TOPIC0) {
-                return this._abiDecoder.tryToDecodeLogOrNoop(log) as LogWithDecodedArgs<IZeroExRfqOrderFilledEventArgs>;
-            }
-        }
-        throw new Error(
-            `no OtcOrderFilledEvent logs among the logs passed into getDecodedOtcOrderFillEventLogFromLogs`,
-        );
-    }
-
     /**
      * Broadcasts a raw transaction via the `eth_sendRawTransaction` JSON RPC method.
      * The transaction must be signed by this point, otherwise submission will fail.
@@ -586,20 +416,6 @@ export class RfqBlockchainUtils {
             throw new Error('Decimals was not a number');
         }
         return decimals;
-    }
-
-    /**
-     * Calls the 0x Exchange Proxy to add an address to the list of allowed order signers for the msg's sender.
-     */
-    public async registerAllowedOrderSignerAsync(
-        from: string,
-        signerAddress: string,
-        isAllowed: boolean,
-    ): Promise<void> {
-        // tslint:disable-next-line: await-promise
-        await this._exchangeProxy
-            .registerAllowedOrderSigner(signerAddress, isAllowed)
-            .awaitTransactionSuccessAsync({ from });
     }
 
     /**
