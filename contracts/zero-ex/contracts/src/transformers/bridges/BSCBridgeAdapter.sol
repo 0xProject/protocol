@@ -21,6 +21,7 @@ import "./mixins/MixinCurve.sol";
 import "./mixins/MixinDodo.sol";
 import "./mixins/MixinDodoV2.sol";
 import "./mixins/MixinKyberDmm.sol";
+import "./mixins/MixinKyberElastic.sol";
 import "./mixins/MixinMooniswap.sol";
 import "./mixins/MixinNerve.sol";
 import "./mixins/MixinUniswapV2.sol";
@@ -33,6 +34,7 @@ contract BSCBridgeAdapter is
     MixinDodo,
     MixinDodoV2,
     MixinKyberDmm,
+    MixinKyberElastic,
     MixinMooniswap,
     MixinNerve,
     MixinUniswapV2,
@@ -84,6 +86,11 @@ contract BSCBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeKyberDmm(buyToken, sellAmount, order.bridgeData);
+        } else if (protocolId == BridgeProtocols.KYBERELASTIC) {
+            if (dryRun) {
+                return (0, true);
+            }
+            boughtAmount = _tradeKyberElastic(sellToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.WOOFI) {
             if (dryRun) {
                 return (0, true);
