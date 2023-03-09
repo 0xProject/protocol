@@ -3,6 +3,7 @@
     "version": "0.0.0",
     "private": true,
     "scripts": {
+        "build": "tsc",
         "examples:client": "tsx examples/client.ts",
         "dev:server": "nodemon src/main.ts"
     },
@@ -15,6 +16,7 @@
         "nodemon": "^2.0.21",
         "ts-node": "^10.9.1",
         "tsconfig": "*",
-        "tsx": "^3.12.3"
+        "tsx": "^3.12.3",
+        "typescript": "^4.9.5"
     }
 }

@@ -5,8 +5,10 @@
     "author": "0x Labs",
     "license": "UNLICENSED",
     "private": true,
+    "main": "__build__/index.js",
     "types": "src/index.ts",
     "scripts": {
+        "build": "tsc",
         "fix": "prettier --write .",
         "lint:ci": "prettier --check . && eslint .",
         "test:ci": "tsc --noEmit"

@@ -1,6 +1,6 @@
 import { inferRouterContext, inferRouterMeta, initTRPC } from '@trpc/server';
 import { z } from 'zod';
-import { PoolCache, PoolCacheRouter, UniswapV3Pool, GetPoolCacheOfPairInput } from 'pool-cache-api-interfaces';
+import { PoolCache, PoolCacheRouter, UniswapV3Pool, GetPoolCacheOfPairInput } from 'pool-cache-interface';
 import { implement } from './zod';
 
 const t = initTRPC.context<inferRouterContext<PoolCacheRouter>>().meta<inferRouterMeta<PoolCacheRouter>>().create();
