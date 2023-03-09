@@ -1,8 +1,0 @@
-d59ce5b6d0e2944574dd0b69558b2024
-{
-    "id": "/feeModelConfigurationsSchema",
-    "type": "array",
-    "items": {
-        "$ref": "/feeModelConfigurationSchema"
-    }
-}

@@ -1,8 +1,0 @@
-e5f4659a8d8223bc4d3253b813c5bd86
-{
-    "id": "/rfqMakerConfigList",
-    "type": "array",
-    "items": {
-        "$ref": "/rfqMakerConfig"
-    }
-}

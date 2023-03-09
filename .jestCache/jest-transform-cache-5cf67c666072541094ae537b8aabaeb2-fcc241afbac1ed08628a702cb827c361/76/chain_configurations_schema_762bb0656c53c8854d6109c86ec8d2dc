@@ -1,8 +1,0 @@
-6fdd5c8b119ecff68d57ad8e470ff9a9
-{
-    "id": "/chainConfigurationsSchema",
-    "type": "array",
-    "items": {
-        "$ref": "/chainConfigurationSchema"
-    }
-}

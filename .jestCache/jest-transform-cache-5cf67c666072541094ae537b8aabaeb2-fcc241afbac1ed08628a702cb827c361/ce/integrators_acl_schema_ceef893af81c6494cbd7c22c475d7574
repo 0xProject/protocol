@@ -1,8 +1,0 @@
-9b772335136f4bb4c267650612623e5f
-{
-    "id": "/integratorsAclSchema",
-    "type": "array",
-    "items": {
-        "$ref": "/integratorAclSchema"
-    }
-}

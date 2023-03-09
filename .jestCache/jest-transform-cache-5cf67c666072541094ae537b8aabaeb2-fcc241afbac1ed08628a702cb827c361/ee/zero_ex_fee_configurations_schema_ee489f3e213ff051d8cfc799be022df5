@@ -1,8 +1,0 @@
-57efe43049cf9087f9b1d60352a6b389
-{
-    "id": "/zeroExFeeConfigurationsSchema",
-    "type": "array",
-    "items": {
-        "$ref": "/zeroExFeeConfigurationSchema"
-    }
-}
