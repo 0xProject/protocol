@@ -21,6 +21,7 @@ import "./mixins/MixinAaveV3.sol";
 import "./mixins/MixinBalancerV2Batch.sol";
 import "./mixins/MixinCurve.sol";
 import "./mixins/MixinCurveV2.sol";
+import "./mixins/MixinKyberElastic.sol";
 import "./mixins/MixinNerve.sol";
 import "./mixins/MixinSolidly.sol";
 import "./mixins/MixinSynthetix.sol";
@@ -34,6 +35,7 @@ contract OptimismBridgeAdapter is
     MixinBalancerV2Batch,
     MixinCurve,
     MixinCurveV2,
+    MixinKyberElastic,
     MixinNerve,
     MixinSynthetix,
     MixinUniswapV3,
@@ -102,6 +104,11 @@ contract OptimismBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeWOOFi(sellToken, buyToken, sellAmount, order.bridgeData);
+        } else if (protocolId == BridgeProtocols.KYBERELASTIC) {
+            if (dryRun) {
+                return (0, true);
+            }
+            boughtAmount = _tradeKyberElastic(sellToken, sellAmount, order.bridgeData);
         }
 
         emit BridgeFill(order.source, sellToken, buyToken, sellAmount, boughtAmount);

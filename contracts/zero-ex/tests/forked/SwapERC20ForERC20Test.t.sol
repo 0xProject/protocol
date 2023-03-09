@@ -38,8 +38,8 @@ contract SwapERC20ForERC20Test is Test, ForkUtils, TestUtils {
 
     function test_swapERC20ForERC20OnKyberElastic() public {
         for (uint256 i = 0; i < chains.length; i++) {
-            // kyberelastic mixin not deployed to these chains yet (bsc, fantom, optimism)
-            if (i == 1 || i == 4 || i == 5) {
+            // kyberelastic mixin not added to fantom yet
+            if (i == 4) {
                 continue;
             }
             vm.selectFork(forkIds[chains[i]]);
