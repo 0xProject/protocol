@@ -4,6 +4,7 @@ import { createHTTPServer } from '@trpc/server/adapters/standalone';
 import { initTRPC } from '@trpc/server';
 import { zippoRouterDefinition, TZippoRouter } from 'zippo-interface';
 import { create as userCreate, getById as userGetById } from './services/userService';
+import { create as teamCreate, getById as teamGetById, update as teamUpdate } from './services/teamService';
 
 const t = initTRPC.create();
 
@@ -15,6 +16,19 @@ const router = t.router({
             .query(({ input }) => userGetById(input)),
         create: t.procedure.input(zippoRouterDefinition.user.create.input).mutation(({ input }) => {
             userCreate(input);
+        }),
+    }),
+    team: t.router({
+        get: t.procedure
+            .input(zippoRouterDefinition.team.get.input)
+            .output(zippoRouterDefinition.team.get.output)
+            .query(({ input }) => teamGetById(input)),
+        create: t.procedure.input(zippoRouterDefinition.team.create.input).mutation(({ input }) => {
+            teamCreate(input);
+        }),
+        update: t.procedure.input(zippoRouterDefinition.team.update.input).mutation(({ input }) => {
+            const { id, ...parameters } = input;
+            teamUpdate(id, parameters);
         }),
     }),
 }) satisfies TZippoRouter;
