@@ -45,7 +45,7 @@ spec:
             successThreshold: 1
             timeoutSeconds: 5
           command: ["/bin/sh", "-c"]
-          args: ["update-ca-certificates; yarn start:service:rfqm_http"]
+          args: ["update-ca-certificates; yarn workspace rfq-api start:service:rfqm_http"]
           ports:
             - containerPort: 3000
               name: http

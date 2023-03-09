@@ -45,7 +45,7 @@ spec:
             successThreshold: 1
             timeoutSeconds: 5
           command: ["/bin/sh", "-c"]
-          args: ["update-ca-certificates; yarn start:service:gasless_swap_service"]
+          args: ["update-ca-certificates; yarn workspace rfq-api start:service:gasless_swap_service"]
           ports:
             - containerPort: 3000
               name: http

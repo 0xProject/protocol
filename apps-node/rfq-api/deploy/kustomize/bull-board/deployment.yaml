@@ -57,7 +57,7 @@ spec:
             successThreshold: 1
             timeoutSeconds: 5                
           command: ["/bin/sh", "-c"]
-          args: ["yarn start:service:bull_board"]
+          args: ["yarn workspace rfq-api start:service:bull_board"]
           ports:
             - containerPort: 3002
               name: http

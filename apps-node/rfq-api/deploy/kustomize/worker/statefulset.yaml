@@ -31,7 +31,7 @@ spec:
         - "/bin/sh"
         - "-c"
         args:
-        - RFQM_WORKER_GROUP_INDEX=${HOSTNAME##*-} yarn start:service:rfqm_worker
+        - RFQM_WORKER_GROUP_INDEX=${HOSTNAME##*-} yarn workspace rfq-api start:service:rfqm_worker
         env:
         - name: NODE_ENV
           value: production

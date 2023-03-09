@@ -57,7 +57,7 @@ spec:
             successThreshold: 1
             timeoutSeconds: 5              
           command: ["/bin/sh", "-c"]
-          args: ["yarn start:service:processor"]
+          args: ["yarn workspace rfq-api start:service:processor"]
           ports:
             - containerPort: 8080
               name: prom
