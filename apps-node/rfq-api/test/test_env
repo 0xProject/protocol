@@ -1,0 +1,165 @@
+ETHEREUM_RPC_URL=http://ganache:8545 # not used in tests, but needs to be present for configs
+CHAIN_ID=1337
+META_TXN_RELAY_ADDRESS=0x9eFCa436873b55a0d6AEa260f92DE50150360dca
+META_TXN_RELAY_PRIVATE_KEY=82b9c3b8d45f608badd8fda250a0d95088381540e850734519b659e1e1ac3e71
+META_TXN_RATE_LIMITER_CONFIG='{"api_key":{"daily":{"allowedDailyLimit": 1}}}'
+NODE_ENV=test
+ETH_GAS_STATION_API_URL=https://ethgasstation.api.0x.org/api/ethgasAPI.json
+ETH_GAS_STATION_API_URL=https://gas.api.0x.org/source/median?output=eth_gas_station
+INTEGRATORS_ACL='[{"integratorId":"test-integrator-id-1","label":"Test Integrator 1","rfqt":true,"rfqm":true,"plp":false,"gasless-rfqt":true,"apiKeys":["test-api-key-1","test-api-key-2"],"allowedChainIds":[1337],"whitelistIntegratorUrls":["http://foo.bar"]},{"integratorId":"test-integrator-id-2","label":"Test Integrator 2","rfqt":false,"rfqm":true,"plp":false,"gasless-rfqt":false,"apiKeys":["test-api-key-3"],"allowedChainIds":[1337]}]'
+RFQ_MAKER_CONFIGS='[{"makerId":"degen-trading","label":"degen trading","rfqtOrderTypes":["rfq","otc"],"rfqmOrderTypes":["rfq","otc"], "apiKeyHashes": ["q4Bk8BI8r5D6//THWdtz58HLXgGb5E2AxhpQ+NZTaOk="]},{"makerId":"tradfi-finance","label":"tradfi finance","rfqtOrderTypes":["rfq","otc"],"rfqmOrderTypes":["rfq"],"apiKeyHashes": ["PEc+sWf7vAdyKG+7cC2meqosI65Br3op/oDqAKxS+UU="]},{"makerId":"i-love-rfqorder","label":"i love rfqorder","rfqtOrderTypes":["rfq","rfq"],"rfqmOrderTypes":["rfq","rfq"],"apiKeyHashes": ["/2wFjmnv9x/fXgt7QPi6kbSqulYvXNSqGh8DQuYk19E=", "LJ+zowQF6HoLToVOGtnK1irxr0Qz0aU3lDvLThovR0Q="]},{"makerId":"noRfqm","label":"noRfqm","rfqtOrderTypes":["rfq","rfq"],"rfqmOrderTypes":[],"apiKeyHashes": ["LJ+zowQF6HoLToVOGtnK1irxr0Qz0aU3lDvLThovR0Q="]}]'
+FEE_MODEL_CONFIGURATIONS='[{"chainId": 1, "tokenA": "0xf84830b73b2ed3c7267e7638f500110ea47fdf30", "tokenB": "0x374a16f5e686c09b0cc9e8bc3466b3b645c74aa7", "marginRakeRatio": 0.4, "tradeSizeBps": 5}]'
+FEE_MODEL_VERSION=1
+ENABLE_LLR_COOLDOWN=true
+REASON_ON_STATUS_ERROR_RESPONSE_ENABLED=true
+TAKER_SPECIFIED_SIDE_ENABLED=true
+ZERO_EX_FEE_CONFIGURATIONS='[
+    {
+        "name": "Coinbase",
+        "integratorId": "5062340f-87bb-4e1b-8029-eb8c03a9989c",
+        "chainId": 1,
+        "feeOn": "volume",
+        "zeroEx": {
+            "feeRecipient": "0x4ea754349ace5303c82f0d1d491041e042f2ad22",
+            "billingType": "on-chain"
+        },
+        "gas": {
+           "feeRecipient": null,
+           "billingType": "off-chain"
+        },
+        "fees": [
+            {
+                "kind": "pairs",
+                "pairs": [
+                    {
+                        "tokenA": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                        "tokenB": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+                        "label": "USDC-WETH"
+                    },
+                    {
+                        "tokenA": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+                        "tokenB": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                        "label": "USDT-WETH"
+                    }
+                ],
+                "volumePercentage": 0.5
+            },
+            {
+                "kind": "cartesian_product",
+                "setA": [
+                    {
+                        "token": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                        "label": "USDC"
+                    },
+                    {
+                        "token": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                        "label": "USDT"
+                    },
+                    {
+                        "token": "0x6b175474e89094c44da98b954eedeac495271d0f",
+                        "label": "DAI"
+                    }
+                ],
+                "setB": [
+                    {
+                        "token": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+                        "label": "WETH"
+                    },
+                    {
+                        "token": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+                        "label": "WBTC"
+                    }
+                ],
+                "volumePercentage": 0.7
+            },
+            {
+                "kind": "cartesian_product",
+                "setA": [
+                    {
+                        "token": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                        "label": "USDC"
+                    },
+                    {
+                        "token": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                        "label": "USDT"
+                    },
+                    {
+                        "token": "0x6b175474e89094c44da98b954eedeac495271d0f",
+                        "label": "DAI"
+                    }
+                ],
+                "setB": [
+                    {
+                        "token": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                        "label": "USDC"
+                    },
+                    {
+                        "token": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                        "label": "USDT"
+                    },
+                    {
+                        "token": "0x6b175474e89094c44da98b954eedeac495271d0f",
+                        "label": "DAI"
+                    }
+                ],
+                "volumePercentage": 0.1
+            },            
+            {
+                "kind": "tokens",
+                "tokens": [
+                    {
+                        "token": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+                        "label": "WBTC"
+                    }                   
+                ],
+                "volumePercentage": 1.5
+            },
+            {
+                "kind": "tokens",
+                "tokens": [
+                    {
+                        "token": "*",
+                        "label": "all"
+                    }                   
+                ],
+                "volumePercentage": 0.05
+            }                   
+        ]
+    },
+    {
+        "name": "All",
+        "integratorId": "*",
+        "chainId": 1,
+        "feeOn": "integrator_share",
+        "zeroEx": {
+            "feeRecipient": "0x4ea754349ace5303c82f0d1d491041e042f2ad22",
+            "billingType": "on-chain"
+        },
+        "gas": {
+           "feeRecipient": null,
+           "billingType": "off-chain"
+        },
+        "fees": [          
+            {
+                "kind": "tokens",
+                "tokens": [
+                    {
+                        "token": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+                        "label": "WBTC"
+                    }                   
+                ],
+                "integratorSharePercentage": 1.2
+            },
+            {
+                "kind": "tokens",
+                "tokens": [
+                    {
+                        "token": "*",
+                        "label": "all"
+                    }                   
+                ],
+                "integratorSharePercentage": 0.03
+            }                   
+        ]
+    }    
+]'

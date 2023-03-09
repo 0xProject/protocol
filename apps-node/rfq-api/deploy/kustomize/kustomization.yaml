@@ -1,0 +1,7 @@
+bases:
+- api
+- bull-board
+- gasless-swap
+- processor
+- scheduler
+- worker

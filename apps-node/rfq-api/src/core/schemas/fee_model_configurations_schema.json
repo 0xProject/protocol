@@ -1,0 +1,7 @@
+{
+    "id": "/feeModelConfigurationsSchema",
+    "type": "array",
+    "items": {
+        "$ref": "/feeModelConfigurationSchema"
+    }
+}

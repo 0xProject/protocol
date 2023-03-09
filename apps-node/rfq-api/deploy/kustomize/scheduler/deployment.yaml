@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: rfqm
+    app.kubernetes.io/component: scheduler
+  name: rfqm-scheduler
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: rfqm
+      app.kubernetes.io/component: scheduler
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+      labels:
+        app.kubernetes.io/name: rfqm
+        app.kubernetes.io/component: scheduler
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64 # We currently only support amd64    
+      terminationGracePeriodSeconds: 300 
+      containers:
+        - image: 0x-rfq-api:latest
+          name: rfqm-scheduler
+          resources:
+            limits:
+              cpu: 256m
+              memory: 512Mi
+            requests:
+              cpu: 128m
+              memory: 256Mi
+          imagePullPolicy: Always
+          startupProbe:
+            httpGet:
+              path: /metrics
+              port: prom
+            initialDelaySeconds: 2
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            failureThreshold: 6 # Give container 1 minute to startup
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: prom
+            initialDelaySeconds: 2
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5              
+          command: ["/bin/sh", "-c"]
+          args: ["yarn start:service:scheduler"]
+          ports:
+            - containerPort: 8080
+              name: prom
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: LOGGER_INCLUDE_TIMESTAMP
+              value: "false"
+            - name: REDIS_BACKGROUND_JOB_URI
+            - name: ENABLE_PROMETHEUS_METRICS
+              value: "true"
+            - name: PROMETHEUS_PORT
+              value: "8080"

@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: rfqm
+    app.kubernetes.io/component: dummy-mm
+  name: rfq-dummy-mm
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: rfqm
+      app.kubernetes.io/component: dummy-mm
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: rfqm
+        app.kubernetes.io/component: dummy-mm
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64 # We currently only support amd64
+      containers:
+        - image: 0x-rfq-api:latest
+          name: rfq-dummy-mm
+          resources:
+            limits:
+              cpu: 800m
+              memory: 1Gi
+            requests:
+              cpu: 500m
+              memory: 500Mi
+          imagePullPolicy: Always
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3001
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 5
+          command: ["/bin/sh", "-c"]
+          args: ["update-ca-certificates; yarn start:service:dummy_mm_http"]
+          ports:
+            - containerPort: 3001
+              name: http
+          env:
+            - name: NODE_ENV
+              value: "production"

@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app.kubernetes.io/name: rfqm
+    app.kubernetes.io/component: worker
+  name: rfqm-worker
+spec:
+  podManagementPolicy: Parallel
+  serviceName: rfqm-worker
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: rfqm
+      app.kubernetes.io/component: worker
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
+      labels:
+        app.kubernetes.io/name: rfqm
+        app.kubernetes.io/component: worker
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64 # We currently only support amd64
+      terminationGracePeriodSeconds: 300
+      containers:
+      - image: 0x-rfq-api-worker:latest
+        imagePullPolicy: IfNotPresent
+        command:
+        - "/bin/sh"
+        - "-c"
+        args:
+        - RFQM_WORKER_GROUP_INDEX=${HOSTNAME##*-} yarn start:service:rfqm_worker
+        env:
+        - name: NODE_ENV
+          value: production
+        - name: LOGGER_INCLUDE_TIMESTAMP
+          value: "false"
+        - name: AWS_REGION
+          value: us-east-1
+        - name: META_TX_WORKER_MNEMONIC
+        - name: POSTGRES_URI
+        - name: REDIS_URI
+        - name: CHAIN_ID
+          value: "1"
+        - name: ENABLE_PROMETHEUS_METRICS
+          value: "true"
+        - name: PROMETHEUS_PORT
+          value: "8080"
+        - name: RFQM_META_TX_SQS_REGION
+          value: us-east-1
+        - name: RFQ_PROXY_ADDRESS
+        - name: RFQ_PROXY_PORT
+        - name: RFQM_WORKER_GROUP_SIZE  # Changing this number after the worker is already deployed requires
+                                        # some careful manual steps. Otherwise, it will create conflicting
+                                        # workers. If you're trying to update the value of this envVar after
+                                        # the worker has already been deployed, please let the team knows so
+                                        # we can plan it out properly.
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /metrics
+            port: prom
+            scheme: HTTP
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 3
+          initialDelaySeconds: 10
+        name: rfqm-worker
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        - containerPort: 8080
+          name: prom
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 100m
+            memory: 512Mi
+      restartPolicy: Always

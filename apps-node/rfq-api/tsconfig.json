@@ -1,0 +1,34 @@
+{
+    "compilerOptions": {
+        "allowSyntheticDefaultImports": true,
+        "downlevelIteration": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "lib": ["es2020", "dom"],
+        "module": "commonjs",
+        "noUnusedLocals": false,
+        "noUnusedParameters": false,
+        "outDir": "__build__",
+        "resolveJsonModule": true,
+        "skipLibCheck": true,
+        "sourceMap": true,
+        "strict": true,
+        "target": "es2019",
+        "types": ["jest", "node"],
+        "typeRoots": [
+            "../../node_modules/@0x/typescript-typings/types",
+            "../../node_modules/@types",
+            "node_modules/@0x/typescript-typings/types",
+            "node_modules/@types"
+        ],
+        "useUnknownInCatchVariables": false
+    },
+    "include": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "integration-test/**/*.ts",
+        "migrations/*.ts",
+        "src/core/schemas/*.json",
+        "src/api-docs/*.json"
+    ]
+}

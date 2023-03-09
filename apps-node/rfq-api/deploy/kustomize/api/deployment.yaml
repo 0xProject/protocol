@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: rfqm
+    app.kubernetes.io/component: api
+  name: rfqm-api
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: rfqm
+      app.kubernetes.io/component: api
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+      labels:
+        app.kubernetes.io/name: rfqm
+        app.kubernetes.io/component: api
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64 # We currently only support amd64
+      containers:
+        - image: 0x-rfq-api:latest
+          name: rfqm-api
+          resources:
+            limits:
+              memory: 1Gi
+            requests:
+              cpu: "1"
+              memory: 500Mi
+          imagePullPolicy: Always
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 5
+          command: ["/bin/sh", "-c"]
+          args: ["update-ca-certificates; yarn start:service:rfqm_http"]
+          ports:
+            - containerPort: 3000
+              name: http
+            - containerPort: 8080
+              name: prom
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: HTTP_PORT
+              value: "3000"
+            - name: LOGGER_INCLUDE_TIMESTAMP
+              value: "false"
+            - name: POSTGRES_URI
+            - name: REDIS_URI
+            - name: ENABLE_PROMETHEUS_METRICS
+              value: "true"
+            - name: PROMETHEUS_PORT
+              value: "8080"
+            - name: AWS_REGION
+              value: "us-east-1"
+            - name: RFQM_MAINTENANCE_MODE
+              value: "false"
+            - name: INTEGRATORS_ACL
+            - name: RFQ_PROXY_ADDRESS
+            - name: RFQ_PROXY_PORT

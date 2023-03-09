@@ -1,0 +1,54 @@
+{
+    "id": "/TakerRequestSchema",
+    "properties": {
+        "sellTokenAddress": {
+            "$ref": "/addressSchema"
+        },
+        "buyTokenAddress": {
+            "$ref": "/addressSchema"
+        },
+        "takerAddress": {
+            "$ref": "/addressSchema"
+        },
+        "comparisonPrice": {
+            "$ref": "/numberSchema"
+        },
+        "protocolVersion": {
+            "$ref": "/numberSchema"
+        },
+        "txOrigin": {
+            "$ref": "/addressSchema"
+        },
+        "isLastLook": {
+            "type": "string",
+            "pattern": "(^true$)|(^false$)"
+        },
+        "fee": {
+            "$ref": "/feeSchema"
+        },
+        "nonce": {
+            "$ref": "/numberSchema"
+        },
+        "nonceBucket": {
+            "$ref": "/numberSchema"
+        }
+    },
+    "required": ["sellTokenAddress", "buyTokenAddress", "takerAddress"],
+    "oneOf": [
+        {
+            "id": "sellAmountBaseUnits",
+            "properties": {
+                "sellAmountBaseUnits": { "$ref": "/wholeNumberSchema" }
+            },
+            "required": ["sellAmountBaseUnits"]
+        },
+        {
+            "id": "buyAmountBaseUnits",
+            "properties": {
+                "buyAmountBaseUnits": { "$ref": "/wholeNumberSchema" }
+            },
+            "required": ["buyAmountBaseUnits"]
+        }
+    ],
+    "type": "object"
+}

@@ -1,0 +1,7 @@
+{
+    "id": "/zeroExFeeConfigurationsSchema",
+    "type": "array",
+    "items": {
+        "$ref": "/zeroExFeeConfigurationSchema"
+    }
+}
