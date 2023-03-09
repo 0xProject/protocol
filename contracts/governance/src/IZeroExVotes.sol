@@ -117,10 +117,11 @@ interface IZeroExVotes {
     function getPastQuadraticTotalSupply(uint256 blockNumber) external view returns (uint256);
 
     /**
-     * @dev Moves the voting power for an account with balance `delegateBalance` from `srcDelegatee` to `dstDelegatee`.
+     * @dev Moves the voting power for an account with balance `srcDelegateBalance` from `srcDelegatee` to
+     * `dstDelegatee`.
      * Note that if the delegator isn't delegating to anyone before the function call `srcDelegatee` = address(0)
      */
-    function moveEntireVotingPower(address srcDelegatee, address dstDelegatee, uint256 delegateBalance) external;
+    function moveEntireVotingPower(address srcDelegatee, address dstDelegatee, uint256 srcDelegateBalance) external;
 
     /**
      * @dev Moves the voting power corresponding to `amount` number of tokens from `srcDelegatee` to `dstDelegatee`.

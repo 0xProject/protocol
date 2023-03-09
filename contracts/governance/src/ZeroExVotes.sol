@@ -120,17 +120,17 @@ contract ZeroExVotes is IZeroExVotes {
     function moveEntireVotingPower(
         address srcDelegatee,
         address dstDelegatee,
-        uint256 delegateBalance
+        uint256 srcDelegateBalance
     ) public override onlyToken {
-        if (srcDelegatee != dstDelegatee && delegateBalance > 0) {
+        if (srcDelegatee != dstDelegatee && srcDelegateBalance > 0) {
             if (srcDelegatee != address(0)) {
                 uint256 pos = _checkpoints[srcDelegatee].length;
                 Checkpoint memory oldCkptSrcDelegate = pos == 0
                     ? Checkpoint(0, 0, 0)
                     : _unsafeAccess(_checkpoints[srcDelegatee], pos - 1);
 
-                uint256 newLinearBalance = oldCkptSrcDelegate.votes - delegateBalance;
-                uint256 newQuadraticBalance = oldCkptSrcDelegate.quadraticVotes - Math.sqrt(delegateBalance);
+                uint256 newLinearBalance = oldCkptSrcDelegate.votes - srcDelegateBalance;
+                uint256 newQuadraticBalance = oldCkptSrcDelegate.quadraticVotes - Math.sqrt(srcDelegateBalance);
 
                 _writeCheckpoint(_checkpoints[srcDelegatee], newLinearBalance, newQuadraticBalance);
 
@@ -149,8 +149,8 @@ contract ZeroExVotes is IZeroExVotes {
                     ? Checkpoint(0, 0, 0)
                     : _unsafeAccess(_checkpoints[dstDelegatee], pos - 1);
 
-                uint256 newLinearBalance = oldCkptDstDelegate.votes + delegateBalance;
-                uint256 newQuadraticBalance = oldCkptDstDelegate.quadraticVotes + Math.sqrt(delegateBalance);
+                uint256 newLinearBalance = oldCkptDstDelegate.votes + srcDelegateBalance;
+                uint256 newQuadraticBalance = oldCkptDstDelegate.quadraticVotes + Math.sqrt(srcDelegateBalance);
 
                 _writeCheckpoint(_checkpoints[dstDelegatee], newLinearBalance, newQuadraticBalance);
 
