@@ -47,39 +47,8 @@ interface IPool {
     function withdraw(address asset, uint256 amount, address to) external returns (uint256);
 }
 
-// Minimal Aave V3 L2Pool interface
-interface IL2Pool {
-    /**
-     * @notice Calldata efficient wrapper of the supply function on behalf of the caller
-     * @param args Arguments for the supply function packed in one bytes32
-     *    96 bits       16 bits         128 bits      16 bits
-     * | 0-padding | referralCode | shortenedAmount | assetId |
-     * @dev the shortenedAmount is cast to 256 bits at decode time, if type(uint128).max the value will be expanded to
-     * type(uint256).max
-     * @dev assetId is the index of the asset in the reservesList.
-     */
-    function supply(bytes32 args) external;
-
-    /**
-     * @notice Calldata efficient wrapper of the withdraw function, withdrawing to the caller
-     * @param args Arguments for the withdraw function packed in one bytes32
-     *    112 bits       128 bits      16 bits
-     * | 0-padding | shortenedAmount | assetId |
-     * @dev the shortenedAmount is cast to 256 bits at decode time, if type(uint128).max the value will be expanded to
-     * type(uint256).max
-     * @dev assetId is the index of the asset in the reservesList.
-     */
-    function withdraw(bytes32 args) external;
-}
-
 contract MixinAaveV3 {
     using LibERC20TokenV06 for IERC20Token;
-
-    bool private immutable _isL2;
-
-    constructor(bool isL2) public {
-        _isL2 = isL2;
-    }
 
     function _tradeAaveV3(
         IERC20Token sellToken,
@@ -87,23 +56,7 @@ contract MixinAaveV3 {
         uint256 sellAmount,
         bytes memory bridgeData
     ) internal returns (uint256) {
-        if (_isL2) {
-            (IL2Pool pool, address aToken, bytes32 l2Params) = abi.decode(bridgeData, (IL2Pool, address, bytes32));
-
-            sellToken.approveIfBelow(address(pool), sellAmount);
-
-            if (address(buyToken) == aToken) {
-                pool.supply(l2Params);
-                // 1:1 mapping token --> aToken and have the same number of decimals as the underlying token
-                return sellAmount;
-            } else if (address(sellToken) == aToken) {
-                pool.withdraw(l2Params);
-                return sellAmount;
-            }
-
-            revert("MixinAaveV3/UNSUPPORTED_TOKEN_PAIR");
-        }
-        (IPool pool, address aToken, ) = abi.decode(bridgeData, (IPool, address, bytes32));
+        (IPool pool, address aToken) = abi.decode(bridgeData, (IPool, address));
 
         sellToken.approveIfBelow(address(pool), sellAmount);
 
