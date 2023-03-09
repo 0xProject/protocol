@@ -41,7 +41,7 @@ contract OptimismBridgeAdapter is
     MixinWOOFi,
     MixinZeroExBridge
 {
-    constructor(IEtherToken weth) public MixinCurve(weth) MixinAaveV3(true) {}
+    constructor(IEtherToken weth) public MixinCurve(weth) {}
 
     /* solhint-disable function-max-lines */
     function _trade(
