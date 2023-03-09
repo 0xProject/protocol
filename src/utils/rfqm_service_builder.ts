@@ -214,6 +214,7 @@ export async function buildRfqmServiceAsync(
         rfqMakerBalanceCacheService,
         rfqMakerManager,
         tokenMetadataManager,
+        chain.rfqm?.gaslessRfqtVipRolloutPercentage || 0,
         kafkaProducer,
         rfqmConfiguration.quoteReportTopic,
     );

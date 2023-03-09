@@ -35,6 +35,7 @@ describe('RFQ Admin Service Logic', () => {
                 type: 'fixed',
             },
             order: otcOrderToStoredOtcOrder(otcOrder),
+            workflow: 'rfqm',
         });
         it('should clean up stuck jobs', async () => {
             const job = new RfqmV2JobEntity({ ...BASE_JOB, status: RfqmJobStatus.PendingProcessing });

@@ -1,3 +1,4 @@
+import { Signature } from '@0x/protocol-utils';
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 import { StoredFee } from '../core/types';
@@ -6,7 +7,7 @@ import { StoredOtcOrder } from './types';
 
 export type RfqmV2QuoteConstructorOpts = Pick<
     RfqmV2QuoteEntity,
-    'chainId' | 'fee' | 'makerUri' | 'orderHash' | 'order'
+    'chainId' | 'fee' | 'makerUri' | 'orderHash' | 'order' | 'workflow'
 > &
     Partial<RfqmV2QuoteEntity>;
 
@@ -33,6 +34,14 @@ export class RfqmV2QuoteEntity {
 
     @Column({ name: 'order', type: 'jsonb' })
     public order: StoredOtcOrder;
+
+    @Column({ name: 'workflow', type: 'varchar' })
+    public workflow: 'rfqm' | 'gasless-rfqt';
+
+    // The maker's signature of the order hash
+    // In `gasless-rfqt` flow, MM signature is obtained before taker signature
+    @Column({ name: 'maker_signature', type: 'jsonb', nullable: true })
+    public makerSignature: Signature | null;
 
     // Whether the maker wrapped native token will be unwrapped to the native token
     // when passed to the taker
@@ -62,9 +71,11 @@ export class RfqmV2QuoteEntity {
         this.fee = opts.fee;
         this.integratorId = opts.integratorId ?? null;
         this.isUnwrap = opts.isUnwrap ?? false;
+        this.makerSignature = opts.makerSignature ?? null;
         this.makerUri = opts.makerUri;
         this.order = opts.order;
         this.orderHash = opts.orderHash;
         this.takerSpecifiedSide = opts.takerSpecifiedSide ?? null;
+        this.workflow = opts.workflow;
     }
 }

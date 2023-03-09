@@ -25,6 +25,8 @@ export enum RfqmJobStatus {
     FailedLastLookDeclined = 'failed_last_look_declined',
     // [RFQM v2] Balance checks executed before obtaining market maker signature failed
     FailedPresignValidationFailed = 'failed_presign_validation_failed',
+    // [Gasless RFQt VIP] Balance checks executed before transaction submission failed
+    FailedPresubmitValidationFailed = 'failed_presubmit_validation_failed',
     // Transaction was reverted more than 3 blocks ago
     FailedRevertedConfirmed = 'failed_reverted_confirmed',
     // Transaction was reverted less than 3 blocks ago
@@ -76,6 +78,7 @@ function isJobResolved(status: RfqmJobStatus): boolean {
         case RfqmJobStatus.FailedExpired:
         case RfqmJobStatus.FailedLastLookDeclined:
         case RfqmJobStatus.FailedPresignValidationFailed:
+        case RfqmJobStatus.FailedPresubmitValidationFailed:
         case RfqmJobStatus.FailedRevertedConfirmed:
         case RfqmJobStatus.FailedSignFailed:
         case RfqmJobStatus.FailedSubmitFailed:
