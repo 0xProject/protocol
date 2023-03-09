@@ -78,7 +78,7 @@ const HTTP_SWAP_RESPONSE_TIME = new Histogram({
 const HTTP_SWAP_REQUESTS = new Counter({
     name: 'swap_requests',
     help: 'Total number of swap requests',
-    labelNames: ['endpoint', 'chain_id', 'api_key', 'integrator_id'],
+    labelNames: ['endpoint', 'chain_id', 'api_key', 'integrator_id', 'host'],
 });
 
 const PRICE_IMPACT_PROTECTION_SPECIFIED = new Counter({
@@ -192,6 +192,7 @@ export class SwapHandlers {
             CHAIN_ID.toString(),
             params.apiKey !== undefined ? params.apiKey : 'N/A',
             params.integrator?.integratorId || 'N/A',
+            req.header('host') || 'N/A',
         ).inc();
         res.status(StatusCodes.OK).send(response);
     }
@@ -271,6 +272,7 @@ export class SwapHandlers {
             CHAIN_ID.toString(),
             params.apiKey !== undefined ? params.apiKey : 'N/A',
             params.integrator?.integratorId || 'N/A',
+            req.header('host') || 'N/A',
         ).inc();
 
         res.status(StatusCodes.OK).send(response);
