@@ -8,11 +8,13 @@ import {
     DefaultFeeDetailsDeprecated,
     Fee,
     FeeBreakdown,
+    FeeModelVersion,
     FeeWithDetails,
     GasOnlyFeeDetailsDeprecated,
     IndicativeQuote,
     MarginBasedFeeDetailsDeprecated,
 } from '../core/types';
+import { logger } from '../logger';
 import { ConfigManager } from '../utils/config_manager';
 import { GasStationAttendant } from '../utils/GasStationAttendant';
 import { getBestQuote } from '../utils/quote_comparison_utils';
@@ -384,6 +386,150 @@ export class FeeService {
     }
 
     /**
+     *  Calculate fee with fee model v1, including gas fee and and zeroExFee.
+     *  This is just a private inner function to simplify code of _calculateFeeV2Async
+     */
+    private getV1FeeWithDetails(
+        isSelling: boolean,
+        bestMakerQuoteWithGasFee: IndicativeQuote | null,
+        tradeSizeBps: number,
+        quoteTokenBaseUnitPriceUsd: BigNumber | null,
+        feeTokenBaseUnitPriceUsd: BigNumber | null,
+        feeModelVersion: FeeModelVersion,
+        gasFee: FeeWithDetails,
+    ): FeeWithDetails {
+        const quoteTokenAmount = isSelling
+            ? // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              bestMakerQuoteWithGasFee!.makerAmount
+            : // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              bestMakerQuoteWithGasFee!.takerAmount;
+        const zeroExFeeAmount = calculateDefaultFeeAmount(
+            quoteTokenAmount,
+            tradeSizeBps,
+            quoteTokenBaseUnitPriceUsd,
+            feeTokenBaseUnitPriceUsd,
+        );
+
+        const details: DefaultFeeDetailsDeprecated = {
+            kind: 'default',
+            feeModelVersion,
+            gasFeeAmount: gasFee.amount,
+            gasPrice: gasFee.details.gasPrice,
+            zeroExFeeAmount,
+            tradeSizeBps,
+            feeTokenBaseUnitPriceUsd,
+            takerTokenBaseUnitPriceUsd: isSelling ? null : quoteTokenBaseUnitPriceUsd,
+            makerTokenBaseUnitPriceUsd: isSelling ? quoteTokenBaseUnitPriceUsd : null,
+        };
+
+        const breakdown: FeeBreakdown = {
+            gas: gasFee.breakdown.gas,
+            zeroEx: {
+                amount: zeroExFeeAmount,
+                details: {
+                    kind: 'volume',
+                    tradeSizeBps,
+                },
+            },
+        };
+
+        const conversionRates: ConversionRates = {
+            nativeTokenBaseUnitPriceUsd: feeTokenBaseUnitPriceUsd,
+            feeTokenBaseUnitPriceUsd,
+            takerTokenBaseUnitPriceUsd: isSelling ? null : quoteTokenBaseUnitPriceUsd,
+            makerTokenBaseUnitPriceUsd: isSelling ? quoteTokenBaseUnitPriceUsd : null,
+        };
+
+        const V1FeeWithDetails: FeeWithDetails = {
+            type: 'fixed',
+            token: this._feeTokenMetadata.tokenAddress,
+            amount: gasFee.amount.plus(zeroExFeeAmount),
+            details,
+            breakdown,
+            conversionRates,
+        };
+        return V1FeeWithDetails;
+    }
+    /**
+     *  Calculate fee with fee model v2, including gas fee and zeroExFee.
+     *  This is just a private inner function to simplify code of _calculateFeeV2Async
+     */
+    private getV2FeeWithDetails(
+        isSelling: boolean,
+        bestMakerQuoteWithGasFee: IndicativeQuote | null,
+        rakeRatio: number,
+        quoteTokenBaseUnitPriceUsd: BigNumber | null,
+        feeTokenBaseUnitPriceUsd: BigNumber | null,
+        feeModelVersion: FeeModelVersion,
+        gasFee: FeeWithDetails,
+        ammQuote: AmmQuote | null,
+    ): FeeWithDetails {
+        const priceImprovement =
+            rakeRatio > 0
+                ? calculatePriceImprovementAmount(
+                      // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                      bestMakerQuoteWithGasFee!,
+                      // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                      ammQuote!,
+                      isSelling,
+                      // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                      quoteTokenBaseUnitPriceUsd!,
+                      // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                      feeTokenBaseUnitPriceUsd!,
+                  )
+                : ZERO;
+        const zeroExFeeAmount = priceImprovement.times(rakeRatio).integerValue();
+
+        const details: MarginBasedFeeDetailsDeprecated = {
+            kind: 'margin',
+            feeModelVersion,
+            gasFeeAmount: gasFee.amount,
+            gasPrice: gasFee.details.gasPrice,
+            zeroExFeeAmount,
+            margin: priceImprovement, // legacy field name `margin`
+            marginRakeRatio: rakeRatio, // legacy field name `marginRakeRatio`
+            feeTokenBaseUnitPriceUsd,
+            takerTokenBaseUnitPriceUsd: isSelling ? null : quoteTokenBaseUnitPriceUsd,
+            makerTokenBaseUnitPriceUsd: isSelling ? quoteTokenBaseUnitPriceUsd : null,
+        };
+
+        const breakdown: FeeBreakdown = {
+            gas: gasFee.breakdown.gas,
+            zeroEx: {
+                amount: zeroExFeeAmount,
+                details: {
+                    kind: 'price_improvement',
+                    priceImprovement,
+                    rakeRatio,
+                },
+            },
+        };
+
+        const conversionRates: ConversionRates = {
+            nativeTokenBaseUnitPriceUsd: feeTokenBaseUnitPriceUsd,
+            feeTokenBaseUnitPriceUsd,
+            takerTokenBaseUnitPriceUsd: isSelling ? null : quoteTokenBaseUnitPriceUsd,
+            makerTokenBaseUnitPriceUsd: isSelling ? quoteTokenBaseUnitPriceUsd : null,
+        };
+
+        const V2FeeWithDetails: FeeWithDetails = {
+            type: 'fixed',
+            token: this._feeTokenMetadata.tokenAddress,
+            amount: zeroExFeeAmount.plus(gasFee.amount),
+            details,
+            breakdown,
+            conversionRates,
+        };
+        return V2FeeWithDetails;
+    }
+
+    /**
      * Calculate fee with fee model v2, including gas fee and zeroExFee. If price improvement detection
      * is successful, zeroExFee will be based on price improvement. If not:
      *     * Fall back to `default` fee if maker query and token prices query are both successful.
@@ -453,136 +599,77 @@ export class FeeService {
             rakeRatio > 0 && (feeTokenBaseUnitPriceUsd === null || quoteTokenBaseUnitPriceUsd === null);
         const wasUnableToFetchAmmQuote: boolean = rakeRatio > 0 && ammQuote === null;
 
-        let zeroExFeeAmount: BigNumber;
-        let feeWithDetails: FeeWithDetails;
-
         if (wasUnableToFetchMakerQuote || wasUnableToFetchTokenPrices) {
             /**
              * If maker query or token prices query failed: fallback to `gasOnly` fee.
              */
-            zeroExFeeAmount = ZERO;
-            feeWithDetails = gasFee;
-        } else if (wasUnableToFetchAmmQuote) {
+            logger.warn(
+                { makerToken: quoteContext.makerToken, takerToken: quoteContext.takerToken },
+                `V2 fee model falling back to V0 due to "(wasUnableToFetchMakerQuote || wasUnableToFetchTokenPrices)"`,
+            );
+            const feeWithDetails = gasFee;
+            return {
+                feeWithDetails,
+                quotesWithGasFee,
+                ammQuoteUniqueId,
+            };
+        }
+
+        const V1FeeWithDetails: FeeWithDetails = this.getV1FeeWithDetails(
+            isSelling,
+            bestMakerQuoteWithGasFee,
+            tradeSizeBps,
+            quoteTokenBaseUnitPriceUsd,
+            feeTokenBaseUnitPriceUsd,
+            feeModelVersion,
+            gasFee,
+        );
+
+        if (wasUnableToFetchAmmQuote) {
             /**
              * If maker query and token price query are successful, but AMM query failed,
              * fall back to `default` fee calculated with `tradeSizeBps`.
              */
-            const quoteTokenAmount = isSelling
-                ? // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                  bestMakerQuoteWithGasFee!.makerAmount
-                : // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                  bestMakerQuoteWithGasFee!.takerAmount;
-            zeroExFeeAmount = calculateDefaultFeeAmount(
-                quoteTokenAmount,
-                tradeSizeBps,
-                quoteTokenBaseUnitPriceUsd,
-                feeTokenBaseUnitPriceUsd,
+            logger.warn(
+                { makerToken: quoteContext.makerToken, takerToken: quoteContext.takerToken },
+                `V2 fee model falling back to V1 due to "wasUnableToFetchAmmQuote"`,
             );
-
-            const details: DefaultFeeDetailsDeprecated = {
-                kind: 'default',
-                feeModelVersion,
-                gasFeeAmount: gasFee.amount,
-                gasPrice: gasFee.details.gasPrice,
-                zeroExFeeAmount,
-                tradeSizeBps,
-                feeTokenBaseUnitPriceUsd,
-                takerTokenBaseUnitPriceUsd: isSelling ? null : quoteTokenBaseUnitPriceUsd,
-                makerTokenBaseUnitPriceUsd: isSelling ? quoteTokenBaseUnitPriceUsd : null,
+            return {
+                feeWithDetails: V1FeeWithDetails,
+                quotesWithGasFee,
+                ammQuoteUniqueId,
             };
+        }
+        /**
+         * If all queries are successful: calculating `priceImprovement` based fee is possible, calculated from `priceImprovement` and `rakeRatio`.
+         */
+        const V2FeeWithDetails: FeeWithDetails = this.getV2FeeWithDetails(
+            isSelling,
+            bestMakerQuoteWithGasFee,
+            rakeRatio,
+            quoteTokenBaseUnitPriceUsd,
+            feeTokenBaseUnitPriceUsd,
+            feeModelVersion,
+            gasFee,
+            ammQuote,
+        );
 
-            const breakdown: FeeBreakdown = {
-                gas: gasFee.breakdown.gas,
-                zeroEx: {
-                    amount: zeroExFeeAmount,
-                    details: {
-                        kind: 'volume',
-                        tradeSizeBps,
-                    },
+        /**
+         * Returning Max(V1Fee, V2Fee).
+         */
+
+        let feeWithDetails: FeeWithDetails = V2FeeWithDetails;
+        if (V1FeeWithDetails.amount.isGreaterThan(V2FeeWithDetails.amount)) {
+            logger.warn(
+                {
+                    makerToken: quoteContext.makerToken,
+                    takerToken: quoteContext.takerToken,
+                    v1FeeAmount: V1FeeWithDetails.amount.toString(),
+                    v2FeeAmount: V2FeeWithDetails.amount.toString(),
                 },
-            };
-
-            const conversionRates: ConversionRates = {
-                nativeTokenBaseUnitPriceUsd: feeTokenBaseUnitPriceUsd,
-                feeTokenBaseUnitPriceUsd,
-                takerTokenBaseUnitPriceUsd: isSelling ? null : quoteTokenBaseUnitPriceUsd,
-                makerTokenBaseUnitPriceUsd: isSelling ? quoteTokenBaseUnitPriceUsd : null,
-            };
-
-            feeWithDetails = {
-                type: 'fixed',
-                token: this._feeTokenMetadata.tokenAddress,
-                amount: gasFee.amount.plus(zeroExFeeAmount),
-                details,
-                breakdown,
-                conversionRates,
-            };
-        } else {
-            /**
-             * If all queries are successful: return `priceImprovement` based fee, calculated from `priceImprovement` and `rakeRatio`.
-             */
-            const priceImprovement =
-                rakeRatio > 0
-                    ? calculatePriceImprovementAmount(
-                          // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                          bestMakerQuoteWithGasFee!,
-                          // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                          ammQuote!,
-                          isSelling,
-                          // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                          quoteTokenBaseUnitPriceUsd!,
-                          // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                          feeTokenBaseUnitPriceUsd!,
-                      )
-                    : ZERO;
-            zeroExFeeAmount = priceImprovement.times(rakeRatio).integerValue();
-
-            const details: MarginBasedFeeDetailsDeprecated = {
-                kind: 'margin',
-                feeModelVersion,
-                gasFeeAmount: gasFee.amount,
-                gasPrice: gasFee.details.gasPrice,
-                zeroExFeeAmount,
-                margin: priceImprovement, // legacy field name `margin`
-                marginRakeRatio: rakeRatio, // legacy field name `marginRakeRatio`
-                feeTokenBaseUnitPriceUsd,
-                takerTokenBaseUnitPriceUsd: isSelling ? null : quoteTokenBaseUnitPriceUsd,
-                makerTokenBaseUnitPriceUsd: isSelling ? quoteTokenBaseUnitPriceUsd : null,
-            };
-
-            const breakdown: FeeBreakdown = {
-                gas: gasFee.breakdown.gas,
-                zeroEx: {
-                    amount: zeroExFeeAmount,
-                    details: {
-                        kind: 'price_improvement',
-                        priceImprovement,
-                        rakeRatio,
-                    },
-                },
-            };
-
-            const conversionRates: ConversionRates = {
-                nativeTokenBaseUnitPriceUsd: feeTokenBaseUnitPriceUsd,
-                feeTokenBaseUnitPriceUsd,
-                takerTokenBaseUnitPriceUsd: isSelling ? null : quoteTokenBaseUnitPriceUsd,
-                makerTokenBaseUnitPriceUsd: isSelling ? quoteTokenBaseUnitPriceUsd : null,
-            };
-
-            feeWithDetails = {
-                type: 'fixed',
-                token: this._feeTokenMetadata.tokenAddress,
-                amount: zeroExFeeAmount.plus(gasFee.amount),
-                details,
-                breakdown,
-                conversionRates,
-            };
+                `V2 fee model falling back to V1 due to "V1FeeWithDetails.amount.isGreaterThan(V2FeeWithDetails.amount)"}`,
+            );
+            feeWithDetails = V1FeeWithDetails;
         }
 
         return {
