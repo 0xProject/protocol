@@ -1,6 +1,6 @@
 [
 	{
-		"version": "8.1.1",
+		"version": "8.2.0",
 		"changes": [
 			{
 				"note": "Upgrade Polygon, Avalanche, Arbitrum, and Optimism FillQuoteTransformers to remove Aave V3 L2 Encoding and support KyberElastic",
