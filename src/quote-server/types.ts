@@ -164,7 +164,7 @@ export interface SignRequest {
     order: OtcOrder;
     orderHash: string;
     expiry: BigNumber;
-    takerSignature: V4Signature;
+    takerSignature?: V4Signature;
     takerSpecifiedSide?: string;
     trader: string;
     workflow: 'rfqm' | 'rfqt' | 'gasless-rfqt';

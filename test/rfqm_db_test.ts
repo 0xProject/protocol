@@ -138,6 +138,7 @@ describe('RFQM Database', () => {
                 orderHash: otcOrderHash,
                 fee: feeToStoredFee(fee),
                 takerSpecifiedSide: 'takerToken',
+                workflow: 'rfqm',
             });
 
             const storedQuote = await dbUtils.findV2QuoteByOrderHashAsync(otcOrderHash);
@@ -165,6 +166,7 @@ describe('RFQM Database', () => {
                 orderHash: otcOrderHash,
                 fee: feeToStoredFee(fee),
                 takerSpecifiedSide: 'makerToken',
+                workflow: 'rfqm',
             });
 
             // First Read
@@ -206,6 +208,7 @@ describe('RFQM Database', () => {
                 orderHash: otcOrderHash,
                 fee: feeToStoredFee(fee),
                 takerSpecifiedSide: 'makerToken',
+                workflow: 'rfqm',
             });
 
             // Get jobs with that status

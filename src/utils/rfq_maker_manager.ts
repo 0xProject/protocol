@@ -137,6 +137,24 @@ export class RfqMakerManager extends EventEmitter {
         return makersForPair(this._rfqtV2Makers, toPairString(tokenAAddress, tokenBAddress)) || [];
     }
 
+    public getRfqtV2MakerUrisForPair(
+        tokenAAddress: string,
+        tokenBAddress: string,
+        whitelistMakerIds: string[] | null = null,
+        blacklistMakerIds: string[] | null = null,
+    ): string[] {
+        let makers = this.getRfqtV2MakersForPair(tokenAAddress, tokenBAddress) || [];
+
+        if (whitelistMakerIds !== null) {
+            makers = makers.filter((maker) => whitelistMakerIds.includes(maker.makerId));
+        }
+        if (blacklistMakerIds !== null) {
+            makers = makers.filter((maker) => !blacklistMakerIds.includes(maker.makerId));
+        }
+
+        return makers.map((m) => m.rfqtUri).filter((uri: string | null): uri is string => uri !== null);
+    }
+
     /**
      * Get the RfqMakerAssetOfferings for RFQm orders.
      * As of Q1 2022, the RFQ order type has been deprecated

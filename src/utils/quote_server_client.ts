@@ -301,11 +301,9 @@ export class QuoteServerClient {
     public async signV2Async(
         makerUri: string,
         integratorId: string,
-        payload: Omit<SignRequest, 'takerSignature'> & Pick<Partial<SignRequest>, 'takerSignature'>,
+        payload: SignRequest,
         makerUriToUrl: (u: string) => string = (u: string) => `${u}/rfqm/v2/sign`,
-        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-        // eslint-disable-next-line @typescript-eslint/no-inferrable-types
-        requireProceedWithFill: boolean = true,
+        requireProceedWithFill = true,
     ): Promise<Signature | undefined> {
         const timerStopFn = MARKET_MAKER_SIGN_LATENCY.startTimer();
         const requestUuid = uuid.v4();
