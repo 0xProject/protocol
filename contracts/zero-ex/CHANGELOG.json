@@ -1,5 +1,13 @@
 [
     {
+        "version": "0.39.1",
+        "changes": [
+            {
+                "note": "Add KyberElastic mixin for Optimism and BNB"
+            }
+        ]
+    },
+    {
         "version": "0.39.0",
         "changes": [
             {
