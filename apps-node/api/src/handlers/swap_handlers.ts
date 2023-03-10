@@ -86,6 +86,12 @@ const PRICE_IMPACT_PROTECTION_SPECIFIED = new Counter({
     help: 'price impact protection was specified by client',
 });
 
+const ESTIMATED_PRICE_IMPACT_PERCENTAGE = new Histogram({
+    name: 'estimated_price_impact_percentage',
+    help: 'The estimated price impact for a quote',
+    buckets: [0, 0.25, 0.5, 1, 2, 5, 10, 25, 50, 75, 100],
+});
+
 export class SwapHandlers {
     private readonly _swapService: ISwapService;
     public static root(_req: express.Request, res: express.Response): void {
@@ -194,6 +200,10 @@ export class SwapHandlers {
             params.integrator?.integratorId || 'N/A',
             req.header('host') || 'N/A',
         ).inc();
+        if (quote.estimatedPriceImpact !== null) {
+            ESTIMATED_PRICE_IMPACT_PERCENTAGE.observe(quote.estimatedPriceImpact.toNumber());
+        }
+
         res.status(StatusCodes.OK).send(response);
     }
 
