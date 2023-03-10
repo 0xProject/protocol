@@ -1,0 +1,14 @@
+{
+    "extends": ["//"],
+    "pipeline": {
+        "build": {
+            "dependsOn": ["^build"],
+            "outputs": ["contracts/out/**"],
+            "env": ["TURBO_VERSION_FORGE"]
+        },
+        "test:ci": {
+            "dependsOn": ["build"],
+            "env": ["TURBO_VERSION_FORGE"]
+        }
+    }
+}
