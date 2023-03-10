@@ -3,7 +3,7 @@ import { web3Factory, Web3ProviderEngine } from '@0x/dev-utils';
 import { ETH_TOKEN_ADDRESS, MetaTransaction } from '@0x/protocol-utils';
 import { ObjectMap } from '@0x/types';
 import { BigNumber } from '@0x/utils';
-import { providers } from 'ethers';
+import { providers } from 'ethersv5';
 import { ZeroExFeeConfiguration } from '../src/config';
 
 import {

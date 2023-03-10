@@ -6,7 +6,7 @@ import { ethSignHashWithProviderAsync, OtcOrder, Signature } from '@0x/protocol-
 import { BigNumber } from '@0x/utils';
 import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
 import { expect } from 'chai';
-import { Contract, providers, Wallet } from 'ethers';
+import { Contract, providers, Wallet } from 'ethersv5';
 
 import { ONE_MINUTE_MS, ZERO } from '../src/core/constants';
 import { artifacts } from '../src/generated-artifacts/artifacts';

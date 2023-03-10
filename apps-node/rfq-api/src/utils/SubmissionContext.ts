@@ -1,5 +1,5 @@
 import { BigNumber } from '@0x/utils';
-import { providers } from 'ethers';
+import { providers } from 'ethersv5';
 
 import { ONE_SECOND_MS } from '../core/constants';
 import { MetaTransactionSubmissionEntity, RfqmV2TransactionSubmissionEntity } from '../entities';

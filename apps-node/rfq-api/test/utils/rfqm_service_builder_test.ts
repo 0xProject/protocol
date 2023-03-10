@@ -1,5 +1,5 @@
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
-import { providers } from 'ethers';
+import { providers } from 'ethersv5';
 
 import { getContractAddressesForNetworkOrThrowAsync } from '../../src/utils/rfqm_service_builder';
 

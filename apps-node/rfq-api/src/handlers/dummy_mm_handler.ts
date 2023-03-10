@@ -4,7 +4,7 @@
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { ethSignHashWithKey, OtcOrder, RfqOrder, Signature } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
-import { Wallet } from 'ethers';
+import { Wallet } from 'ethersv5';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 

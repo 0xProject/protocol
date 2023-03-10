@@ -13,7 +13,7 @@ import {
 } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { expect } from 'chai';
-import { constants } from 'ethers';
+import { constants } from 'ethersv5';
 import { Producer } from 'sqs-producer';
 import { anything, capture, instance, mock, spy, verify, when } from 'ts-mockito';
 

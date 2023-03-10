@@ -2,7 +2,7 @@ import { createDefaultServer, HttpServiceConfig } from '@0x/api-utils';
 import * as Sentry from '@sentry/node';
 import * as Tracing from '@sentry/tracing';
 import Axios from 'axios';
-import { providers } from 'ethers';
+import { providers } from 'ethersv5';
 import * as express from 'express';
 import * as promBundle from 'express-prom-bundle';
 import * as core from 'express-serve-static-core';

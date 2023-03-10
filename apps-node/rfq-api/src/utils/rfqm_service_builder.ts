@@ -3,7 +3,7 @@ import { PrivateKeyWalletSubprovider, SupportedProvider } from '@0x/subproviders
 import { getTokenMetadataIfExists } from '@0x/token-metadata';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import Axios, { AxiosRequestConfig } from 'axios';
-import { providers, Wallet } from 'ethers';
+import { providers, Wallet } from 'ethersv5';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 import Redis from 'ioredis';

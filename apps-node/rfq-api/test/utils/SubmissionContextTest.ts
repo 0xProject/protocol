@@ -1,5 +1,5 @@
 import { BigNumber } from '@0x/utils';
-import { BigNumber as EthersBigNumber, providers } from 'ethers';
+import { BigNumber as EthersBigNumber, providers } from 'ethersv5';
 import { deepEqual, instance, mock, when } from 'ts-mockito';
 
 import { ONE_SECOND_MS } from '../../src/core/constants';

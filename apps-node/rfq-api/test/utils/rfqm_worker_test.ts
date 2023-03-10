@@ -5,7 +5,7 @@
 import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import { BlockParamLiteral } from 'ethereum-types';
-import { providers } from 'ethers';
+import { providers } from 'ethersv5';
 import { anything, instance, mock, when } from 'ts-mockito';
 
 import { NULL_ADDRESS, RFQM_TX_GAS_ESTIMATE } from '../../src/core/constants';

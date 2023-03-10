@@ -30,7 +30,7 @@ import { AbiEncoder, BigNumber, classUtils, EncodingRules, hexUtils, logUtils, p
 import { EventCallback, IndexedFilterValues, SimpleContractArtifact } from '@0x/types';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import { assert } from '@0x/assert';
-import * as ethers from 'ethers-legacy';
+import * as ethers from 'ethers';
 // tslint:enable:no-unused-variable
 
 /* istanbul ignore next */

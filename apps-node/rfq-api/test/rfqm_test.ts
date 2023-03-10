@@ -6,7 +6,7 @@ import Axios, { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { expect } from 'chai';
 import { TransactionReceiptStatus } from 'ethereum-types';
-import { BigNumber as EthersBigNumber, ethers } from 'ethers';
+import { BigNumber as EthersBigNumber, ethers } from 'ethersv5';
 import { Server } from 'http';
 import * as HttpStatus from 'http-status-codes';
 import Redis from 'ioredis';

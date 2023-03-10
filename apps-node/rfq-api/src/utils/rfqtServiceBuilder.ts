@@ -1,7 +1,7 @@
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { getTokenMetadataIfExists } from '@0x/token-metadata';
 import Axios, { AxiosRequestConfig } from 'axios';
-import { providers } from 'ethers';
+import { providers } from 'ethersv5';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 import Redis from 'ioredis';

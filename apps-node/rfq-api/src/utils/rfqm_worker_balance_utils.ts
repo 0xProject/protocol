@@ -1,6 +1,6 @@
 import { BigNumber } from '@0x/utils';
 import { BlockParamLiteral } from 'ethereum-types';
-import { providers } from 'ethers';
+import { providers } from 'ethersv5';
 
 import { logger } from '../logger';
 

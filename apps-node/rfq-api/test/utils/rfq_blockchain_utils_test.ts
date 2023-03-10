@@ -1,7 +1,7 @@
 // tslint:disable:custom-no-magic-numbers no-unused-expression
 import { SupportedProvider } from '@0x/subproviders';
 import { BigNumber } from '@0x/utils';
-import { providers, Wallet } from 'ethers';
+import { providers, Wallet } from 'ethersv5';
 import { anything, instance, mock, spy, when } from 'ts-mockito';
 
 import { EXECUTE_META_TRANSACTION_EIP_712_TYPES, PERMIT_EIP_712_TYPES } from '../../src/core/constants';

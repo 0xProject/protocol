@@ -6,7 +6,7 @@ import { pino } from '@0x/api-utils';
 import { OtcOrder, SignatureType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { expect } from 'chai';
-import { BigNumber as EthersBigNumber, providers } from 'ethers';
+import { BigNumber as EthersBigNumber, providers } from 'ethersv5';
 import * as _ from 'lodash';
 import { Producer } from 'sqs-producer';
 import { anything, capture, deepEqual, instance, mock, spy, verify, when } from 'ts-mockito';

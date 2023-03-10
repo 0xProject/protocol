@@ -3,7 +3,7 @@ import { InternalServerError, TooManyRequestsError, ValidationError, ValidationE
 import { ITransformERC20Contract } from '@0x/contract-wrappers';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import { AxiosInstance } from 'axios';
-import { utils as ethersUtils } from 'ethers';
+import { utils as ethersUtils } from 'ethersv5';
 import Redis from 'ioredis';
 import { Producer as KafkaProducer } from 'kafkajs';
 import * as _ from 'lodash';

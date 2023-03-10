@@ -3,7 +3,7 @@ import { ValidationError, ValidationErrorCodes } from '@0x/api-utils';
 import { ethSignHashWithKey, MetaTransaction, OtcOrder, SignatureType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { AxiosInstance } from 'axios';
-import { providers } from 'ethers';
+import { providers } from 'ethersv5';
 import Redis from 'ioredis';
 import { Producer } from 'sqs-producer';
 import { Connection } from 'typeorm';

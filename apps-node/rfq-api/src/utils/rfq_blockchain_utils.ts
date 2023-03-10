@@ -6,8 +6,8 @@ import { BigNumber, providerUtils } from '@0x/utils';
 import { HDNode } from '@ethersproject/hdnode';
 import { AccessList } from '@ethersproject/transactions';
 import { TxAccessList, TxData } from 'ethereum-types';
-import { BigNumber as EthersBigNumber, constants, Contract, providers, utils, Wallet } from 'ethers';
-import { resolveProperties } from 'ethers/lib/utils';
+import { BigNumber as EthersBigNumber, constants, Contract, providers, utils, Wallet } from 'ethersv5';
+import { resolveProperties } from 'ethersv5/lib/utils';
 
 import { abis } from '../abis';
 import {
