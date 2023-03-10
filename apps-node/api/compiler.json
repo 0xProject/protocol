@@ -2,8 +2,7 @@
     "artifactsDir": "./test/generated-artifacts",
     "contractsDir": "./contracts",
     "contracts": [
-        "./contracts/src/AaveV2Sampler.sol",
-        "./contracts/src/AaveV3Sampler.sol",
+        "./contracts/src/AaveSampler.sol",
         "./contracts/src/AlgebraMultiQuoter.sol",
         "./contracts/src/AlgebraSampler.sol",
         "./contracts/src/ApproximateBuys.sol",

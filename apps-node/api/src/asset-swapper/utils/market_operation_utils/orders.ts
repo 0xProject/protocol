@@ -19,8 +19,7 @@ import {
 
 import { MAX_UINT256, ZERO_AMOUNT } from './constants';
 import {
-    AaveV2FillData,
-    AaveV3FillData,
+    AaveFillData,
     AggregationError,
     BalancerFillData,
     BalancerV2BatchSwapFillData,
@@ -351,24 +350,9 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             bridgeData = encoder.encode([lidoFillData.stEthTokenAddress, lidoFillData.wstEthTokenAddress]);
             break;
         }
+        case ERC20BridgeSource.AaveV2:
         case ERC20BridgeSource.AaveV3: {
-            const aaveFillData = (order as OptimizedMarketBridgeOrder<AaveV3FillData>).fillData;
-            const i = _.findIndex(
-                aaveFillData.l2EncodedParams,
-                (l) => l.inputAmount.isEqualTo(order.makerAmount) || l.inputAmount.isEqualTo(order.takerAmount),
-            );
-            if (i === -1) {
-                throw new Error('Invalid order to encode for Bridge Data');
-            }
-            bridgeData = encoder.encode([
-                aaveFillData.lendingPool,
-                aaveFillData.aToken,
-                aaveFillData.l2EncodedParams[i].l2Parameter,
-            ]);
-            break;
-        }
-        case ERC20BridgeSource.AaveV2: {
-            const aaveFillData = (order as OptimizedMarketBridgeOrder<AaveV2FillData>).fillData;
+            const aaveFillData = (order as OptimizedMarketBridgeOrder<AaveFillData>).fillData;
             bridgeData = encoder.encode([aaveFillData.lendingPool, aaveFillData.aToken]);
             break;
         }

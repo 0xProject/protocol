@@ -123,7 +123,7 @@
   resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-6.25.0.tgz#bb0d138d40924244482336153317f0e8a5d42b0a"
   integrity sha512-0Kr2sMupS2wNqWLvWg8fnBdOHWwLKjhsIlazUBkDpQWyNOO/eI/bwoxwMOmxf0hVSmSL5/Vn1bulltLBdKIWww==
 
-"@0x/contract-addresses@^8.0.1", "@0x/contract-addresses@^8.1.0", "@0x/contract-addresses@^8.2.0":
+"@0x/contract-addresses@^8.0.1", "@0x/contract-addresses@^8.2.0":
   version "8.2.0"
   resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-8.2.0.tgz#6743b591be997fe22055058ebba55a2390872c37"
   integrity sha512-acwYweIZLnGC6soeNmSnqJcZR1+qqWDq4f2M2cRT6PYy25PEfxxmqYc5s1+lp/ZRMFyo+KSDgykUzhgXYg2S+A==
@@ -232,7 +232,7 @@
     ethereumjs-util "^7.0.10"
     ethers "~4.0.4"
 
-"@0x/contracts-zero-ex@^0.39.0":
+"@0x/contracts-zero-ex@^0.39.1":
   version "0.39.1"
   resolved "https://registry.yarnpkg.com/@0x/contracts-zero-ex/-/contracts-zero-ex-0.39.1.tgz#f646322a879c4fffb408937a2effb93e1b2d7279"
   integrity sha512-ZWkkqK/Wg5KNwXf3HRi55UdRtrZg/XDGhoCsRby4bJN2nKWSYpBpNp7/FUboq+TUTagPdjUmKguMQJ6KkxRxDg==

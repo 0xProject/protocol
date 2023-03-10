@@ -227,19 +227,11 @@ export interface LidoFillData extends FillData {
     makerToken: string;
 }
 
-export interface AaveV2FillData extends FillData {
+export interface AaveFillData extends FillData {
     lendingPool: string;
     aToken: string;
     underlyingToken: string;
     takerToken: string;
-}
-
-interface AaveV3L2EncodedParameter {
-    inputAmount: BigNumber;
-    l2Parameter: string;
-}
-export interface AaveV3FillData extends AaveV2FillData {
-    l2EncodedParams: AaveV3L2EncodedParameter[];
 }
 
 export interface CompoundFillData extends FillData {

@@ -20,8 +20,8 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-contract AaveV2Sampler {
-    /// @dev Sample sell quotes from AaveV2.
+contract AaveSampler {
+    /// @dev Sample sell quotes from Aave V2 and Aave V3.
     /// @param aToken address of the aToken.
     /// @param underlyingToken address of the underlying collateral token.
     /// @param takerToken address of the taker token (what to sell).
@@ -29,7 +29,7 @@ contract AaveV2Sampler {
     /// @param takerTokenAmounts taker token buy amounts for each sample
     /// @return makerTokenAmounts maker amounts bought at each taker token
     ///         amount.
-    function sampleSellsFromAaveV2(
+    function sampleSellsFromAave(
         address aToken,
         address underlyingToken,
         address takerToken,
@@ -43,7 +43,7 @@ contract AaveV2Sampler {
             return takerTokenAmounts;
         }
 
-        // Aave V2 balances sometimes have a rounding error causing
+        // Aave V2/V3 balances sometimes have a rounding error causing
         // 1 fewer wei from being outputted during unwraps
         if (takerToken == aToken && makerToken == underlyingToken) {
             for (uint256 i = 0; i < numSamples; i++) {
@@ -53,7 +53,7 @@ contract AaveV2Sampler {
         }
     }
 
-    /// @dev Sample buy quotes from AaveV2.
+    /// @dev Sample buy quotes from Aave V2 and Aave V3.
     /// @param aToken address of the aToken.
     /// @param underlyingToken address of the underlying collateral token.
     /// @param takerToken address of the taker token (what to sell).
@@ -61,7 +61,7 @@ contract AaveV2Sampler {
     /// @param makerTokenAmounts maker token sell amounts for each sample
     /// @return takerTokenAmounts taker amounts bought at each maker token
     ///         amount.
-    function sampleBuysFromAaveV2(
+    function sampleBuysFromAave(
         address aToken,
         address underlyingToken,
         address takerToken,
