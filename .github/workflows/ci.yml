@@ -9,7 +9,7 @@ on:
 jobs:
   build_and_test:
     name: Build, Lint, and Test
-    timeout-minutes: 15
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     permissions:
       id-token: write

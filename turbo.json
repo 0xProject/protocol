@@ -11,9 +11,10 @@
         "fix": {
             "cache": false
         },
-        "lint:ci": {},
         "test:ci": {
-            "dependsOn": ["build"]
-        }
+            "dependsOn": ["build"],
+            "cache": false
+        },
+        "lint:ci": {}
     }
 }

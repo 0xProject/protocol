@@ -121,10 +121,6 @@
         "@bancor/sdk": "0.2.10",
         "@cryptoalgebra/core": "^2.0.0",
         "@cryptoalgebra/periphery": "^1.0.0",
-        "@ethersproject/abi": "^5.0.1",
-        "@ethersproject/address": "^5.0.1",
-        "@ethersproject/contracts": "^5.7.0",
-        "@ethersproject/hdnode": "^5.2.0",
         "@ethersproject/providers": "^5.7.1",
         "@ethersproject/strings": "^5.0.10",
         "@kybernetwork/ks-elastic-sc": "0xProject/ks-elastic-sc#362d9b6a726bcb286cc47c082c46f6259a5ae82d",
@@ -136,6 +132,7 @@
         "delay": "^4.4.0",
         "dotenv": "^8.1.0",
         "ethereum-types": "^3.7.1",
+        "ethers": "4.0.49",
         "express": "^4.17.3",
         "express-async-handler": "^1.1.4",
         "express-prom-bundle": "^6.6.0",
@@ -157,5 +154,8 @@
         "uuid-validate": "^0.0.3",
         "ws": "^8.11.0",
         "zen-observable": "^0.10.0"
+    },
+    "resolutions": {
+        "**/ethers": "^4.0.49"
     }
 }
