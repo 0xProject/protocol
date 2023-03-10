@@ -12,8 +12,7 @@
             "cache": false
         },
         "test:ci": {
-            "dependsOn": ["build"],
-            "cache": false
+            "dependsOn": ["build"]
         },
         "lint:ci": {}
     }
