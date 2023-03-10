@@ -11,7 +11,7 @@ import { ZERO_AMOUNT } from './market_operation_utils/constants';
  * @param order The order
  * @param makerFillAmount the amount of taker asset
  */
-export function getNativeAdjustedMakerFillAmount(order: CommonOrderFields, takerFillAmount: BigNumber): BigNumber {
+function getNativeAdjustedMakerFillAmount(order: CommonOrderFields, takerFillAmount: BigNumber): BigNumber {
     // Round down because exchange rate favors Maker
     const makerFillAmount = takerFillAmount
         .multipliedBy(order.makerAmount)

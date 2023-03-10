@@ -22,12 +22,11 @@ import {
     FillData,
 } from '../../types';
 import { getAltMarketInfo } from '../alt_mm_implementation_utils';
-import { QuoteRequestor, V4RFQIndicativeQuoteMM } from '../quote_requestor';
-import { toSignedNativeOrder, toSignedNativeOrderWithFillableAmounts } from '../rfq_client_mappers';
+import { QuoteRequestor } from '../quote_requestor';
+import { toSignedNativeOrderWithFillableAmounts } from '../rfq_client_mappers';
 import {
     getNativeAdjustedFillableAmountsFromMakerAmount,
     getNativeAdjustedFillableAmountsFromTakerAmount,
-    getNativeAdjustedMakerFillAmount,
 } from '../utils';
 
 import { generateExtendedQuoteReportSources, generateQuoteReport } from './../quote_report_generator';
@@ -567,44 +566,26 @@ export class MarketOperationUtils {
                 // An indicative quote is being requested, and indicative quotes price-aware enabled
                 // Make the RFQT request and then re-run the sampler if new orders come back.
 
-                const [v1Prices, v2Prices] =
+                const indicativeQuotes =
                     rfqt.rfqClient === undefined
-                        ? [[], []]
-                        : await Promise.all([
-                              rfqt.rfqClient
-                                  .getV1PricesAsync({
-                                      altRfqAssetOfferings: filteredOfferings,
-                                      assetFillAmount: amount,
-                                      chainId: this.sampler.chainId,
-                                      comparisonPrice: phaseOneResult.wholeOrderPrice,
-                                      integratorId: rfqt.integrator.integratorId,
-                                      intentOnFilling: rfqt.intentOnFilling,
-                                      makerToken,
-                                      marketOperation: side,
-                                      takerAddress: rfqt.takerAddress,
-                                      takerToken,
-                                      txOrigin: rfqt.txOrigin,
-                                  })
-                                  .then((res) => res.prices),
-                              rfqt.rfqClient.getV2PricesAsync({
-                                  assetFillAmount: amount,
-                                  chainId: this.sampler.chainId,
-                                  integratorId: rfqt.integrator.integratorId,
-                                  intentOnFilling: rfqt.intentOnFilling,
-                                  makerToken,
-                                  marketOperation: side,
-                                  takerAddress: rfqt.takerAddress,
-                                  takerToken,
-                                  txOrigin: rfqt.txOrigin,
-                              }),
-                          ]);
+                        ? []
+                        : await rfqt.rfqClient.getV2PricesAsync({
+                              assetFillAmount: amount,
+                              chainId: this.sampler.chainId,
+                              integratorId: rfqt.integrator.integratorId,
+                              intentOnFilling: rfqt.intentOnFilling,
+                              makerToken,
+                              marketOperation: side,
+                              takerAddress: rfqt.takerAddress,
+                              takerToken,
+                              txOrigin: rfqt.txOrigin,
+                          });
 
-                logger.info({ v2Prices, isEmpty: v2Prices?.length === 0 }, 'v2Prices from RFQ Client');
+                logger.info(
+                    { v2Prices: indicativeQuotes, isEmpty: indicativeQuotes?.length === 0 },
+                    'v2Prices from RFQ Client',
+                );
 
-                const indicativeQuotes = [
-                    ...(v1Prices as V4RFQIndicativeQuoteMM[]),
-                    ...(v2Prices as V4RFQIndicativeQuoteMM[]),
-                ];
                 const deltaTime = new Date().getTime() - timeStart;
                 logger.info({
                     rfqQuoteType: 'indicative',
@@ -640,25 +621,10 @@ export class MarketOperationUtils {
                 // A firm quote is being requested, and firm quotes price-aware enabled.
                 // Ensure that `intentOnFilling` is enabled and make the request.
 
-                const [v1Quotes, v2Quotes] =
+                const [v2Quotes] =
                     rfqt.rfqClient === undefined
-                        ? [[], []]
+                        ? [[]]
                         : await Promise.all([
-                              rfqt.rfqClient
-                                  .getV1QuotesAsync({
-                                      altRfqAssetOfferings: filteredOfferings,
-                                      assetFillAmount: amount,
-                                      chainId: this.sampler.chainId,
-                                      comparisonPrice: phaseOneResult.wholeOrderPrice,
-                                      integratorId: rfqt.integrator.integratorId,
-                                      intentOnFilling: rfqt.intentOnFilling,
-                                      makerToken,
-                                      marketOperation: side,
-                                      takerAddress: rfqt.takerAddress,
-                                      takerToken,
-                                      txOrigin: rfqt.txOrigin,
-                                  })
-                                  .then((res) => res.quotes),
                               rfqt.rfqClient.getV2QuotesAsync({
                                   assetFillAmount: amount,
                                   chainId: this.sampler.chainId,
@@ -674,12 +640,6 @@ export class MarketOperationUtils {
 
                 logger.info({ v2Quotes, isEmpty: v2Quotes?.length === 0 }, 'v2Quotes from RFQ Client');
 
-                const v1FirmQuotes = v1Quotes.map((quote) => {
-                    // HACK: set the signature on quoteRequestor for future lookup (i.e. in Quote Report)
-                    rfqt.quoteRequestor?.setMakerUriForSignature(quote.signature, quote.makerUri);
-                    return toSignedNativeOrder(quote);
-                });
-
                 const v2QuotesWithOrderFillableAmounts = v2Quotes.map((quote) => {
                     // HACK: set the signature on quoteRequestor for future lookup (i.e. in Quote Report)
                     rfqt.quoteRequestor?.setMakerUriForSignature(quote.signature, quote.makerUri);
@@ -691,38 +651,10 @@ export class MarketOperationUtils {
                     rfqQuoteType: 'firm',
                     deltaTime,
                 });
-                if (v1FirmQuotes.length > 0 || v2QuotesWithOrderFillableAmounts.length > 0) {
-                    // Compute the RFQ order fillable amounts. This is done by performing a "soft" order
-                    // validation and by checking order balances that are monitored by our worker.
-                    // If a firm quote validator does not exist, then we assume that all orders are valid.
-                    const v1RfqTakerFillableAmounts =
-                        rfqt.firmQuoteValidator === undefined
-                            ? v1FirmQuotes.map((signedOrder) => signedOrder.order.takerAmount)
-                            : await rfqt.firmQuoteValidator.getRfqtTakerFillableAmountsAsync(
-                                  v1FirmQuotes.map((q) => new RfqOrder(q.order)),
-                              );
-
-                    const v1QuotesWithOrderFillableAmounts: NativeOrderWithFillableAmounts[] = v1FirmQuotes.map(
-                        (order, i) => ({
-                            ...order,
-                            fillableTakerAmount: v1RfqTakerFillableAmounts[i],
-                            // Adjust the maker amount by the available taker fill amount
-                            fillableMakerAmount: getNativeAdjustedMakerFillAmount(
-                                order.order,
-                                v1RfqTakerFillableAmounts[i],
-                            ),
-                            fillableTakerFeeAmount: ZERO_AMOUNT,
-                        }),
-                    );
-
-                    const quotesWithOrderFillableAmounts = [
-                        ...v1QuotesWithOrderFillableAmounts,
-                        ...v2QuotesWithOrderFillableAmounts,
-                    ];
-
+                if (v2QuotesWithOrderFillableAmounts.length > 0) {
                     // Attach the firm RFQt quotes to the market side liquidity
                     marketSideLiquidity.quotes.nativeOrders = [
-                        ...quotesWithOrderFillableAmounts,
+                        ...v2QuotesWithOrderFillableAmounts,
                         ...marketSideLiquidity.quotes.nativeOrders,
                     ];
 

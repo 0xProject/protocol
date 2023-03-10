@@ -395,46 +395,6 @@ export interface SamplerCallResult {
     data: string;
 }
 
-export interface RfqClientV1PriceRequest {
-    altRfqAssetOfferings: AltRfqMakerAssetOfferings | undefined;
-    assetFillAmount: BigNumber;
-    chainId: number;
-    comparisonPrice: BigNumber | undefined;
-    integratorId: string;
-    intentOnFilling: boolean;
-    makerToken: string;
-    marketOperation: 'Sell' | 'Buy';
-    takerAddress: string;
-    takerToken: string;
-    txOrigin: string;
-}
-
-export type RfqClientV1QuoteRequest = RfqClientV1PriceRequest;
-
-export interface RfqClientV1Price {
-    expiry: BigNumber;
-    kind: 'rfq' | 'otc';
-    makerAmount: BigNumber;
-    makerToken: string;
-    makerUri: string;
-    takerAmount: BigNumber;
-    takerToken: string;
-}
-
-export interface RfqClientV1PriceResponse {
-    prices: RfqClientV1Price[];
-}
-
-export interface RfqClientV1Quote {
-    makerUri: string;
-    order: RfqOrder;
-    signature: Signature;
-}
-
-export interface RfqClientV1QuoteResponse {
-    quotes: RfqClientV1Quote[];
-}
-
 /**
  * DEX sources to aggregate.
  */

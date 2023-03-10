@@ -33,12 +33,6 @@ export {
     SwapQuoterError,
     SwapQuoterOpts,
     SwapQuoterRfqOpts,
-    RfqClientV1Price,
-    RfqClientV1PriceRequest,
-    RfqClientV1PriceResponse,
-    RfqClientV1Quote,
-    RfqClientV1QuoteRequest,
-    RfqClientV1QuoteResponse,
     Orderbook,
 } from './types';
 export {
