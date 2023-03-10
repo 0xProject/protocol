@@ -6,6 +6,9 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v8.2.0 - _March 10, 2023_
+
+    * Upgrade Polygon, Avalanche, Arbitrum, and Optimism FillQuoteTransformers to remove Aave V3 L2 Encoding and support KyberElastic (#678)
 ## v8.1.0 - _March 1, 2023_
 
     * Upgrade Mainnet and Polygon FillQuoteTransformers to support KyberElastic (#669)

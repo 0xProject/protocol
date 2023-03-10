@@ -5,7 +5,8 @@
             {
                 "note": "Add KyberElastic mixin for Optimism and BSC"
             }
-        ]
+        ],
+        "timestamp": 1678410794
     },
     {
         "version": "0.39.0",

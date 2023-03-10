@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.39.1 - _March 10, 2023_
+
+    * Add KyberElastic mixin for Optimism and BSC
+
 ## v0.39.0 - _March 1, 2023_
 
     * Add KyberElastic mixin for Ethereum, Polygon, Arbitrum, Avalanche
