@@ -111,10 +111,6 @@ to files in the root directory.
 For example, if your workspace contains an `.xyz/` directory which shouldn't be included in git, then
 `.xyz/*` shall be added to the `.gitignore` _in the workspace root_, not in the root `.gitignore`.
 
-> ⚠️ Note: there may be very limited exceptions to this, such as defining a
-> [specific workspace-task](https://turbo.build/repo/docs/core-concepts/monorepos/running-tasks#specific-workspace-tasks)
-> in `turbo.json`. Modifying files in the root directory should only be a last resort, however.
-
 Workspaces exist in the following directories:
 
 -   `apps-node`
@@ -135,7 +131,8 @@ As an example, a new image for `my-app` could be accessed at:
 -   `***.dkr.ecr.us-east-1.amazonaws.com/apps:my-app__789355d868cd646f` (Turborepo hash, note the double underscore)
 -   `***.dkr.ecr.us-east-1.amazonaws.com/apps:my-app_2a4810fbd3f195bf8da8c161d7d5b03e9626cd2e` (Commit hash)
 
-> ℹ️ Tip: Click on the "Summary" section of the GitHub actions for a PR to view the built and skipped images.
+> ℹ️ Tip: The GitHub bot will comment on each commit in a PR or merged to `main` with the image tags that correspond to
+> that commit. Look for the word bubble icon 💬 where a commit is mentioned in a PR.
 
 ## `packages`
 
@@ -148,6 +145,8 @@ See [Depending on shared code](#Depending-on-shared-code) for more on how to use
 
 Workspaces in `sites` represent a type of app which will be deployed through means other than
 a Docker image, most commonly Vercel or similar.
+
+Functionally, there is no difference between workspaces in `packages` and in `sites`.
 
 # CI & pipelines
 
@@ -189,7 +188,7 @@ However, there are some conventions meant to make sure that workspaces play well
 the repository:
 
 -   The workspace name (`name` field in `package.json`) matches the top-level directory name of the workspace
--   The workspace version (`version` field in `package.json`) is `0.0.0`. As no workspace is published as an npm package, there is no concept of a "version".
+-   The workspace version (`version` field in `package.json`) is `0.0.0`. Since no workspace is published as an npm package, there is no concept of a "version".
 -   The workspace `private` field is set to `true` to prevent `yarn` from complaining
 -   Source files are located in the `src/` directory
 -   Test files are located in either a `test/` or `__tests__` directory, or a nested child directory thereof
