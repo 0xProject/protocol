@@ -48,16 +48,6 @@ interface IZeroExVotes {
     event TotalSupplyChanged(uint256 totalSupplyVotes, uint256 totalSupplyQuadraticVotes);
 
     /**
-     * @dev Emitted a new checkpoint is written.
-     */
-    event CheckpointAdded(uint256 blockNumber, uint256 totalSupplyVotes, uint256 totalSupplyQuadraticVotes);
-
-    /**
-     * @dev Emitted when an existing checkpoint is updated.
-     */
-    event CheckpointUpdated(uint256 blockNumber, uint256 totalSupplyVotes, uint256 totalSupplyQuadraticVotes);
-
-    /**
      * @dev Get the `pos`-th checkpoint for `account`.
      */
     function checkpoints(address account, uint32 pos) external view returns (Checkpoint memory);
@@ -117,11 +107,10 @@ interface IZeroExVotes {
     function getPastQuadraticTotalSupply(uint256 blockNumber) external view returns (uint256);
 
     /**
-     * @dev Moves the voting power for an account with balance `srcDelegateBalance` from `srcDelegatee` to
-     * `dstDelegatee`.
+     * @dev TODO Moves the voting power for an account with balance `amount` from `src` to `dst`.
      * Note that if the delegator isn't delegating to anyone before the function call `srcDelegatee` = address(0)
      */
-    function moveEntireVotingPower(address srcDelegatee, address dstDelegatee, uint256 srcDelegateBalance) external;
+    function moveVotingPower(address src, address dst, uint256 amount) external;
 
     /**
      * @dev Moves the voting power corresponding to `amount` number of tokens from `srcDelegatee` to `dstDelegatee`.

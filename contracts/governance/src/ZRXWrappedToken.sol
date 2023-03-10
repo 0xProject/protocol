@@ -111,6 +111,6 @@ contract ZRXWrappedToken is ERC20, ERC20Permit, ERC20Wrapper {
 
         emit DelegateChanged(delegator, currentDelegate, delegatee);
 
-        zeroExVotes.moveEntireVotingPower(currentDelegate, delegatee, delegatorBalance);
+        zeroExVotes.moveVotingPower(currentDelegate, delegatee, delegatorBalance);
     }
 }

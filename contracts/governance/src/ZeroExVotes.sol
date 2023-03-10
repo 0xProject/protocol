@@ -117,57 +117,6 @@ contract ZeroExVotes is IZeroExVotes {
     /**
      * @inheritdoc IZeroExVotes
      */
-    function moveEntireVotingPower(
-        address srcDelegatee,
-        address dstDelegatee,
-        uint256 srcDelegateBalance
-    ) public override onlyToken {
-        if (srcDelegatee != dstDelegatee && srcDelegateBalance > 0) {
-            if (srcDelegatee != address(0)) {
-                uint256 pos = _checkpoints[srcDelegatee].length;
-                Checkpoint memory oldCkptSrcDelegate = pos == 0
-                    ? Checkpoint(0, 0, 0)
-                    : _unsafeAccess(_checkpoints[srcDelegatee], pos - 1);
-
-                uint256 newLinearBalance = oldCkptSrcDelegate.votes - srcDelegateBalance;
-                uint256 newQuadraticBalance = oldCkptSrcDelegate.quadraticVotes - Math.sqrt(srcDelegateBalance);
-
-                _writeCheckpoint(_checkpoints[srcDelegatee], newLinearBalance, newQuadraticBalance);
-
-                emit DelegateVotesChanged(srcDelegatee, oldCkptSrcDelegate.votes, newLinearBalance);
-
-                emit DelegateQuadraticVotesChanged(
-                    srcDelegatee,
-                    oldCkptSrcDelegate.quadraticVotes,
-                    newQuadraticBalance
-                );
-            }
-
-            if (dstDelegatee != address(0)) {
-                uint256 pos = _checkpoints[dstDelegatee].length;
-                Checkpoint memory oldCkptDstDelegate = pos == 0
-                    ? Checkpoint(0, 0, 0)
-                    : _unsafeAccess(_checkpoints[dstDelegatee], pos - 1);
-
-                uint256 newLinearBalance = oldCkptDstDelegate.votes + srcDelegateBalance;
-                uint256 newQuadraticBalance = oldCkptDstDelegate.quadraticVotes + Math.sqrt(srcDelegateBalance);
-
-                _writeCheckpoint(_checkpoints[dstDelegatee], newLinearBalance, newQuadraticBalance);
-
-                emit DelegateVotesChanged(dstDelegatee, oldCkptDstDelegate.votes, newLinearBalance);
-
-                emit DelegateQuadraticVotesChanged(
-                    dstDelegatee,
-                    oldCkptDstDelegate.quadraticVotes,
-                    newQuadraticBalance
-                );
-            }
-        }
-    }
-
-    /**
-     * @inheritdoc IZeroExVotes
-     */
     function movePartialVotingPower(
         address srcDelegatee,
         address dstDelegatee,
@@ -224,6 +173,37 @@ contract ZeroExVotes is IZeroExVotes {
                     oldCkptDstDelegate.quadraticVotes,
                     newQuadraticBalance
                 );
+            }
+        }
+    }
+
+    /**
+     * @inheritdoc IZeroExVotes
+     */
+    function moveVotingPower(address src, address dst, uint256 amount) public {
+        if (src != dst && amount > 0) {
+            if (src != address(0)) {
+                (
+                    uint256 oldWeight,
+                    uint256 newWeight,
+                    uint256 oldQuadraticWeight,
+                    uint256 newQuadraticWeight
+                ) = _writeCheckpoint(_checkpoints[src], _subtract, amount);
+
+                emit DelegateVotesChanged(src, oldWeight, newWeight);
+                emit DelegateQuadraticVotesChanged(src, oldQuadraticWeight, newQuadraticWeight);
+            }
+
+            if (dst != address(0)) {
+                (
+                    uint256 oldWeight,
+                    uint256 newWeight,
+                    uint256 oldQuadraticWeight,
+                    uint256 newQuadraticWeight
+                ) = _writeCheckpoint(_checkpoints[dst], _add, amount);
+
+                emit DelegateVotesChanged(dst, oldWeight, newWeight);
+                emit DelegateQuadraticVotesChanged(dst, oldQuadraticWeight, newQuadraticWeight);
             }
         }
     }
@@ -330,8 +310,6 @@ contract ZeroExVotes is IZeroExVotes {
             Checkpoint storage chpt = _unsafeAccess(ckpts, pos - 1);
             chpt.votes = SafeCast.toUint96(voteWeight);
             chpt.quadraticVotes = SafeCast.toUint48(quadraticVoteWeight);
-
-            emit CheckpointUpdated(chpt.fromBlock, chpt.votes, chpt.quadraticVotes);
         } else {
             ckpts.push(
                 Checkpoint({
@@ -340,9 +318,45 @@ contract ZeroExVotes is IZeroExVotes {
                     quadraticVotes: SafeCast.toUint48(quadraticVoteWeight)
                 })
             );
-
-            emit CheckpointAdded(ckpts[pos].fromBlock, ckpts[pos].votes, ckpts[pos].quadraticVotes);
         }
+    }
+
+    function _writeCheckpoint(
+        Checkpoint[] storage ckpts,
+        function(uint256, uint256) view returns (uint256) op,
+        uint256 delta
+    ) private returns (uint256 oldWeight, uint256 newWeight, uint256 oldQuadraticWeight, uint256 newQuadraticWeight) {
+        uint256 pos = ckpts.length;
+
+        Checkpoint memory oldCkpt = pos == 0 ? Checkpoint(0, 0, 0) : _unsafeAccess(ckpts, pos - 1);
+
+        oldWeight = oldCkpt.votes;
+        newWeight = op(oldWeight, delta);
+
+        oldQuadraticWeight = oldCkpt.quadraticVotes;
+        newQuadraticWeight = op(oldQuadraticWeight, Math.sqrt(delta));
+
+        if (pos > 0 && oldCkpt.fromBlock == block.number) {
+            Checkpoint storage chpt = _unsafeAccess(ckpts, pos - 1);
+            chpt.votes = SafeCast.toUint96(newWeight);
+            chpt.quadraticVotes = SafeCast.toUint48(newQuadraticWeight);
+        } else {
+            ckpts.push(
+                Checkpoint({
+                    fromBlock: SafeCast.toUint32(block.number),
+                    votes: SafeCast.toUint96(newWeight),
+                    quadraticVotes: SafeCast.toUint48(newQuadraticWeight)
+                })
+            );
+        }
+    }
+
+    function _add(uint256 a, uint256 b) private pure returns (uint256) {
+        return a + b;
+    }
+
+    function _subtract(uint256 a, uint256 b) private pure returns (uint256) {
+        return a - b;
     }
 
     /**
