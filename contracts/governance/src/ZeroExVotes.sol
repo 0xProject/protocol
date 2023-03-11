@@ -26,6 +26,7 @@ import "./IZeroExVotes.sol";
 
 contract ZeroExVotes is IZeroExVotes {
     address public token;
+    uint256 public quadraticThreshold;
 
     mapping(address => Checkpoint[]) private _checkpoints;
     Checkpoint[] private _totalSupplyCheckpoints;
@@ -35,9 +36,10 @@ contract ZeroExVotes is IZeroExVotes {
         _;
     }
 
-    function initialize(address _token) public {
+    function initialize(address _token, uint256 _quadraticThreshold) public {
         require(token == address(0), "ZeroExVotes: already initialized");
         token = _token;
+        quadraticThreshold = _quadraticThreshold;
     }
 
     /**
@@ -241,20 +243,30 @@ contract ZeroExVotes is IZeroExVotes {
 
         // Remove the entire sqrt userBalance from quadratic voting power.
         // Note that `userBalance` is value _before_ transfer.
-        if (pos > 0) oldCkpt.quadraticVotes -= SafeCast.toUint48(Math.sqrt(userBalance));
+        if (pos > 0) {
+            uint256 oldQuadraticVotingPower = userBalance <= quadraticThreshold
+                ? Math.sqrt(userBalance)
+                : quadraticThreshold + Math.sqrt(userBalance - quadraticThreshold);
+            oldCkpt.quadraticVotes -= SafeCast.toUint96(oldQuadraticVotingPower);
+        }
 
-        newQuadraticWeight = oldCkpt.quadraticVotes + Math.sqrt(op(userBalance, delta));
+        // if wallet > threshold, calculate quadratic power over the treshold only, below threshold is linear
+        uint256 newBalance = op(userBalance, delta);
+        uint256 newQuadraticBalance = newBalance <= quadraticThreshold
+            ? Math.sqrt(newBalance)
+            : quadraticThreshold + Math.sqrt(newBalance - quadraticThreshold);
+        newQuadraticWeight = oldCkpt.quadraticVotes + newQuadraticBalance;
 
         if (pos > 0 && oldCkpt.fromBlock == block.number) {
             Checkpoint storage chpt = _unsafeAccess(ckpts, pos - 1);
             chpt.votes = SafeCast.toUint96(newWeight);
-            chpt.quadraticVotes = SafeCast.toUint48(newQuadraticWeight);
+            chpt.quadraticVotes = SafeCast.toUint96(newQuadraticWeight);
         } else {
             ckpts.push(
                 Checkpoint({
                     fromBlock: SafeCast.toUint32(block.number),
                     votes: SafeCast.toUint96(newWeight),
-                    quadraticVotes: SafeCast.toUint48(newQuadraticWeight)
+                    quadraticVotes: SafeCast.toUint96(newQuadraticWeight)
                 })
             );
         }

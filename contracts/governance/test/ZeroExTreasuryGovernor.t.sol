@@ -34,7 +34,11 @@ contract ZeroExTreasuryGovernorTest is ZeroExGovernorBaseTest {
 
     function testShouldReturnCorrectQuorum() public {
         vm.roll(3);
-        uint256 totalSupplyQuadraticVotes = Math.sqrt(10000000e18) + Math.sqrt(2000000e18) + Math.sqrt(3000000e18);
+        uint256 totalSupplyQuadraticVotes = quadraticThreshold *
+            3 +
+            Math.sqrt(10000000e18 - quadraticThreshold) +
+            Math.sqrt(2000000e18 - quadraticThreshold) +
+            Math.sqrt(3000000e18 - quadraticThreshold);
         uint256 quorum = (totalSupplyQuadraticVotes * 10) / 100;
         assertEq(governor.quorum(2), quorum);
     }
@@ -74,9 +78,9 @@ contract ZeroExTreasuryGovernorTest is ZeroExGovernorBaseTest {
 
         // Get vote results
         (uint256 votesAgainst, uint256 votesFor, uint256 votesAbstain) = governor.proposalVotes(proposalId);
-        assertEq(votesFor, Math.sqrt(10000000e18));
-        assertEq(votesAgainst, Math.sqrt(2000000e18));
-        assertEq(votesAbstain, Math.sqrt(3000000e18));
+        assertEq(votesFor, (quadraticThreshold + Math.sqrt(10000000e18 - quadraticThreshold)));
+        assertEq(votesAgainst, quadraticThreshold + Math.sqrt(2000000e18 - quadraticThreshold));
+        assertEq(votesAbstain, quadraticThreshold + Math.sqrt(3000000e18 - quadraticThreshold));
 
         IGovernor.ProposalState state = governor.state(proposalId);
         assertEq(uint256(state), uint256(IGovernor.ProposalState.Succeeded));

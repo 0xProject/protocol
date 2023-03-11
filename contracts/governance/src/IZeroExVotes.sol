@@ -23,7 +23,7 @@ interface IZeroExVotes {
     struct Checkpoint {
         uint32 fromBlock;
         uint96 votes;
-        uint48 quadraticVotes;
+        uint96 quadraticVotes;
     }
 
     /**

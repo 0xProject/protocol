@@ -36,6 +36,7 @@ contract BaseTest is Test {
     address payable internal account3 = payable(vm.addr(3));
     address payable internal account4 = payable(vm.addr(4));
     address payable internal securityCouncil = payable(vm.addr(5));
+    uint256 internal quadraticThreshold = 500000e18;
 
     bytes32 internal constant DELEGATION_TYPEHASH =
         keccak256("Delegation(address delegatee,uint256 nonce,uint256 expiry)");
@@ -106,7 +107,7 @@ contract BaseTest is Test {
         votes = ZeroExVotes(address(votesProxy));
 
         ZRXWrappedToken token = new ZRXWrappedToken(zrxToken, IZeroExVotes(address(votesProxy)));
-        votes.initialize(address(token));
+        votes.initialize(address(token), quadraticThreshold);
         vm.stopPrank();
 
         return (zrxToken, token, votes);
