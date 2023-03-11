@@ -12,7 +12,7 @@ import {
 // Order dependent
 const CURVE_TRI_POOL_MAINNET_TOKENS = [MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC, MAINNET_TOKENS.USDT];
 const CURVE_TRI_BTC_POOL_TOKEN = [MAINNET_TOKENS.RenBTC, MAINNET_TOKENS.WBTC, MAINNET_TOKENS.sBTC];
-const CURVE_POLYGON_ATRICRYPTO_UNDERLYING_TOKENS = [POLYGON_TOKENS.DAI, POLYGON_TOKENS.USDC, POLYGON_TOKENS.USDT];
+// const CURVE_POLYGON_ATRICRYPTO_UNDERLYING_TOKENS = [POLYGON_TOKENS.DAI, POLYGON_TOKENS.USDC, POLYGON_TOKENS.USDT];
 const CURVE_POLYGON_ATRICRYPTO_TOKENS = [POLYGON_TOKENS.amDAI, POLYGON_TOKENS.amUSDC, POLYGON_TOKENS.amUSDT];
 const CURVE_FANTOM_TWO_POOL_TOKENS = [FANTOM_TOKENS.DAI, FANTOM_TOKENS.USDC];
 const CURVE_ARBITRUM_TWO_POOL_TOKENS = [ARBITRUM_TOKENS.USDC, ARBITRUM_TOKENS.USDT];
@@ -91,9 +91,9 @@ const CURVE_POLYGON_POOLS = {
     ren: '0xc2d95eef97ec6c17551d45e77b590dc1f9117c67',
 };
 
-const CURVE_V2_POLYGON_POOLS = {
-    atricrypto3: '0x1d8b86e3d88cdb2d34688e87e72f388cb541b7c8',
-};
+// const CURVE_V2_POLYGON_POOLS = {
+//     atricrypto3: '0x1d8b86e3d88cdb2d34688e87e72f388cb541b7c8',
+// };
 
 const CURVE_AVALANCHE_POOLS = {
     aave: '0x7f90122bf0700f9e7e1f688fe926940e8839f353',
@@ -215,15 +215,15 @@ const createCurveExchangeV2Pool = (info: { tokens: string[]; pool: string; gasSc
     gasSchedule: info.gasSchedule,
 });
 
-const createCurveV2MetaTriPool = (info: { tokens: string[]; pool: string; gasSchedule: number }) => ({
-    exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying_v2,
-    sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying_v2,
-    buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-    tokens: [...CURVE_POLYGON_ATRICRYPTO_UNDERLYING_TOKENS, ...info.tokens],
-    metaTokens: info.tokens,
-    poolAddress: info.pool,
-    gasSchedule: info.gasSchedule,
-});
+// const createCurveV2MetaTriPool = (info: { tokens: string[]; pool: string; gasSchedule: number }) => ({
+//     exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying_v2,
+//     sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying_v2,
+//     buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+//     tokens: [...CURVE_POLYGON_ATRICRYPTO_UNDERLYING_TOKENS, ...info.tokens],
+//     metaTokens: info.tokens,
+//     poolAddress: info.pool,
+//     gasSchedule: info.gasSchedule,
+// });
 
 const createCurveFactoryCryptoExchangePool = (info: { tokens: string[]; pool: string; gasSchedule: number }) => ({
     exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying_uint256,
@@ -241,11 +241,11 @@ const createCurveFactoryCryptoExchangePool = (info: { tokens: string[]; pool: st
  * I.e DaiUsdc curve has DAI as index 0 and USDC as index 1
  */
 export const CURVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
-    [CURVE_POOLS.compound]: createCurveExchangeUnderlyingPool({
-        tokens: [MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC],
-        pool: CURVE_POOLS.compound,
-        gasSchedule: 587e3,
-    }),
+    // [CURVE_POOLS.compound]: createCurveExchangeUnderlyingPool({
+    //     tokens: [MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC],
+    //     pool: CURVE_POOLS.compound,
+    //     gasSchedule: 587e3,
+    // }),
     [CURVE_POOLS.PAX]: createCurveExchangeUnderlyingPool({
         tokens: [MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC, MAINNET_TOKENS.USDT, MAINNET_TOKENS.PAX],
         pool: CURVE_POOLS.PAX,
@@ -336,21 +336,21 @@ export const CURVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
         pool: CURVE_POOLS.eurt,
         gasSchedule: 320e3,
     }),
-    [CURVE_POOLS.aave]: createCurveExchangeUnderlyingPool({
-        tokens: [MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC, MAINNET_TOKENS.USDT],
-        pool: CURVE_POOLS.aave,
-        gasSchedule: 580e3,
-    }),
+    // [CURVE_POOLS.aave]: createCurveExchangeUnderlyingPool({
+    //     tokens: [MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC, MAINNET_TOKENS.USDT],
+    //     pool: CURVE_POOLS.aave,
+    //     gasSchedule: 580e3,
+    // }),
     [CURVE_POOLS.aave]: createCurveExchangePool({
         tokens: [MAINNET_TOKENS.aDAI, MAINNET_TOKENS.aUSDC, MAINNET_TOKENS.aUSDT],
         pool: CURVE_POOLS.aave,
         gasSchedule: 580e3,
     }),
-    [CURVE_POOLS.saave]: createCurveExchangeUnderlyingPool({
-        tokens: [MAINNET_TOKENS.DAI, MAINNET_TOKENS.sUSD],
-        pool: CURVE_POOLS.saave,
-        gasSchedule: 580e3,
-    }),
+    // [CURVE_POOLS.saave]: createCurveExchangeUnderlyingPool({
+    //     tokens: [MAINNET_TOKENS.DAI, MAINNET_TOKENS.sUSD],
+    //     pool: CURVE_POOLS.saave,
+    //     gasSchedule: 580e3,
+    // }),
     [CURVE_POOLS.saave]: createCurveExchangePool({
         tokens: [MAINNET_TOKENS.aDAI, MAINNET_TOKENS.aSUSD],
         pool: CURVE_POOLS.saave,
@@ -553,11 +553,12 @@ export const CURVE_V2_MAINNET_INFOS: { [name: string]: CurveInfo } = {
 };
 
 export const CURVE_POLYGON_INFOS: { [name: string]: CurveInfo } = {
-    ['aave_exchangeunderlying']: createCurveExchangeUnderlyingPool({
-        tokens: CURVE_POLYGON_ATRICRYPTO_UNDERLYING_TOKENS,
-        pool: CURVE_POLYGON_POOLS.aave,
-        gasSchedule: 300e3,
-    }),
+    // TODO: re-enable.
+    // ['aave_exchangeunderlying']: createCurveExchangeUnderlyingPool({
+    //     tokens: CURVE_POLYGON_ATRICRYPTO_UNDERLYING_TOKENS,
+    //     pool: CURVE_POLYGON_POOLS.aave,
+    //     gasSchedule: 300e3,
+    // }),
     ['aave_exchange']: createCurveExchangePool({
         tokens: CURVE_POLYGON_ATRICRYPTO_TOKENS,
         pool: CURVE_POLYGON_POOLS.aave,
@@ -571,19 +572,19 @@ export const CURVE_POLYGON_INFOS: { [name: string]: CurveInfo } = {
 };
 
 export const CURVE_V2_POLYGON_INFOS: { [name: string]: CurveInfo } = {
-    [CURVE_V2_POLYGON_POOLS.atricrypto3]: createCurveV2MetaTriPool({
-        tokens: [POLYGON_TOKENS.WBTC, POLYGON_TOKENS.WETH],
-        pool: CURVE_V2_POLYGON_POOLS.atricrypto3,
-        gasSchedule: 300e3,
-    }),
+    // [CURVE_V2_POLYGON_POOLS.atricrypto3]: createCurveV2MetaTriPool({
+    //     tokens: [POLYGON_TOKENS.WBTC, POLYGON_TOKENS.WETH],
+    //     pool: CURVE_V2_POLYGON_POOLS.atricrypto3,
+    //     gasSchedule: 300e3,
+    // }),
 };
 
 export const CURVE_AVALANCHE_INFOS: { [name: string]: CurveInfo } = {
-    ['aave_exchangeunderlying']: createCurveExchangeUnderlyingPool({
-        tokens: [AVALANCHE_TOKENS.DAI, AVALANCHE_TOKENS.USDC, AVALANCHE_TOKENS.USDT],
-        pool: CURVE_AVALANCHE_POOLS.aave,
-        gasSchedule: 850e3,
-    }),
+    // ['aave_exchangeunderlying']: createCurveExchangeUnderlyingPool({
+    //     tokens: [AVALANCHE_TOKENS.DAI, AVALANCHE_TOKENS.USDC, AVALANCHE_TOKENS.USDT],
+    //     pool: CURVE_AVALANCHE_POOLS.aave,
+    //     gasSchedule: 850e3,
+    // }),
     ['aave_exchange']: createCurveExchangePool({
         tokens: [AVALANCHE_TOKENS.aDAI, AVALANCHE_TOKENS.aUSDC, AVALANCHE_TOKENS.aUSDT],
         pool: CURVE_AVALANCHE_POOLS.aave,
