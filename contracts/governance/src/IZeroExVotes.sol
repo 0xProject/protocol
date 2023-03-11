@@ -18,7 +18,6 @@
 */
 pragma solidity ^0.8.19;
 
-/// @custom:security-contact security@0xproject.com
 interface IZeroExVotes {
     struct Checkpoint {
         uint32 fromBlock;

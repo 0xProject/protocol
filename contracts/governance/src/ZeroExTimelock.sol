@@ -20,7 +20,6 @@ pragma solidity ^0.8.19;
 
 import "@openzeppelin/governance/TimelockController.sol";
 
-/// @custom:security-contact security@0xproject.com
 contract ZeroExTimelock is TimelockController {
     // minDelay is how long you have to wait before executing
     // proposers is the list of addresses that can propose
