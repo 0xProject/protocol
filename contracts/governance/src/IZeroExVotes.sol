@@ -107,29 +107,15 @@ interface IZeroExVotes {
     function getPastQuadraticTotalSupply(uint256 blockNumber) external view returns (uint256);
 
     /**
-     * @dev TODO Moves the voting power for an account with balance `amount` from `src` to `dst`.
-     * Note that if the delegator isn't delegating to anyone before the function call `srcDelegatee` = address(0)
-     */
-    function moveVotingPower(address src, address dst, uint256 amount) external;
-
-    /**
-     * @dev Moves the voting power corresponding to `amount` number of tokens from `srcDelegatee` to `dstDelegatee`.
-     * Note that if the delegator isn't delegating to anyone before the function call `srcDelegatee` = address(0)
-     * @param srcDelegatee the delegatee we are moving voting power away from
-     * @param dstDelegatee the delegatee we are moving voting power to
-     * @param srcDelegateBalance balance of the delegate whose delegatee is `srcDelegatee`.
-     * This is value _after_ the transfer.
-     * @param dstDelegateBalance balance of the delegate whose delegatee is `dstDelegatee`.
-     * This is value _after_ the transfer.
+     * @dev Moves the voting power corresponding to `amount` number of tokens from `src` to `dst`.
+     * Note that if the delegator isn't delegating to anyone before the function call `src` = address(0)
+     * @param src the delegatee we are moving voting power away from
+     * @param dst the delegatee we are moving voting power to
+     * @param srcBalance balance of the delegate whose delegatee is `src`. This is value _after_ the transfer.
+     * @param dstBalance balance of the delegate whose delegatee is `dst`. This is value _after_ the transfer.
      * @param amount The amount of tokens transferred from the source delegate to destination delegate.
      */
-    function movePartialVotingPower(
-        address srcDelegatee,
-        address dstDelegatee,
-        uint256 srcDelegateBalance,
-        uint256 dstDelegateBalance,
-        uint256 amount
-    ) external;
+    function moveVotingPower(address src, address dst, uint256 srcBalance, uint256 dstBalance, uint256 amount) external;
 
     function writeCheckpointTotalSupplyMint(uint256 amount, uint256 accountBalance) external;
 

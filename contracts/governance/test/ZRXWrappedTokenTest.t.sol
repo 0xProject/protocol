@@ -248,15 +248,14 @@ contract ZRXWrappedTokenTest is BaseTest {
 
         wToken.transfer(account3, 3e18);
 
-        uint256 votingPowerAccount2 = votes.getVotes(account2);
-        uint256 votingQuadraticPowerAccount2 = votes.getQuadraticVotes(account2);
-        assertEq(votingPowerAccount2, 7e18);
-        assertEq(votingQuadraticPowerAccount2, Math.sqrt(7e18));
+        assertEq(wToken.balanceOf(account2), 7e18);
+        assertEq(wToken.balanceOf(account3), 3e18);
+
+        assertEq(votes.getVotes(account2), 7e18);
+        assertEq(votes.getQuadraticVotes(account2), Math.sqrt(7e18));
 
         // Since account3 is not delegating to anyone, they should have no voting power
-        uint256 votingPowerAccount3 = votes.getVotes(account3);
-        uint256 votingQuadraticPowerAccount3 = votes.getQuadraticVotes(account3);
-        assertEq(votingPowerAccount3, 0);
-        assertEq(votingQuadraticPowerAccount3, 0);
+        assertEq(votes.getVotes(account3), 0);
+        assertEq(votes.getQuadraticVotes(account3), 0);
     }
 }

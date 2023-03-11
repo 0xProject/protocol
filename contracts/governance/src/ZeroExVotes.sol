@@ -117,70 +117,7 @@ contract ZeroExVotes is IZeroExVotes {
     /**
      * @inheritdoc IZeroExVotes
      */
-    function movePartialVotingPower(
-        address srcDelegatee,
-        address dstDelegatee,
-        uint256 srcDelegateBalance,
-        uint256 dstDelegateBalance,
-        uint256 amount
-    ) public override onlyToken {
-        if (srcDelegatee != dstDelegatee && amount > 0) {
-            if (srcDelegatee != address(0)) {
-                uint256 pos = _checkpoints[srcDelegatee].length;
-                Checkpoint memory oldCkptSrcDelegate = pos == 0
-                    ? Checkpoint(0, 0, 0)
-                    : _unsafeAccess(_checkpoints[srcDelegatee], pos - 1);
-
-                // Remove the entire source delegator's sqrt balance from delegatee's voting power.
-                // `srcDelegateBalance` is value _after_ transfer so add the amount that was transferred.
-                if (pos > 0)
-                    oldCkptSrcDelegate.quadraticVotes -= SafeCast.toUint48(Math.sqrt(srcDelegateBalance + amount));
-
-                uint256 newLinearBalance = oldCkptSrcDelegate.votes - amount;
-                uint256 newQuadraticBalance = oldCkptSrcDelegate.quadraticVotes + Math.sqrt(srcDelegateBalance);
-
-                _writeCheckpoint(_checkpoints[srcDelegatee], newLinearBalance, newQuadraticBalance);
-
-                emit DelegateVotesChanged(srcDelegatee, oldCkptSrcDelegate.votes, newLinearBalance);
-
-                emit DelegateQuadraticVotesChanged(
-                    srcDelegatee,
-                    oldCkptSrcDelegate.quadraticVotes,
-                    newQuadraticBalance
-                );
-            }
-
-            if (dstDelegatee != address(0)) {
-                uint256 pos = _checkpoints[dstDelegatee].length;
-                Checkpoint memory oldCkptDstDelegate = pos == 0
-                    ? Checkpoint(0, 0, 0)
-                    : _unsafeAccess(_checkpoints[dstDelegatee], pos - 1);
-
-                // Remove the entire destination delegator's sqrt balance from delegatee's voting power.
-                // `dstDelegateBalance` is value _after_ transfer so remove the amount that was transferred.
-                if (pos > 0)
-                    oldCkptDstDelegate.quadraticVotes -= SafeCast.toUint48(Math.sqrt(dstDelegateBalance - amount));
-
-                uint256 newLinearBalance = oldCkptDstDelegate.votes + amount;
-                uint256 newQuadraticBalance = oldCkptDstDelegate.quadraticVotes + Math.sqrt(dstDelegateBalance);
-
-                _writeCheckpoint(_checkpoints[dstDelegatee], newLinearBalance, newQuadraticBalance);
-
-                emit DelegateVotesChanged(dstDelegatee, oldCkptDstDelegate.votes, newLinearBalance);
-
-                emit DelegateQuadraticVotesChanged(
-                    dstDelegatee,
-                    oldCkptDstDelegate.quadraticVotes,
-                    newQuadraticBalance
-                );
-            }
-        }
-    }
-
-    /**
-     * @inheritdoc IZeroExVotes
-     */
-    function moveVotingPower(address src, address dst, uint256 amount) public {
+    function moveVotingPower(address src, address dst, uint256 srcBalance, uint256 dstBalance, uint256 amount) public {
         if (src != dst && amount > 0) {
             if (src != address(0)) {
                 (
@@ -188,7 +125,7 @@ contract ZeroExVotes is IZeroExVotes {
                     uint256 newWeight,
                     uint256 oldQuadraticWeight,
                     uint256 newQuadraticWeight
-                ) = _writeCheckpoint(_checkpoints[src], _subtract, amount);
+                ) = _writeCheckpoint(_checkpoints[src], _subtract, srcBalance, amount);
 
                 emit DelegateVotesChanged(src, oldWeight, newWeight);
                 emit DelegateQuadraticVotesChanged(src, oldQuadraticWeight, newQuadraticWeight);
@@ -200,7 +137,7 @@ contract ZeroExVotes is IZeroExVotes {
                     uint256 newWeight,
                     uint256 oldQuadraticWeight,
                     uint256 newQuadraticWeight
-                ) = _writeCheckpoint(_checkpoints[dst], _add, amount);
+                ) = _writeCheckpoint(_checkpoints[dst], _add, dstBalance, amount);
 
                 emit DelegateVotesChanged(dst, oldWeight, newWeight);
                 emit DelegateQuadraticVotesChanged(dst, oldQuadraticWeight, newQuadraticWeight);
@@ -324,6 +261,7 @@ contract ZeroExVotes is IZeroExVotes {
     function _writeCheckpoint(
         Checkpoint[] storage ckpts,
         function(uint256, uint256) view returns (uint256) op,
+        uint256 userBalance,
         uint256 delta
     ) private returns (uint256 oldWeight, uint256 newWeight, uint256 oldQuadraticWeight, uint256 newQuadraticWeight) {
         uint256 pos = ckpts.length;
@@ -334,7 +272,12 @@ contract ZeroExVotes is IZeroExVotes {
         newWeight = op(oldWeight, delta);
 
         oldQuadraticWeight = oldCkpt.quadraticVotes;
-        newQuadraticWeight = op(oldQuadraticWeight, Math.sqrt(delta));
+
+        // Remove the entire sqrt userBalance from quadratic voting power.
+        // Note that `userBalance` is value _before_ transfer.
+        if (pos > 0) oldCkpt.quadraticVotes -= SafeCast.toUint48(Math.sqrt(userBalance));
+
+        newQuadraticWeight = oldCkpt.quadraticVotes + Math.sqrt(op(userBalance, delta));
 
         if (pos > 0 && oldCkpt.fromBlock == block.number) {
             Checkpoint storage chpt = _unsafeAccess(ckpts, pos - 1);

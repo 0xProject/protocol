@@ -52,8 +52,13 @@ contract ZRXWrappedToken is ERC20, ERC20Permit, ERC20Wrapper {
     function _afterTokenTransfer(address from, address to, uint256 amount) internal override(ERC20) {
         super._afterTokenTransfer(from, to, amount);
 
-        // Move voting power when tokens are transferred.
-        zeroExVotes.movePartialVotingPower(delegates(from), delegates(to), balanceOf(from), balanceOf(to), amount);
+        zeroExVotes.moveVotingPower(
+            delegates(from),
+            delegates(to),
+            balanceOf(from) + amount,
+            balanceOf(to) - amount,
+            amount
+        );
     }
 
     function _mint(address account, uint256 amount) internal override(ERC20) {
@@ -111,6 +116,6 @@ contract ZRXWrappedToken is ERC20, ERC20Permit, ERC20Wrapper {
 
         emit DelegateChanged(delegator, currentDelegate, delegatee);
 
-        zeroExVotes.moveVotingPower(currentDelegate, delegatee, delegatorBalance);
+        zeroExVotes.moveVotingPower(currentDelegate, delegatee, delegatorBalance, 0, delegatorBalance);
     }
 }
