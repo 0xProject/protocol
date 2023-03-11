@@ -148,40 +148,29 @@ contract ZeroExVotes is IZeroExVotes {
     /**
      * @inheritdoc IZeroExVotes
      */
-    function writeCheckpointTotalSupplyMint(uint256 amount, uint256 accountBalance) public override onlyToken {
-        uint256 pos = _totalSupplyCheckpoints.length;
-        Checkpoint memory oldCkptTotalSuply = pos == 0
-            ? Checkpoint(0, 0, 0)
-            : _unsafeAccess(_totalSupplyCheckpoints, pos - 1);
+    function writeCheckpointTotalSupplyMint(uint256 accountBalance, uint256 amount) public override onlyToken {
+        (, uint256 newWeight, , uint256 newQuadraticWeight) = _writeCheckpoint(
+            _totalSupplyCheckpoints,
+            _add,
+            accountBalance,
+            amount
+        );
 
-        // Remove the account sqrt balance from total quadratic supply.
-        // `accountBalance` is value _after_ minting
-        if (pos > 0) oldCkptTotalSuply.quadraticVotes -= SafeCast.toUint48(Math.sqrt(accountBalance - amount));
-
-        uint256 newLinearBalance = oldCkptTotalSuply.votes + amount;
-        uint256 newQuadraticBalance = oldCkptTotalSuply.quadraticVotes + Math.sqrt(accountBalance);
-
-        _writeCheckpoint(_totalSupplyCheckpoints, newLinearBalance, newQuadraticBalance);
-
-        emit TotalSupplyChanged(newLinearBalance, newQuadraticBalance);
+        emit TotalSupplyChanged(newWeight, newQuadraticWeight);
     }
 
-    function writeCheckpointTotalSupplyBurn(uint256 amount, uint256 accountBalance) public override onlyToken {
-        uint256 pos = _totalSupplyCheckpoints.length;
-        Checkpoint memory oldCkptTotalSuply = pos == 0
-            ? Checkpoint(0, 0, 0)
-            : _unsafeAccess(_totalSupplyCheckpoints, pos - 1);
+    /**
+     * @inheritdoc IZeroExVotes
+     */
+    function writeCheckpointTotalSupplyBurn(uint256 accountBalance, uint256 amount) public override onlyToken {
+        (, uint256 newWeight, , uint256 newQuadraticWeight) = _writeCheckpoint(
+            _totalSupplyCheckpoints,
+            _subtract,
+            accountBalance,
+            amount
+        );
 
-        // Remove the account sqrt balance from total quadratic supply.
-        // `accountBalance` is value _after_ burning
-        if (pos > 0) oldCkptTotalSuply.quadraticVotes -= SafeCast.toUint48(Math.sqrt(accountBalance + amount));
-
-        uint256 newLinearBalance = oldCkptTotalSuply.votes - amount;
-        uint256 newQuadraticBalance = oldCkptTotalSuply.quadraticVotes + Math.sqrt(accountBalance);
-
-        _writeCheckpoint(_totalSupplyCheckpoints, newLinearBalance, newQuadraticBalance);
-
-        emit TotalSupplyChanged(newLinearBalance, newQuadraticBalance);
+        emit TotalSupplyChanged(newWeight, newQuadraticWeight);
     }
 
     /**
@@ -233,29 +222,6 @@ contract ZeroExVotes is IZeroExVotes {
         // return high == 0 ? 0 : _unsafeAccess(ckpts, high - 1).votes;
         Checkpoint memory checkpoint = high == 0 ? Checkpoint(0, 0, 0) : _unsafeAccess(ckpts, high - 1);
         return checkpoint;
-    }
-
-    /**
-     * Alternative version of openzeppelin/token/ERC20/extensions/ERC20Votes.sol implementation
-     * which accepts the new voting weight values directly as opposed to calculating these within the function
-     * based on a addition/subtraction operation.
-     */
-    function _writeCheckpoint(Checkpoint[] storage ckpts, uint256 voteWeight, uint256 quadraticVoteWeight) private {
-        uint256 pos = ckpts.length;
-
-        if (pos > 0 && _unsafeAccess(ckpts, pos - 1).fromBlock == block.number) {
-            Checkpoint storage chpt = _unsafeAccess(ckpts, pos - 1);
-            chpt.votes = SafeCast.toUint96(voteWeight);
-            chpt.quadraticVotes = SafeCast.toUint48(quadraticVoteWeight);
-        } else {
-            ckpts.push(
-                Checkpoint({
-                    fromBlock: SafeCast.toUint32(block.number),
-                    votes: SafeCast.toUint96(voteWeight),
-                    quadraticVotes: SafeCast.toUint48(quadraticVoteWeight)
-                })
-            );
-        }
     }
 
     function _writeCheckpoint(

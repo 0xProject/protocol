@@ -52,27 +52,22 @@ contract ZRXWrappedToken is ERC20, ERC20Permit, ERC20Wrapper {
     function _afterTokenTransfer(address from, address to, uint256 amount) internal override(ERC20) {
         super._afterTokenTransfer(from, to, amount);
 
-        zeroExVotes.moveVotingPower(
-            delegates(from),
-            delegates(to),
-            balanceOf(from) + amount,
-            balanceOf(to) - amount,
-            amount
-        );
+        uint256 fromBalance = delegates(from) == address(0) ? 0 : balanceOf(from) + amount;
+        uint256 toBalance = delegates(to) == address(0) ? 0 : balanceOf(to) - amount;
+
+        zeroExVotes.moveVotingPower(delegates(from), delegates(to), fromBalance, toBalance, amount);
     }
 
     function _mint(address account, uint256 amount) internal override(ERC20) {
         super._mint(account, amount);
 
-        // Snapshots the totalSupply after it has been increased.
-        zeroExVotes.writeCheckpointTotalSupplyMint(amount, balanceOf(account));
+        zeroExVotes.writeCheckpointTotalSupplyMint(balanceOf(account) - amount, amount);
     }
 
     function _burn(address account, uint256 amount) internal override(ERC20) {
         super._burn(account, amount);
 
-        // Snapshots the totalSupply after it has been decreased.
-        zeroExVotes.writeCheckpointTotalSupplyBurn(amount, balanceOf(account));
+        zeroExVotes.writeCheckpointTotalSupplyBurn(balanceOf(account) + amount, amount);
     }
 
     /**

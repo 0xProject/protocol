@@ -117,7 +117,7 @@ interface IZeroExVotes {
      */
     function moveVotingPower(address src, address dst, uint256 srcBalance, uint256 dstBalance, uint256 amount) external;
 
-    function writeCheckpointTotalSupplyMint(uint256 amount, uint256 accountBalance) external;
+    function writeCheckpointTotalSupplyMint(uint256 accountBalance, uint256 amount) external;
 
-    function writeCheckpointTotalSupplyBurn(uint256 amount, uint256 accountBalance) external;
+    function writeCheckpointTotalSupplyBurn(uint256 accountBalance, uint256 amount) external;
 }
