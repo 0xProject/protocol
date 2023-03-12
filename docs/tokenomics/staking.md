@@ -262,7 +262,7 @@ ZRX is staked by depositing tokens into the `Staking` contract. The diagram belo
 
 <p align="center"><img src="../_static/staking/Staking.png" width="700" /></p>
 
-ZRX can simlarly be unstaked by withdrawing tokens from the Staking contract. There are time-restrictions on unstaking, which are discussed later in this section.
+ZRX can similarly be unstaked by withdrawing tokens from the Staking contract. There are time-restrictions on unstaking, which are discussed later in this section.
 
 Below is the interface for staking and unstaking.
 
@@ -365,7 +365,7 @@ function moveStake(
     external;
 ```
 
-Note that when stake is moved its new status comes into effect on the _next epoch_. Stake's status remains unchanged over the duration of an epoch. See [section 11.4](#stake-management) for informaton on the implementation of stake accounting.
+Note that when stake is moved its new status comes into effect on the _next epoch_. Stake's status remains unchanged over the duration of an epoch. See [section 11.4](#stake-management) for information on the implementation of stake accounting.
 
 #### Logic of `moveStake`
 
@@ -573,7 +573,7 @@ The Cobb-Douglas function is used to compute how much of the aggregate fees shou
 | _D_  | Total weighted ZRX staked across all (active) market maker pools this epoch. |
 | _α_  | A constant in the range [0..1] that determines the weight of fees vs stake.  |
 
-At the end of an epoch, each pool that traded can retrieve their liquidity reward. This is done by calling the finalize function. Dust pools (that have less than 100 ZRX staked) are not elegible for rewards.
+At the end of an epoch, each pool that traded can retrieve their liquidity reward. This is done by calling the finalize function. Dust pools (that have less than 100 ZRX staked) are not eligible for rewards.
 
 ```solidity
 /// @dev Instantly finalizes a single pool that earned rewards in the previous
@@ -1071,7 +1071,7 @@ function setStakingProxy(address _stakingProxyAddress)
     external;
 
 /// @dev Vault enters into Catastrophic Failure Mode.
-/// *** WARNING - ONCE IN CATOSTROPHIC FAILURE MODE, YOU CAN NEVER GO BACK! ***
+/// *** WARNING - ONCE IN CATASTROPHIC FAILURE MODE, YOU CAN NEVER GO BACK! ***
 /// Note that only the contract staker can call this function.
 function enterCatastrophicFailure()
     external;
@@ -1312,7 +1312,7 @@ event StakingPoolCreated(
 );
 
 /// @dev Emitted by MixinStakingPool when a maker sets their pool.
-/// @param makerAddress Adress of maker added to pool.
+/// @param makerAddress Address of maker added to pool.
 /// @param poolId Unique id of pool.
 event MakerStakingPoolSet(
     address indexed makerAddress,
@@ -1350,7 +1350,7 @@ event StakingContractDetachedFromProxy();
 These events are defined in [IZrxVault](https://github.com/0xProject/0x-monorepo/blob/development/contracts/staking/contracts/src/interfaces/IZrxVault.sol).
 
 ```solidity
-/// @dev Emmitted whenever a StakingProxy is set in a vault.
+/// @dev Emitted whenever a StakingProxy is set in a vault.
 event StakingProxySet(address stakingProxyAddress);
 
 /// @dev Emitted when the Staking contract is put into Catastrophic Failure Mode

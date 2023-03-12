@@ -92,7 +92,7 @@ A single Meta-Transaction is executed by calling ``executeMetaTransaction``. A b
         payable
         returns (bytes memory returnResult);
 
-A `MetaTransactionExecuted <../basics/events.html#metatransactionexecuted>`_ event is emitted on succes. The ``returnResult`` contains the raw return data for the executed function. For example, if the function returns a ``uint256`` then the ``returnResult`` could be abi-decoded into a ``uint256``.
+A `MetaTransactionExecuted <../basics/events.html#metatransactionexecuted>`_ event is emitted on success. The ``returnResult`` contains the raw return data for the executed function. For example, if the function returns a ``uint256`` then the ``returnResult`` could be abi-decoded into a ``uint256``.
 
 This call will revert in the following scenarios:
 
@@ -123,7 +123,7 @@ batchExecuteMetaTransactions
         payable
         returns (bytes[] memory returnResults);
 
-A `MetaTransactionExecuted <../basics/events.html#metatransactionexecuted>`_ event is emitted for each mtx on succes. The ``returnResult`` contains the raw return data for the executed function This call will revert if the one of the ``mtxs`` reverts. Any exceess Ether will be refunded to the ``msg.sender``.
+A `MetaTransactionExecuted <../basics/events.html#metatransactionexecuted>`_ event is emitted for each mtx on success. The ``returnResult`` contains the raw return data for the executed function This call will revert if the one of the ``mtxs`` reverts. Any exceess Ether will be refunded to the ``msg.sender``.
 
 
 getMetaTransactionExecutedBlock

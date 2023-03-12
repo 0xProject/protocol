@@ -204,7 +204,7 @@ For NFT orders with fees, the fees have the following fields:
 +----------------------------+-----------------+------------------------------------------------------------------------------------------+
 | Field                      | Type            | Description                                                                              |
 +----------------------------+-----------------+------------------------------------------------------------------------------------------+
-| ``receipient``             | ``address``     | The receipient of the fees.                                                              |
+| ``recipient``             | ``address``     | The recipient of the fees.                                                              |
 +----------------------------+-----------------+------------------------------------------------------------------------------------------+
 | ``amount``                 | ``uint256``     | The amount of fee to be paid to recipient.                                               |
 +----------------------------+-----------------+------------------------------------------------------------------------------------------+
@@ -297,7 +297,7 @@ The Orderbook
 =======================
 Orders are shared through a decentralized and permissionless network, called `0x Mesh <https://0x.org/mesh>`_. The simplest way to post and discover orders is through `0x API <https://0x.org/api>`_. See `this guide <https://0x.org/docs/guides/market-making-on-0x>`_ tailored for Market Makers.
 
-Orders are usually represented as a JSON object off-chain. Below is a table represention and example of how orders should be formatted off-chain.
+Orders are usually represented as a JSON object off-chain. Below is a table representing and example of how orders should be formatted off-chain.
 
 JSON representation of RFQ Orders
 *********************************

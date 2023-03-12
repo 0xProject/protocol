@@ -96,7 +96,7 @@ ERC20BridgeTransfer
     /// @param inputTokenAmount Amount of input token.
     /// @param outputTokenAmount Amount of output token.
     /// @param from The bridge address, indicating the underlying source of the fill.
-    /// @param to The `to` address, currrently `address(this)`
+    /// @param to The `to` address, currently `address(this)`
     event ERC20BridgeTransfer(
         IERC20Token inputToken,
         IERC20Token outputToken,

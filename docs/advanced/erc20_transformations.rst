@@ -3,7 +3,7 @@ ERC20 Transformations
 ###############################
 
 
-The 0x Protocol is able to perform a variety of atomic transformations on ERC20 tokens, in addition to simply executing trades. This is made possible through composable smart contracts, called `Transformers <../architecture/transformers.html>`_. These trustless modules extend the core Exchange logic, enabling workflows like converting between ETH<>WETH or aggregating liquidity across DEX's. These operations can be combined with trade exeuction to create a seamlesss trading experience.
+The 0x Protocol is able to perform a variety of atomic transformations on ERC20 tokens, in addition to simply executing trades. This is made possible through composable smart contracts, called `Transformers <../architecture/transformers.html>`_. These trustless modules extend the core Exchange logic, enabling workflows like converting between ETH<>WETH or aggregating liquidity across DEX's. These operations can be combined with trade execution to create a seamlesss trading experience.
 
 Anyone can run transformations using the ``transformERC20`` Exchange function.
 

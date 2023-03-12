@@ -74,7 +74,7 @@ Migrations
 ==========
 Migrations are upgrade logic that run in the context of the proxy contract. To do this, the owner calls the ``migrate()`` function, provided by the ``Ownable`` Feature. This follows a similar sequence as the bootstrap process. Notably, it temporarily sets the owner of the contract to itself for the duration of the migration call, which allows the migrator to perform admin-level operations through other features, such as registering or rolling back new functions. Before exiting, the owner is set to the newOwner, which is passed in to the call.
 
-One motivation for the existence of this function, as opposed to just having the make individual admin calls, is a shortcoming of the ZeroExGoverner contract, which is designed to perform one operation at a time, with no strict ordering of those operations.
+One motivation for the existence of this function, as opposed to just having the make individual admin calls, is a shortcoming of the ZeroExGovernor contract, which is designed to perform one operation at a time, with no strict ordering of those operations.
 
 This is a stripped down ``migrate()`` feature implementation:
 

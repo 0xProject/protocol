@@ -28,7 +28,7 @@ The deployer implements two functions: ``deploy()`` and ``kill()``. The former i
 View the code for the Transformer Deployer `here <https://github.com/0xProject/protocol/blob/development/contracts/zero-ex/contracts/src/external/TransformerDeployer.sol>`__.
 
 
-Permissionless Transfomer Deployer
+Permissionless Transformer Deployer
 ===================================
 
 A permissionless deployer has been developed and can be seen `here <https://github.com/0xProject/protocol/blob/development/contracts/zero-ex/contracts/src/external/PermissionlessTransformerDeployer.sol>`__. This serves a similar function to the current delployer, only it is capable of validating the Transformer's bytecode before deploying. It does this by tracing the bytecode in search of reachable opcodes that could post a threat to the Flash Wallet. 

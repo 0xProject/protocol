@@ -97,7 +97,7 @@ Panettone
 cyberpants2077
 ---------------
 
-- Deploy `NativeLiquidityFeature <../architecture/features.html>`_. This incldues order validation that was previously in Dev-Utils.
+- Deploy `NativeLiquidityFeature <../architecture/features.html>`_. This includes order validation that was previously in Dev-Utils.
 - Introduces `new events <../basics/events.html>`_.
 
 Hot-Pants

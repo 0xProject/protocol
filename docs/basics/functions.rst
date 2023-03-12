@@ -1240,7 +1240,7 @@ A read function to get the ERC1155 order info. Such as whether it has been cance
 
     /// @dev Get the order info for an ERC1155 order.
     /// @param order The ERC1155 order.
-    /// @return orderInfo Infor about the order.
+    /// @return orderInfo Info about the order.
     function getERC1155OrderInfo(LibNFTOrder.ERC1155Order calldata order)
         external
         view
