@@ -1,8 +1,8 @@
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
-import type { AppRouter } from '../src/routers';
+import { TZippoRouter } from 'zippo-interface';
 import { randomUUID } from 'crypto';
 
-const basic = createTRPCProxyClient<AppRouter>({
+const basic = createTRPCProxyClient<TZippoRouter>({
     links: [httpBatchLink({ url: 'http://localhost:2022' })],
 });
 

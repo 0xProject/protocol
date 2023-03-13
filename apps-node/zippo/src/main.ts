@@ -14,22 +14,31 @@ const router = t.router({
             .input(zippoRouterDefinition.user.get.input)
             .output(zippoRouterDefinition.user.get.output)
             .query(({ input }) => userGetById(input)),
-        create: t.procedure.input(zippoRouterDefinition.user.create.input).mutation(({ input }) => {
-            userCreate(input);
-        }),
+        create: t.procedure
+            .input(zippoRouterDefinition.user.create.input)
+            .output(zippoRouterDefinition.user.create.output)
+            .mutation(async ({ input }) => {
+                return await userCreate(input);
+            }),
     }),
     team: t.router({
         get: t.procedure
             .input(zippoRouterDefinition.team.get.input)
             .output(zippoRouterDefinition.team.get.output)
             .query(({ input }) => teamGetById(input)),
-        create: t.procedure.input(zippoRouterDefinition.team.create.input).mutation(({ input }) => {
-            teamCreate(input);
-        }),
-        update: t.procedure.input(zippoRouterDefinition.team.update.input).mutation(({ input }) => {
-            const { id, ...parameters } = input;
-            teamUpdate(id, parameters);
-        }),
+        create: t.procedure
+            .input(zippoRouterDefinition.team.create.input)
+            .output(zippoRouterDefinition.team.create.output)
+            .mutation(async ({ input }) => {
+                return await teamCreate(input);
+            }),
+        update: t.procedure
+            .input(zippoRouterDefinition.team.update.input)
+            .output(zippoRouterDefinition.team.update.output)
+            .mutation(async ({ input }) => {
+                const { id, ...parameters } = input;
+                return await teamUpdate(id, parameters);
+            }),
     }),
 }) satisfies TZippoRouter;
 

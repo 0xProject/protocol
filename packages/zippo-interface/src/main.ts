@@ -8,7 +8,7 @@ const user = z.object({
     name: z.string(),
     email: z.string().nullable(),
     image: z.string().nullable(),
-    id: z.string().uuid(),
+    id: z.string().cuid(),
     createdAt: z.date(),
     updatedAt: z.date(),
 });
@@ -17,7 +17,7 @@ const user = z.object({
  * API representation the `IntegratorTeam` model in integrator-db prisma schema
  */
 const team = z.object({
-    id: z.string().uuid(),
+    id: z.string().cuid(),
     image: z.string().nullable(),
     name: z.string(),
     createdAt: z.date(),
@@ -41,6 +41,7 @@ export const zippoRouterDefinition = {
                     image: z.string().url().optional(),
                 })
                 .describe('The information needed to create a user'),
+            output: user.describe('The newly created user'),
             type: 'mutation',
         },
     },
@@ -57,6 +58,7 @@ export const zippoRouterDefinition = {
                 name: z.string().min(1, { message: 'Name is required' }),
                 image: z.string().url().optional(),
             }),
+            output: team.describe('The newly created team'),
             type: 'mutation',
         },
         update: {
@@ -68,7 +70,7 @@ export const zippoRouterDefinition = {
                 })
                 .partial()
                 .merge(z.object({ id: z.string().cuid().describe('The team ID') })),
-
+            output: team.describe('The updated team'),
             type: 'mutation',
         },
     },
