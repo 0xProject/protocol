@@ -22,7 +22,6 @@ import {
     IdentityFillAdjustor,
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
     Orderbook,
-    RfqFirmQuoteValidator,
     SwapQuote,
     SwapQuoteConsumer,
     SwapQuoter,
@@ -103,7 +102,6 @@ export class SwapService implements ISwapService {
     private readonly _web3Wrapper: Web3Wrapper;
     private readonly _wethContract: WETH9Contract;
     private readonly _contractAddresses: ContractAddresses;
-    private readonly _firmQuoteValidator: RfqFirmQuoteValidator | undefined;
     private readonly _swapQuoterOpts: Partial<SwapQuoterOpts>;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
     private _altRfqMarketsCache: any;
@@ -215,12 +213,10 @@ export class SwapService implements ISwapService {
         provider: SupportedProvider,
         contractAddresses: AssetSwapperContractAddresses,
         private readonly _rfqClient: RfqClient,
-        firmQuoteValidator?: RfqFirmQuoteValidator | undefined,
         rfqDynamicBlacklist?: RfqDynamicBlacklist,
         readonly slippageModelManager?: SlippageModelManager,
     ) {
         this._provider = provider;
-        this._firmQuoteValidator = firmQuoteValidator;
 
         this._swapQuoterOpts = {
             ...SWAP_QUOTER_OPTS,
@@ -304,7 +300,6 @@ export class SwapService implements ISwapService {
                 takerAddress: NULL_ADDRESS,
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
                 txOrigin: takerAddress!,
-                firmQuoteValidator: this._firmQuoteValidator,
                 altRfqAssetOfferings,
             };
         }

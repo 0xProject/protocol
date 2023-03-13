@@ -4,7 +4,6 @@ import {
     FillQuoteTransformerOrderType,
     LimitOrderFields,
     OtcOrderFields,
-    RfqOrder,
     RfqOrderFields,
     Signature,
 } from '@0x/protocol-utils';
@@ -313,10 +312,6 @@ export interface AltRfqMakerAssetOfferings {
     [endpoint: string]: AltOffering[];
 }
 
-export interface RfqFirmQuoteValidator {
-    getRfqtTakerFillableAmountsAsync(quotes: RfqOrder[]): Promise<BigNumber[]>;
-}
-
 export interface Integrator {
     integratorId: string;
     label: string;
@@ -516,7 +511,6 @@ export interface FillAdjustor {
 export interface GetMarketOrdersRfqOpts extends RfqRequestOpts {
     rfqClient?: RfqClient;
     quoteRequestor?: QuoteRequestor;
-    firmQuoteValidator?: RfqFirmQuoteValidator;
 }
 
 /**

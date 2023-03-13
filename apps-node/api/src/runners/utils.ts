@@ -25,7 +25,6 @@ import { getDBConnection } from '../db_connection';
 import { logger } from '../logger';
 import { MetaTransactionService } from '../services/meta_transaction_service';
 import { OrderBookService } from '../services/orderbook_service';
-import { PostgresRfqtFirmQuoteValidator } from '../services/postgres_rfqt_firm_quote_validator';
 import { SwapService } from '../services/swap_service';
 import { HttpServiceConfig, AppDependencies } from '../types';
 import { AssetSwapperOrderbook } from '../orderbook/asset_swapper_orderbook';
@@ -159,7 +158,6 @@ export async function getDefaultAppDependenciesAsync(
             provider,
             contractAddresses,
             rfqClient,
-            PostgresRfqtFirmQuoteValidator.create(connection),
             RfqDynamicBlacklist.create(connection),
             slippageModelManager,
         );

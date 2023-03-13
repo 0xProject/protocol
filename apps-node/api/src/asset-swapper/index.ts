@@ -2,7 +2,6 @@ export { ContractAddresses, ChainId, getContractAddressesForChainOrThrow } from 
 export { V4RFQIndicativeQuote } from '@0x/quote-server';
 export { BigNumber } from '@0x/utils';
 export {
-    RfqOrderFields,
     LimitOrderFields,
     FillQuoteTransformerOrderType,
     RfqOrder,
@@ -21,7 +20,6 @@ export {
     AssetSwapperContractAddresses,
     MarketOperation,
     OrderPrunerPermittedFeeTypes,
-    RfqFirmQuoteValidator,
     RfqRequestOpts,
     SamplerOverrides,
     SignedNativeOrder,
