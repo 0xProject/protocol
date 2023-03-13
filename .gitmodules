@@ -10,3 +10,8 @@
 [submodule "contracts/governance/lib/openzeppelin-contracts"]
 	path = contracts/governance/lib/openzeppelin-contracts
 	url = https://github.com/openzeppelin/openzeppelin-contracts
+[submodule "contracts/governance/lib/openzeppelin-contracts-upgradeable"]
+	path = contracts/governance/lib/openzeppelin-contracts-upgradeable
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts-upgradeable
+[submodule "lib/openzeppelin-contracts-upgradeable"]
+	branch = v4.8.2
