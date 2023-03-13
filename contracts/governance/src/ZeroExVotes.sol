@@ -255,7 +255,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
         oldQuadraticWeight = oldCkpt.quadraticVotes;
 
         // Remove the entire sqrt userBalance from quadratic voting power.
-        // Note that `userBalance` is value _before_ transfer.
+        // Note that `userBalance` is value _after_ transfer.
         if (pos > 0) {
             uint256 oldQuadraticVotingPower = userBalance <= quadraticThreshold
                 ? Math.sqrt(userBalance)
