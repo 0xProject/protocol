@@ -49,5 +49,5 @@ const server = createHTTPServer({
     },
 });
 
-logger.debug(`🔥 Starting ZIPPO on port ${env.ZIPPO_PORT}`);
+logger.debug(`Starting ZIPPO on port ${env.ZIPPO_PORT}`);
 server.listen(env.ZIPPO_PORT);
