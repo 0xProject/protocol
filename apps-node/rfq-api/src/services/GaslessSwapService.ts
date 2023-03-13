@@ -610,30 +610,38 @@ export class GaslessSwapService {
             throw new TooManyRequestsError('a pending trade for this taker and takertoken already exists');
         }
 
-        // pad approval signature if there are missing bytes
-        const paddedSignature = padSignature(signature);
-        if (paddedSignature.r !== signature.r || paddedSignature.s !== signature.s) {
-            logger.warn(
-                { tradeHash: metaTransactionHash, r: paddedSignature.r, s: paddedSignature.s },
-                'Got approval signature with missing bytes',
-            );
-            signature = paddedSignature;
-        }
+        try {
+            // pad approval signature if there are missing bytes
+            const paddedSignature = padSignature(signature);
+            if (paddedSignature.r !== signature.r || paddedSignature.s !== signature.s) {
+                logger.warn(
+                    { tradeHash: metaTransactionHash, r: paddedSignature.r, s: paddedSignature.s },
+                    'Got approval signature with missing bytes',
+                );
+                signature = paddedSignature;
+            }
 
-        // validate that the given taker signature is valid
-        const signerAddress = getSignerFromHash(metaTransactionHash, signature).toLowerCase();
-        if (signerAddress !== metaTransaction.signer) {
-            ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
-                this._chainId.toString(),
-                GaslessSwapServiceErrorReason.MetaTransactionInvalidSigner,
-            ).inc();
-            logger.warn(
-                {
-                    metaTransactionHash,
-                    metaTransactionSigner: metaTransaction.signer,
-                    transactionSigner: signerAddress,
-                },
-                'Received submission with signer mismatch',
+            // validate that the given taker signature is valid
+            const signerAddress = getSignerFromHash(metaTransactionHash, signature).toLowerCase();
+            if (signerAddress !== metaTransaction.signer) {
+                ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
+                    this._chainId.toString(),
+                    GaslessSwapServiceErrorReason.MetaTransactionInvalidSigner,
+                ).inc();
+                logger.warn(
+                    {
+                        metaTransactionHash,
+                        metaTransactionSigner: metaTransaction.signer,
+                        transactionSigner: signerAddress,
+                    },
+                    'Received submission with signer mismatch',
+                );
+                throw new Error('Order signer is different from intended signer');
+            }
+        } catch (error) {
+            logger.error(
+                { chainId: this._chainId, signature, errorMessage: error.message, stack: error.stack },
+                'Encountered an error while validating metatransaction signature',
             );
             throw new ValidationError([
                 {

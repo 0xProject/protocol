@@ -1032,20 +1032,28 @@ export class RfqmService {
             throw new TooManyRequestsError('a pending trade for this taker and takertoken already exists');
         }
 
-        // In the unlikely event that takers submit a signature with a missing byte, pad the signature.
-        const paddedSignature = padSignature(takerSignature);
-        if (paddedSignature.r !== takerSignature.r || paddedSignature.s !== takerSignature.s) {
-            logger.warn(
-                { orderHash, r: paddedSignature.r, s: paddedSignature.s },
-                'Got taker signature with missing bytes',
-            );
-            takerSignature = paddedSignature;
-        }
+        try {
+            // In the unlikely event that takers submit a signature with a missing byte, pad the signature.
+            const paddedSignature = padSignature(takerSignature);
+            if (paddedSignature.r !== takerSignature.r || paddedSignature.s !== takerSignature.s) {
+                logger.warn(
+                    { orderHash, r: paddedSignature.r, s: paddedSignature.s },
+                    'Got taker signature with missing bytes',
+                );
+                takerSignature = paddedSignature;
+            }
 
-        // validate that the given taker signature is valid
-        const signerAddress = getSignerFromHash(orderHash, takerSignature).toLowerCase();
-        if (signerAddress !== takerAddress) {
-            logger.warn({ signerAddress, takerAddress, orderHash }, 'Signature is invalid');
+            // validate that the given taker signature is valid
+            const signerAddress = getSignerFromHash(orderHash, takerSignature).toLowerCase();
+            if (signerAddress !== takerAddress) {
+                logger.warn({ signerAddress, takerAddress, orderHash }, 'Signature is invalid');
+                throw new Error('Order signer is different from taker');
+            }
+        } catch (error) {
+            logger.error(
+                { chainId: this._chainId, takerSignature, errorMessage: error.message, stack: error.stack },
+                'Encountered an error while validating taker signature',
+            );
             throw new ValidationError([
                 {
                     field: 'signature',
