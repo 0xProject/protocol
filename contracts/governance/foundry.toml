@@ -10,6 +10,7 @@ remappings = [
 ]
 solc = '0.8.19'
 optimizer_runs = 20_000
+via_ir = true
 
 [profile.smt.model_checker]
 engine = 'chc'

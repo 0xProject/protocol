@@ -136,7 +136,7 @@ contract ZeroExVotesTest is BaseTest {
 
     function testShouldNotBeAbleToDelegateWithSignatureAfterExpiry() public {
         uint256 nonce = 0;
-        uint256 expiry = block.timestamp;
+        uint256 expiry = block.timestamp - 1;
         uint256 privateKey = 2;
 
         // Account 2 wraps ZRX and delegates voting power to account3
@@ -156,7 +156,6 @@ contract ZeroExVotesTest is BaseTest {
             )
         );
 
-        vm.warp(block.timestamp + 1);
         vm.expectRevert("ERC20Votes: signature expired");
         wToken.delegateBySig(account3, nonce, expiry, v, r, s);
     }
