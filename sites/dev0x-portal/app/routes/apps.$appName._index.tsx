@@ -1,3 +1,6 @@
+import { useParams } from '@remix-run/react';
+
 export default function AppDashboard() {
-    return <div>App dashboard</div>;
+    const { appName } = useParams();
+    return <div> {appName} dashboard</div>;
 }

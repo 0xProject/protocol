@@ -1,3 +1,4 @@
+import type { User } from "./auth.server";
 
 export type App = {
     name: string;
@@ -10,3 +11,5 @@ export type App = {
         requests: number;
     }
 }
+
+export type ClientUser = Pick<User, 'email' | 'team'>;

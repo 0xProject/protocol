@@ -50,4 +50,14 @@ test.describe('login page', () => {
         await page.getByLabel('Navigation').getByText('Sign up').click();
         await expect(page).toHaveURL(/create-account$/);
     });
+
+    test.only('should be able to logout', async ({ page }) => {
+        await page.getByLabel('E-Mail address').fill('freshmeat@0xproject.com');
+        await page.getByLabel('Password').fill('test');
+        await page.getByText('Continue').click();
+
+        await page.getByRole('button', { name: 'Account Menu' }).click();
+        await page.getByText('Log out').click();
+        await expect(page).toHaveURL(/create-account/);
+    });
 });

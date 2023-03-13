@@ -106,14 +106,14 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
         endIcon,
         ...other
     },
-    ref,
+    forwardedRef,
 ) {
     return (
         <button
             className={twMerge(button({ color, size, disabled, roundness }), className)}
             disabled={disabled}
             {...other}
-            ref={ref}
+            ref={forwardedRef}
         >
             {startIcon ? <span className={iconStartContainer({ size })}>{startIcon}</span> : null}
             {children}
