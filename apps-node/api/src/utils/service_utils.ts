@@ -95,8 +95,13 @@ export const serviceUtils = {
 
         return [...singleSourceLiquiditySources, ...multihopLiquiditySources];
     },
-    getBuyTokenFeeAmounts(quote: SwapQuote, fee: AffiliateFee): AffiliateFeeAmounts {
-        if (fee.feeType === AffiliateFeeType.None || fee.recipient === NULL_ADDRESS || fee.recipient === '') {
+    getBuyTokenFeeAmounts(quote: SwapQuote | undefined, fee: AffiliateFee): AffiliateFeeAmounts {
+        if (
+            quote === undefined ||
+            fee.feeType === AffiliateFeeType.None ||
+            fee.recipient === NULL_ADDRESS ||
+            fee.recipient === ''
+        ) {
             return {
                 sellTokenFeeAmount: ZERO,
                 buyTokenFeeAmount: ZERO,

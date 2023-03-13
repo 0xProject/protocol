@@ -76,6 +76,11 @@ export interface OptimizerResultWithReport extends OptimizerResult {
     extendedQuoteReportSources?: ExtendedQuoteReportSources;
 }
 
+interface OptimizerResultsWithOnChainOptimalRoute {
+    finalResult: OptimizerResultWithReport;
+    onChainOptimalRoute?: OptimizerResultWithReport;
+}
+
 export class MarketOperationUtils {
     private readonly _sellSources: SourceFilters;
     private readonly _buySources: SourceFilters;
@@ -498,7 +503,7 @@ export class MarketOperationUtils {
         amount: BigNumber,
         side: MarketOperation,
         opts: Partial<GetMarketOrdersOpts> & { gasPrice: BigNumber },
-    ): Promise<OptimizerResultWithReport> {
+    ): Promise<OptimizerResultsWithOnChainOptimalRoute> {
         const _opts: GetMarketOrdersOpts = { ...DEFAULT_GET_MARKET_ORDERS_OPTS, ...opts };
         const optimizerOpts: GenerateOptimizedOrdersOpts = {
             feeSchedule: _opts.feeSchedule,
@@ -516,6 +521,8 @@ export class MarketOperationUtils {
             amount,
             _opts,
         );
+        // cloning deep because marketSideLiquidty is mutated below
+        const phaseOneMarketSideLiquidity = _.cloneDeep(marketSideLiquidity);
 
         // Phase 1 Routing
         // We find an optimized path for ALL the DEX and open-orderbook liquidity (no RFQ liquidity)
@@ -691,6 +698,7 @@ export class MarketOperationUtils {
 
         // Compute Quote Report and return the results.
         let quoteReport: QuoteReport | undefined;
+        let onChainOptimalQuoteReport: QuoteReport | undefined;
         if (_opts.shouldGenerateQuoteReport) {
             quoteReport = MarketOperationUtils._computeQuoteReport(
                 _opts.rfqt ? _opts.rfqt.quoteRequestor : undefined,
@@ -698,6 +706,14 @@ export class MarketOperationUtils {
                 optimizerResult,
                 phaseOneResult.wholeOrderPrice,
             );
+            onChainOptimalQuoteReport = !phaseOneResult.optimizerResult
+                ? undefined
+                : MarketOperationUtils._computeQuoteReport(
+                      undefined, // phase one never has rfqt
+                      phaseOneMarketSideLiquidity,
+                      phaseOneResult.optimizerResult,
+                      phaseOneResult.wholeOrderPrice,
+                  );
         }
 
         // Always compute the Extended Quote Report
@@ -709,8 +725,26 @@ export class MarketOperationUtils {
                 optimizerResult,
                 phaseOneResult.wholeOrderPrice,
             );
+        const onChainOptimalExtendedQuoteReportSources: ExtendedQuoteReportSources | undefined =
+            !phaseOneResult.optimizerResult
+                ? undefined
+                : MarketOperationUtils._computeExtendedQuoteReportSources(
+                      undefined, // phase one never has rfqt
+                      phaseOneMarketSideLiquidity,
+                      amount,
+                      phaseOneResult.optimizerResult,
+                      phaseOneResult.wholeOrderPrice,
+                  );
 
-        return { ...optimizerResult, quoteReport, extendedQuoteReportSources };
+        const finalResult = { ...optimizerResult, quoteReport, extendedQuoteReportSources };
+        const onChainOptimalRoute = !phaseOneResult?.optimizerResult?.path
+            ? undefined
+            : {
+                  ...phaseOneResult.optimizerResult,
+                  onChainOptimalQuoteReport,
+                  onChainOptimalExtendedQuoteReportSources,
+              };
+        return { finalResult, onChainOptimalRoute };
     }
 
     private getPhaseOneRoutingResult({

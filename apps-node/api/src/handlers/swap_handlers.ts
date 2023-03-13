@@ -167,14 +167,23 @@ export class SwapHandlers {
                     sellTokenAddress: quote.sellTokenAddress,
                     buyAmount: params.buyAmount,
                     sellAmount: params.sellAmount,
+                    quotedBuyAmount: quote.buyAmount,
+                    quotedSellAmount: quote.sellAmount,
                     integratorId: params.integrator?.integratorId,
                     blockNumber: quote.blockNumber,
                     slippage: params.slippagePercentage,
                     estimatedGas: quote.estimatedGas,
+                    estimatedGasForRouter: quote.estimatedGasForRouter,
                     enableSlippageProtection: params.enableSlippageProtection,
                     expectedSlippage: quote.expectedSlippage,
                     estimatedPriceImpact: quote.estimatedPriceImpact,
                     priceImpactProtectionPercentage: params.priceImpactProtectionPercentage,
+                    onChainOptimalRoute: {
+                        quoteReportSources: quote.onChainOptimalRoute?.extendedQuoteReportSources,
+                        estimatedGasForRouter:
+                            quote.onChainOptimalRoute?.estimatedGasForRouter || constants.ZERO_AMOUNT,
+                        quotedBuyAmount: quote.onChainOptimalRoute?.quotedBuyAmount,
+                    },
                 },
                 true,
                 kafkaProducer,
@@ -189,6 +198,7 @@ export class SwapHandlers {
             'quoteReport',
             'extendedQuoteReportSources',
             'blockNumber',
+            'onChainOptimalRoute',
         );
         const duration = (new Date().getTime() - begin) / ONE_SECOND_MS;
 
@@ -267,6 +277,7 @@ export class SwapHandlers {
                     slippage: params.slippagePercentage,
                     blockNumber: quote.blockNumber,
                     estimatedGas: quote.estimatedGas,
+                    estimatedGasForRouter: quote.estimatedGasForRouter,
                     enableSlippageProtection: params.enableSlippageProtection,
                     expectedSlippage: quote.expectedSlippage,
                     estimatedPriceImpact: quote.estimatedPriceImpact,

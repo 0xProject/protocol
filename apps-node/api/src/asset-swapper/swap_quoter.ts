@@ -18,6 +18,7 @@ import {
     RfqRequestOpts,
     SamplerOverrides,
     SwapQuote,
+    SwapQuoteAndOnChainOptimalQuote,
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
     SwapQuoterRfqOpts,
@@ -225,7 +226,7 @@ export class SwapQuoter {
         marketOperation: MarketOperation,
         options: Partial<SwapQuoteRequestOpts>,
         rfqClient?: RfqClient | undefined,
-    ): Promise<SwapQuote> {
+    ): Promise<SwapQuoteAndOnChainOptimalQuote> {
         assert.isETHAddressHex('makerToken', makerToken);
         assert.isETHAddressHex('takerToken', takerToken);
         assert.isBigNumber('assetFillAmount', assetFillAmount);
@@ -262,7 +263,7 @@ export class SwapQuoter {
             calcOpts.rfqt.rfqClient = rfqClient;
         }
         const limitOrders = await this.getLimitOrders(marketOperation, makerToken, takerToken, calcOpts);
-        const result = await this._marketOperationUtils.getOptimizerResultAsync(
+        const { finalResult: result, onChainOptimalRoute } = await this._marketOperationUtils.getOptimizerResultAsync(
             makerToken,
             takerToken,
             limitOrders,
@@ -282,12 +283,31 @@ export class SwapQuoter {
             opts.bridgeSlippage,
         );
 
+        const onChainOptimalQuote = !onChainOptimalRoute
+            ? undefined
+            : createSwapQuote(
+                  onChainOptimalRoute,
+                  makerToken,
+                  takerToken,
+                  marketOperation,
+                  assetFillAmount,
+                  gasPrice,
+                  DEFAULT_GAS_SCHEDULE,
+                  opts.bridgeSlippage,
+              );
+
         // Use the raw gas, not scaled by gas price
         const exchangeProxyOverhead = opts.exchangeProxyOverhead(result.path.sourceFlags).toNumber();
         swapQuote.bestCaseQuoteInfo.gas += exchangeProxyOverhead;
         swapQuote.worstCaseQuoteInfo.gas += exchangeProxyOverhead;
-
-        return swapQuote;
+        if (onChainOptimalQuote) {
+            const onChainExchangeProxyOverhead = opts
+                .exchangeProxyOverhead(onChainOptimalRoute?.path.sourceFlags || BigInt(0))
+                .toNumber();
+            onChainOptimalQuote.bestCaseQuoteInfo.gas += onChainExchangeProxyOverhead;
+            onChainOptimalQuote.worstCaseQuoteInfo.gas += onChainExchangeProxyOverhead;
+        }
+        return { swapQuote, onChainOptimalQuote };
     }
 
     private async getLimitOrders(

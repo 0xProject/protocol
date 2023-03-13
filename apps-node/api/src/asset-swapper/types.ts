@@ -248,6 +248,11 @@ export interface MarketBuySwapQuote extends SwapQuoteBase {
 
 export type SwapQuote = MarketBuySwapQuote | MarketSellSwapQuote;
 
+export type SwapQuoteAndOnChainOptimalQuote = {
+    swapQuote: SwapQuote;
+    onChainOptimalQuote?: SwapQuote;
+};
+
 /**
  * takerTokenAmount: The amount of takerAsset swapped for desired makerAsset.
  * totalTakerTokenAmount: The total amount of takerAsset required to complete the swap (filling orders, and paying takerFees).

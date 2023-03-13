@@ -385,8 +385,7 @@ export class SwapService implements ISwapService {
                 : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
                   buyAmount!.times(getBuyTokenPercentageFeeOrZero(affiliateFee) + 1).integerValue(BigNumber.ROUND_DOWN);
 
-        // Fetch the Swap quote
-        const swapQuote = await this._swapQuoter.getSwapQuoteAsync(
+        const { swapQuote, onChainOptimalQuote } = await this._swapQuoter.getSwapQuoteAsync(
             buyToken,
             sellToken,
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
@@ -430,6 +429,10 @@ export class SwapService implements ISwapService {
         // Prepare Buy Token Fees
         const { gasCost: affiliateFeeGasCost, buyTokenFeeAmount } = serviceUtils.getBuyTokenFeeAmounts(
             swapQuote,
+            affiliateFee,
+        );
+        const { buyTokenFeeAmount: onChainOptimalBuyTokenFeeAmount } = serviceUtils.getBuyTokenFeeAmounts(
+            onChainOptimalQuote,
             affiliateFee,
         );
 
@@ -590,6 +593,7 @@ export class SwapService implements ISwapService {
             value: adjustedValue,
             gas: worstCaseGasEstimate,
             estimatedGas: conservativeBestCaseGasEstimate,
+            estimatedGasForRouter: swapQuote.worstCaseQuoteInfo.gas,
             from: takerAddress,
             gasPrice,
             protocolFee,
@@ -612,6 +616,12 @@ export class SwapService implements ISwapService {
                 ? { samplerGasUsage: swapQuote.samplerGasUsage, blockNumber: swapQuote.blockNumber }
                 : undefined,
             fees: feeToken === sellToken ? sellTokenFees : undefined,
+            onChainOptimalRoute: {
+                extendedQuoteReportSources: onChainOptimalQuote?.extendedQuoteReportSources,
+                estimatedGasForRouter: new BigNumber(onChainOptimalQuote?.worstCaseQuoteInfo.gas || 0),
+                quotedBuyAmount:
+                    onChainOptimalQuote?.worstCaseQuoteInfo.makerAmount.minus(onChainOptimalBuyTokenFeeAmount) || ZERO,
+            },
         };
 
         if (apiSwapQuote.buyAmount.lte(new BigNumber(0))) {
@@ -699,6 +709,7 @@ export class SwapService implements ISwapService {
             value,
             gas: gasEstimate,
             estimatedGas: gasEstimate,
+            estimatedGasForRouter: undefined,
             from: takerAddress,
             gasPrice,
             protocolFee: ZERO,

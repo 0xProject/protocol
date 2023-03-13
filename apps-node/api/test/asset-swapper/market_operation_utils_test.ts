@@ -83,7 +83,7 @@ async function getMarketSellOrdersAsync(
     takerAmount: BigNumber,
     opts: Partial<GetMarketOrdersOpts> & { gasPrice: BigNumber },
 ): Promise<OptimizerResultWithReport> {
-    return utils.getOptimizerResultAsync(
+    const fullResultPromise = utils.getOptimizerResultAsync(
         MAKER_TOKEN,
         TAKER_TOKEN,
         limitOrders,
@@ -91,6 +91,9 @@ async function getMarketSellOrdersAsync(
         MarketOperation.Sell,
         opts,
     );
+    return new Promise((resolve, reject) => {
+        fullResultPromise.then((res) => resolve(res.finalResult)).catch(reject);
+    });
 }
 
 /**
@@ -107,7 +110,17 @@ async function getMarketBuyOrdersAsync(
     makerAmount: BigNumber,
     opts: Partial<GetMarketOrdersOpts> & { gasPrice: BigNumber },
 ): Promise<OptimizerResultWithReport> {
-    return utils.getOptimizerResultAsync(MAKER_TOKEN, TAKER_TOKEN, limitOrders, makerAmount, MarketOperation.Buy, opts);
+    const fullResultPromise = utils.getOptimizerResultAsync(
+        MAKER_TOKEN,
+        TAKER_TOKEN,
+        limitOrders,
+        makerAmount,
+        MarketOperation.Buy,
+        opts,
+    );
+    return new Promise((resolve, reject) => {
+        fullResultPromise.then((res) => resolve(res.finalResult)).catch(reject);
+    });
 }
 
 function toRfqtV2Price(order: SignedLimitOrder): RfqtV2Price {
@@ -1086,7 +1099,7 @@ describe('MarketOperationUtils tests', () => {
                 const gasPrice = 100e9; // 100 gwei
                 const exchangeProxyOverhead = (sourceFlags: bigint) =>
                     sourceFlags === SOURCE_FLAGS.Curve ? constants.ZERO_AMOUNT : new BigNumber(1.3e5).times(gasPrice);
-                const improvedOrdersResponse = await optimizer.getOptimizerResultAsync(
+                const { finalResult: improvedOrdersResponse } = await optimizer.getOptimizerResultAsync(
                     MAKER_TOKEN,
                     TAKER_TOKEN,
                     createOrdersFromSellRates(FILL_AMOUNT, rates[ERC20BridgeSource.Native]),
@@ -1369,7 +1382,7 @@ describe('MarketOperationUtils tests', () => {
                 const optimizer = new MarketOperationUtils(MOCK_SAMPLER, contractAddresses);
                 const exchangeProxyOverhead = (sourceFlags: bigint) =>
                     sourceFlags === SOURCE_FLAGS.Curve ? constants.ZERO_AMOUNT : new BigNumber(1.3e5).times(GAS_PRICE);
-                const improvedOrdersResponse = await optimizer.getOptimizerResultAsync(
+                const { finalResult: improvedOrdersResponse } = await optimizer.getOptimizerResultAsync(
                     MAKER_TOKEN,
                     TAKER_TOKEN,
                     createOrdersFromSellRates(FILL_AMOUNT, rates[ERC20BridgeSource.Native]),

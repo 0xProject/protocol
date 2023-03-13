@@ -200,6 +200,12 @@ export interface GetSwapQuoteResponse extends SwapQuoteResponsePartialTransactio
     expectedSlippage?: BigNumber | null;
     blockNumber: number | undefined;
     fees?: Fees;
+    estimatedGasForRouter: number | undefined;
+    onChainOptimalRoute?: {
+        extendedQuoteReportSources?: ExtendedQuoteReportSources;
+        estimatedGasForRouter: BigNumber;
+        quotedBuyAmount: BigNumber;
+    };
 }
 
 export interface SwapQuoteResponsePartialTransaction {

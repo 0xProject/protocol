@@ -8,6 +8,8 @@ interface QuoteReportLogOptionsBase {
     quoteId?: string;
     sellAmount?: BigNumber;
     buyAmount?: BigNumber;
+    quotedBuyAmount?: BigNumber;
+    quotedSellAmount?: BigNumber;
     buyTokenAddress: string;
     sellTokenAddress: string;
     integratorId?: string;
@@ -15,10 +17,16 @@ interface QuoteReportLogOptionsBase {
     slippage: number | undefined;
     blockNumber: number | undefined;
     estimatedGas: BigNumber;
+    estimatedGasForRouter: number | undefined;
     enableSlippageProtection: boolean | undefined;
     expectedSlippage?: BigNumber | null;
     estimatedPriceImpact: BigNumber | null;
     priceImpactProtectionPercentage: number;
+    onChainOptimalRoute?: {
+        quoteReportSources?: ExtendedQuoteReportSources;
+        estimatedGasForRouter: BigNumber;
+        quotedBuyAmount?: BigNumber;
+    };
 }
 
 interface ExtendedQuoteReportForTakerTxn extends QuoteReportLogOptionsBase {
@@ -45,6 +53,10 @@ const getTimestampFromUniqueId = (decodedUniqueId: string): number => {
     return parseInt(decodedUniqueId.slice(decodedUniqueId.indexOf('-') + 1), 10);
 };
 
+const bigNumberToStringOrUndefined = (bn: BigNumber | undefined) => {
+    return bn ? bn.toString() : undefined;
+};
+
 /**
  * Publishes a quote report to kafka. As of fall 2022, this eventually
  * makes its way to the Hashalytics database.
@@ -64,8 +76,10 @@ export function publishQuoteReport(
                 logOpts.submissionBy === 'taker' ? getTimestampFromUniqueId(logOpts.decodedUniqueId) : Date.now(),
             firmQuoteReport: isFirmQuote,
             submissionBy: logOpts.submissionBy,
-            buyAmount: logOpts.buyAmount ? logOpts.buyAmount.toString() : undefined,
-            sellAmount: logOpts.sellAmount ? logOpts.sellAmount.toString() : undefined,
+            buyAmount: bigNumberToStringOrUndefined(logOpts.buyAmount),
+            sellAmount: bigNumberToStringOrUndefined(logOpts.sellAmount),
+            quotedBuyAmount: bigNumberToStringOrUndefined(logOpts.quotedBuyAmount),
+            quotedSellAmount: bigNumberToStringOrUndefined(logOpts.quotedSellAmount),
             buyTokenAddress: logOpts.buyTokenAddress,
             sellTokenAddress: logOpts.sellTokenAddress,
             integratorId: logOpts.integratorId,
@@ -78,10 +92,19 @@ export function publishQuoteReport(
             sourcesDelivered: logOpts.quoteReportSources.sourcesDelivered?.map(jsonifyFillData),
             blockNumber: logOpts.blockNumber,
             estimatedGas: logOpts.estimatedGas.toString(),
+            estimatedGasForRouter: logOpts.estimatedGasForRouter?.toString(),
             enableSlippageProtection: logOpts.enableSlippageProtection,
             expectedSlippage: logOpts.expectedSlippage?.toString(),
             estimatedPriceImpact: logOpts.estimatedPriceImpact?.toString(),
             priceImpactProtectionPercentage: logOpts.priceImpactProtectionPercentage * 100,
+            onChainOptimalRoute: {
+                sourcesConsidered:
+                    logOpts.onChainOptimalRoute?.quoteReportSources?.sourcesConsidered.map(jsonifyFillData) || [],
+                sourcesDelivered:
+                    logOpts.onChainOptimalRoute?.quoteReportSources?.sourcesDelivered?.map(jsonifyFillData),
+                estimatedGasForRouter: bigNumberToStringOrUndefined(logOpts.onChainOptimalRoute?.estimatedGasForRouter),
+                quotedBuyAmount: bigNumberToStringOrUndefined(logOpts.onChainOptimalRoute?.quotedBuyAmount),
+            },
         };
         kafkaProducer
             .send({

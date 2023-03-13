@@ -34,6 +34,8 @@ export interface ExtendedQuoteReport {
     submissionBy: 'taker' | 'gaslessSwapAmm' | 'rfqm';
     buyAmount?: string;
     sellAmount?: string;
+    quotedBuyAmount?: string;
+    quotedSellAmount?: string;
     buyTokenAddress: string;
     sellTokenAddress: string;
     integratorId?: string;
@@ -44,10 +46,17 @@ export interface ExtendedQuoteReport {
     sourcesDelivered: ExtendedQuoteReportIndexedEntryOutbound[] | undefined;
     blockNumber: number | undefined;
     estimatedGas: string;
+    estimatedGasForRouter: string | undefined;
     enableSlippageProtection?: boolean;
     expectedSlippage?: string;
     estimatedPriceImpact?: string;
     priceImpactProtectionPercentage: number;
+    onChainOptimalRoute: {
+        sourcesConsidered: ExtendedQuoteReportIndexedEntryOutbound[];
+        sourcesDelivered: ExtendedQuoteReportIndexedEntryOutbound[] | undefined;
+        estimatedGasForRouter?: string;
+        quotedBuyAmount?: string;
+    };
 }
 
 /**
