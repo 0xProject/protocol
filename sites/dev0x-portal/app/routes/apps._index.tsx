@@ -1,6 +1,41 @@
+import { json } from '@remix-run/node';
+import { AppsTable } from '../components/AppsTable';
+import { useLoaderData } from '@remix-run/react';
 import { Button } from '../components/Button';
 
+import type { LoaderArgs } from '@remix-run/node';
+
+export async function loader({ request }: LoaderArgs) {
+    return json({
+        data: [
+            {
+                name: 'Demo app',
+                brandColor: '#01A74D',
+                metrics: {
+                    requests: 122,
+                    volume: 3422,
+                    users: 30,
+                },
+                encodedUrlPathname: 'demo-app',
+                onChainTag: [],
+            },
+            {
+                name: 'Coinbase wallet',
+                brandColor: '#3A65EB',
+                metrics: {
+                    requests: 3224,
+                    volume: 54232,
+                    users: 45,
+                },
+                encodedUrlPathname: 'coinbase-wallet',
+                onChainTag: [],
+            },
+        ],
+    });
+}
+
 export default function Apps() {
+    const { data } = useLoaderData<typeof loader>();
     return (
         <div className="px-24">
             <div className="my-8">
@@ -27,6 +62,7 @@ export default function Apps() {
                     <div className="col-span-2">Code block</div>
                 </div>
             </div>
+            <AppsTable data={data} className="mt-5" />
         </div>
     );
 }
