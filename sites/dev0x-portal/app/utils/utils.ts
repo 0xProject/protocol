@@ -1,6 +1,8 @@
 import type { ZodSchema } from 'zod';
 
-export const sum = (a: number, b: number) => a + b;
+export const generateNumbersArray = (n: number) => {
+    return Array.from(Array(n).keys());
+}
 
 type ActionErrors<T> = Partial<Record<keyof T, string>>;
 export function validateFormData<ActionInput>({

@@ -1,4 +1,4 @@
-import { Children, forwardRef } from 'react';
+import { forwardRef } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { tv } from 'tailwind-variants';
 
@@ -61,7 +61,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
             {...other}
             ref={ref}
         >
-            {Children.only(children)}
+            {children}
         </button>
     );
 });

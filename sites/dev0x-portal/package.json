@@ -70,6 +70,7 @@
         "dotenv-cli": "^7.0.0",
         "eslint": "^8.27.0",
         "eslint-plugin-storybook": "^0.6.10",
+        "happy-dom": "^8.9.0",
         "postcss": "^8.4.21",
         "prop-types": "^15.8.1",
         "storybook": "^7.0.0-beta.52",
