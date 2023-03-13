@@ -14,6 +14,7 @@ export async function createUserWithEmailAndPassword(
 }
 
 export async function sendVerificationEmail(_email: string): Promise<void> {
+    console.log('Verification email sent');
     // currently stubbed, but this is where we would check with the backend to send a verification email
 }
 
