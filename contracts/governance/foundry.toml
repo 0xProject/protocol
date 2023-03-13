@@ -5,6 +5,7 @@ libs = ['lib', "../utils/contracts/src/"]
 fs_permissions = [{ access = "read", path = "./" }]
 remappings = [
     '@openzeppelin/=./lib/openzeppelin-contracts/contracts/',
+    '@openzeppelin-contracts-upgradeable/=./lib/openzeppelin-contracts-upgradeable/contracts/',
     '@0x/contracts-utils/=../utils/',
 ]
 solc = '0.8.19'

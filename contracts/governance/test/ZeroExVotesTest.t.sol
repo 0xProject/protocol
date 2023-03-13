@@ -41,11 +41,15 @@ contract ZeroExVotesTest is BaseTest {
 
     function testShouldNotBeAbleToInitialiseWithZeroAddressToken() public {
         ZeroExVotes _votes = new ZeroExVotes();
+        ERC1967Proxy _votesProxy = new ERC1967Proxy(address(_votes), new bytes(0));
+        _votes = ZeroExVotes(address(_votesProxy));
+
+        vm.expectRevert("ZeroExVotes: token cannot be 0");
         _votes.initialize(address(0), quadraticThreshold);
     }
 
     function testShouldNotBeAbleToReinitialise() public {
-        vm.expectRevert("ZeroExVotes: already initialized");
+        vm.expectRevert("Initializable: contract is already initialized");
         votes.initialize(account2, quadraticThreshold);
     }
 

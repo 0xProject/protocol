@@ -22,21 +22,34 @@ import "@openzeppelin/utils/math/SafeCast.sol";
 import "@openzeppelin/utils/math/Math.sol";
 import "@openzeppelin/token/ERC20/ERC20.sol";
 import "@openzeppelin/governance/utils/IVotes.sol";
+import "@openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin-contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin-contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./IZeroExVotes.sol";
 
-contract ZeroExVotes is IZeroExVotes {
+contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpgradeable {
     address public token;
     uint256 public quadraticThreshold;
 
     mapping(address => Checkpoint[]) private _checkpoints;
     Checkpoint[] private _totalSupplyCheckpoints;
 
+    constructor() {
+        _disableInitializers();
+    }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+
     modifier onlyToken() {
         require(msg.sender == token, "ZeroExVotes: only token allowed");
         _;
     }
 
-    function initialize(address _token, uint256 _quadraticThreshold) public {
+    function initialize(address _token, uint256 _quadraticThreshold) public initializer {
+        __Ownable_init();
+        __UUPSUpgradeable_init();
+
+        require(_token != address(0), "ZeroExVotes: token cannot be 0");
         require(token == address(0), "ZeroExVotes: already initialized");
         token = _token;
         quadraticThreshold = _quadraticThreshold;
