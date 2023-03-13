@@ -16,6 +16,7 @@ const button = tv({
         color: {
             default: 'bg-grey-900 text-white hover:bg-grey-800 shadow-md focus-visible:ring-grey-500',
             grey: 'bg-grey-200 text-grey-900 focus-visible:ring-grey-300 ',
+            red: 'bg-red-light text-error-700 focus-visible:ring-error-200',
         },
         disabled: {
             true: 'opacity-50 pointer-events-none',
@@ -62,7 +63,7 @@ type BaseButtonProps = {
     /**
      * What color to use?
      */
-    color?: 'default' | 'grey';
+    color?: 'default' | 'grey' | 'red';
     /**
      * Is button disabled?
      */

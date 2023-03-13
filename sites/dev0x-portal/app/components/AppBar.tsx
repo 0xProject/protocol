@@ -21,9 +21,11 @@ export const AppBar = ({ apps, user }: AppBarProps) => {
     return (
         <Toolbar.Root className="border-grey-100 sticky top-0 flex min-h-[82px] items-center border-b border-solid bg-white py-4 px-24">
             <div className="w-0 -translate-x-[71px]">
-                <IconButton color="transparent" aria-label="Show Menu">
-                    <Bars />
-                </IconButton>
+                <Toolbar.Button asChild>
+                    <IconButton color="transparent" aria-label="Show Menu">
+                        <Bars />
+                    </IconButton>
+                </Toolbar.Button>
             </div>
             <div className="mr-11">
                 <ZeroExLogo />
@@ -39,11 +41,6 @@ export const AppBar = ({ apps, user }: AppBarProps) => {
                 <AppsDropdownMenu.Content apps={apps} />
             </AppsDropdownMenu.Root>
 
-            <Toolbar.Button asChild>
-                <Button size="sm" className="ml-auto" roundness="lg">
-                    Create an app
-                </Button>
-            </Toolbar.Button>
             <AccountDropdownMenu.Root>
                 <Toolbar.Button asChild>
                     <AccountDropdownMenu.Trigger asChild>
@@ -54,6 +51,12 @@ export const AppBar = ({ apps, user }: AppBarProps) => {
                 </Toolbar.Button>
                 <AccountDropdownMenu.Content user={user} />
             </AccountDropdownMenu.Root>
+
+            <Toolbar.Button asChild>
+                <Button size="sm" className="ml-auto" roundness="lg">
+                    Create an app
+                </Button>
+            </Toolbar.Button>
         </Toolbar.Root>
     );
 };
