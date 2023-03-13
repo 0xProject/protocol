@@ -110,8 +110,8 @@ interface IZeroExVotes {
      * Note that if the delegator isn't delegating to anyone before the function call `src` = address(0)
      * @param src the delegatee we are moving voting power away from
      * @param dst the delegatee we are moving voting power to
-     * @param srcBalance balance of the delegate whose delegatee is `src`. This is value _after_ the transfer.
-     * @param dstBalance balance of the delegate whose delegatee is `dst`. This is value _after_ the transfer.
+     * @param srcBalance balance of the delegator whose delegatee is `src`. This is value _after_ the transfer.
+     * @param dstBalance balance of the delegator whose delegatee is `dst`. This is value _after_ the transfer.
      * @param amount The amount of tokens transferred from the source delegate to destination delegate.
      */
     function moveVotingPower(address src, address dst, uint256 srcBalance, uint256 dstBalance, uint256 amount) external;
