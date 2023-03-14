@@ -206,6 +206,7 @@ describe('GaslessSwapService', () => {
         buyTokenAddress: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
         sellTokenAddress: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
         price: new BigNumber(1800.054805),
+        estimatedPriceImpact: new BigNumber(10),
     };
     const sources: LiquiditySource[] = [
         {
@@ -496,6 +497,7 @@ describe('GaslessSwapService', () => {
                       "allowanceTarget": "0x12345",
                       "buyAmount": "1800054805473",
                       "buyTokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+                      "estimatedPriceImpact": "10",
                       "fees": {
                         "gasFee": {
                           "feeAmount": "10000000",
@@ -968,6 +970,7 @@ describe('GaslessSwapService', () => {
                       "approval": undefined,
                       "buyAmount": "1800054805473",
                       "buyTokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+                      "estimatedPriceImpact": "10",
                       "fees": {
                         "gasFee": {
                           "feeAmount": "10000000",

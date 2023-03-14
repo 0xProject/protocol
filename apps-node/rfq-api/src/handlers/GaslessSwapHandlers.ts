@@ -341,6 +341,10 @@ export class GaslessSwapHandlers {
             req.query.slippagePercentage === undefined
                 ? undefined
                 : new BigNumber(req.query.slippagePercentage as string);
+        const priceImpactProtectionPercentage =
+            req.query.priceImpactProtectionPercentage === undefined
+                ? undefined
+                : new BigNumber(req.query.priceImpactProtectionPercentage as string);
 
         let feeType: 'volume' | undefined;
         let feeSellTokenPercentage: BigNumber | undefined;
@@ -352,6 +356,16 @@ export class GaslessSwapHandlers {
                     field: 'slippagePercentage',
                     code: ValidationErrorCodes.ValueOutOfRange,
                     reason: `slippagePercentage ${slippagePercentage} is out of range`,
+                },
+            ]);
+        }
+
+        if (priceImpactProtectionPercentage?.lte(0) || priceImpactProtectionPercentage?.gt(1)) {
+            throw new ValidationError([
+                {
+                    field: 'priceImpactProtectionPercentage',
+                    code: ValidationErrorCodes.ValueOutOfRange,
+                    reason: `priceImpactProtectionPercentage ${priceImpactProtectionPercentage} is out of range`,
                 },
             ]);
         }
@@ -412,6 +426,7 @@ export class GaslessSwapHandlers {
                 sellTokenDecimals,
                 affiliateAddress: affiliateAddress as string,
                 slippagePercentage,
+                priceImpactProtectionPercentage,
                 feeType,
                 feeSellTokenPercentage,
                 feeRecipient,

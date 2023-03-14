@@ -29,6 +29,7 @@ export interface FetchQuoteParamsBase {
     sellTokenDecimals: number;
     // fields specific to gasless endpoints
     slippagePercentage?: BigNumber;
+    priceImpactProtectionPercentage?: BigNumber;
     feeType?: 'volume';
     feeSellTokenPercentage?: BigNumber;
     feeRecipient?: string;
@@ -43,6 +44,7 @@ export interface FetchIndicativeQuoteResponse {
     buyAmount: BigNumber;
     buyTokenAddress: string;
     gas?: BigNumber;
+    estimatedPriceImpact?: BigNumber | null;
     price: BigNumber;
     sellAmount: BigNumber;
     sellTokenAddress: string;
@@ -58,6 +60,7 @@ export interface BaseRfqmQuoteResponse {
     buyAmount: BigNumber;
     buyTokenAddress: string;
     gas?: BigNumber;
+    estimatedPriceImpact?: BigNumber | null;
     price: BigNumber;
     sellAmount: BigNumber;
     sellTokenAddress: string;

@@ -22,6 +22,9 @@
         "slippagePercentage": {
             "$ref": "/numberSchema"
         },
+        "priceImpactProtectionPercentage": {
+            "$ref": "/numberSchema"
+        },
         "feeType": {
             "type": "string",
             "enum": ["volume"]

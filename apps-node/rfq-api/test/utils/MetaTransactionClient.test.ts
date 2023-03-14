@@ -244,7 +244,7 @@ describe('MetaTransactionClient', () => {
     });
 
     describe('getV2QuoteAsync', () => {
-        it('should get a metatransaction quote', async () => {
+        it('should get a metatransaction quote when priceImpactProtectionPercentage', async () => {
             const exampleSuccessfulResponse = {
                 allowanceTarget: '0xdef1c0ded9bec7f1a1670819833240f027b25eff',
                 buyAmount: '1800054805473',
@@ -338,6 +338,7 @@ describe('MetaTransactionClient', () => {
                 buyToken: 'USDC',
                 chainId: 137,
                 integratorId: 'integrator-id',
+                priceImpactProtectionPercentage: new BigNumber(0.5),
                 sellToken: 'WETH',
                 sellAmount: new BigNumber(1000000000000000000000),
                 takerAddress: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
@@ -349,6 +350,7 @@ describe('MetaTransactionClient', () => {
                 buyAmount: new BigNumber(exampleSuccessfulResponse.buyAmount),
                 buyTokenAddress: exampleSuccessfulResponse.buyTokenAddress,
                 gas: undefined,
+                estimatedPriceImpact: new BigNumber(exampleSuccessfulResponse.estimatedPriceImpact),
                 price: new BigNumber(exampleSuccessfulResponse.price),
                 sellAmount: new BigNumber(exampleSuccessfulResponse.sellAmount),
                 sellTokenAddress: exampleSuccessfulResponse.sellTokenAddress,
@@ -439,6 +441,7 @@ describe('MetaTransactionClient', () => {
                     buyToken: 'USDC',
                     chainId: 137,
                     integratorId: 'integrator-id',
+                    priceImpactProtectionPercentage: new BigNumber(0.5),
                     sellToken: '0x0000000000000000000000000000000000000000',
                     sellAmount: new BigNumber(1000000000000000000000),
                     takerAddress: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',

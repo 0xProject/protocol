@@ -201,6 +201,60 @@ describe('GaslessSwapHandlers', () => {
         });
 
         describe('tx relay v1', () => {
+            it('throws if the `priceImpactProtectionPercentage` is out of range for /price', async () => {
+                const response = await supertest(app)
+                    .get(`${TX_RELAY_V1_PATH}/price`)
+                    .set('Content-type', 'application/json')
+                    .set('0x-api-key', 'integrator-api-key')
+                    .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
+                    .query({
+                        buyToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
+                        sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+                        buyAmount: 1000,
+                        takerAddress,
+                        priceImpactProtectionPercentage: 1.01,
+                    });
+
+                expect(response.body.validationErrors[0].code).toEqual(ValidationErrorCodes.ValueOutOfRange);
+                expect(response.statusCode).toEqual(HttpStatus.BAD_REQUEST);
+            });
+
+            it('throws if the `priceImpactProtectionPercentage` is out of range for /quote', async () => {
+                const response = await supertest(app)
+                    .get(`${TX_RELAY_V1_PATH}/quote`)
+                    .set('Content-type', 'application/json')
+                    .set('0x-api-key', 'integrator-api-key')
+                    .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
+                    .query({
+                        buyToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
+                        sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+                        buyAmount: 1000,
+                        takerAddress,
+                        priceImpactProtectionPercentage: 0,
+                    });
+
+                expect(response.body.validationErrors[0].code).toEqual(ValidationErrorCodes.ValueOutOfRange);
+                expect(response.statusCode).toEqual(HttpStatus.BAD_REQUEST);
+            });
+
+            it('throws if the `priceImpactProtectionPercentage` is invalid for /quote', async () => {
+                const response = await supertest(app)
+                    .get(`${TX_RELAY_V1_PATH}/quote`)
+                    .set('Content-type', 'application/json')
+                    .set('0x-api-key', 'integrator-api-key')
+                    .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
+                    .query({
+                        buyToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
+                        sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+                        buyAmount: 1000,
+                        takerAddress,
+                        priceImpactProtectionPercentage: 'invalid',
+                    });
+
+                expect(response.body.validationErrors[0].code).toEqual(ValidationErrorCodes.IncorrectFormat);
+                expect(response.statusCode).toEqual(HttpStatus.BAD_REQUEST);
+            });
+
             it('throws if the `slippagePercentage` is out of range for /price', async () => {
                 const response = await supertest(app)
                     .get(`${TX_RELAY_V1_PATH}/price`)
@@ -423,6 +477,7 @@ describe('GaslessSwapHandlers', () => {
                           "rfqm": true,
                           "rfqt": false,
                         },
+                        "priceImpactProtectionPercentage": undefined,
                         "sellAmount": undefined,
                         "sellToken": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
                         "sellTokenDecimals": 18,
@@ -513,9 +568,8 @@ describe('GaslessSwapHandlers', () => {
                         sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
                         buyAmount: 1000,
                         takerAddress,
-                        intentOnFilling: 'false',
-                        skipValidation: 'true',
                         feeType: 'volume',
+                        priceImpactProtectionPercentage: 0.2,
                         feeSellTokenPercentage: 0.1,
                         feeRecipient,
                     });
@@ -544,6 +598,7 @@ describe('GaslessSwapHandlers', () => {
                           "rfqm": true,
                           "rfqt": false,
                         },
+                        "priceImpactProtectionPercentage": "0.2",
                         "sellAmount": undefined,
                         "sellToken": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
                         "sellTokenDecimals": 18,
@@ -563,6 +618,7 @@ describe('GaslessSwapHandlers', () => {
                     buyTokenAddress: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
                     sellTokenAddress: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
                     price: new BigNumber(2),
+                    estimatedPriceImpact: null,
                     sources: [
                         {
                             name: 'QuickSwap',
@@ -608,8 +664,7 @@ describe('GaslessSwapHandlers', () => {
                         sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
                         buyAmount: 1000,
                         takerAddress,
-                        intentOnFilling: 'false',
-                        skipValidation: 'true',
+                        priceImpactProtectionPercentage: 0.2,
                     });
 
                 expect(response.body).toStrictEqual({ ...convertBigNumbersToJson(price), liquidityAvailable: true });
@@ -662,6 +717,7 @@ describe('GaslessSwapHandlers', () => {
                           "rfqm": true,
                           "rfqt": false,
                         },
+                        "priceImpactProtectionPercentage": undefined,
                         "sellAmount": undefined,
                         "sellToken": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
                         "sellTokenDecimals": 18,
@@ -783,8 +839,7 @@ describe('GaslessSwapHandlers', () => {
                         sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
                         buyAmount: 1000,
                         takerAddress,
-                        intentOnFilling: 'false',
-                        skipValidation: 'true',
+                        priceImpactProtectionPercentage: 0.2,
                         feeType: 'volume',
                         feeSellTokenPercentage: 0.1,
                         feeRecipient,
@@ -815,6 +870,7 @@ describe('GaslessSwapHandlers', () => {
                           "rfqm": true,
                           "rfqt": false,
                         },
+                        "priceImpactProtectionPercentage": "0.2",
                         "sellAmount": undefined,
                         "sellToken": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
                         "sellTokenDecimals": 18,
@@ -836,6 +892,7 @@ describe('GaslessSwapHandlers', () => {
                         eip712: MOCK_META_TRANSACTION_TRADE.eip712,
                     },
                     price: new BigNumber('1800.054805'),
+                    estimatedPriceImpact: new BigNumber(10),
                     sellAmount: new BigNumber('1000000000000000000000'),
                     sellTokenAddress: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
                     sources: [
@@ -881,8 +938,6 @@ describe('GaslessSwapHandlers', () => {
                         sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
                         buyAmount: 1800054805473,
                         takerAddress,
-                        intentOnFilling: 'true',
-                        skipValidation: 'true',
                     });
 
                 expect(response.body).toStrictEqual({ ...convertBigNumbersToJson(quote), liquidityAvailable: true });

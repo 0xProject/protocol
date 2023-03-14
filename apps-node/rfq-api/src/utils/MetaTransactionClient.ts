@@ -24,6 +24,7 @@ interface QuoteParams {
     sellAmount?: BigNumber;
     sellToken: string;
     slippagePercentage?: BigNumber;
+    priceImpactProtectionPercentage?: BigNumber;
     takerAddress: string;
     quoteUniqueId?: string; // ID to use for the quote report `decodedUniqueId`
     metaTransactionVersion?: 'v1' | 'v2';
@@ -276,7 +277,15 @@ export async function getV2QuoteAsync(
 
     stopTimer && stopTimer({ success: 'true' });
 
-    const { buyAmount, buyTokenAddress, price, sellAmount, sellTokenAddress, trade: rawTrade } = response.data;
+    const {
+        buyAmount,
+        buyTokenAddress,
+        estimatedPriceImpact,
+        price,
+        sellAmount,
+        sellTokenAddress,
+        trade: rawTrade,
+    } = response.data;
 
     switch (rawTrade.kind) {
         case GaslessTypes.MetaTransaction: {
@@ -302,6 +311,7 @@ export async function getV2QuoteAsync(
                 price: {
                     buyAmount: new BigNumber(buyAmount),
                     buyTokenAddress,
+                    estimatedPriceImpact: estimatedPriceImpact ? new BigNumber(estimatedPriceImpact) : null,
                     price: new BigNumber(price),
                     sellAmount: new BigNumber(sellAmount),
                     sellTokenAddress,
