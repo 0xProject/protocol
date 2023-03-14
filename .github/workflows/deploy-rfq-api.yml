@@ -65,7 +65,7 @@ jobs:
       - name: Update GitOps Repo
         id: update_gitops_repo
         run: |
-          cd 'clusters/main-cluster/kubernetes/rfq-${{ steps.inputs.environment }}'
+          cd 'clusters/main-cluster/kubernetes/rfq-${{ inputs.environment }}'
           # Read current image tag
           current_image_identifier=$(yq e '.images[] | select(.name == "0x-rfq-api") | .newTag' kustomization.yaml)
           # Update image tags
