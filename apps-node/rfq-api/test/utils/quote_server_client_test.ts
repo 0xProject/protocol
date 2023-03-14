@@ -402,8 +402,8 @@ describe('QuoteServerClient', () => {
                     feeToken: CONTRACT_ADDRESSES.etherToken,
                     expiry: order.expiry,
                     takerSignature,
-                    // trader: takerAddress,
-                    // workflow: 'rfqm',
+                    trader: takerAddress,
+                    workflow: 'rfqm',
                 };
 
                 const response = {
@@ -449,8 +449,8 @@ describe('QuoteServerClient', () => {
                     expiry: order.expiry,
                     takerSpecifiedSide: 'makerToken',
                     takerSignature,
-                    // trader: takerAddress,
-                    // workflow: 'rfqm',
+                    trader: takerAddress,
+                    workflow: 'rfqm',
                 };
 
                 const response = {
@@ -494,8 +494,8 @@ describe('QuoteServerClient', () => {
                     feeToken: CONTRACT_ADDRESSES.etherToken,
                     expiry: order.expiry,
                     takerSignature,
-                    // trader: takerAddress,
-                    // workflow: 'rfqm',
+                    trader: takerAddress,
+                    workflow: 'rfqm',
                 };
 
                 const response = {
@@ -539,8 +539,8 @@ describe('QuoteServerClient', () => {
                     feeToken: CONTRACT_ADDRESSES.etherToken,
                     expiry: order.expiry,
                     takerSignature,
-                    // trader: takerAddress,
-                    // workflow: 'rfqm',
+                    trader: takerAddress,
+                    workflow: 'rfqm',
                 };
 
                 const response = {
@@ -614,8 +614,8 @@ describe('QuoteServerClient', () => {
                     feeToken: CONTRACT_ADDRESSES.etherToken,
                     expiry: order.expiry,
                     takerSignature,
-                    // trader: takerAddress,
-                    // workflow: 'rfqm',
+                    trader: takerAddress,
+                    workflow: 'rfqm',
                 };
 
                 const response = {
@@ -659,8 +659,8 @@ describe('QuoteServerClient', () => {
                     feeToken: CONTRACT_ADDRESSES.etherToken,
                     expiry: order.expiry,
                     takerSignature,
-                    // trader: takerAddress,
-                    // workflow: 'rfqm',
+                    trader: takerAddress,
+                    workflow: 'rfqm',
                 };
 
                 const response = {
