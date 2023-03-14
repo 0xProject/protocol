@@ -130,10 +130,6 @@ const CURVE_V2_ARBITRUM_POOLS = {
     fraxBP: '0xc9b8a3fdecb9d5b218d02555a8baf332e5b740d5',
 };
 
-const BELT_POOLS = {
-    vPool: '0xf16d312d119c13dd27fd0dc814b0bcdcaaa62dfd',
-};
-
 const ELLIPSIS_POOLS = {
     threePool: '0x160caed03795365f3a589f10c379ffa7d75d4e76',
 };
@@ -1018,11 +1014,7 @@ export const CURVE_V2_ARBITRUM_INFOS: { [name: string]: CurveInfo } = {
 };
 
 export const BELT_BSC_INFOS: { [name: string]: CurveInfo } = {
-    [BELT_POOLS.vPool]: createCurveExchangeUnderlyingPool({
-        tokens: [BSC_TOKENS.DAI, BSC_TOKENS.USDC, BSC_TOKENS.USDT, BSC_TOKENS.BUSD],
-        pool: BELT_POOLS.vPool,
-        gasSchedule: 4490e3,
-    }),
+    // TODO: either remove Belt altogether or add new pools.
 };
 
 export const ELLIPSIS_BSC_INFOS: { [name: string]: CurveInfo } = {
