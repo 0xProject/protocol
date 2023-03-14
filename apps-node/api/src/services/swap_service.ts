@@ -4,7 +4,6 @@ import { getTokenMetadataIfExists } from '@0x/token-metadata';
 import { MarketOperation } from '@0x/types';
 import { BigNumber, decodeThrownErrorAsRevertError } from '@0x/utils';
 import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
-import axios from 'axios';
 import { SupportedProvider } from 'ethereum-types';
 import * as _ from 'lodash';
 import { Counter } from 'prom-client';
@@ -12,7 +11,6 @@ import { Counter } from 'prom-client';
 import {
     AffiliateFeeAmount,
     AffiliateFeeType,
-    AltRfqMakerAssetOfferings,
     artifacts,
     AssetSwapperContractAddresses,
     BlockParamLiteral,
@@ -32,8 +30,6 @@ import {
 import { ExchangeProxySwapQuoteConsumer } from '../asset-swapper/quote_consumers/exchange_proxy_swap_quote_consumer';
 import { ExchangeProxyContractOpts } from '../asset-swapper/types';
 import {
-    ALT_RFQ_MM_API_KEY,
-    ALT_RFQ_MM_ENDPOINT,
     CHAIN_HAS_VIPS,
     CHAIN_ID,
     RFQT_REQUEST_MAX_RESPONSE_MS,
@@ -55,7 +51,6 @@ import {
     NULL_ADDRESS,
     NULL_BYTES,
     ONE,
-    ONE_MINUTE_MS,
     TRANSFER_FROM_GAS,
     TRANSFER_GAS,
     ZERO,
@@ -78,9 +73,7 @@ import {
     ISwapService,
     SwapQuoteResponsePartialTransaction,
 } from '../types';
-import { altMarketResponseToAltOfferings } from '../utils/alt_mm_utils';
 import { calculateFees } from '../utils/fee_calculator';
-import { createResultCache } from '../utils/result_cache';
 import { RfqClient } from '../utils/rfq_client';
 import { RfqDynamicBlacklist } from '../utils/rfq_dyanmic_blacklist';
 import { serviceUtils, getBuyTokenPercentageFeeOrZero } from '../utils/service_utils';
@@ -288,8 +281,6 @@ export class SwapService implements ISwapService {
         // means all integrators will be enabled.
 
         if (shouldEnableRfqt) {
-            const altRfqAssetOfferings = await this._getAltMarketOfferingsAsync(1500);
-
             _rfqt = {
                 ...rfqt,
                 intentOnFilling: rfqt && rfqt.intentOnFilling ? true : false,
@@ -300,7 +291,6 @@ export class SwapService implements ISwapService {
                 takerAddress: NULL_ADDRESS,
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
                 txOrigin: takerAddress!,
-                altRfqAssetOfferings,
             };
         }
 
@@ -859,30 +849,6 @@ export class SwapService implements ISwapService {
             decodedUniqueId,
             gasOverhead,
         };
-    }
-
-    private async _getAltMarketOfferingsAsync(timeoutMs: number): Promise<AltRfqMakerAssetOfferings> {
-        if (!this._altRfqMarketsCache) {
-            this._altRfqMarketsCache = createResultCache<AltRfqMakerAssetOfferings>(async () => {
-                if (ALT_RFQ_MM_ENDPOINT === undefined || ALT_RFQ_MM_API_KEY === undefined) {
-                    return {};
-                }
-                try {
-                    const response = await axios.get(`${ALT_RFQ_MM_ENDPOINT}/markets`, {
-                        headers: { Authorization: `Bearer ${ALT_RFQ_MM_API_KEY}` },
-                        timeout: timeoutMs,
-                    });
-
-                    return altMarketResponseToAltOfferings(response.data, ALT_RFQ_MM_ENDPOINT);
-                } catch (err) {
-                    logger.warn(`error fetching alt RFQ markets: ${err}`);
-                    return {};
-                }
-                // refresh cache every 6 hours
-            }, ONE_MINUTE_MS * 360);
-        }
-
-        return (await this._altRfqMarketsCache.getResultAsync()).result;
     }
 
     /**

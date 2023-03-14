@@ -8,7 +8,6 @@ import { logger } from '../../../logger';
 import { SAMPLER_METRICS } from '../../../utils/sampler_metrics';
 import { INVALID_SIGNATURE } from '../../constants';
 import {
-    AltRfqMakerAssetOfferings,
     AssetSwapperContractAddresses,
     MarketOperation,
     NativeOrderWithFillableAmounts,
@@ -21,7 +20,6 @@ import {
     ExchangeProxyOverhead,
     FillData,
 } from '../../types';
-import { getAltMarketInfo } from '../alt_mm_implementation_utils';
 import { QuoteRequestor } from '../quote_requestor';
 import { toSignedNativeOrderWithFillableAmounts } from '../rfq_client_mappers';
 import {
@@ -556,19 +554,6 @@ export class MarketOperationUtils {
         ) {
             // Timing of RFQT lifecycle
             const timeStart = new Date().getTime();
-            // Filter Alt Rfq Maker Asset Offerings to the current pair
-            const filteredOfferings: AltRfqMakerAssetOfferings = {};
-            if (rfqt.altRfqAssetOfferings) {
-                const endpoints = Object.keys(rfqt.altRfqAssetOfferings);
-                for (const endpoint of endpoints) {
-                    // Get the current pair if being offered
-                    const offering = getAltMarketInfo(rfqt.altRfqAssetOfferings[endpoint], makerToken, takerToken);
-                    if (offering) {
-                        filteredOfferings[endpoint] = [offering];
-                    }
-                }
-            }
-
             if (rfqt.isIndicative) {
                 // An indicative quote is being requested, and indicative quotes price-aware enabled
                 // Make the RFQT request and then re-run the sampler if new orders come back.

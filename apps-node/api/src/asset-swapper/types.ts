@@ -293,7 +293,6 @@ export interface RfqRequestOpts {
     isIndicative?: boolean;
     makerEndpointMaxResponseTimeMs?: number;
     nativeExclusivelyRFQ?: boolean;
-    altRfqAssetOfferings?: AltRfqMakerAssetOfferings;
     isLastLook?: boolean;
     fee?: Fee;
 }
@@ -304,17 +303,6 @@ export interface RfqRequestOpts {
 export interface SwapQuoteRequestOpts extends Omit<GetMarketOrdersOpts, 'gasPrice'> {
     gasPrice?: BigNumber;
     rfqt?: RfqRequestOpts;
-}
-
-export interface AltOffering {
-    id: string;
-    baseAsset: string;
-    quoteAsset: string;
-    baseAssetDecimals: number;
-    quoteAssetDecimals: number;
-}
-export interface AltRfqMakerAssetOfferings {
-    [endpoint: string]: AltOffering[];
 }
 
 export interface Integrator {

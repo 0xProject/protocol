@@ -15,8 +15,6 @@ export { SwapQuoter } from './swap_quoter';
 export {
     AffiliateFeeAmount,
     AffiliateFeeType,
-    AltOffering,
-    AltRfqMakerAssetOfferings,
     AssetSwapperContractAddresses,
     MarketOperation,
     OrderPrunerPermittedFeeTypes,
