@@ -43,7 +43,7 @@ contract ZeroExTreasuryGovernor is
         address _securityCouncil
     )
         Governor("ZeroExTreasuryGovernor")
-        GovernorSettings(14400 /* 2 days */, 50400 /* 7 days */, 5e11)
+        GovernorSettings(2 days, 7 days, 5e11)
         GovernorVotes(votes)
         GovernorVotesQuorumFraction(10)
         GovernorTimelockControl(_timelock)

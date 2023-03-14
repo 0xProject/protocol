@@ -110,11 +110,11 @@ abstract contract ZeroExGovernorBaseTest is BaseTest {
     }
 
     function testShouldReturnCorrectVotingDelay() public {
-        assertEq(governor.votingDelay(), 14400);
+        assertEq(governor.votingDelay(), 2 days);
     }
 
     function testShouldReturnCorrectVotingPeriod() public {
-        assertEq(governor.votingPeriod(), 50400);
+        assertEq(governor.votingPeriod(), 7 days);
     }
 
     function testShouldReturnCorrectProposalThreshold() public {

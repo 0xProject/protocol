@@ -40,7 +40,7 @@ contract ZeroExProtocolGovernor is
         address _securityCouncil
     )
         Governor("ZeroExProtocolGovernor")
-        GovernorSettings(14400 /* 2 days */, 50400 /* 7 days */, 1000000e18)
+        GovernorSettings(2 days, 7 days, 1000000e18)
         GovernorVotes(_token)
         GovernorTimelockControl(TimelockController(payable(_timelock)))
     {
