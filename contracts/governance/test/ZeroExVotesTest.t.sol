@@ -30,8 +30,9 @@ contract ZeroExVotesTest is BaseTest {
     function setUp() public {
         (token, wToken, votes) = setupZRXWrappedToken();
         vm.startPrank(account1);
-        token.transfer(account2, 100e18);
-        token.transfer(account3, 200e18);
+        token.transfer(account2, 700000e18);
+        token.transfer(account3, 600000e18);
+        token.transfer(account4, 500000e18);
         vm.stopPrank();
     }
 
@@ -56,8 +57,8 @@ contract ZeroExVotesTest is BaseTest {
     function testShouldBeAbleToReadCheckpoints() public {
         // Account 2 wraps ZRX and delegates voting power to account3
         vm.startPrank(account2);
-        token.approve(address(wToken), 10e18);
-        wToken.depositFor(account2, 10e18);
+        token.approve(address(wToken), 700000e18);
+        wToken.depositFor(account2, 700000e18);
         vm.roll(2);
         wToken.delegate(account3);
 
@@ -65,50 +66,40 @@ contract ZeroExVotesTest is BaseTest {
 
         IZeroExVotes.Checkpoint memory checkpoint = votes.checkpoints(account3, 0);
         assertEq(checkpoint.fromBlock, 2);
-        assertEq(checkpoint.votes, 10e18);
-        assertEq(checkpoint.quadraticVotes, Math.sqrt(10e18));
+        assertEq(checkpoint.votes, 700000e18);
+        assertEq(checkpoint.quadraticVotes, quadraticThreshold + Math.sqrt(700000e18 - quadraticThreshold));
     }
 
     function testShouldBeAbleToSelfDelegateVotingPower() public {
         // Check voting power initially is 0
-        uint256 votingPowerAccount2 = votes.getVotes(account2);
-        uint256 votingQuadraticPowerAccount2 = votes.getQuadraticVotes(account2);
-        assertEq(votingPowerAccount2, 0);
-        assertEq(votingQuadraticPowerAccount2, 0);
+        assertEq(votes.getVotes(account2), 0);
+        assertEq(votes.getQuadraticVotes(account2), 0);
 
         // Wrap ZRX and delegate voting power to themselves
         vm.startPrank(account2);
-        token.approve(address(wToken), 100e18);
-        wToken.depositFor(account2, 100e18);
+        token.approve(address(wToken), 700000e18);
+        wToken.depositFor(account2, 700000e18);
         wToken.delegate(account2);
 
-        // Check voting power is now = token balance
-        votingPowerAccount2 = votes.getVotes(account2);
-        assertEq(votingPowerAccount2, 100e18);
-        // Check quadratic voting power is now = sqrt(token balance)
-        votingQuadraticPowerAccount2 = votes.getQuadraticVotes(account2);
-        assertEq(votingQuadraticPowerAccount2, Math.sqrt(100e18));
+        // Check voting power
+        assertEq(votes.getVotes(account2), 700000e18);
+        assertEq(votes.getQuadraticVotes(account2), quadraticThreshold + Math.sqrt(700000e18 - quadraticThreshold));
     }
 
     function testShouldBeAbleToDelegateVotingPowerToAnotherAccount() public {
         // Check voting power initially is 0
-        uint256 votingPowerAccount3 = votes.getVotes(account3);
-        uint256 votingQuadraticPowerAccount3 = votes.getQuadraticVotes(account3);
-        assertEq(votingPowerAccount3, 0);
-        assertEq(votingQuadraticPowerAccount3, 0);
+        assertEq(votes.getVotes(account3), 0);
+        assertEq(votes.getQuadraticVotes(account3), 0);
 
         // Account 2 wraps ZRX and delegates voting power to account3
         vm.startPrank(account2);
-        token.approve(address(wToken), 10e18);
-        wToken.depositFor(account2, 10e18);
+        token.approve(address(wToken), 700000e18);
+        wToken.depositFor(account2, 700000e18);
         wToken.delegate(account3);
 
-        // Check voting power is now = token balance
-        votingPowerAccount3 = votes.getVotes(account3);
-        assertEq(votingPowerAccount3, 10e18);
-        // Check quadratic voting power is now = sqrt(token balance)
-        votingQuadraticPowerAccount3 = votes.getQuadraticVotes(account3);
-        assertEq(votingQuadraticPowerAccount3, Math.sqrt(10e18));
+        // Check voting power
+        assertEq(votes.getVotes(account3), 700000e18);
+        assertEq(votes.getQuadraticVotes(account3), quadraticThreshold + Math.sqrt(700000e18 - quadraticThreshold));
     }
 
     function testShouldBeAbleToDelegateVotingPowerToAnotherAccountWithSignature() public {
@@ -118,8 +109,8 @@ contract ZeroExVotesTest is BaseTest {
 
         // Account 2 wraps ZRX and delegates voting power to account3
         vm.startPrank(account2);
-        token.approve(address(wToken), 10e18);
-        wToken.depositFor(account2, 10e18);
+        token.approve(address(wToken), 700000e18);
+        wToken.depositFor(account2, 700000e18);
         vm.stopPrank();
 
         assertEq(wToken.delegates(account2), address(0));
@@ -139,8 +130,8 @@ contract ZeroExVotesTest is BaseTest {
         wToken.delegateBySig(account3, nonce, expiry, v, r, s);
 
         assertEq(wToken.delegates(account2), account3);
-        assertEq(votes.getVotes(account3), 10e18);
-        assertEq(votes.getQuadraticVotes(account3), Math.sqrt(10e18));
+        assertEq(votes.getVotes(account3), 700000e18);
+        assertEq(votes.getQuadraticVotes(account3), quadraticThreshold + Math.sqrt(700000e18 - quadraticThreshold));
     }
 
     function testShouldNotBeAbleToDelegateWithSignatureAfterExpiry() public {
@@ -150,8 +141,8 @@ contract ZeroExVotesTest is BaseTest {
 
         // Account 2 wraps ZRX and delegates voting power to account3
         vm.startPrank(account2);
-        token.approve(address(wToken), 10e18);
-        wToken.depositFor(account2, 10e18);
+        token.approve(address(wToken), 700000e18);
+        wToken.depositFor(account2, 700000e18);
         vm.stopPrank();
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(
@@ -172,44 +163,43 @@ contract ZeroExVotesTest is BaseTest {
 
     function testMultipleAccountsShouldBeAbleToDelegateVotingPowerToAccountWithNoTokensOnSameBlock() public {
         // Check account4 voting power initially is 0
-        uint256 votingPowerAccount4 = votes.getVotes(account4);
-        uint256 votingQuadraticPowerAccount4 = votes.getVotes(account4);
-        assertEq(votingPowerAccount4, 0);
-        assertEq(votingQuadraticPowerAccount4, 0);
+        assertEq(votes.getVotes(account4), 0);
+        assertEq(votes.getQuadraticVotes(account4), 0);
 
         // Account 2 wraps ZRX and delegates voting power to account4
         vm.startPrank(account2);
-        token.approve(address(wToken), 100e18);
-        wToken.depositFor(account2, 100e18);
+        token.approve(address(wToken), 700000e18);
+        wToken.depositFor(account2, 700000e18);
         wToken.delegate(account4);
         vm.stopPrank();
 
         // Account 3 also wraps ZRX and delegates voting power to account4
         vm.startPrank(account3);
-        token.approve(address(wToken), 200e18);
-        wToken.depositFor(account3, 200e18);
+        token.approve(address(wToken), 600000e18);
+        wToken.depositFor(account3, 600000e18);
         wToken.delegate(account4);
         vm.stopPrank();
 
-        // Check voting power is now = token balance
-        votingPowerAccount4 = votes.getVotes(account4);
-        assertEq(votingPowerAccount4, 300e18);
-        // Check quadratic voting power is now = sqrt(token balance)
-        votingQuadraticPowerAccount4 = votes.getQuadraticVotes(account4);
-        assertEq(votingQuadraticPowerAccount4, Math.sqrt(100e18) + Math.sqrt(200e18));
+        // Check voting power
+        assertEq(votes.getVotes(account4), 1300000e18);
+        assertEq(
+            votes.getQuadraticVotes(account4),
+            quadraticThreshold *
+                2 +
+                Math.sqrt(700000e18 - quadraticThreshold) +
+                Math.sqrt(600000e18 - quadraticThreshold)
+        );
     }
 
     function testMultipleAccountsShouldBeAbleToDelegateVotingPowerToAccountWithNoTokensOnDifferentBlock() public {
         // Check account4 voting power initially is 0
-        uint256 votingPowerAccount4 = votes.getVotes(account4);
-        uint256 votingQuadraticPowerAccount4 = votes.getVotes(account4);
-        assertEq(votingPowerAccount4, 0);
-        assertEq(votingQuadraticPowerAccount4, 0);
+        assertEq(votes.getVotes(account4), 0);
+        assertEq(votes.getQuadraticVotes(account4), 0);
 
         // Account 2 wraps ZRX and delegates voting power to account4
         vm.startPrank(account2);
-        token.approve(address(wToken), 100e18);
-        wToken.depositFor(account2, 100e18);
+        token.approve(address(wToken), 700000e18);
+        wToken.depositFor(account2, 700000e18);
         wToken.delegate(account4);
         vm.stopPrank();
 
@@ -217,86 +207,79 @@ contract ZeroExVotesTest is BaseTest {
         vm.roll(2);
         // Account 3 also wraps ZRX and delegates voting power to account4
         vm.startPrank(account3);
-        token.approve(address(wToken), 200e18);
-        wToken.depositFor(account3, 200e18);
+        token.approve(address(wToken), 600000e18);
+        wToken.depositFor(account3, 600000e18);
         wToken.delegate(account4);
         vm.stopPrank();
 
-        // Check voting power is now = token balance
-        votingPowerAccount4 = votes.getVotes(account4);
-        assertEq(votingPowerAccount4, 300e18);
-        // Check quadratic voting power is now = sqrt(token balance)
-        votingQuadraticPowerAccount4 = votes.getQuadraticVotes(account4);
-        assertEq(votingQuadraticPowerAccount4, Math.sqrt(100e18) + Math.sqrt(200e18));
+        // Check voting power
+        assertEq(votes.getVotes(account4), 1300000e18);
+        assertEq(
+            votes.getQuadraticVotes(account4),
+            quadraticThreshold *
+                2 +
+                Math.sqrt(700000e18 - quadraticThreshold) +
+                Math.sqrt(600000e18 - quadraticThreshold)
+        );
     }
 
     function testComplexDelegationScenario() public {
         // Account 2 wraps ZRX and delegates to itself
         vm.startPrank(account2);
-        token.approve(address(wToken), 100e18);
-        wToken.depositFor(account2, 90e18);
+        token.approve(address(wToken), 700000e18);
+        wToken.depositFor(account2, 490000e18);
         wToken.delegate(account2);
         vm.stopPrank();
 
-        uint256 votingPowerAccount2 = votes.getVotes(account2);
-        uint256 votingQuadraticPowerAccount2 = votes.getQuadraticVotes(account2);
-        assertEq(votingPowerAccount2, 90e18);
-        assertEq(votingQuadraticPowerAccount2, Math.sqrt(90e18)); // 9486832980
+        assertEq(votes.getVotes(account2), 490000e18);
+        assertEq(votes.getQuadraticVotes(account2), 490000e18);
 
         // Account 3 wraps ZRX and delegates to account4
         vm.startPrank(account3);
-        token.approve(address(wToken), 200e18);
-        wToken.depositFor(account3, 100e18);
+        token.approve(address(wToken), 500000e18);
+        wToken.depositFor(account3, 500000e18);
         wToken.delegate(account4);
         vm.stopPrank();
 
-        uint256 votingPowerAccount4 = votes.getVotes(account4);
-        uint256 votingQuadraticPowerAccount4 = votes.getQuadraticVotes(account4);
-        assertEq(votingPowerAccount4, 100e18);
-        assertEq(votingQuadraticPowerAccount4, Math.sqrt(100e18));
+        assertEq(votes.getVotes(account4), 500000e18);
+        assertEq(votes.getQuadraticVotes(account4), 500000e18);
 
         // Voting power distribution now is as follows
-        // account2 -> account2 90e18 | 9486832980
-        // account3 -> account4 100e18 | 10e9
+        // account2 -> account2 490000e18 | 490000e18
+        // account3 -> account4 500000e18 | 500000e18
 
-        // Account 2 deposits the remaining 10e18 and delegates to account3
+        // Account 2 deposits the remaining 210000e18 and delegates to account3
         vm.startPrank(account2);
-        wToken.depositFor(account2, 10e18);
+        wToken.depositFor(account2, 210000e18);
         wToken.delegate(account3);
         vm.stopPrank();
 
-        uint256 votingPowerAccount3 = votes.getVotes(account3);
-        uint256 votingQuadraticPowerAccount3 = votes.getQuadraticVotes(account3);
-        assertEq(votingPowerAccount3, 100e18);
-        assertEq(votingQuadraticPowerAccount3, Math.sqrt(100e18));
+        assertEq(votes.getVotes(account3), 700000e18);
+        assertEq(votes.getQuadraticVotes(account3), quadraticThreshold + Math.sqrt(700000e18 - quadraticThreshold));
 
         // Voting power distribution now is as follows
-        // account2 -> account3 100e18 | 10e18
-        // account3 -> account4 100e18 | 10e9
+        // account2 -> account3 700000e18 | 500000e18 + Math.sqrt(700000e18 - 500000e18)
+        // account3 -> account4 500000e18 | 500000e18
 
         // Account 3 delegates to itself
         vm.startPrank(account3);
         wToken.delegate(account3);
         vm.stopPrank();
 
-        votingPowerAccount3 = votes.getVotes(account3);
-        votingQuadraticPowerAccount3 = votes.getQuadraticVotes(account3);
-        assertEq(votingPowerAccount3, 200e18);
-        assertEq(votingQuadraticPowerAccount3, Math.sqrt(100e18) + Math.sqrt(100e18));
+        assertEq(votes.getVotes(account3), 1200000e18);
+        assertEq(
+            votes.getQuadraticVotes(account3),
+            quadraticThreshold + Math.sqrt(700000e18 - quadraticThreshold) + 500000e18
+        );
 
         // Voting power distribution now is as follows
-        // account2, account3 -> account3 100e18 | 20e18
+        // account2, account3 -> account3 1200000e18 | 500000e18 + Math.sqrt(700000e18 - 500000e18) + 500000e18
 
         // Check account2 and account4 no longer have voting power
-        votingPowerAccount2 = votes.getVotes(account2);
-        votingQuadraticPowerAccount2 = votes.getQuadraticVotes(account2);
-        assertEq(votingPowerAccount2, 0);
-        assertEq(votingQuadraticPowerAccount2, 0);
-
-        votingPowerAccount4 = votes.getVotes(account4);
-        votingQuadraticPowerAccount4 = votes.getQuadraticVotes(account4);
-        assertEq(votingPowerAccount4, 0);
-        assertEq(votingQuadraticPowerAccount4, 0);
+        assertEq(votes.getVotes(account2), 0);
+        assertEq(votes.getQuadraticVotes(account2), 0);
+        assertEq(votes.getVotes(account4), 0);
+        assertEq(votes.getQuadraticVotes(account4), 0);
     }
 
     function testCheckpointIsCorrectlyUpdatedOnTheSameBlock() public {
@@ -307,12 +290,11 @@ contract ZeroExVotesTest is BaseTest {
         wToken.delegate(account2);
         vm.stopPrank();
 
-        uint256 numCheckpointsAccount2 = votes.numCheckpoints(account2);
-        assertEq(numCheckpointsAccount2, 1);
+        assertEq(votes.numCheckpoints(account2), 1);
         IZeroExVotes.Checkpoint memory checkpoint1Account2 = votes.checkpoints(account2, 0);
         assertEq(checkpoint1Account2.fromBlock, 1);
         assertEq(checkpoint1Account2.votes, 20e18);
-        assertEq(checkpoint1Account2.quadraticVotes, Math.sqrt(20e18));
+        assertEq(checkpoint1Account2.quadraticVotes, 20e18);
 
         // Account 3 wraps ZRX and delegates 10e18 to account2
         vm.startPrank(account3);
@@ -321,12 +303,11 @@ contract ZeroExVotesTest is BaseTest {
         wToken.delegate(account2);
         vm.stopPrank();
 
-        numCheckpointsAccount2 = votes.numCheckpoints(account2);
-        assertEq(numCheckpointsAccount2, 1);
+        assertEq(votes.numCheckpoints(account2), 1);
         checkpoint1Account2 = votes.checkpoints(account2, 0);
         assertEq(checkpoint1Account2.fromBlock, 1);
         assertEq(checkpoint1Account2.votes, 30e18);
-        assertEq(checkpoint1Account2.quadraticVotes, Math.sqrt(20e18) + Math.sqrt(10e18));
+        assertEq(checkpoint1Account2.quadraticVotes, 20e18 + 10e18);
     }
 
     function testCheckpointIsCorrectlyUpdatedOnDifferentBlocks() public {
@@ -337,12 +318,11 @@ contract ZeroExVotesTest is BaseTest {
         wToken.delegate(account2);
         vm.stopPrank();
 
-        uint256 numCheckpointsAccount2 = votes.numCheckpoints(account2);
-        assertEq(numCheckpointsAccount2, 1);
+        assertEq(votes.numCheckpoints(account2), 1);
         IZeroExVotes.Checkpoint memory checkpoint1Account2 = votes.checkpoints(account2, 0);
         assertEq(checkpoint1Account2.fromBlock, 1);
         assertEq(checkpoint1Account2.votes, 20e18);
-        assertEq(checkpoint1Account2.quadraticVotes, Math.sqrt(20e18));
+        assertEq(checkpoint1Account2.quadraticVotes, 20e18);
 
         vm.roll(2);
         // Account 3 wraps ZRX and delegates 10e18 to account2
@@ -352,17 +332,16 @@ contract ZeroExVotesTest is BaseTest {
         wToken.delegate(account2);
         vm.stopPrank();
 
-        numCheckpointsAccount2 = votes.numCheckpoints(account2);
-        assertEq(numCheckpointsAccount2, 2);
+        assertEq(votes.numCheckpoints(account2), 2);
         IZeroExVotes.Checkpoint memory checkpoint2Account2 = votes.checkpoints(account2, 1);
         assertEq(checkpoint2Account2.fromBlock, 2);
         assertEq(checkpoint2Account2.votes, 30e18);
-        assertEq(checkpoint2Account2.quadraticVotes, Math.sqrt(20e18) + Math.sqrt(10e18));
+        assertEq(checkpoint2Account2.quadraticVotes, 20e18 + 10e18);
 
         // Check the old checkpoint hasn't changed
         checkpoint1Account2 = votes.checkpoints(account2, 0);
         assertEq(checkpoint1Account2.fromBlock, 1);
         assertEq(checkpoint1Account2.votes, 20e18);
-        assertEq(checkpoint1Account2.quadraticVotes, Math.sqrt(20e18));
+        assertEq(checkpoint1Account2.quadraticVotes, 20e18);
     }
 }

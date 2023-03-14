@@ -264,7 +264,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
         // Note that `userBalance` is value _after_ transfer.
         if (pos > 0) {
             uint256 oldQuadraticVotingPower = userBalance <= quadraticThreshold
-                ? Math.sqrt(userBalance)
+                ? userBalance
                 : quadraticThreshold + Math.sqrt(userBalance - quadraticThreshold);
             oldCkpt.quadraticVotes -= SafeCast.toUint96(oldQuadraticVotingPower);
         }
@@ -272,7 +272,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
         // if wallet > threshold, calculate quadratic power over the treshold only, below threshold is linear
         uint256 newBalance = op(userBalance, delta);
         uint256 newQuadraticBalance = newBalance <= quadraticThreshold
-            ? Math.sqrt(newBalance)
+            ? newBalance
             : quadraticThreshold + Math.sqrt(newBalance - quadraticThreshold);
         newQuadraticWeight = oldCkpt.quadraticVotes + newQuadraticBalance;
 

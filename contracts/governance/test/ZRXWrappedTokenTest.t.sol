@@ -151,7 +151,7 @@ contract ZRXWrappedTokenTest is BaseTest {
         uint256 totalSupplyVotes = votes.getPastTotalSupply(2);
         uint256 totalSupplyQuadraticVotes = votes.getPastQuadraticTotalSupply(2);
         assertEq(totalSupplyVotes, 1e18);
-        assertEq(totalSupplyQuadraticVotes, Math.sqrt(1e18));
+        assertEq(totalSupplyQuadraticVotes, 1e18);
     }
 
     function testWhenMintingForAccountWithExistingBalanceTotalSupplyCheckpointsAreCorrect() public {
@@ -170,7 +170,7 @@ contract ZRXWrappedTokenTest is BaseTest {
         uint256 totalSupplyVotes = votes.getPastTotalSupply(2);
         uint256 totalSupplyQuadraticVotes = votes.getPastQuadraticTotalSupply(2);
         assertEq(totalSupplyVotes, 4e18);
-        assertEq(totalSupplyQuadraticVotes, Math.sqrt(4e18));
+        assertEq(totalSupplyQuadraticVotes, 4e18);
     }
 
     function testWhenMintingForMultipleAccountsTotalSupplyCheckpointsAreCorrect() public {
@@ -197,7 +197,7 @@ contract ZRXWrappedTokenTest is BaseTest {
         uint256 totalSupplyVotes = votes.getPastTotalSupply(2);
         uint256 totalSupplyQuadraticVotes = votes.getPastQuadraticTotalSupply(2);
         assertEq(totalSupplyVotes, 7e18);
-        assertEq(totalSupplyQuadraticVotes, Math.sqrt(5e18) + Math.sqrt(2e18));
+        assertEq(totalSupplyQuadraticVotes, 5e18 + 2e18);
     }
 
     function testWhenBurningForMultipleAccountsTotalSupplyCheckpointsAreCorrect() public {
@@ -224,7 +224,7 @@ contract ZRXWrappedTokenTest is BaseTest {
         uint256 totalSupplyVotes = votes.getPastTotalSupply(2);
         uint256 totalSupplyQuadraticVotes = votes.getPastQuadraticTotalSupply(2);
         assertEq(totalSupplyVotes, 3e18);
-        assertEq(totalSupplyQuadraticVotes, Math.sqrt(1e18) + Math.sqrt(2e18));
+        assertEq(totalSupplyQuadraticVotes, 1e18 + 2e18);
     }
 
     function testShouldBeAbleToTransferCorrectly() public {
@@ -252,7 +252,7 @@ contract ZRXWrappedTokenTest is BaseTest {
         assertEq(wToken.balanceOf(account3), 3e18);
 
         assertEq(votes.getVotes(account2), 7e18);
-        assertEq(votes.getQuadraticVotes(account2), Math.sqrt(7e18));
+        assertEq(votes.getQuadraticVotes(account2), 7e18);
 
         // Since account3 is not delegating to anyone, they should have no voting power
         assertEq(votes.getVotes(account3), 0);
