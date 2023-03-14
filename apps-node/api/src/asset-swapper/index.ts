@@ -57,6 +57,6 @@ export { IdentityFillAdjustor } from './utils/market_operation_utils/identity_fi
 export { GasPriceUtils } from './utils/gas_price_utils';
 export { jsonifyFillData, ExtendedQuoteReport } from './utils/quote_report_generator';
 export { QuoteRequestor } from './utils/quote_requestor';
-export { ERC20BridgeSamplerContract, BalanceCheckerContract, FakeTakerContract } from '../wrappers';
+export { ERC20BridgeSamplerContract, FakeTakerContract } from '../wrappers';
 
 export { adjustOutput } from './utils/market_operation_utils/fills';
