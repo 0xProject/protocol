@@ -17,7 +17,10 @@ async function main() {
     const result = await basic.user.get.query(newUser.id);
 
     if (result) {
-        console.log(result.name.toUpperCase());
+        console.log('Found user: ', result.name);
+
+        const teamResult = await basic.team.get.query(result.integratorTeamId);
+        console.log('Team: ', teamResult);
     } else {
         console.log('Not found');
     }

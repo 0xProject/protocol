@@ -11,6 +11,7 @@ const user = z.object({
     id: z.string().cuid(),
     createdAt: z.date(),
     updatedAt: z.date(),
+    integratorTeamId: z.string(),
 });
 
 /**
@@ -39,6 +40,13 @@ export const zippoRouterDefinition = {
                     name: z.string().min(1, { message: 'Name is required' }),
                     email: z.string().email().optional(),
                     image: z.string().url().optional(),
+                    integratorTeamId: z.string().cuid().optional(),
+                    integratorTeam: z
+                        .object({
+                            name: z.string().min(1, { message: 'Name is required' }),
+                            image: z.string().url().optional(),
+                        })
+                        .optional(),
                 })
                 .describe('The information needed to create a user'),
             output: user.describe('The newly created user'),

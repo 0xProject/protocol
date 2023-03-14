@@ -10,6 +10,7 @@ const defaultUserSelect = Prisma.validator<Prisma.UserSelect>()({
     image: true,
     createdAt: true,
     updatedAt: true,
+    integratorTeamId: true,
 });
 
 /**
@@ -30,24 +31,34 @@ export async function getById(
  * Create a new user.
  */
 export async function create(createUserParameters: z.infer<typeof zippoRouterDefinition.user.create.input>) {
-    // for now, we automatically create a new team for every new user
-    const integratorTeam = await createIntegratorTeam();
+    const { integratorTeamId, integratorTeam, ...userParameters } = createUserParameters;
+
+    let teamEntity;
+
+    // if we are given an explicit team ID - use that (if it exists in the db)
+    if (integratorTeamId) {
+        teamEntity = await prisma.integratorTeam.findUnique({
+            where: { id: integratorTeamId },
+        });
+    }
+    // else if we are given team parameters - use those to create a new team
+    if (!teamEntity && integratorTeam) {
+        teamEntity = await prisma.integratorTeam.create({
+            data: { ...integratorTeam },
+        });
+    }
+    // else fallback to creating a new team for this user
+    if (!teamEntity) {
+        teamEntity = await prisma.integratorTeam.create({
+            data: { name: 'My Team' },
+        });
+    }
 
     return prisma.user.create({
         data: {
-            ...createUserParameters,
-            integratorTeamId: integratorTeam.id,
+            ...userParameters,
+            integratorTeamId: teamEntity.id,
         },
         select: defaultUserSelect,
-    });
-}
-
-//TODO: replace this with actual team creation method import
-function createIntegratorTeam() {
-    return prisma.integratorTeam.create({
-        data: {
-            name: 'My Team',
-            image: '',
-        },
     });
 }
