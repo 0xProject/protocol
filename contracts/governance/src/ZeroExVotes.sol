@@ -139,7 +139,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
         uint256 dstBalance,
         uint256 amount
     ) public onlyToken {
-        if (src != dst && amount > 0) {
+        if (src != dst) {
             if (src != address(0)) {
                 (
                     uint256 oldWeight,
