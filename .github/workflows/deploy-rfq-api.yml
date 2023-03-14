@@ -1,0 +1,97 @@
+# Deploy RFQ API Service
+name: Deploy RFQ API Service
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_identifier:
+        description: Image identifier, e.g. rfq-api__2d5f8eed5287b74b or rfq-api_fd9c069a7d8a1bfdfca9a3c08cb9f405bfebdcc6
+        type: string
+        required: true
+      environment:
+        description: Environment(s) to deploy to
+        type: choice
+        options:
+        - staging
+        - production
+        required: true
+
+env:
+  IMAGE_NAME: 883408475785.dkr.ecr.us-east-1.amazonaws.com/apps
+
+jobs:
+  deploy:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+      # First, make sure the image we're attempting to deploy exists
+      - name: Set ECR image tag
+        run: echo "ECR_IMAGE_TAG=${{ inputs.image_identifier }}" >> $GITHUB_ENV
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::883408475785:role/github-actions
+          aws-region: us-east-1
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+      - name: Check for existing images
+        id: check-for-image
+        run: ./.github/scripts/check-for-image.sh
+        shell: bash
+      - if: ${{ steps.check-for-image.outputs.image-exists == false }}
+        name: Missing image
+        run: |
+          echo "Image with tag ${{ inputs.image_identifier }} does not exist"
+          exit 1
+        shell: bash
+
+      #
+      # Make the changes to 0x-main-infra
+      #
+      - name: Checkout 0x-main-infra
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.PAT }}
+          repository: 0xProject/0x-main-infra
+
+      - name: Update GitOps Repo
+        id: update_gitops_repo
+        run: |
+          cd 'clusters/main-cluster/kubernetes/rfq-${{ steps.inputs.environment }}'
+          # Read current image tag
+          current_image_identifier=$(yq e '.images[] | select(.name == "0x-rfq-api") | .newTag' kustomization.yaml)
+          # Update image tags
+          kustomize edit set image 0x-rfq-api=${IMAGE_NAME}:${{ inputs.image_identifier }}
+          kustomize edit set image 0x-rfq-api-worker=${IMAGE_NAME}:${{ inputs.image_identifier }}
+          # Output for next steps
+          echo "##[set-output name=current_image_identifier;]${current_image_identifier}"
+
+      # Remove special characters from the image identifier so it can be used as a branch name
+      - uses: yeouchien/sanitize-branch-name-action@v1
+        name: Sanitize branch name
+        id: branch
+        with:
+          branch-name: '${{ inputs.image_identifier }}'
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          token: ${{ secrets.PAT }}
+          author: ${{ github.event.sender.login }} <${{ github.event.sender.login }}@users.noreply.github.com>
+          commit-message: 'rfq-${{ inputs.environment }}: Deploy ${{ inputs.image_identifier }}'
+          title: '[rfq-api][${{ inputs.environment }}] Deploy ${{ inputs.image_identifier }}'
+          branch: '0xRfqApi/${{ inputs.environment }}/${{ steps.branch.outputs.sanitized-branch-name }}'
+          body: |
+            ## Automated deploy action for the workspace: API
+            Triggered by @${{ github.event.sender.login }}
+
+            Comparison: https://github.com/${{ github.repository }}/compare/${{ steps.update_gitops_repo.outputs.current_image_identifier }}...${{ inputs.image_identifier }}
+
