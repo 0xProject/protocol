@@ -695,11 +695,13 @@ export class FeeService {
                     chainId: this._chainId,
                     tokenAddress: tradeToken,
                     tokenDecimals: tradeTokenDecimals,
+                    isNoResponseCritical: true,
                 },
                 {
                     chainId: this._chainId,
                     tokenAddress: this._feeTokenMetadata.tokenAddress,
                     tokenDecimals: this._feeTokenMetadata.decimals,
+                    isNoResponseCritical: true,
                 },
             ]);
 

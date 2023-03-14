@@ -63,6 +63,45 @@ describe('TokenPriceOracle', () => {
             expect(result[1]?.toNumber()).toBe(3000.01e-18);
         });
 
+        it('returns null when no price is returned', async () => {
+            const fakeDefinedFiResponseForUSDC = {
+                data: {
+                    getPrice: {}, // no price returned
+                },
+            };
+            const fakeDefinedUSDCResponseForETH = {
+                data: {
+                    getPrice: {}, // no price returned
+                },
+            };
+            axiosMock
+                .onPost('https://api.defined.fi')
+                .replyOnce(HttpStatus.OK, fakeDefinedFiResponseForUSDC)
+                .onPost('https://api.defined.fi')
+                .replyOnce(HttpStatus.OK, fakeDefinedUSDCResponseForETH);
+
+            const tokenPriceOracle = new TokenPriceOracle(axiosClient, 'fakeApiKey', 'https://api.defined.fi');
+            const result = await tokenPriceOracle.batchFetchTokenPriceAsync([
+                { chainId: 1, tokenAddress: '0xUSDCContractAddress', tokenDecimals: 18, isNoResponseCritical: true },
+                { chainId: 3, tokenAddress: '0xWETHContractAddress', tokenDecimals: 18, isNoResponseCritical: false },
+            ]);
+            expect(axiosMock.history.post[0].headers['x-api-key']).toBe('fakeApiKey');
+
+            const expectedGraphqlQuery = `
+                query getPrice {
+                    getPrice(address: "0xUSDCContractAddress", networkId: 1) {
+                        priceUsd
+                    }
+                }
+            `;
+            const actualGraphQlQuery = JSON.parse(axiosMock.history.post[0].data).query;
+            // Strip out all indentations before comparing the body
+            expect(actualGraphQlQuery.replace(/^\s+/gm, '')).toBe(expectedGraphqlQuery.replace(/^\s+/gm, ''));
+
+            expect(result[0]).toBe(null);
+            expect(result[1]).toBe(null);
+        });
+
         it("returns null priceInUsd when it couldn't fetch the price", async () => {
             const tokenPriceOracle = new TokenPriceOracle(axiosClient, 'fakeApiKey', 'https://api.defined.fi');
 

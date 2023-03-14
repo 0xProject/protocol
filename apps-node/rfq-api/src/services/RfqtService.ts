@@ -495,6 +495,7 @@ export class RfqtService {
                 tokenAddress,
                 tokenDecimals,
                 chainId: this._chainId,
+                isNoResponseCritical: false, // This is a best effort price, so we don't want to fail if we can't get it
             },
         ]);
 

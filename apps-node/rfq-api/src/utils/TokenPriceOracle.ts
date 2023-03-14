@@ -32,6 +32,7 @@ export interface FetchTokenPriceParams {
      */
     tokenAddress: string;
     tokenDecimals: number;
+    isNoResponseCritical?: boolean; // Optional. If true, throw an error when no price is received
 }
 
 type TokenPriceFetchResponse = BigNumber | null;
@@ -102,7 +103,14 @@ export class TokenPriceOracle {
 
             const priceInUsd = data?.data?.getPrice?.priceUsd || null;
             if (!priceInUsd) {
-                throw new Error(`Got 200 but without price value. Response body: ${JSON.stringify(data)}`);
+                if (params.isNoResponseCritical === true) {
+                    // Only throw error when isNoResponseCritical is true
+                    throw new Error(`Got 200 but without price value. Response body: ${JSON.stringify(data)}`);
+                } else {
+                    // This is an acceptable "no price" response
+                    stopTimer({ success: 'true' });
+                    return null;
+                }
             }
 
             stopTimer({ success: 'true' });
