@@ -58,21 +58,21 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
     /**
      * @inheritdoc IZeroExVotes
      */
-    function checkpoints(address account, uint32 pos) public view override returns (Checkpoint memory) {
+    function checkpoints(address account, uint32 pos) public view returns (Checkpoint memory) {
         return _checkpoints[account][pos];
     }
 
     /**
      * @inheritdoc IZeroExVotes
      */
-    function numCheckpoints(address account) public view override returns (uint32) {
+    function numCheckpoints(address account) public view returns (uint32) {
         return SafeCast.toUint32(_checkpoints[account].length);
     }
 
     /**
      * @inheritdoc IZeroExVotes
      */
-    function getVotes(address account) public view override returns (uint256) {
+    function getVotes(address account) public view returns (uint256) {
         uint256 pos = _checkpoints[account].length;
         return pos == 0 ? 0 : _checkpoints[account][pos - 1].votes;
     }
@@ -80,7 +80,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
     /**
      * @inheritdoc IZeroExVotes
      */
-    function getQuadraticVotes(address account) public view override returns (uint256) {
+    function getQuadraticVotes(address account) public view returns (uint256) {
         uint256 pos = _checkpoints[account].length;
         return pos == 0 ? 0 : _checkpoints[account][pos - 1].quadraticVotes;
     }
@@ -88,7 +88,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
     /**
      * @inheritdoc IZeroExVotes
      */
-    function getPastVotes(address account, uint256 blockNumber) public view override returns (uint256) {
+    function getPastVotes(address account, uint256 blockNumber) public view returns (uint256) {
         require(blockNumber < block.number, "ZeroExVotes: block not yet mined");
 
         Checkpoint memory checkpoint = _checkpointsLookup(_checkpoints[account], blockNumber);
@@ -98,7 +98,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
     /**
      * @inheritdoc IZeroExVotes
      */
-    function getPastQuadraticVotes(address account, uint256 blockNumber) public view override returns (uint256) {
+    function getPastQuadraticVotes(address account, uint256 blockNumber) public view returns (uint256) {
         require(blockNumber < block.number, "ZeroExVotes: block not yet mined");
 
         Checkpoint memory checkpoint = _checkpointsLookup(_checkpoints[account], blockNumber);
@@ -108,7 +108,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
     /**
      * @inheritdoc IZeroExVotes
      */
-    function getPastTotalSupply(uint256 blockNumber) public view override returns (uint256) {
+    function getPastTotalSupply(uint256 blockNumber) public view returns (uint256) {
         require(blockNumber < block.number, "ZeroExVotes: block not yet mined");
 
         // Note that due to the disabled updates of `_totalSupplyCheckpoints` in `writeCheckpointTotalSupply` function
@@ -120,7 +120,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
     /**
      * @inheritdoc IZeroExVotes
      */
-    function getPastQuadraticTotalSupply(uint256 blockNumber) public view override returns (uint256) {
+    function getPastQuadraticTotalSupply(uint256 blockNumber) public view returns (uint256) {
         require(blockNumber < block.number, "ZeroExVotes: block not yet mined");
 
         // Note that due to the disabled updates of `_totalSupplyCheckpoints` in `writeCheckpointTotalSupply` function
@@ -132,7 +132,13 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
     /**
      * @inheritdoc IZeroExVotes
      */
-    function moveVotingPower(address src, address dst, uint256 srcBalance, uint256 dstBalance, uint256 amount) public {
+    function moveVotingPower(
+        address src,
+        address dst,
+        uint256 srcBalance,
+        uint256 dstBalance,
+        uint256 amount
+    ) public onlyToken {
         if (src != dst && amount > 0) {
             if (src != address(0)) {
                 (
@@ -163,7 +169,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
     /**
      * @inheritdoc IZeroExVotes
      */
-    function writeCheckpointTotalSupplyMint(uint256 accountBalance, uint256 amount) public override onlyToken {
+    function writeCheckpointTotalSupplyMint(uint256 accountBalance, uint256 amount) public onlyToken {
         (, uint256 newWeight, , uint256 newQuadraticWeight) = _writeCheckpoint(
             _totalSupplyCheckpoints,
             _add,
@@ -177,7 +183,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
     /**
      * @inheritdoc IZeroExVotes
      */
-    function writeCheckpointTotalSupplyBurn(uint256 accountBalance, uint256 amount) public override onlyToken {
+    function writeCheckpointTotalSupplyBurn(uint256 accountBalance, uint256 amount) public onlyToken {
         (, uint256 newWeight, , uint256 newQuadraticWeight) = _writeCheckpoint(
             _totalSupplyCheckpoints,
             _subtract,
