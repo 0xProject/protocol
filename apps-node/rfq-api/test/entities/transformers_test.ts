@@ -1,5 +1,15 @@
-import { FeeTransformer, MetaTransactionTransformer } from '../../src/entities/transformers';
-import { MOCK_FEE, MOCK_META_TRANSACTION, MOCK_STORED_FEE, MOCK_STORED_META_TRANSACTION } from '../constants';
+import {
+    FeeTransformer,
+    MetaTransactionTransformer,
+    MetaTransactionV2Transformer,
+} from '../../src/entities/transformers';
+import {
+    MOCK_FEE,
+    MOCK_META_TRANSACTION,
+    MOCK_STORED_FEE,
+    MOCK_STORED_META_TRANSACTION,
+    MOCK_META_TRANSACTION_V2,
+} from '../constants';
 
 describe('transformers', () => {
     describe('MetaTransactionTransformer', () => {
@@ -9,6 +19,13 @@ describe('transformers', () => {
 
         it('should correctly unmarshal `MetaTransaction` stored in db to `MetaTransaction` object', async () => {
             expect(MetaTransactionTransformer.from(MOCK_STORED_META_TRANSACTION)).toEqual(MOCK_META_TRANSACTION);
+        });
+    });
+
+    describe('MetaTransactionV2Transformer', () => {
+        it('should correctly marshal and unmarshal `MetaTransactionV2`', async () => {
+            const storedMetaTransactionV2 = MetaTransactionV2Transformer.to(MOCK_META_TRANSACTION_V2);
+            expect(MetaTransactionV2Transformer.from(storedMetaTransactionV2)).toEqual(MOCK_META_TRANSACTION_V2);
         });
     });
 

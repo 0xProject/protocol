@@ -1,4 +1,5 @@
-import { MetaTransaction, MetaTransactionFields } from '@0x/protocol-utils';
+import { MetaTransaction, MetaTransactionFields, MetaTransactionV2, MetaTransactionV2Fields } from '@0x/protocol-utils';
+
 import { BigNumber } from '@0x/utils';
 import { ValueTransformer } from 'typeorm';
 
@@ -66,6 +67,63 @@ export const MetaTransactionTransformer: ValueTransformer = {
             salt: new BigNumber(salt),
             value: new BigNumber(value),
             feeAmount: new BigNumber(feeAmount),
+            chainId: Number(chainId),
+        });
+    },
+};
+
+export const MetaTransactionV2Transformer: ValueTransformer = {
+    /**
+     * Used to marshal `MetaTransactionV2` when writing to the database.
+     */
+    to: (
+        metaTransaction: MetaTransactionV2,
+    ): Record<keyof Omit<MetaTransactionV2Fields, 'fees'>, string> &
+        Record<
+            'fees',
+            {
+                recipient: string;
+                amount: string;
+            }[]
+        > => {
+        const { expirationTimeSeconds, fees, salt, chainId } = metaTransaction;
+        return {
+            ...metaTransaction,
+            expirationTimeSeconds: expirationTimeSeconds.toString(),
+            fees: fees.map((fee) => {
+                return {
+                    recipient: fee.recipient,
+                    amount: fee.amount.toString(),
+                };
+            }),
+            salt: salt.toString(),
+            chainId: chainId.toString(),
+        };
+    },
+    /**
+     * Used to unmarshal `MetaTransactionV2` when reading from the database.
+     */
+    from: (
+        storedValue: Record<keyof Omit<MetaTransactionV2Fields, 'fees'>, string> &
+            Record<
+                'fees',
+                {
+                    recipient: string;
+                    amount: string;
+                }[]
+            >,
+    ): MetaTransactionV2 => {
+        const { expirationTimeSeconds, fees, salt, chainId } = storedValue;
+        return new MetaTransactionV2({
+            ...storedValue,
+            expirationTimeSeconds: new BigNumber(expirationTimeSeconds),
+            fees: fees.map((fee) => {
+                return {
+                    recipient: fee.recipient,
+                    amount: new BigNumber(fee.amount),
+                };
+            }),
+            salt: new BigNumber(salt),
             chainId: Number(chainId),
         });
     },

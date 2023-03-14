@@ -24,6 +24,8 @@ import {
     TransactionEntity,
 } from './entities';
 import { LastLookRejectionCooldownEntity } from './entities/LastLookRejectionCooldownsEntity';
+import { MetaTransactionV2JobEntity } from './entities/MetaTransactionV2JobEntity';
+import { MetaTransactionV2SubmissionEntity } from './entities/MetaTransactionV2SubmissionEntity';
 
 const entities = [
     BlockedAddressEntity,
@@ -34,7 +36,9 @@ const entities = [
     LastLookRejectionCooldownEntity,
     MakerBalanceChainCacheEntity,
     MetaTransactionJobEntity,
+    MetaTransactionV2JobEntity,
     MetaTransactionSubmissionEntity,
+    MetaTransactionV2SubmissionEntity,
     SignedOrderV4Entity,
     PersistentSignedOrderV4Entity,
     RfqmWorkerHeartbeatEntity,

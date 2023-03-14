@@ -1,6 +1,6 @@
 import { ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { web3Factory, Web3ProviderEngine } from '@0x/dev-utils';
-import { ETH_TOKEN_ADDRESS, MetaTransaction } from '@0x/protocol-utils';
+import { ETH_TOKEN_ADDRESS, MetaTransaction, MetaTransactionV2 } from '@0x/protocol-utils';
 import { ObjectMap } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { providers } from 'ethersv5';
@@ -140,6 +140,27 @@ export const MOCK_META_TRANSACTION = new MetaTransaction({
     value: new BigNumber(4),
     feeToken: '0xdef',
     feeAmount: new BigNumber(5),
+    chainId: 1,
+    verifyingContract: '0xdef1',
+});
+
+export const MOCK_META_TRANSACTION_V2 = new MetaTransactionV2({
+    signer: '0xabcdef',
+    sender: '0xabcdef',
+    expirationTimeSeconds: new BigNumber(2),
+    salt: new BigNumber(3),
+    callData: '0x1234567890',
+    feeToken: '0xdef',
+    fees: [
+        {
+            recipient: '0x1',
+            amount: new BigNumber(100),
+        },
+        {
+            recipient: '0x2',
+            amount: new BigNumber(10),
+        },
+    ],
     chainId: 1,
     verifyingContract: '0xdef1',
 });

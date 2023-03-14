@@ -123,7 +123,7 @@
   resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-6.25.0.tgz#bb0d138d40924244482336153317f0e8a5d42b0a"
   integrity sha512-0Kr2sMupS2wNqWLvWg8fnBdOHWwLKjhsIlazUBkDpQWyNOO/eI/bwoxwMOmxf0hVSmSL5/Vn1bulltLBdKIWww==
 
-"@0x/contract-addresses@^8.0.1", "@0x/contract-addresses@^8.2.0":
+"@0x/contract-addresses@^8.0.1", "@0x/contract-addresses@^8.0.3", "@0x/contract-addresses@^8.2.0":
   version "8.2.0"
   resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-8.2.0.tgz#6743b591be997fe22055058ebba55a2390872c37"
   integrity sha512-acwYweIZLnGC6soeNmSnqJcZR1+qqWDq4f2M2cRT6PYy25PEfxxmqYc5s1+lp/ZRMFyo+KSDgykUzhgXYg2S+A==
@@ -339,7 +339,24 @@
     ethers "~4.0.4"
     lodash "^4.17.11"
 
-"@0x/protocol-utils@^1.9.0", "@0x/protocol-utils@^1.9.3", "@0x/protocol-utils@^1.9.5":
+"@0x/protocol-utils@0xProject/gitpkg-registry#0x-protocol-utils-v11.17.6-5b82e338b":
+  version "11.17.6"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/1b59f568a768601b37e4cf665b649f030eb29504"
+  dependencies:
+    "@0x/assert" "^3.0.35"
+    "@0x/contract-addresses" "^8.0.3"
+    "@0x/contract-wrappers" "^13.22.16"
+    "@0x/json-schemas" "^6.4.4"
+    "@0x/subproviders" "^7.0.0"
+    "@0x/utils" "^7.0.0"
+    "@0x/web3-wrapper" "^8.0.0"
+    "@typescript-eslint/parser" "^5.38.0"
+    chai "^4.0.1"
+    ethereumjs-util "^7.0.10"
+    ethers "~4.0.4"
+    lodash "^4.17.11"
+
+"@0x/protocol-utils@^1.9.0", "@0x/protocol-utils@^1.9.5":
   version "1.11.2"
   resolved "https://registry.yarnpkg.com/@0x/protocol-utils/-/protocol-utils-1.11.2.tgz#c27ccf3410b99d8c364550bc18dc8b04dc2e967e"
   integrity sha512-DmYCWb3fB1NSBbR7JV2Tr4oXr/3rDzVpECWUvntCyIwdohHSM7ytjYbL9ilvlH3vuDK85CSyFWNrbSP6xZfTpA==
