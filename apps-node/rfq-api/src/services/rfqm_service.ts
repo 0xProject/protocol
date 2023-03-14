@@ -1123,6 +1123,8 @@ export class RfqmService {
             isUnwrap: quote.isUnwrap,
             takerSpecifiedSide: quote.takerSpecifiedSide,
             workflow: quote.workflow,
+            takerAddress,
+            takerToken,
         };
 
         // if approval opts are supplied, add params to job table

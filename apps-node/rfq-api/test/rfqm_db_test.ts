@@ -167,6 +167,8 @@ describe('RFQM Database', () => {
                 fee: feeToStoredFee(fee),
                 takerSpecifiedSide: 'makerToken',
                 workflow: 'rfqm',
+                takerAddress: otcOrder.taker,
+                takerToken: otcOrder.takerToken,
             });
 
             // First Read
@@ -209,6 +211,8 @@ describe('RFQM Database', () => {
                 fee: feeToStoredFee(fee),
                 takerSpecifiedSide: 'makerToken',
                 workflow: 'rfqm',
+                takerAddress: otcOrder.taker,
+                takerToken: otcOrder.takerToken,
             });
 
             // Get jobs with that status

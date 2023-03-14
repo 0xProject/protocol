@@ -148,6 +148,8 @@ const MOCK_RFQM_JOB = new RfqmV2JobEntity({
     affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
     takerSpecifiedSide: 'makerToken',
     workflow: 'rfqm',
+    takerAddress: '0x123',
+    takerToken: '0x123',
 });
 
 jest.setTimeout(ONE_MINUTE_MS * 2);

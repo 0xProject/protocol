@@ -53,6 +53,7 @@ export class RfqmV2JobEntity {
     @Column({ name: 'order', type: 'jsonb' })
     public order: StoredOtcOrder;
 
+    @Index()
     @Column({ name: 'worker_address', type: 'varchar', nullable: true })
     public workerAddress: string | null;
 
@@ -104,6 +105,14 @@ export class RfqmV2JobEntity {
     @Column({ name: 'taker_specified_side', type: 'varchar', nullable: true })
     public takerSpecifiedSide: 'makerToken' | 'takerToken' | null;
 
+    @Index()
+    @Column({ name: 'taker_address', type: 'varchar', nullable: true })
+    public takerAddress: string | null;
+
+    @Index()
+    @Column({ name: 'taker_token', type: 'varchar', nullable: true })
+    public takerToken: string | null;
+
     /**
      * Used to get the 'canonical' hash of the job. This is useful
      * because it can also be called on a metatransaction job and
@@ -145,5 +154,7 @@ export class RfqmV2JobEntity {
         this.updatedAt = opts.updatedAt ?? null;
         this.workerAddress = opts.workerAddress ?? null;
         this.workflow = opts.workflow;
+        this.takerAddress = opts.takerAddress ?? null;
+        this.takerToken = opts.takerToken ?? null;
     }
 }
