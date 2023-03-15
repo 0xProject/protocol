@@ -515,6 +515,15 @@ export class RfqtService {
         now: Date = new Date(),
     ): Promise<RfqtV2Price[]> {
         const { integrator, makerToken, takerToken } = quoteContext;
+
+        // HACK: Only proceed on Matcha if not selling the Native Token
+        // TODO: This is a temporary experiment. Remove when experiment is done
+        const isTakerSellingNativeToken =
+            this._nativeTokenAddress === takerToken || this._nativeWrappedTokenAddress === takerToken;
+        if (integrator.label === 'Matcha' && !isTakerSellingNativeToken) {
+            return [];
+        }
+
         // Fetch the makers active on this pair
         const makers = this._rfqMakerManager.getRfqtV2MakersForPair(makerToken, takerToken).filter((m) => {
             if (m.rfqtUri === null) {
