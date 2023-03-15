@@ -4,6 +4,7 @@ import { AppsTable } from '../components/AppsTable';
 import { useLoaderData } from '@remix-run/react';
 import { Button } from '../components/Button';
 import * as CodeBlock from '../components/CodeBlock';
+import { GoToExplorer } from '../components/GoToExplorer';
 
 import type { LoaderArgs } from '@remix-run/node';
 import type { ElementRef } from 'react';
@@ -57,7 +58,7 @@ export const SwapCodeBlok = forwardRef<ElementRef<typeof CodeBlock.Root>, SwapCo
 export default function Apps() {
     const { apps, apiKey } = useLoaderData<typeof loader>();
     return (
-        <div className="px-24">
+        <div className="px-24 pb-12">
             <div className="my-8">
                 <h1 className="text-grey-900 font-sans text-5xl font-normal">Welcome to 0x.</h1>
             </div>
@@ -87,7 +88,8 @@ export default function Apps() {
                     </div>
                 </div>
             </div>
-            <AppsTable data={apps} className="mt-5" />
+            <AppsTable data={apps} className="mt-5 mb-24" />
+            <GoToExplorer />
         </div>
     );
 }

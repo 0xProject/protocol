@@ -83,6 +83,7 @@ type BaseButtonProps = {
     endIcon?: React.ReactElement;
 };
 type ButtonProps = BaseButtonProps & React.ComponentPropsWithRef<'button'>;
+type AnchorProps = BaseButtonProps & React.ComponentPropsWithRef<'a'>;
 type LinkButtonProps = BaseButtonProps & LinkProps;
 
 export const LinkButton = forwardRef<HTMLAnchorElement, LinkButtonProps>(function LinkButton(
@@ -121,5 +122,28 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
             {children}
             {endIcon ? <span className={iconEndContainer({ size })}>{endIcon}</span> : null}
         </button>
+    );
+});
+
+export const AnchorButton = forwardRef<HTMLAnchorElement, AnchorProps>(function Button(
+    {
+        children,
+        className,
+        color = 'default',
+        size = 'base',
+        roundness = 'default',
+        disabled,
+        startIcon,
+        endIcon,
+        ...other
+    },
+    forwardedRef,
+) {
+    return (
+        <a className={twMerge(button({ color, size, disabled, roundness }), className)} {...other} ref={forwardedRef}>
+            {startIcon ? <span className={iconStartContainer({ size })}>{startIcon}</span> : null}
+            {children}
+            {endIcon ? <span className={iconEndContainer({ size })}>{endIcon}</span> : null}
+        </a>
     );
 });
