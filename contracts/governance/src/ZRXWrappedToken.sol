@@ -32,7 +32,7 @@ contract ZRXWrappedToken is ERC20, ERC20Permit, ERC20Wrapper {
         zeroExVotes = _zeroExVotes;
     }
 
-    IZeroExVotes public zeroExVotes;
+    IZeroExVotes public immutable zeroExVotes;
     mapping(address => address) private _delegates;
 
     bytes32 private constant _DELEGATION_TYPEHASH =
