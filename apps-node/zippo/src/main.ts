@@ -3,17 +3,21 @@ import { logger } from './logger';
 import { createHTTPServer } from '@trpc/server/adapters/standalone';
 import { initTRPC } from '@trpc/server';
 import { zippoRouterDefinition, TZippoRouter } from 'zippo-interface';
-import { create as userCreate, getById as userGetById } from './services/userService';
+import { create as userCreate, getById as userGetById, getByEmail as userGetByEmail } from './services/userService';
 import { create as teamCreate, getById as teamGetById, update as teamUpdate } from './services/teamService';
 
 const t = initTRPC.create();
 
 const router = t.router({
     user: t.router({
-        get: t.procedure
-            .input(zippoRouterDefinition.user.get.input)
-            .output(zippoRouterDefinition.user.get.output)
+        getById: t.procedure
+            .input(zippoRouterDefinition.user.getById.input)
+            .output(zippoRouterDefinition.user.getById.output)
             .query(({ input }) => userGetById(input)),
+        getByEmail: t.procedure
+            .input(zippoRouterDefinition.user.getByEmail.input)
+            .output(zippoRouterDefinition.user.getByEmail.output)
+            .query(({ input }) => userGetByEmail(input)),
         create: t.procedure
             .input(zippoRouterDefinition.user.create.input)
             .output(zippoRouterDefinition.user.create.output)

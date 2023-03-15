@@ -1,6 +1,6 @@
 import { prismaMock } from './mocks/prismaMock';
 
-import { getById, create } from '../services/userService';
+import { getById, getByEmail, create } from '../services/userService';
 
 describe('userService tests', () => {
     describe('get by user ID', () => {
@@ -31,6 +31,37 @@ describe('userService tests', () => {
             expect(prismaMock.user.findUnique.mock.calls[0][0].where.id).toEqual(user.id);
         });
     });
+
+    describe("get by user by email", () => {
+        beforeAll(async () => jest.resetAllMocks());
+      
+        const user = {
+          id: "cldn7h4vj000008jufh6zbmwi",
+          integratorTeamId: "cldn84ifb000108ml7dw5g7ip",
+          name: "bob",
+          email: "bob@hello.com",
+          emailVerifiedAt: new Date(),
+          image: "",
+          passwordHash: "dfjkndlkfgneordfgb",
+          salt: "dfjgkndlf",
+          lastLoginAt: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+      
+        test("should mock prisma db access and perform get", async () => {
+          // mock prisma database access
+          prismaMock.user.findUnique.mockResolvedValue(user);
+      
+          // perform get and ensure we got the mocked user
+          await expect(getByEmail(user.email)).resolves.toEqual(user);
+        });
+      
+        test("should confirm calls to prisma as expected", () => {
+          // confirm calls to prisma happened as expected
+          expect(prismaMock.user.findUnique.mock.calls[0][0].where.email).toEqual(user.email);
+        });
+      });
 
     describe('create user no team params', () => {
         beforeAll(async () => jest.resetAllMocks());

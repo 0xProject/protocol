@@ -19,13 +19,26 @@ const defaultUserSelect = Prisma.validator<Prisma.UserSelect>()({
  * @param input User ID
  */
 export async function getById(
-    id: z.infer<typeof zippoRouterDefinition.user.get.input>,
-): Promise<z.infer<typeof zippoRouterDefinition.user.get.output>> {
+    id: z.infer<typeof zippoRouterDefinition.user.getById.input>,
+): Promise<z.infer<typeof zippoRouterDefinition.user.getById.output>> {
     return prisma.user.findUnique({
         where: { id },
         select: defaultUserSelect,
     });
 }
+
+/**
+ * Get a user by email.
+ *
+ * @param input User email
+ */
+ export async function getByEmail(email: z.infer<typeof zippoRouterDefinition.user.getByEmail.input>,
+    ): Promise<z.infer<typeof zippoRouterDefinition.user.getByEmail.output>> {
+    return prisma.user.findUnique({
+      where: { email: email },
+      select: defaultUserSelect,
+    });
+  }
 
 /**
  * Create a new user.

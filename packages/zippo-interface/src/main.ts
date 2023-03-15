@@ -27,9 +27,15 @@ const team = z.object({
 
 export const zippoRouterDefinition = {
     user: {
-        get: {
+        getById: {
             // Get a user by ID
             input: z.string().cuid().describe('The user ID'),
+            output: user.strip().nullable().describe('The user, or null if not found'),
+            type: 'query',
+        },
+        getByEmail: {
+            // Get a user by email
+            input: z.string().email().describe('The user email'),
             output: user.strip().nullable().describe('The user, or null if not found'),
             type: 'query',
         },
