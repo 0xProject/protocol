@@ -265,7 +265,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
         if (pos > 0) {
             uint256 oldQuadraticVotingPower = userBalance <= quadraticThreshold
                 ? userBalance
-                : quadraticThreshold + Math.sqrt(userBalance - quadraticThreshold);
+                : quadraticThreshold + Math.sqrt((userBalance - quadraticThreshold) * 1e18);
             oldCkpt.quadraticVotes -= SafeCast.toUint96(oldQuadraticVotingPower);
         }
 
@@ -273,7 +273,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
         uint256 newBalance = op(userBalance, delta);
         uint256 newQuadraticBalance = newBalance <= quadraticThreshold
             ? newBalance
-            : quadraticThreshold + Math.sqrt(newBalance - quadraticThreshold);
+            : quadraticThreshold + Math.sqrt((newBalance - quadraticThreshold) * 1e18);
         newQuadraticWeight = oldCkpt.quadraticVotes + newQuadraticBalance;
 
         if (pos > 0 && oldCkpt.fromBlock == block.number) {
