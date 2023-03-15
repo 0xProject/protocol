@@ -28,13 +28,15 @@ import "@openzeppelin-contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./IZeroExVotes.sol";
 
 contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpgradeable {
-    address public token;
+    address public immutable token;
     uint256 public quadraticThreshold;
 
     mapping(address => Checkpoint[]) private _checkpoints;
     Checkpoint[] private _totalSupplyCheckpoints;
 
-    constructor() {
+    constructor(address _token) {
+        require(_token != address(0), "ZeroExVotes: token cannot be 0");
+        token = _token;
         _disableInitializers();
     }
 
@@ -45,13 +47,10 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
         _;
     }
 
-    function initialize(address _token, uint256 _quadraticThreshold) public onlyProxy initializer {
+    function initialize(uint256 _quadraticThreshold) public onlyProxy initializer {
         __Ownable_init();
         __UUPSUpgradeable_init();
 
-        require(_token != address(0), "ZeroExVotes: token cannot be 0");
-        require(token == address(0), "ZeroExVotes: already initialized");
-        token = _token;
         quadraticThreshold = _quadraticThreshold;
     }
 
