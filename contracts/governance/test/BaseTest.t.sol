@@ -30,25 +30,9 @@ import "../src/ZeroExTimelock.sol";
 import "../src/ZeroExProtocolGovernor.sol";
 import "../src/ZeroExTreasuryGovernor.sol";
 
-function predict(
-    address deployer,
-    uint256 nonce
-) pure returns (address) {
+function predict(address deployer, uint256 nonce) pure returns (address) {
     require(nonce > 0 && nonce < 128);
-    return
-        address(
-            uint160(
-                uint256(
-                    keccak256(
-                        abi.encodePacked(
-                            bytes2(0xd694),
-                            deployer,
-                            bytes1(uint8(nonce))
-                        )
-                    )
-                )
-            )
-        );
+    return address(uint160(uint256(keccak256(abi.encodePacked(bytes2(0xd694), deployer, bytes1(uint8(nonce)))))));
 }
 
 contract BaseTest is Test {
@@ -120,10 +104,12 @@ contract BaseTest is Test {
         assembly {
             zrxToken := create(0, add(_bytecode, 0x20), mload(_bytecode))
         }
-
         address wTokenPrediction = predict(account1, vm.getNonce(account1) + 2);
         ZeroExVotes votesImpl = new ZeroExVotes(wTokenPrediction);
-        ERC1967Proxy votesProxy = new ERC1967Proxy(address(votesImpl), abi.encodeCall(votesImpl.initialize, (quadraticThreshold)));
+        ERC1967Proxy votesProxy = new ERC1967Proxy(
+            address(votesImpl),
+            abi.encodeCall(votesImpl.initialize, (quadraticThreshold))
+        );
         ZRXWrappedToken wToken = new ZRXWrappedToken(zrxToken, ZeroExVotes(address(votesProxy)));
         vm.stopPrank();
 
