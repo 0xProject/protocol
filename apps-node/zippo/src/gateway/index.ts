@@ -14,23 +14,23 @@ import {
 } from './kongGateway';
 
 /**
- * Provision an API key for an integrator project
+ * Provision an API key for an integrator app
  * @param integratorId Integrator ID
- * @param projectId Project ID
+ * @param appId App ID
  * @param key API key
  */
-export async function provisionIntegratorKey(integratorId: string, projectId: string, key: string): Promise<boolean> {
-    const kongConsumer = await kongEnsureConsumer(projectId);
+export async function provisionIntegratorKey(integratorId: string, appId: string, key: string): Promise<boolean> {
+    const kongConsumer = await kongEnsureConsumer(appId);
     if (!kongConsumer) {
-        logger.error({ integratorId, projectId }, 'Unable to add kong consumer');
+        logger.error({ integratorId, appId }, 'Unable to add kong consumer');
         return false;
     }
-    if (!(await kongEnsureRequestTransformer(projectId, integratorId))) {
-        logger.error({ integratorId, projectId }, 'Unable to add request transformer');
+    if (!(await kongEnsureRequestTransformer(appId, integratorId))) {
+        logger.error({ integratorId, appId }, 'Unable to add request transformer');
     }
-    const kongKey = await kongEnsureKey(projectId, key);
+    const kongKey = await kongEnsureKey(appId, key);
     if (!kongKey) {
-        logger.error({ integratorId, projectId }, 'Unable to add kong key');
+        logger.error({ integratorId, appId }, 'Unable to add kong key');
         return false;
     }
 
@@ -38,15 +38,15 @@ export async function provisionIntegratorKey(integratorId: string, projectId: st
 }
 
 /**
- * Provision a new integrator project with access to specific route(s) with rate limits
+ * Provision a new integrator app with access to specific route(s) with rate limits
  * @param integratorId Integrator ID
- * @param projectId Project ID
+ * @param appId App ID
  * @param routes List of routes to provision access
  * @param rateLimits Rate limits to apply to routes
  */
 export async function provisionIntegratorAccess(
     integratorId: string,
-    projectId: string,
+    appId: string,
     routes: ZippoRouteTag[],
     rateLimits: ZippoRateLimit[],
 ): Promise<boolean> {
@@ -54,29 +54,29 @@ export async function provisionIntegratorAccess(
         throw new Error('route and rateLimit array lengths must match.');
     }
 
-    const kongConsumer = await kongEnsureConsumer(projectId);
+    const kongConsumer = await kongEnsureConsumer(appId);
     if (!kongConsumer) {
-        logger.error({ integratorId, projectId }, 'Unable to add kong consumer');
+        logger.error({ integratorId, appId }, 'Unable to add kong consumer');
         return false;
     }
-    if (!(await kongEnsureRequestTransformer(projectId, integratorId))) {
-        logger.error({ integratorId, projectId }, 'Unable to add request transformer');
+    if (!(await kongEnsureRequestTransformer(appId, integratorId))) {
+        logger.error({ integratorId, appId }, 'Unable to add request transformer');
     }
 
     const grantAccessPromises = routes.map(async (route, i) => {
         const routeInfo = env.ZIPPO_ROUTE_MAP[route];
         let isSuccess = true;
         if (routeInfo) {
-            const kongAcl = await kongEnsureAcl(projectId, routeInfo.groupName);
+            const kongAcl = await kongEnsureAcl(appId, routeInfo.groupName);
             if (!kongAcl) {
-                logger.error({ integratorId, projectId, groupName: routeInfo.groupName }, 'Unable to add ACL to route');
+                logger.error({ integratorId, appId, groupName: routeInfo.groupName }, 'Unable to add ACL to route');
                 isSuccess = false;
             }
 
             const rateLimitPromises = routeInfo.routeNames.map(async (routeName) => {
-                const kongRateLimit = await kongEnsureRateLimit(projectId, routeName, rateLimits[i]);
+                const kongRateLimit = await kongEnsureRateLimit(appId, routeName, rateLimits[i]);
                 if (!kongRateLimit) {
-                    logger.error({ integratorId, projectId, routeName }, 'Unable to add rate limit to route');
+                    logger.error({ integratorId, appId, routeName }, 'Unable to add rate limit to route');
                     return false;
                 }
                 return true;
@@ -94,31 +94,31 @@ export async function provisionIntegratorAccess(
 }
 
 /**
- * Deprovision integrator project access for specific route(s)
+ * Deprovision integrator app access for specific route(s)
  * @param integratorId Integrator ID
- * @param projectId Project ID
+ * @param appId App ID
  * @param routes List of routes in which to deprovision access
  */
 export async function deprovisionIntegratorAccess(
     integratorId: string,
-    projectId: string,
+    appId: string,
     routes: ZippoRouteTag[],
 ): Promise<boolean> {
     const revokeAccessPromises = routes.map(async (route) => {
         let isSuccess = true;
         const routeInfo = env.ZIPPO_ROUTE_MAP[route];
         if (routeInfo) {
-            if (!(await kongRemoveAcl(projectId, routeInfo.groupName))) {
+            if (!(await kongRemoveAcl(appId, routeInfo.groupName))) {
                 logger.error(
-                    { integratorId, projectId, groupName: routeInfo.groupName },
+                    { integratorId, appId, groupName: routeInfo.groupName },
                     'Unable to remove ACL from route',
                 );
                 isSuccess = false;
             }
 
             const rateLimitPromises = routeInfo.routeNames.map(async (routeName) => {
-                if (!(await kongRemoveRateLimit(projectId, routeName))) {
-                    logger.error({ integratorId, projectId, routeName }, 'Unable to remove rate limit from route');
+                if (!(await kongRemoveRateLimit(appId, routeName))) {
+                    logger.error({ integratorId, appId, routeName }, 'Unable to remove rate limit from route');
                     return false;
                 }
                 return true;
@@ -136,28 +136,28 @@ export async function deprovisionIntegratorAccess(
 }
 
 /**
- * Remove an integrator's project completely from the platform
+ * Remove an integrator's app completely from the platform
  * @param integratorId Integrator ID
- * @param projectId Project ID
+ * @param appId App ID
  */
-export async function removeIntegrator(integratorId: string, projectId: string): Promise<boolean> {
-    const result = await kongRemoveConsumer(projectId);
+export async function removeIntegrator(integratorId: string, appId: string): Promise<boolean> {
+    const result = await kongRemoveConsumer(appId);
     if (!result) {
-        logger.error({ integratorId, projectId }, 'Unable to remove consumer');
+        logger.error({ integratorId, appId }, 'Unable to remove consumer');
     }
     return result;
 }
 
 /**
- * Revoke a specific integrator project key
+ * Revoke a specific integrator app key
  * @param integratorId Integrator ID
- * @param projectId Project ID
+ * @param appId App ID
  * @param key API Key
  */
-export async function revokeIntegratorKey(integratorId: string, projectId: string, key: string): Promise<boolean> {
-    const result = kongRemoveKey(projectId, key);
+export async function revokeIntegratorKey(integratorId: string, appId: string, key: string): Promise<boolean> {
+    const result = kongRemoveKey(appId, key);
     if (!result) {
-        logger.error({ integratorId, projectId }, 'Unable to remove key');
+        logger.error({ integratorId, appId }, 'Unable to remove key');
     }
     return result;
 }

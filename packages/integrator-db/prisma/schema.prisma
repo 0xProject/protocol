@@ -3,7 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  output = "../dist"
+  output   = "../dist"
 }
 
 datasource db {
@@ -20,8 +20,8 @@ model IntegratorTeam {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  users              User[]
-  integratorProjects IntegratorProject[]
+  users          User[]
+  integratorApps IntegratorApp[]
 
   @@map("integrator_teams")
 }
@@ -93,7 +93,7 @@ model VerificationToken {
 }
 
 // Represents a logical unit of work by an integrator.
-model IntegratorProject {
+model IntegratorApp {
   id               String   @id @default(cuid()) @map("id")
   integratorTeamId String   @map("integrator_team_id")
   name             String   @map("name")
@@ -108,35 +108,35 @@ model IntegratorProject {
 
   integratorTeam IntegratorTeam @relation(fields: [integratorTeamId], references: [id], onDelete: Cascade)
 
-  @@map("integrator_projects")
+  @@map("integrator_apps")
 }
 
 // An API key for access to 0x services
 model IntegratorApiKey {
-  id                  String   @id @default(cuid()) @map("id")
-  apiKey              String   @map("api_key")
-  integratorProjectId String   @map("integrator_project_id")
-  description         String?  @map("description")
-  createdAt           DateTime @default(now()) @map("created_at")
-  updatedAt           DateTime @updatedAt @map("updated_at")
-  disabled            Boolean  @default(false) @map("disabled")
+  id              String   @id @default(cuid()) @map("id")
+  apiKey          String   @map("api_key")
+  integratorAppId String   @map("integrator_app_id")
+  description     String?  @map("description")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  disabled        Boolean  @default(false) @map("disabled")
 
-  project IntegratorProject @relation(fields: [integratorProjectId], references: [id], onDelete: Cascade)
+  app IntegratorApp @relation(fields: [integratorAppId], references: [id], onDelete: Cascade)
 
   @@map("integrator_api_keys")
 }
 
-// Represents an integrator project having access to a specific 0x route (swap, orderbook, ...)
+// Represents an integrator app having access to a specific 0x route (swap, orderbook, ...)
 //   with a specific rate limit
 model IntegratorAccess {
-  integratorProjectId String   @map("integrator_project_id")
-  routeTag            String   @map("route_tag")
-  rateLimit           String   @map("rate_limit")
-  createdAt           DateTime @default(now()) @map("created_at")
-  updatedAt           DateTime @updatedAt @map("updated_at")
+  integratorAppId String   @map("integrator_app_id")
+  routeTag        String   @map("route_tag")
+  rateLimit       String   @map("rate_limit")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
-  project IntegratorProject @relation(fields: [integratorProjectId], references: [id], onDelete: Cascade)
+  app IntegratorApp @relation(fields: [integratorAppId], references: [id], onDelete: Cascade)
 
-  @@id([integratorProjectId, routeTag])
+  @@id([integratorAppId, routeTag])
   @@map("integrator_access")
 }

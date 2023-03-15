@@ -13,11 +13,11 @@ const axiosInstance = axios.create({
 
 /**
  * Get a consumer object from kong. Swallows errors and returns null.
- * @param projectId Kong consumer projectId
+ * @param appId Kong consumer appId
  */
-export async function kongGetConsumer(projectId: string): Promise<KongConsumer | null> {
+export async function kongGetConsumer(appId: string): Promise<KongConsumer | null> {
     try {
-        const { data, status } = await kongGet<KongConsumer>(`/consumers/${projectId}`);
+        const { data, status } = await kongGet<KongConsumer>(`/consumers/${appId}`);
         return status === StatusCodes.OK ? data : null;
     } catch {
         return null;
@@ -26,16 +26,16 @@ export async function kongGetConsumer(projectId: string): Promise<KongConsumer |
 
 /**
  * Ensure a kong consumer exists.
- * @param projectId Kong consumer projectId
+ * @param appId Kong consumer appId
  */
-export async function kongEnsureConsumer(projectId: string): Promise<KongConsumer | null> {
-    const { data, status } = await kongPut<KongConsumer>(`/consumers/${projectId}`);
+export async function kongEnsureConsumer(appId: string): Promise<KongConsumer | null> {
+    const { data, status } = await kongPut<KongConsumer>(`/consumers/${appId}`);
     return status === StatusCodes.OK ? data : null;
 }
 
-export async function kongRemoveConsumer(projectId: string): Promise<boolean> {
+export async function kongRemoveConsumer(appId: string): Promise<boolean> {
     try {
-        const { status } = await kongDelete(`/consumers/${projectId}`);
+        const { status } = await kongDelete(`/consumers/${appId}`);
         return status === StatusCodes.NO_CONTENT;
     } catch {
         return false;
@@ -43,14 +43,14 @@ export async function kongRemoveConsumer(projectId: string): Promise<boolean> {
 }
 
 /**
- * Ensure the kong request-transformer plugin is configured for the project
- * @param projectId Kong consumer projectId
- * @param integratorId Integrator ID to map to projectId (used in request headers to backend services)
+ * Ensure the kong request-transformer plugin is configured for the app
+ * @param appId Kong consumer appId
+ * @param integratorId Integrator ID to map to appId (used in request headers to backend services)
  */
-export async function kongEnsureRequestTransformer(projectId: string, integratorId: string): Promise<boolean> {
+export async function kongEnsureRequestTransformer(appId: string, integratorId: string): Promise<boolean> {
     let foundPlugin;
     try {
-        const { data, status } = await kongGet<KongPlugins>(`/consumers/${projectId}/plugins`);
+        const { data, status } = await kongGet<KongPlugins>(`/consumers/${appId}/plugins`);
         if (status !== StatusCodes.OK) {
             return false;
         }
@@ -66,14 +66,14 @@ export async function kongEnsureRequestTransformer(projectId: string, integrator
             name: 'request-transformer',
             config: {
                 rename: {
-                    headers: ['X-Consumer-Username:0x-Project-Id'],
+                    headers: ['X-Consumer-Username:0x-App-Id'],
                 },
                 add: {
                     headers: ['0x-Integrator-Id:' + integratorId],
                 },
             },
         };
-        const { status } = await kongPost(`/consumers/${projectId}/plugins`, req);
+        const { status } = await kongPost(`/consumers/${appId}/plugins`, req);
         return status === StatusCodes.CREATED;
     } catch {
         return false;
@@ -82,12 +82,12 @@ export async function kongEnsureRequestTransformer(projectId: string, integrator
 
 /**
  * Get a consumer API key object from kong. Swallows errors and returns null.
- * @param projectId Kong consumer projectId
+ * @param appId Kong consumer appId
  * @param key Kong API key
  */
-export async function kongGetKey(projectId: string, key: string): Promise<KongKey | null> {
+export async function kongGetKey(appId: string, key: string): Promise<KongKey | null> {
     try {
-        const { data, status } = await kongGet<KongKeys>(`/consumers/${projectId}/key-auth`);
+        const { data, status } = await kongGet<KongKeys>(`/consumers/${appId}/key-auth`);
         if (status !== StatusCodes.OK) {
             return null;
         }
@@ -99,32 +99,32 @@ export async function kongGetKey(projectId: string, key: string): Promise<KongKe
 
 /**
  * Ensure a kong consumer API key exists.
- * @param projectId Kong consumer projectId
+ * @param appId Kong consumer appId
  * @param key Kong API key
  */
-export async function kongEnsureKey(projectId: string, key: string): Promise<KongKey | null> {
-    const existingKey = await kongGetKey(projectId, key);
+export async function kongEnsureKey(appId: string, key: string): Promise<KongKey | null> {
+    const existingKey = await kongGetKey(appId, key);
     if (existingKey) {
-        const { data, status } = await kongPut<KongKey>(`/consumers/${projectId}/key-auth/${existingKey.id}`, { key });
+        const { data, status } = await kongPut<KongKey>(`/consumers/${appId}/key-auth/${existingKey.id}`, { key });
         return status !== StatusCodes.OK ? null : data;
     } else {
-        const { data, status } = await kongPost<KongKey>(`/consumers/${projectId}/key-auth`, { key });
+        const { data, status } = await kongPost<KongKey>(`/consumers/${appId}/key-auth`, { key });
         return status !== StatusCodes.CREATED ? null : data;
     }
 }
 
 /**
  * Remove a key from a consumer
- * @param projectId Kong consumer projectId
+ * @param appId Kong consumer appId
  * @param key Kong API key
  */
-export async function kongRemoveKey(projectId: string, key: string): Promise<boolean> {
+export async function kongRemoveKey(appId: string, key: string): Promise<boolean> {
     try {
-        const kongKey = await kongGetKey(projectId, key);
+        const kongKey = await kongGetKey(appId, key);
         if (!kongKey) {
             return false;
         }
-        const { status } = await kongDelete(`/consumers/${projectId}/key-auth/${kongKey.id}`);
+        const { status } = await kongDelete(`/consumers/${appId}/key-auth/${kongKey.id}`);
         return status === StatusCodes.NO_CONTENT;
     } catch {
         return false;
@@ -133,12 +133,12 @@ export async function kongRemoveKey(projectId: string, key: string): Promise<boo
 
 /**
  * Get a consumer ACL membership. Swallows errors and returns null.
- * @param projectId Kong consumer projectId
+ * @param appId Kong consumer appId
  * @param group Kong ACL group
  */
-export async function kongGetAcl(projectId: string, group: string): Promise<KongAcl | null> {
+export async function kongGetAcl(appId: string, group: string): Promise<KongAcl | null> {
     try {
-        const { data, status } = await kongGet<KongAcl>(`/consumers/${projectId}/acls/${group}`);
+        const { data, status } = await kongGet<KongAcl>(`/consumers/${appId}/acls/${group}`);
         return status === StatusCodes.OK ? data : null;
     } catch {
         return null;
@@ -147,26 +147,26 @@ export async function kongGetAcl(projectId: string, group: string): Promise<Kong
 
 /**
  * Ensure a kong consumer ACL membership exists.
- * @param projectId Kong consumer projectId
+ * @param appId Kong consumer appId
  * @param group Kong ACL group
  */
-export async function kongEnsureAcl(projectId: string, group: string): Promise<KongAcl | null> {
-    const { data, status } = await kongPut<KongAcl>(`/consumers/${projectId}/acls/${group}`);
+export async function kongEnsureAcl(appId: string, group: string): Promise<KongAcl | null> {
+    const { data, status } = await kongPut<KongAcl>(`/consumers/${appId}/acls/${group}`);
     return status === StatusCodes.OK ? data : null;
 }
 
 /**
  * Remove a consumer from an ACL membership.
- * @param projectId Kong consumer projectId
+ * @param appId Kong consumer appId
  * @param group Kong ACL group
  */
-export async function kongRemoveAcl(projectId: string, group: string): Promise<boolean> {
+export async function kongRemoveAcl(appId: string, group: string): Promise<boolean> {
     try {
-        const kongAcl = await kongGetAcl(projectId, group);
+        const kongAcl = await kongGetAcl(appId, group);
         if (!kongAcl) {
             return false;
         }
-        const { status } = await kongDelete(`/consumers/${projectId}/acls/${kongAcl.id}`);
+        const { status } = await kongDelete(`/consumers/${appId}/acls/${kongAcl.id}`);
         return status === StatusCodes.NO_CONTENT;
     } catch {
         return false;
@@ -175,15 +175,12 @@ export async function kongRemoveAcl(projectId: string, group: string): Promise<b
 
 /**
  * Get a consumer rate limit. Swallows errors and returns null.
- * @param projectId Kong consumer projectId
+ * @param appId Kong consumer appId
  * @param routeName route name in which to fetch the rate limit
  */
-export async function kongGetRateLimit(
-    projectId: string,
-    routeName: string,
-): Promise<KongPlugin<ZippoRateLimit> | null> {
+export async function kongGetRateLimit(appId: string, routeName: string): Promise<KongPlugin<ZippoRateLimit> | null> {
     try {
-        const { data, status } = await kongGet<KongPlugins>(`/consumers/${projectId}/plugins`);
+        const { data, status } = await kongGet<KongPlugins>(`/consumers/${appId}/plugins`);
         if (status !== StatusCodes.OK) {
             return null;
         }
@@ -203,12 +200,12 @@ export async function kongGetRateLimit(
 
 /**
  * Ensure a kong consumer has a rate limit for a specific route.
- * @param projectId Kong consumer projectId
+ * @param appId Kong consumer appId
  * @param routeName route name in which to apply rate limit
  * @param rateLimit rate limit
  */
 export async function kongEnsureRateLimit(
-    projectId: string,
+    appId: string,
     routeName: string,
     rateLimit: ZippoRateLimit,
 ): Promise<KongPlugin<ZippoRateLimit> | null> {
@@ -238,31 +235,31 @@ export async function kongEnsureRateLimit(
         },
     };
 
-    const existingRateLimit = await kongGetRateLimit(projectId, routeName);
+    const existingRateLimit = await kongGetRateLimit(appId, routeName);
     if (existingRateLimit) {
         const { data, status } = await kongPut<KongPlugin<ZippoRateLimit>>(
-            `/consumers/${projectId}/plugins/${existingRateLimit.id}`,
+            `/consumers/${appId}/plugins/${existingRateLimit.id}`,
             req,
         );
         return status !== StatusCodes.OK ? null : data;
     } else {
-        const { data, status } = await kongPost<KongPlugin<ZippoRateLimit>>(`/consumers/${projectId}/plugins`, req);
+        const { data, status } = await kongPost<KongPlugin<ZippoRateLimit>>(`/consumers/${appId}/plugins`, req);
         return status !== StatusCodes.CREATED ? null : data;
     }
 }
 
 /**
  * Remove the rate limit for a specific route for a consumer
- * @param projectId Kong consumer projectId
+ * @param appId Kong consumer appId
  * @param routeName route name in which to remove rate limit
  */
-export async function kongRemoveRateLimit(projectId: string, routeName: string): Promise<boolean> {
+export async function kongRemoveRateLimit(appId: string, routeName: string): Promise<boolean> {
     try {
-        const kongRateLimit = await kongGetRateLimit(projectId, routeName);
+        const kongRateLimit = await kongGetRateLimit(appId, routeName);
         if (!kongRateLimit) {
             return false;
         }
-        const { status } = await kongDelete(`/consumers/${projectId}/plugins/${kongRateLimit.id}`);
+        const { status } = await kongDelete(`/consumers/${appId}/plugins/${kongRateLimit.id}`);
         return status === StatusCodes.NO_CONTENT;
     } catch {
         return false;

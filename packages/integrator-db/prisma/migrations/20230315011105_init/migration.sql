@@ -60,7 +60,7 @@ CREATE TABLE "verification_tokens" (
 );
 
 -- CreateTable
-CREATE TABLE "integrator_projects" (
+CREATE TABLE "integrator_apps" (
     "id" TEXT NOT NULL,
     "integrator_team_id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -70,14 +70,14 @@ CREATE TABLE "integrator_projects" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "integrator_projects_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "integrator_apps_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "integrator_api_keys" (
     "id" TEXT NOT NULL,
     "api_key" TEXT NOT NULL,
-    "integrator_project_id" TEXT NOT NULL,
+    "integrator_app_id" TEXT NOT NULL,
     "description" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
@@ -88,13 +88,13 @@ CREATE TABLE "integrator_api_keys" (
 
 -- CreateTable
 CREATE TABLE "integrator_access" (
-    "integrator_project_id" TEXT NOT NULL,
+    "integrator_app_id" TEXT NOT NULL,
     "route_tag" TEXT NOT NULL,
     "rate_limit" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "integrator_access_pkey" PRIMARY KEY ("integrator_project_id","route_tag")
+    CONSTRAINT "integrator_access_pkey" PRIMARY KEY ("integrator_app_id","route_tag")
 );
 
 -- CreateIndex
@@ -122,10 +122,10 @@ ALTER TABLE "accounts" ADD CONSTRAINT "accounts_user_id_fkey" FOREIGN KEY ("user
 ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "integrator_projects" ADD CONSTRAINT "integrator_projects_integrator_team_id_fkey" FOREIGN KEY ("integrator_team_id") REFERENCES "integrator_teams"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "integrator_apps" ADD CONSTRAINT "integrator_apps_integrator_team_id_fkey" FOREIGN KEY ("integrator_team_id") REFERENCES "integrator_teams"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "integrator_api_keys" ADD CONSTRAINT "integrator_api_keys_integrator_project_id_fkey" FOREIGN KEY ("integrator_project_id") REFERENCES "integrator_projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "integrator_api_keys" ADD CONSTRAINT "integrator_api_keys_integrator_app_id_fkey" FOREIGN KEY ("integrator_app_id") REFERENCES "integrator_apps"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "integrator_access" ADD CONSTRAINT "integrator_access_integrator_project_id_fkey" FOREIGN KEY ("integrator_project_id") REFERENCES "integrator_projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "integrator_access" ADD CONSTRAINT "integrator_access_integrator_app_id_fkey" FOREIGN KEY ("integrator_app_id") REFERENCES "integrator_apps"("id") ON DELETE CASCADE ON UPDATE CASCADE;

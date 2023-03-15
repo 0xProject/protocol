@@ -9,7 +9,7 @@ describe('gateway tests', () => {
             kongMock.kongEnsureConsumer.mockResolvedValue({
                 id: '156f70c1-e993-4293-a4a4-528190f2b46c',
                 created_at: 12345,
-                username: 'project12345',
+                username: 'app12345',
             });
             kongMock.kongEnsureRequestTransformer.mockResolvedValue(true);
             kongMock.kongEnsureAcl.mockResolvedValue({
@@ -32,22 +32,17 @@ describe('gateway tests', () => {
 
         it('should provision integrator access', async () => {
             await expect(
-                provisionIntegratorAccess(
-                    'integrator12345',
-                    'project12345',
-                    [ZippoRouteTag.SwapV1Price],
-                    [{ minute: 30 }],
-                ),
+                provisionIntegratorAccess('integrator12345', 'app12345', [ZippoRouteTag.SwapV1Price], [{ minute: 30 }]),
             ).resolves.toBeTruthy();
         });
 
         it('should confirm mock calls', () => {
-            expect(kongMock.kongEnsureConsumer.mock.calls[0][0]).toEqual('project12345');
-            expect(kongMock.kongEnsureRequestTransformer.mock.calls[0][0]).toEqual('project12345');
+            expect(kongMock.kongEnsureConsumer.mock.calls[0][0]).toEqual('app12345');
+            expect(kongMock.kongEnsureRequestTransformer.mock.calls[0][0]).toEqual('app12345');
             expect(kongMock.kongEnsureRequestTransformer.mock.calls[0][1]).toEqual('integrator12345');
-            expect(kongMock.kongEnsureAcl.mock.calls[0][0]).toEqual('project12345');
+            expect(kongMock.kongEnsureAcl.mock.calls[0][0]).toEqual('app12345');
             expect(kongMock.kongEnsureAcl.mock.calls[0][1]).toEqual('swap_v1_price_group');
-            expect(kongMock.kongEnsureRateLimit.mock.calls[0][0]).toEqual('project12345');
+            expect(kongMock.kongEnsureRateLimit.mock.calls[0][0]).toEqual('app12345');
             expect(kongMock.kongEnsureRateLimit.mock.calls[0][1]).toEqual('swap_price_v1_route_optimism');
             expect(kongMock.kongEnsureRateLimit.mock.calls[0][2]).toEqual({
                 minute: 30,
