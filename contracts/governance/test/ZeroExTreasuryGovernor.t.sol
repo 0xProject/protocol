@@ -23,7 +23,7 @@ import "./ZeroExGovernorBaseTest.t.sol";
 contract ZeroExTreasuryGovernorTest is ZeroExGovernorBaseTest {
     function setUp() public {
         governorName = "ZeroExTreasuryGovernor";
-        proposalThreshold = 5e11;
+        proposalThreshold = 250000e18;
 
         address governorAddress;
         (token, wToken, votes, , timelock, , governorAddress) = setupGovernance();
