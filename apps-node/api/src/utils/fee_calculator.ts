@@ -84,7 +84,7 @@ export function calculateFees(opts: {
 
     return {
         fees,
-        ..._calculateTotalOnChainFees(fees, opts.gasPerOnChainTransfer),
+        ...calculateTotalOnChainFees(fees, opts.gasPerOnChainTransfer),
     };
 }
 
@@ -95,7 +95,7 @@ export function calculateFees(opts: {
  * @param gasPerOnChainTransfer: The gas cost per on-chain transfer.
  * @returns On-chain fee amount, transfers and corresponding gas cost.
  */
-function _calculateTotalOnChainFees(
+export function calculateTotalOnChainFees(
     fees: Fees,
     gasPerOnChainTransfer: BigNumber,
 ): {

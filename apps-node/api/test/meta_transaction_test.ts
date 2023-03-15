@@ -14,7 +14,7 @@ import { getDefaultAppDependenciesAsync } from '../src/runners/utils';
 import { AppDependencies } from '../src/types';
 import { LimitOrderFields } from '../src/asset-swapper';
 import * as config from '../src/config';
-import { META_TRANSACTION_V1_PATH, META_TRANSACTION_V2_PATH } from '../src/constants';
+import { META_TRANSACTION_V1_PATH, META_TRANSACTION_V2_PATH, ZERO } from '../src/constants';
 import { getDBConnectionOrThrow } from '../src/db_connection';
 import { ValidationErrorCodes, ValidationErrorItem, ValidationErrorReasons } from '../src/errors';
 import { GetSwapQuoteResponse, SignedLimitOrder } from '../src/types';
@@ -37,7 +37,11 @@ import { MockOrderWatcher } from './utils/mock_order_watcher';
 import { getRandomSignedLimitOrderAsync } from './utils/orders';
 import { StatusCodes } from 'http-status-codes';
 import { decodeTransformERC20 } from './asset-swapper/test_utils/decoders';
-import { decodeAffiliateFeeTransformerData } from '@0x/protocol-utils';
+import {
+    FillQuoteTransformerSide,
+    decodeAffiliateFeeTransformerData,
+    decodeFillQuoteTransformerData,
+} from '@0x/protocol-utils';
 
 // Force reload of the app avoid variables being polluted between test suites
 // Warning: You probably don't want to move this
@@ -162,17 +166,34 @@ describe(SUITE_NAME, () => {
     });
 
     describe('v2 /price', async () => {
-        it('should respond with 200 OK even if the the takerAddress cannot complete a trade', async () => {
-            // The taker does not have an allowance
-            const swapResponse = await requestSwap(app, 'price', 'v2', {
-                takerAddress: invalidTakerAddress,
-                sellToken: 'WETH',
-                buyToken: 'ZRX',
-                sellAmount: '10000',
-                integratorId: 'integrator',
-                metaTransactionVersion: 'v1',
+        describe('metaTransaction v1 requested', async () => {
+            it('should respond with 200 OK even if the the takerAddress cannot complete a trade', async () => {
+                // The taker does not have an allowance
+                const swapResponse = await requestSwap(app, 'price', 'v2', {
+                    takerAddress: invalidTakerAddress,
+                    sellToken: 'WETH',
+                    buyToken: 'ZRX',
+                    sellAmount: '10000',
+                    integratorId: 'integrator',
+                    metaTransactionVersion: 'v1',
+                });
+                expect(swapResponse.statusCode).eq(HttpStatus.StatusCodes.OK);
             });
-            expect(swapResponse.statusCode).eq(HttpStatus.StatusCodes.OK);
+        });
+
+        describe('metaTransaction v2 requested', async () => {
+            it('should respond with 200 OK even if the the takerAddress cannot complete a trade', async () => {
+                // The taker does not have an allowance
+                const swapResponse = await requestSwap(app, 'price', 'v2', {
+                    takerAddress: invalidTakerAddress,
+                    sellToken: 'WETH',
+                    buyToken: 'ZRX',
+                    sellAmount: '10000',
+                    integratorId: 'integrator',
+                    metaTransactionVersion: 'v2',
+                });
+                expect(swapResponse.statusCode).eq(HttpStatus.StatusCodes.OK);
+            });
         });
     });
 
@@ -283,11 +304,29 @@ describe(SUITE_NAME, () => {
             ];
 
             for (const body of bodyPermutations) {
-                const response = await requestSwap(app, 'quote', 'v2', {
-                    ...body,
-                    metaTransactionVersion: 'v1',
+                // metaTransaction v1 requested
+                const [response1, response2] = await Promise.all([
+                    requestSwap(app, 'quote', 'v2', {
+                        ...body,
+                        metaTransactionVersion: 'v1',
+                    }),
+                    await requestSwap(app, 'quote', 'v2', {
+                        ...body,
+                        metaTransactionVersion: 'v2',
+                    }),
+                ]);
+                expectCorrectQuoteResponse(response1, {
+                    buyAmount: new BigNumber(body.buyAmount),
+                    sellTokenAddress: body.sellToken.startsWith('0x')
+                        ? body.sellToken
+                        : SYMBOL_TO_ADDRESS[body.sellToken],
+                    buyTokenAddress: body.buyToken.startsWith('0x') ? body.buyToken : SYMBOL_TO_ADDRESS[body.buyToken],
+                    allowanceTarget: isNativeSymbolOrAddress(body.sellToken, CHAIN_ID)
+                        ? NULL_ADDRESS
+                        : CONTRACT_ADDRESSES.exchangeProxy,
+                    sources: [ZERO_EX_SOURCE],
                 });
-                expectCorrectQuoteResponse(response, {
+                expectCorrectQuoteResponse(response2, {
                     buyAmount: new BigNumber(body.buyAmount),
                     sellTokenAddress: body.sellToken.startsWith('0x')
                         ? body.sellToken
@@ -301,297 +340,171 @@ describe(SUITE_NAME, () => {
             }
         });
 
-        it("should respond with INSUFFICIENT_ASSET_LIQUIDITY when there's no liquidity", async () => {
-            const response = await requestSwap(app, 'quote', 'v2', {
-                buyToken: ZRX_TOKEN_ADDRESS,
-                sellToken: WETH_TOKEN_ADDRESS,
-                buyAmount: '10000000000000000000000000000000',
-                integratorId: 'integrator',
-                takerAddress: TAKER_ADDRESS,
-                metaTransactionVersion: 'v1',
-                feeConfigs: {
-                    integratorFee: {
-                        type: 'volume',
-                        volumePercentage: '0.1',
-                        billingType: onChainBilling,
-                        feeRecipient: randomAddress(),
-                    },
-                },
-            });
-            expectSwapError(response, {
-                validationErrors: [
-                    {
-                        code: ValidationErrorCodes.ValueOutOfRange,
-                        field: 'buyAmount',
-                        reason: 'INSUFFICIENT_ASSET_LIQUIDITY',
-                    },
-                ],
-            });
-        });
-
-        it('should respect buyAmount', async () => {
-            const response = await requestSwap(app, 'quote', 'v2', {
-                buyToken: 'ZRX',
-                sellToken: 'WETH',
-                buyAmount: '1234',
-                integratorId: INTEGRATOR_ID,
-                takerAddress: TAKER_ADDRESS,
-                metaTransactionVersion: 'v1',
-                feeConfigs: {
-                    integratorFee: {
-                        type: 'volume',
-                        volumePercentage: '0.1',
-                        billingType: onChainBilling,
-                        feeRecipient: randomAddress(),
-                    },
-                    zeroExFee: {
-                        type: 'integrator_share',
-                        integratorSharePercentage: '0.2',
-                        billingType: offChainBilling,
-                        feeRecipient: null,
-                    },
-                    gasFee: { type: 'gas', billingType: offChainBilling, feeRecipient: null },
-                },
-            });
-            expectCorrectQuoteResponse(response, { buyAmount: new BigNumber(1234) });
-        });
-
-        it('should respect sellAmount', async () => {
-            const response = await requestSwap(app, 'quote', 'v2', {
-                buyToken: 'ZRX',
-                sellToken: 'WETH',
-                sellAmount: '1234',
-                integratorId: INTEGRATOR_ID,
-                takerAddress: TAKER_ADDRESS,
-                metaTransactionVersion: 'v1',
-                feeConfigs: {
-                    integratorFee: {
-                        type: 'volume',
-                        volumePercentage: '0.1',
-                        billingType: onChainBilling,
-                        feeRecipient: randomAddress(),
-                    },
-                    zeroExFee: {
-                        type: 'integrator_share',
-                        integratorSharePercentage: '0.2',
-                        billingType: offChainBilling,
-                        feeRecipient: null,
-                    },
-                },
-            });
-            expectCorrectQuoteResponse(response, { sellAmount: new BigNumber(1234) });
-        });
-
-        it('should returns the correct trade kind', async () => {
-            const response = await requestSwap(app, 'quote', 'v2', {
-                buyToken: 'ZRX',
-                sellToken: 'WETH',
-                sellAmount: '1234',
-                integratorId: INTEGRATOR_ID,
-                takerAddress: TAKER_ADDRESS,
-                metaTransactionVersion: 'v1',
-                feeConfigs: {
-                    integratorFee: {
-                        type: 'volume',
-                        volumePercentage: '0.1',
-                        billingType: onChainBilling,
-                        feeRecipient: randomAddress(),
-                    },
-                    zeroExFee: {
-                        type: 'integrator_share',
-                        integratorSharePercentage: '0.2',
-                        billingType: onChainBilling,
-                        feeRecipient: randomAddress(),
-                    },
-                },
-            });
-            expect(response.body.trade.kind).to.eql('metatransaction');
-        });
-
-        describe('fee', async () => {
-            describe('integrator', async () => {
-                it('should throw error if fee config kind is invalid', async () => {
-                    const response = await requestSwap(app, 'quote', 'v2', {
-                        buyToken: 'ZRX',
-                        sellToken: 'WETH',
-                        sellAmount: '1234',
-                        integratorId: INTEGRATOR_ID,
-                        takerAddress: TAKER_ADDRESS,
-                        metaTransactionVersion: 'v1',
-                        feeConfigs: {
-                            integratorFee: {
-                                type: 'random',
-                                volumePercentage: '0.1',
-                                billingType: onChainBilling,
-                                feeRecipient: randomAddress(),
-                            },
+        describe('metaTransactionVersion param is v1', async () => {
+            it("should respond with INSUFFICIENT_ASSET_LIQUIDITY when there's no liquidity", async () => {
+                const response = await requestSwap(app, 'quote', 'v2', {
+                    buyToken: ZRX_TOKEN_ADDRESS,
+                    sellToken: WETH_TOKEN_ADDRESS,
+                    buyAmount: '10000000000000000000000000000000',
+                    integratorId: 'integrator',
+                    takerAddress: TAKER_ADDRESS,
+                    metaTransactionVersion: 'v1',
+                    feeConfigs: {
+                        integratorFee: {
+                            type: 'volume',
+                            volumePercentage: '0.1',
+                            billingType: onChainBilling,
+                            feeRecipient: randomAddress(),
                         },
-                    });
-
-                    expectSwapError(response, {
-                        validationErrors: [
-                            {
-                                field: 'feeConfigs',
-                                code: ValidationErrorCodes.IncorrectFormat,
-                                reason: ValidationErrorReasons.InvalidGaslessFeeType,
-                            },
-                        ],
-                    });
+                    },
                 });
-
-                it('should throw error if volumePercentage is out of range', async () => {
-                    const response = await requestSwap(app, 'quote', 'v2', {
-                        buyToken: 'ZRX',
-                        sellToken: 'WETH',
-                        sellAmount: '1234',
-                        integratorId: INTEGRATOR_ID,
-                        takerAddress: TAKER_ADDRESS,
-                        metaTransactionVersion: 'v1',
-                        feeConfigs: {
-                            integratorFee: {
-                                type: 'volume',
-                                volumePercentage: '1000',
-                                billingType: onChainBilling,
-                                feeRecipient: randomAddress(),
-                            },
+                expectSwapError(response, {
+                    validationErrors: [
+                        {
+                            code: ValidationErrorCodes.ValueOutOfRange,
+                            field: 'buyAmount',
+                            reason: 'INSUFFICIENT_ASSET_LIQUIDITY',
                         },
-                    });
-
-                    expectSwapError(response, {
-                        validationErrors: [
-                            {
-                                field: 'feeConfigs',
-                                code: ValidationErrorCodes.ValueOutOfRange,
-                                reason: ValidationErrorReasons.PercentageOutOfRange,
-                            },
-                        ],
-                    });
-                });
-
-                it('should returns correct integrator fee', async () => {
-                    const feeRecipient = randomAddress();
-                    const response = await requestSwap(app, 'quote', 'v2', {
-                        buyToken: 'ZRX',
-                        sellToken: 'WETH',
-                        sellAmount: '1234',
-                        integratorId: INTEGRATOR_ID,
-                        takerAddress: TAKER_ADDRESS,
-                        metaTransactionVersion: 'v1',
-                        feeConfigs: {
-                            integratorFee: {
-                                type: 'volume',
-                                volumePercentage: '0.1',
-                                billingType: onChainBilling,
-                                feeRecipient,
-                            },
-                        },
-                    });
-
-                    const { sellAmount, trade, fees } = response.body;
-                    const callArgs = decodeTransformERC20(trade.metaTransaction.callData);
-                    expect(sellAmount).to.eql('1234');
-                    expect(fees.integratorFee).to.eql({
-                        type: 'volume',
-                        feeToken: WETH_TOKEN_ADDRESS,
-                        billingType: onChainBilling,
-                        feeRecipient,
-                        feeAmount: '123',
-                        volumePercentage: '0.1',
-                    });
-                    expect(decodeAffiliateFeeTransformerData(callArgs.transformations[0].data).fees).to.eql([
-                        { token: WETH_TOKEN_ADDRESS, amount: new BigNumber(123), recipient: feeRecipient },
-                    ]);
+                    ],
                 });
             });
 
-            describe('0x', async () => {
-                it('should throw error if kind is invalid', async () => {
-                    const response = await requestSwap(app, 'quote', 'v2', {
-                        buyToken: 'ZRX',
-                        sellToken: 'WETH',
-                        sellAmount: '1234',
-                        integratorId: INTEGRATOR_ID,
-                        takerAddress: TAKER_ADDRESS,
-                        metaTransactionVersion: 'v1',
-                        feeConfigs: {
-                            zeroExFee: {
-                                type: 'random',
-                                volumePercentage: '0.1',
-                                billingType: onChainBilling,
-                                feeRecipient: randomAddress(),
-                            },
+            it('should respect buyAmount', async () => {
+                const response = await requestSwap(app, 'quote', 'v2', {
+                    buyToken: 'ZRX',
+                    sellToken: 'WETH',
+                    buyAmount: '1234',
+                    integratorId: INTEGRATOR_ID,
+                    takerAddress: TAKER_ADDRESS,
+                    metaTransactionVersion: 'v1',
+                    feeConfigs: {
+                        integratorFee: {
+                            type: 'volume',
+                            volumePercentage: '0.1',
+                            billingType: onChainBilling,
+                            feeRecipient: randomAddress(),
                         },
-                    });
+                        zeroExFee: {
+                            type: 'integrator_share',
+                            integratorSharePercentage: '0.2',
+                            billingType: offChainBilling,
+                            feeRecipient: null,
+                        },
+                        gasFee: { type: 'gas', billingType: offChainBilling, feeRecipient: null },
+                    },
+                });
+                expectCorrectQuoteResponse(response, { buyAmount: new BigNumber(1234) });
+            });
 
-                    expectSwapError(response, {
-                        validationErrors: [
-                            {
-                                field: 'feeConfigs',
-                                code: ValidationErrorCodes.IncorrectFormat,
-                                reason: ValidationErrorReasons.InvalidGaslessFeeType,
-                            },
-                        ],
-                    });
+            it('should respect sellAmount', async () => {
+                const response = await requestSwap(app, 'quote', 'v2', {
+                    buyToken: 'ZRX',
+                    sellToken: 'WETH',
+                    sellAmount: '1234',
+                    integratorId: INTEGRATOR_ID,
+                    takerAddress: TAKER_ADDRESS,
+                    metaTransactionVersion: 'v1',
+                    feeConfigs: {
+                        integratorFee: {
+                            type: 'volume',
+                            volumePercentage: '0.1',
+                            billingType: onChainBilling,
+                            feeRecipient: randomAddress(),
+                        },
+                        zeroExFee: {
+                            type: 'integrator_share',
+                            integratorSharePercentage: '0.2',
+                            billingType: offChainBilling,
+                            feeRecipient: null,
+                        },
+                    },
+                });
+                expectCorrectQuoteResponse(response, { sellAmount: new BigNumber(1234) });
+            });
+
+            it('should return the correct trade kind', async () => {
+                const response = await requestSwap(app, 'quote', 'v2', {
+                    buyToken: 'ZRX',
+                    sellToken: 'WETH',
+                    sellAmount: '1234',
+                    integratorId: INTEGRATOR_ID,
+                    takerAddress: TAKER_ADDRESS,
+                    metaTransactionVersion: 'v1',
+                    feeConfigs: {
+                        integratorFee: {
+                            type: 'volume',
+                            volumePercentage: '0.1',
+                            billingType: onChainBilling,
+                            feeRecipient: randomAddress(),
+                        },
+                        zeroExFee: {
+                            type: 'integrator_share',
+                            integratorSharePercentage: '0.2',
+                            billingType: onChainBilling,
+                            feeRecipient: randomAddress(),
+                        },
+                    },
+                });
+                expect(response.body.trade.kind).to.eql('metatransaction');
+            });
+
+            it('should return the correct non fee-related meta-transaction fields', async () => {
+                const feeRecipient = randomAddress();
+                const response = await requestSwap(app, 'quote', 'v2', {
+                    buyToken: 'ZRX',
+                    sellToken: 'WETH',
+                    sellAmount: '1234',
+                    integratorId: INTEGRATOR_ID,
+                    takerAddress: TAKER_ADDRESS,
+                    metaTransactionVersion: 'v1',
+                    feeConfigs: {
+                        zeroExFee: {
+                            type: 'volume',
+                            volumePercentage: '0.2',
+                            billingType: onChainBilling,
+                            feeRecipient,
+                        },
+                    },
                 });
 
-                it('should throw error if volumePercentage is out of range', async () => {
-                    const response = await requestSwap(app, 'quote', 'v2', {
-                        buyToken: 'ZRX',
-                        sellToken: 'WETH',
-                        sellAmount: '1234',
-                        integratorId: INTEGRATOR_ID,
-                        takerAddress: TAKER_ADDRESS,
-                        metaTransactionVersion: 'v1',
-                        feeConfigs: {
-                            zeroExFee: {
-                                type: 'volume',
-                                volumePercentage: '1000',
-                                billingType: onChainBilling,
-                                feeRecipient: randomAddress(),
+                const { trade } = response.body;
+                expect(trade.kind).to.eql('metatransaction');
+                expect(trade.metaTransaction.signer).to.eql(TAKER_ADDRESS);
+                expect(trade.metaTransaction.verifyingContract).to.eql(CONTRACT_ADDRESSES.exchangeProxy);
+            });
+
+            describe('fee', async () => {
+                describe('integrator', async () => {
+                    it('should throw error if integrator fee type is invalid', async () => {
+                        const response = await requestSwap(app, 'quote', 'v2', {
+                            buyToken: 'ZRX',
+                            sellToken: 'WETH',
+                            sellAmount: '1234',
+                            integratorId: INTEGRATOR_ID,
+                            takerAddress: TAKER_ADDRESS,
+                            metaTransactionVersion: 'v1',
+                            feeConfigs: {
+                                integratorFee: {
+                                    type: 'random',
+                                    volumePercentage: '0.1',
+                                    billingType: onChainBilling,
+                                    feeRecipient: randomAddress(),
+                                },
                             },
-                        },
+                        });
+
+                        expectSwapError(response, {
+                            validationErrors: [
+                                {
+                                    field: 'feeConfigs',
+                                    code: ValidationErrorCodes.IncorrectFormat,
+                                    reason: ValidationErrorReasons.InvalidGaslessFeeType,
+                                },
+                            ],
+                        });
                     });
 
-                    expectSwapError(response, {
-                        validationErrors: [
-                            {
-                                field: 'feeConfigs',
-                                code: ValidationErrorCodes.ValueOutOfRange,
-                                reason: ValidationErrorReasons.PercentageOutOfRange,
-                            },
-                        ],
-                    });
-                });
-
-                it('should throw error if integrator fee config is empty and 0x fee kind is integrator_share', async () => {
-                    const response = await requestSwap(app, 'quote', 'v2', {
-                        buyToken: 'ZRX',
-                        sellToken: 'WETH',
-                        sellAmount: '1234',
-                        integratorId: INTEGRATOR_ID,
-                        takerAddress: TAKER_ADDRESS,
-                        metaTransactionVersion: 'v1',
-                        feeConfigs: {
-                            zeroExFee: {
-                                type: 'integrator_share',
-                                integratorSharePercentage: '1000',
-                                billingType: onChainBilling,
-                                feeRecipient: randomAddress(),
-                            },
-                        },
-                    });
-
-                    expectSwapError(response, {
-                        validationErrors: [
-                            {
-                                field: 'feeConfigs',
-                                code: ValidationErrorCodes.IncorrectFormat,
-                                reason: ValidationErrorReasons.InvalidGaslessFeeType,
-                            },
-                        ],
-                    });
-
-                    it('should throw error if integratorSharePercentage is out of range', async () => {
+                    it('should throw error if volumePercentage is out of range', async () => {
                         const response = await requestSwap(app, 'quote', 'v2', {
                             buyToken: 'ZRX',
                             sellToken: 'WETH',
@@ -602,13 +515,7 @@ describe(SUITE_NAME, () => {
                             feeConfigs: {
                                 integratorFee: {
                                     type: 'volume',
-                                    volumePercentage: '0.1',
-                                    billingType: onChainBilling,
-                                    feeRecipient: randomAddress(),
-                                },
-                                zeroExFee: {
-                                    type: 'integrator_share',
-                                    integratorSharePercentage: '1000',
+                                    volumePercentage: '1000',
                                     billingType: onChainBilling,
                                     feeRecipient: randomAddress(),
                                 },
@@ -625,66 +532,672 @@ describe(SUITE_NAME, () => {
                             ],
                         });
                     });
+
+                    it('should returns correct integrator fee', async () => {
+                        const feeRecipient = randomAddress();
+                        const response = await requestSwap(app, 'quote', 'v2', {
+                            buyToken: 'ZRX',
+                            sellToken: 'WETH',
+                            sellAmount: '1234',
+                            integratorId: INTEGRATOR_ID,
+                            takerAddress: TAKER_ADDRESS,
+                            metaTransactionVersion: 'v1',
+                            feeConfigs: {
+                                integratorFee: {
+                                    type: 'volume',
+                                    volumePercentage: '0.1',
+                                    billingType: onChainBilling,
+                                    feeRecipient,
+                                },
+                            },
+                        });
+
+                        const { sellAmount, trade, fees } = response.body;
+                        const metaTransaction = trade.metaTransaction;
+                        const callArgs = decodeTransformERC20(metaTransaction.callData);
+                        expect(sellAmount).to.eql('1234');
+                        expect(fees.integratorFee).to.eql({
+                            type: 'volume',
+                            feeToken: WETH_TOKEN_ADDRESS,
+                            billingType: onChainBilling,
+                            feeRecipient,
+                            feeAmount: '123',
+                            volumePercentage: '0.1',
+                        });
+                        expect(trade.kind).to.eql('metatransaction');
+                        expect(metaTransaction.signer).to.eql(TAKER_ADDRESS);
+                        expect(metaTransaction.feeToken).to.eql(NULL_ADDRESS);
+                        expect(metaTransaction.feeAmount).to.eql(ZERO.toString());
+                        expect(metaTransaction.verifyingContract).to.eql(CONTRACT_ADDRESSES.exchangeProxy);
+                        expect(decodeAffiliateFeeTransformerData(callArgs.transformations[0].data).fees).to.eql([
+                            { token: WETH_TOKEN_ADDRESS, amount: new BigNumber(123), recipient: feeRecipient },
+                        ]);
+                    });
                 });
 
-                it('should returns correct 0x fee', async () => {
-                    const feeRecipient = randomAddress();
-                    const response = await requestSwap(app, 'quote', 'v2', {
-                        buyToken: 'ZRX',
-                        sellToken: 'WETH',
-                        sellAmount: '1234',
-                        integratorId: INTEGRATOR_ID,
-                        takerAddress: TAKER_ADDRESS,
-                        metaTransactionVersion: 'v1',
-                        feeConfigs: {
-                            zeroExFee: {
-                                type: 'volume',
-                                volumePercentage: '0.2',
-                                billingType: onChainBilling,
-                                feeRecipient,
+                describe('0x', async () => {
+                    it('should throw error if 0x fee type is invalid', async () => {
+                        const response = await requestSwap(app, 'quote', 'v2', {
+                            buyToken: 'ZRX',
+                            sellToken: 'WETH',
+                            sellAmount: '1234',
+                            integratorId: INTEGRATOR_ID,
+                            takerAddress: TAKER_ADDRESS,
+                            metaTransactionVersion: 'v1',
+                            feeConfigs: {
+                                zeroExFee: {
+                                    type: 'random',
+                                    volumePercentage: '0.1',
+                                    billingType: onChainBilling,
+                                    feeRecipient: randomAddress(),
+                                },
                             },
-                        },
+                        });
+
+                        expectSwapError(response, {
+                            validationErrors: [
+                                {
+                                    field: 'feeConfigs',
+                                    code: ValidationErrorCodes.IncorrectFormat,
+                                    reason: ValidationErrorReasons.InvalidGaslessFeeType,
+                                },
+                            ],
+                        });
                     });
 
-                    const { sellAmount, trade, fees } = response.body;
-                    const callArgs = decodeTransformERC20(trade.metaTransaction.callData);
-                    expect(sellAmount).to.eql('1234');
-                    expect(fees.zeroExFee).to.eql({
-                        type: 'volume',
-                        feeToken: WETH_TOKEN_ADDRESS,
-                        billingType: onChainBilling,
-                        feeRecipient,
-                        feeAmount: '246',
-                        volumePercentage: '0.2',
+                    it('should throw error if volumePercentage is out of range', async () => {
+                        const response = await requestSwap(app, 'quote', 'v2', {
+                            buyToken: 'ZRX',
+                            sellToken: 'WETH',
+                            sellAmount: '1234',
+                            integratorId: INTEGRATOR_ID,
+                            takerAddress: TAKER_ADDRESS,
+                            metaTransactionVersion: 'v1',
+                            feeConfigs: {
+                                zeroExFee: {
+                                    type: 'volume',
+                                    volumePercentage: '1000',
+                                    billingType: onChainBilling,
+                                    feeRecipient: randomAddress(),
+                                },
+                            },
+                        });
+
+                        expectSwapError(response, {
+                            validationErrors: [
+                                {
+                                    field: 'feeConfigs',
+                                    code: ValidationErrorCodes.ValueOutOfRange,
+                                    reason: ValidationErrorReasons.PercentageOutOfRange,
+                                },
+                            ],
+                        });
                     });
-                    expect(decodeAffiliateFeeTransformerData(callArgs.transformations[0].data).fees).to.eql([
-                        { token: WETH_TOKEN_ADDRESS, amount: new BigNumber(246), recipient: feeRecipient },
-                    ]);
+
+                    it('should throw error if integrator fee config is empty and 0x fee kind is integrator_share', async () => {
+                        const response = await requestSwap(app, 'quote', 'v2', {
+                            buyToken: 'ZRX',
+                            sellToken: 'WETH',
+                            sellAmount: '1234',
+                            integratorId: INTEGRATOR_ID,
+                            takerAddress: TAKER_ADDRESS,
+                            metaTransactionVersion: 'v1',
+                            feeConfigs: {
+                                zeroExFee: {
+                                    type: 'integrator_share',
+                                    integratorSharePercentage: '1000',
+                                    billingType: onChainBilling,
+                                    feeRecipient: randomAddress(),
+                                },
+                            },
+                        });
+
+                        expectSwapError(response, {
+                            validationErrors: [
+                                {
+                                    field: 'feeConfigs',
+                                    code: ValidationErrorCodes.IncorrectFormat,
+                                    reason: ValidationErrorReasons.InvalidGaslessFeeType,
+                                },
+                            ],
+                        });
+
+                        it('should throw error if integratorSharePercentage is out of range', async () => {
+                            const response = await requestSwap(app, 'quote', 'v2', {
+                                buyToken: 'ZRX',
+                                sellToken: 'WETH',
+                                sellAmount: '1234',
+                                integratorId: INTEGRATOR_ID,
+                                takerAddress: TAKER_ADDRESS,
+                                metaTransactionVersion: 'v1',
+                                feeConfigs: {
+                                    integratorFee: {
+                                        type: 'volume',
+                                        volumePercentage: '0.1',
+                                        billingType: onChainBilling,
+                                        feeRecipient: randomAddress(),
+                                    },
+                                    zeroExFee: {
+                                        type: 'integrator_share',
+                                        integratorSharePercentage: '1000',
+                                        billingType: onChainBilling,
+                                        feeRecipient: randomAddress(),
+                                    },
+                                },
+                            });
+
+                            expectSwapError(response, {
+                                validationErrors: [
+                                    {
+                                        field: 'feeConfigs',
+                                        code: ValidationErrorCodes.ValueOutOfRange,
+                                        reason: ValidationErrorReasons.PercentageOutOfRange,
+                                    },
+                                ],
+                            });
+                        });
+                    });
+
+                    it('should returns correct 0x fee', async () => {
+                        const feeRecipient = randomAddress();
+                        const response = await requestSwap(app, 'quote', 'v2', {
+                            buyToken: 'ZRX',
+                            sellToken: 'WETH',
+                            sellAmount: '1234',
+                            integratorId: INTEGRATOR_ID,
+                            takerAddress: TAKER_ADDRESS,
+                            metaTransactionVersion: 'v1',
+                            feeConfigs: {
+                                zeroExFee: {
+                                    type: 'volume',
+                                    volumePercentage: '0.2',
+                                    billingType: onChainBilling,
+                                    feeRecipient,
+                                },
+                            },
+                        });
+
+                        const { sellAmount, trade, fees } = response.body;
+                        const metaTransaction = trade.metaTransaction;
+                        const callArgs = decodeTransformERC20(metaTransaction.callData);
+                        expect(sellAmount).to.eql('1234');
+                        expect(fees.zeroExFee).to.eql({
+                            type: 'volume',
+                            feeToken: WETH_TOKEN_ADDRESS,
+                            billingType: onChainBilling,
+                            feeRecipient,
+                            feeAmount: '246',
+                            volumePercentage: '0.2',
+                        });
+                        expect(trade.kind).to.eql('metatransaction');
+                        expect(metaTransaction.signer).to.eql(TAKER_ADDRESS);
+                        expect(metaTransaction.feeToken).to.eql(NULL_ADDRESS);
+                        expect(metaTransaction.feeAmount).to.eql(ZERO.toString());
+                        expect(metaTransaction.verifyingContract).to.eql(CONTRACT_ADDRESSES.exchangeProxy);
+                        expect(decodeAffiliateFeeTransformerData(callArgs.transformations[0].data).fees).to.eql([
+                            { token: WETH_TOKEN_ADDRESS, amount: new BigNumber(246), recipient: feeRecipient },
+                        ]);
+                    });
+                });
+
+                describe('gas', async () => {
+                    it('should throw error if gas fee type is invalid', async () => {
+                        const response = await requestSwap(app, 'quote', 'v2', {
+                            buyToken: 'ZRX',
+                            sellToken: 'WETH',
+                            sellAmount: '1234',
+                            integratorId: INTEGRATOR_ID,
+                            takerAddress: TAKER_ADDRESS,
+                            metaTransactionVersion: 'v1',
+                            feeConfigs: {
+                                gasFee: { type: 'random', billingType: onChainBilling, feeRecipient: randomAddress() },
+                            },
+                        });
+
+                        expectSwapError(response, {
+                            validationErrors: [
+                                {
+                                    field: 'feeConfigs',
+                                    code: ValidationErrorCodes.IncorrectFormat,
+                                    reason: ValidationErrorReasons.InvalidGaslessFeeType,
+                                },
+                            ],
+                        });
+                    });
+                });
+            });
+        });
+
+        describe('metaTransactionVersion param is v2', async () => {
+            it("should respond with INSUFFICIENT_ASSET_LIQUIDITY when there's no liquidity", async () => {
+                const response = await requestSwap(app, 'quote', 'v2', {
+                    buyToken: ZRX_TOKEN_ADDRESS,
+                    sellToken: WETH_TOKEN_ADDRESS,
+                    buyAmount: '10000000000000000000000000000000',
+                    integratorId: 'integrator',
+                    takerAddress: TAKER_ADDRESS,
+                    metaTransactionVersion: 'v2',
+                    feeConfigs: {
+                        integratorFee: {
+                            type: 'volume',
+                            volumePercentage: '0.1',
+                            billingType: onChainBilling,
+                            feeRecipient: randomAddress(),
+                        },
+                    },
+                });
+                expectSwapError(response, {
+                    validationErrors: [
+                        {
+                            code: ValidationErrorCodes.ValueOutOfRange,
+                            field: 'buyAmount',
+                            reason: 'INSUFFICIENT_ASSET_LIQUIDITY',
+                        },
+                    ],
                 });
             });
 
-            describe('gas', async () => {
-                it('should throw error if kind is invalid', async () => {
-                    const response = await requestSwap(app, 'quote', 'v2', {
-                        buyToken: 'ZRX',
-                        sellToken: 'WETH',
-                        sellAmount: '1234',
-                        integratorId: INTEGRATOR_ID,
-                        takerAddress: TAKER_ADDRESS,
-                        metaTransactionVersion: 'v1',
-                        feeConfigs: {
-                            gasFee: { type: 'random', billingType: onChainBilling, feeRecipient: randomAddress() },
+            it('should respect buyAmount', async () => {
+                const response = await requestSwap(app, 'quote', 'v2', {
+                    buyToken: 'ZRX',
+                    sellToken: 'WETH',
+                    buyAmount: '1234',
+                    integratorId: INTEGRATOR_ID,
+                    takerAddress: TAKER_ADDRESS,
+                    metaTransactionVersion: 'v2',
+                    feeConfigs: {
+                        integratorFee: {
+                            type: 'volume',
+                            volumePercentage: '0.1',
+                            billingType: onChainBilling,
+                            feeRecipient: randomAddress(),
                         },
+                        zeroExFee: {
+                            type: 'integrator_share',
+                            integratorSharePercentage: '0.2',
+                            billingType: offChainBilling,
+                            feeRecipient: null,
+                        },
+                        gasFee: { type: 'gas', billingType: offChainBilling, feeRecipient: null },
+                    },
+                });
+                expectCorrectQuoteResponse(response, { buyAmount: new BigNumber(1234) });
+            });
+
+            it('should respect sellAmount', async () => {
+                const response = await requestSwap(app, 'quote', 'v2', {
+                    buyToken: 'ZRX',
+                    sellToken: 'WETH',
+                    sellAmount: '1234',
+                    integratorId: INTEGRATOR_ID,
+                    takerAddress: TAKER_ADDRESS,
+                    metaTransactionVersion: 'v2',
+                    feeConfigs: {
+                        integratorFee: {
+                            type: 'volume',
+                            volumePercentage: '0.1',
+                            billingType: onChainBilling,
+                            feeRecipient: randomAddress(),
+                        },
+                        zeroExFee: {
+                            type: 'integrator_share',
+                            integratorSharePercentage: '0.2',
+                            billingType: offChainBilling,
+                            feeRecipient: null,
+                        },
+                    },
+                });
+                expectCorrectQuoteResponse(response, { sellAmount: new BigNumber(1234) });
+            });
+
+            it('should returns the correct trade kind', async () => {
+                const response = await requestSwap(app, 'quote', 'v2', {
+                    buyToken: 'ZRX',
+                    sellToken: 'WETH',
+                    sellAmount: '1234',
+                    integratorId: INTEGRATOR_ID,
+                    takerAddress: TAKER_ADDRESS,
+                    metaTransactionVersion: 'v2',
+                    feeConfigs: {
+                        integratorFee: {
+                            type: 'volume',
+                            volumePercentage: '0.1',
+                            billingType: onChainBilling,
+                            feeRecipient: randomAddress(),
+                        },
+                        zeroExFee: {
+                            type: 'integrator_share',
+                            integratorSharePercentage: '0.2',
+                            billingType: onChainBilling,
+                            feeRecipient: randomAddress(),
+                        },
+                    },
+                });
+                expect(response.body.trade.kind).to.eql('metatransaction_v2');
+            });
+
+            it('should return the correct non fee-related meta-transaction fields', async () => {
+                const feeRecipient = randomAddress();
+                const response = await requestSwap(app, 'quote', 'v2', {
+                    buyToken: 'ZRX',
+                    sellToken: 'WETH',
+                    sellAmount: '1234',
+                    integratorId: INTEGRATOR_ID,
+                    takerAddress: TAKER_ADDRESS,
+                    metaTransactionVersion: 'v2',
+                    feeConfigs: {
+                        integratorFee: {
+                            type: 'volume',
+                            volumePercentage: '0.1',
+                            billingType: onChainBilling,
+                            feeRecipient,
+                        },
+                    },
+                });
+
+                const { trade } = response.body;
+                expect(trade.kind).to.eql('metatransaction_v2');
+                expect(trade.metaTransaction.signer).to.eql(TAKER_ADDRESS);
+                expect(trade.metaTransaction.verifyingContract).to.eql(CONTRACT_ADDRESSES.exchangeProxy);
+            });
+
+            describe('fee', async () => {
+                describe('integrator', async () => {
+                    it('should throw error if integrator fee type is invalid', async () => {
+                        const response = await requestSwap(app, 'quote', 'v2', {
+                            buyToken: 'ZRX',
+                            sellToken: 'WETH',
+                            sellAmount: '1234',
+                            integratorId: INTEGRATOR_ID,
+                            takerAddress: TAKER_ADDRESS,
+                            metaTransactionVersion: 'v2',
+                            feeConfigs: {
+                                integratorFee: {
+                                    type: 'random',
+                                    volumePercentage: '0.1',
+                                    billingType: onChainBilling,
+                                    feeRecipient: randomAddress(),
+                                },
+                            },
+                        });
+
+                        expectSwapError(response, {
+                            validationErrors: [
+                                {
+                                    field: 'feeConfigs',
+                                    code: ValidationErrorCodes.IncorrectFormat,
+                                    reason: ValidationErrorReasons.InvalidGaslessFeeType,
+                                },
+                            ],
+                        });
                     });
 
-                    expectSwapError(response, {
-                        validationErrors: [
-                            {
-                                field: 'feeConfigs',
-                                code: ValidationErrorCodes.IncorrectFormat,
-                                reason: ValidationErrorReasons.InvalidGaslessFeeType,
+                    it('should throw error if volumePercentage is out of range', async () => {
+                        const response = await requestSwap(app, 'quote', 'v2', {
+                            buyToken: 'ZRX',
+                            sellToken: 'WETH',
+                            sellAmount: '1234',
+                            integratorId: INTEGRATOR_ID,
+                            takerAddress: TAKER_ADDRESS,
+                            metaTransactionVersion: 'v2',
+                            feeConfigs: {
+                                integratorFee: {
+                                    type: 'volume',
+                                    volumePercentage: '1000',
+                                    billingType: onChainBilling,
+                                    feeRecipient: randomAddress(),
+                                },
                             },
-                        ],
+                        });
+
+                        expectSwapError(response, {
+                            validationErrors: [
+                                {
+                                    field: 'feeConfigs',
+                                    code: ValidationErrorCodes.ValueOutOfRange,
+                                    reason: ValidationErrorReasons.PercentageOutOfRange,
+                                },
+                            ],
+                        });
+                    });
+
+                    it('should returns correct integrator fee', async () => {
+                        const feeRecipient = randomAddress();
+                        const response = await requestSwap(app, 'quote', 'v2', {
+                            buyToken: 'ZRX',
+                            sellToken: 'WETH',
+                            sellAmount: '1234',
+                            integratorId: INTEGRATOR_ID,
+                            takerAddress: TAKER_ADDRESS,
+                            metaTransactionVersion: 'v2',
+                            feeConfigs: {
+                                integratorFee: {
+                                    type: 'volume',
+                                    volumePercentage: '0.1',
+                                    billingType: onChainBilling,
+                                    feeRecipient,
+                                },
+                            },
+                        });
+
+                        const { sellAmount, trade, fees } = response.body;
+                        const metaTransaction = trade.metaTransaction;
+                        const callArgs = decodeTransformERC20(metaTransaction.callData);
+                        expect(sellAmount).to.eql('1234');
+                        expect(fees.integratorFee).to.eql({
+                            type: 'volume',
+                            feeToken: WETH_TOKEN_ADDRESS,
+                            billingType: onChainBilling,
+                            feeRecipient,
+                            feeAmount: '123',
+                            volumePercentage: '0.1',
+                        });
+                        expect(trade.kind).to.eql('metatransaction_v2');
+                        expect(metaTransaction.signer).to.eql(TAKER_ADDRESS);
+                        expect(metaTransaction.verifyingContract).to.eql(CONTRACT_ADDRESSES.exchangeProxy);
+                        expect(metaTransaction.feeToken).to.eql(WETH_TOKEN_ADDRESS);
+                        expect(metaTransaction.fees).to.eql([{ amount: '123', recipient: feeRecipient }]);
+                        // Make sure the first transformer in this case is fill quote transformer
+                        // since if `metaTransactionVersion` is v2, sell token fees are not transferred by affiliate fee transformer
+                        // but in `executeMetaTransactionV2` instead
+                        expect(decodeFillQuoteTransformerData(callArgs.transformations[0].data).side).to.eql(
+                            FillQuoteTransformerSide.Sell,
+                        );
+                    });
+                });
+
+                describe('0x', async () => {
+                    it('should throw error if 0x fee type is invalid', async () => {
+                        const response = await requestSwap(app, 'quote', 'v2', {
+                            buyToken: 'ZRX',
+                            sellToken: 'WETH',
+                            sellAmount: '1234',
+                            integratorId: INTEGRATOR_ID,
+                            takerAddress: TAKER_ADDRESS,
+                            metaTransactionVersion: 'v2',
+                            feeConfigs: {
+                                zeroExFee: {
+                                    type: 'random',
+                                    volumePercentage: '0.1',
+                                    billingType: onChainBilling,
+                                    feeRecipient: randomAddress(),
+                                },
+                            },
+                        });
+
+                        expectSwapError(response, {
+                            validationErrors: [
+                                {
+                                    field: 'feeConfigs',
+                                    code: ValidationErrorCodes.IncorrectFormat,
+                                    reason: ValidationErrorReasons.InvalidGaslessFeeType,
+                                },
+                            ],
+                        });
+                    });
+
+                    it('should throw error if volumePercentage is out of range', async () => {
+                        const response = await requestSwap(app, 'quote', 'v2', {
+                            buyToken: 'ZRX',
+                            sellToken: 'WETH',
+                            sellAmount: '1234',
+                            integratorId: INTEGRATOR_ID,
+                            takerAddress: TAKER_ADDRESS,
+                            metaTransactionVersion: 'v2',
+                            feeConfigs: {
+                                zeroExFee: {
+                                    type: 'volume',
+                                    volumePercentage: '1000',
+                                    billingType: onChainBilling,
+                                    feeRecipient: randomAddress(),
+                                },
+                            },
+                        });
+
+                        expectSwapError(response, {
+                            validationErrors: [
+                                {
+                                    field: 'feeConfigs',
+                                    code: ValidationErrorCodes.ValueOutOfRange,
+                                    reason: ValidationErrorReasons.PercentageOutOfRange,
+                                },
+                            ],
+                        });
+                    });
+
+                    it('should throw error if integrator fee config is empty and 0x fee kind is integrator_share', async () => {
+                        const response = await requestSwap(app, 'quote', 'v2', {
+                            buyToken: 'ZRX',
+                            sellToken: 'WETH',
+                            sellAmount: '1234',
+                            integratorId: INTEGRATOR_ID,
+                            takerAddress: TAKER_ADDRESS,
+                            metaTransactionVersion: 'v2',
+                            feeConfigs: {
+                                zeroExFee: {
+                                    type: 'integrator_share',
+                                    integratorSharePercentage: '1000',
+                                    billingType: onChainBilling,
+                                    feeRecipient: randomAddress(),
+                                },
+                            },
+                        });
+
+                        expectSwapError(response, {
+                            validationErrors: [
+                                {
+                                    field: 'feeConfigs',
+                                    code: ValidationErrorCodes.IncorrectFormat,
+                                    reason: ValidationErrorReasons.InvalidGaslessFeeType,
+                                },
+                            ],
+                        });
+
+                        it('should throw error if integratorSharePercentage is out of range', async () => {
+                            const response = await requestSwap(app, 'quote', 'v2', {
+                                buyToken: 'ZRX',
+                                sellToken: 'WETH',
+                                sellAmount: '1234',
+                                integratorId: INTEGRATOR_ID,
+                                takerAddress: TAKER_ADDRESS,
+                                metaTransactionVersion: 'v2',
+                                feeConfigs: {
+                                    integratorFee: {
+                                        type: 'volume',
+                                        volumePercentage: '0.1',
+                                        billingType: onChainBilling,
+                                        feeRecipient: randomAddress(),
+                                    },
+                                    zeroExFee: {
+                                        type: 'integrator_share',
+                                        integratorSharePercentage: '1000',
+                                        billingType: onChainBilling,
+                                        feeRecipient: randomAddress(),
+                                    },
+                                },
+                            });
+
+                            expectSwapError(response, {
+                                validationErrors: [
+                                    {
+                                        field: 'feeConfigs',
+                                        code: ValidationErrorCodes.ValueOutOfRange,
+                                        reason: ValidationErrorReasons.PercentageOutOfRange,
+                                    },
+                                ],
+                            });
+                        });
+                    });
+
+                    it('should returns correct 0x fee', async () => {
+                        const feeRecipient = randomAddress();
+                        const response = await requestSwap(app, 'quote', 'v2', {
+                            buyToken: 'ZRX',
+                            sellToken: 'WETH',
+                            sellAmount: '1234',
+                            integratorId: INTEGRATOR_ID,
+                            takerAddress: TAKER_ADDRESS,
+                            metaTransactionVersion: 'v2',
+                            feeConfigs: {
+                                zeroExFee: {
+                                    type: 'volume',
+                                    volumePercentage: '0.2',
+                                    billingType: onChainBilling,
+                                    feeRecipient,
+                                },
+                            },
+                        });
+
+                        const { sellAmount, trade, fees } = response.body;
+                        const metaTransaction = trade.metaTransaction;
+                        const callArgs = decodeTransformERC20(metaTransaction.callData);
+                        expect(sellAmount).to.eql('1234');
+                        expect(fees.zeroExFee).to.eql({
+                            type: 'volume',
+                            feeToken: WETH_TOKEN_ADDRESS,
+                            billingType: onChainBilling,
+                            feeRecipient,
+                            feeAmount: '246',
+                            volumePercentage: '0.2',
+                        });
+
+                        expect(trade.kind).to.eql('metatransaction_v2');
+                        expect(metaTransaction.signer).to.eql(TAKER_ADDRESS);
+                        expect(metaTransaction.verifyingContract).to.eql(CONTRACT_ADDRESSES.exchangeProxy);
+                        expect(metaTransaction.feeToken).to.eql(WETH_TOKEN_ADDRESS);
+                        expect(metaTransaction.fees).to.eql([{ amount: '246', recipient: feeRecipient }]);
+                        // Make sure the first transformer in this case is fill quote transformer
+                        // since if `metaTransactionVersion` is v2, sell token fees are not transferred by affiliate fee transformer
+                        // but in `executeMetaTransactionV2` instead
+                        expect(decodeFillQuoteTransformerData(callArgs.transformations[0].data).side).to.eql(
+                            FillQuoteTransformerSide.Sell,
+                        );
+                    });
+                });
+
+                describe('gas', async () => {
+                    it('should throw error if gas fee type is invalid', async () => {
+                        const response = await requestSwap(app, 'quote', 'v2', {
+                            buyToken: 'ZRX',
+                            sellToken: 'WETH',
+                            sellAmount: '1234',
+                            integratorId: INTEGRATOR_ID,
+                            takerAddress: TAKER_ADDRESS,
+                            metaTransactionVersion: 'v2',
+                            feeConfigs: {
+                                gasFee: { type: 'random', billingType: onChainBilling, feeRecipient: randomAddress() },
+                            },
+                        });
+
+                        expectSwapError(response, {
+                            validationErrors: [
+                                {
+                                    field: 'feeConfigs',
+                                    code: ValidationErrorCodes.IncorrectFormat,
+                                    reason: ValidationErrorReasons.InvalidGaslessFeeType,
+                                },
+                            ],
+                        });
                     });
                 });
             });
