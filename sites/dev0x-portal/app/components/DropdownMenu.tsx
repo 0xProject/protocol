@@ -24,7 +24,7 @@ export const Content = forwardRef<HTMLDivElement, DropdownMenu.DropdownMenuConte
     return (
         <DropdownMenu.Content
             className={twMerge(
-                'border-grey-200 overflow-hidden rounded-3xl border border-solid bg-white p-4 shadow-md',
+                'border-grey-200 overflow-hidden rounded-xl border border-solid bg-white p-2 shadow-md',
                 className,
             )}
             {...other}
@@ -42,7 +42,7 @@ export const Item = forwardRef<HTMLDivElement, DropdownMenu.DropdownMenuItemProp
     return (
         <DropdownMenu.Item
             className={twMerge(
-                'data-[highlighted]:text-grey-400 flex select-none py-3 text-sm outline-none first:pt-0 last:pb-0',
+                'data-[highlighted]:bg-grey-100 text-grey-900 flex select-none rounded-lg py-3 px-4 font-sans text-base font-medium outline-none ',
                 className,
             )}
             {...other}

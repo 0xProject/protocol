@@ -18,9 +18,7 @@ export async function loader({ request }: LoaderArgs) {
                 name: 'Demo app',
                 brandColor: '#01A74D',
                 metrics: {
-                    requests: 122,
-                    volume: 3422,
-                    users: 30,
+                    requests: 0,
                 },
                 encodedUrlPathname: 'demo-app',
                 onChainTag: [],
@@ -29,9 +27,7 @@ export async function loader({ request }: LoaderArgs) {
                 name: 'Coinbase wallet',
                 brandColor: '#3A65EB',
                 metrics: {
-                    requests: 3224,
-                    volume: 54232,
-                    users: 45,
+                    requests: 0,
                 },
                 encodedUrlPathname: 'coinbase-wallet',
                 onChainTag: [],

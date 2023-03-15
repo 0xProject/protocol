@@ -10,7 +10,7 @@ export const Th = forwardRef<HTMLTableCellElement, ComponentPropsWithoutRef<'th'
     return (
         <th
             {...other}
-            className={twMerge('text-grey-500 pb- px-5 text-left font-sans text-sm font-normal', className)}
+            className={twMerge('text-grey-500 pb- px-5 pb-2 text-left font-sans text-sm font-normal', className)}
             ref={forwardedRef}
         />
     );

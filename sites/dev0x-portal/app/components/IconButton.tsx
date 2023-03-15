@@ -3,7 +3,7 @@ import { twMerge } from 'tailwind-merge';
 import { tv } from 'tailwind-variants';
 
 const iconButton = tv({
-    base: 'focus:outline-none focus-visible:ring-2 leading-4 inline-flex box-border',
+    base: 'focus:outline-none focus-visible:ring-2 leading-4 inline-flex box-border items-center',
     variants: {
         size: {
             base: 'p-4',
