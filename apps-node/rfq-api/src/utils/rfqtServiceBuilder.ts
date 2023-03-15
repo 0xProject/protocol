@@ -29,6 +29,7 @@ import { getGasStationAttendant } from './GasStationAttendantUtils';
 import { providerUtils } from './provider_utils';
 import { QuoteServerClient } from './quote_server_client';
 import { RfqBalanceCheckUtils, RfqBlockchainUtils } from './rfq_blockchain_utils';
+import { RfqDynamicBlacklist } from './rfq_dynamic_blacklist';
 import { RfqMakerDbUtils } from './rfq_maker_db_utils';
 import { RfqMakerManager } from './rfq_maker_manager';
 import { getKafkaProducer } from './runner_utils';
@@ -48,6 +49,7 @@ const DEFAULT_AXIOS_TIMEOUT = 600; // ms
 export async function buildRfqtServicesAsync(
     chainConfigurations: ChainConfigurations,
     rfqMakerDbUtils: RfqMakerDbUtils,
+    rfqDynamicBlacklist: RfqDynamicBlacklist,
     redis: Redis,
 ): Promise<RfqtServices> {
     const proxiedAxiosInstance = Axios.create(getAxiosRequestConfigWithProxy());
@@ -126,6 +128,7 @@ export async function buildRfqtServicesAsync(
                 rfqMakerBalanceCacheService,
                 cacheClient,
                 tokenPriceOracle,
+                rfqDynamicBlacklist,
                 kafkaProducer,
                 rfqtConfiguration.feeEventTopic,
             );

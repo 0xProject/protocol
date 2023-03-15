@@ -32,6 +32,7 @@ import { quoteReportUtils } from '../utils/quote_report_utils';
 import { QuoteServerClient } from '../utils/quote_server_client';
 import { getRfqtV2FillableAmounts, validateV2Prices } from '../utils/RfqtQuoteValidator';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
+import { RfqDynamicBlacklist } from '../utils/rfq_dynamic_blacklist';
 import { RfqMakerManager } from '../utils/rfq_maker_manager';
 import { getSignerFromHash, padSignature } from '../utils/signature_utils';
 import { TokenMetadataManager } from '../utils/TokenMetadataManager';
@@ -144,6 +145,7 @@ export class RfqtService {
         private readonly _rfqMakerBalanceCacheService: RfqMakerBalanceCacheService,
         private readonly _cacheClient: CacheClient,
         private readonly _tokenPriceOracle: TokenPriceOracle,
+        private readonly _rfqDynamicBlacklist: RfqDynamicBlacklist,
         private readonly _kafkaProducer?: KafkaProducer,
         private readonly _feeEventTopic?: string,
     ) {
@@ -521,6 +523,14 @@ export class RfqtService {
         const isTakerSellingNativeToken =
             this._nativeTokenAddress === takerToken || this._nativeWrappedTokenAddress === takerToken;
         if (integrator.label === 'Matcha' && !isTakerSellingNativeToken) {
+            return [];
+        }
+
+        // Check if the txOrigin or takerAddress is blacklisted
+        if (
+            this._rfqDynamicBlacklist.has(quoteContext.txOrigin || '') ||
+            this._rfqDynamicBlacklist.has(quoteContext.takerAddress || '')
+        ) {
             return [];
         }
 

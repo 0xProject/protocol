@@ -25,7 +25,7 @@ import {
     SENTRY_TRACES_SAMPLE_RATE,
     TOKEN_PRICE_ORACLE_TIMEOUT,
 } from '../config';
-import { ADMIN_PATH, RFQM_PATH, RFQT_V1_PATH, RFQT_V2_PATH, RFQ_MAKER_PATH } from '../core/constants';
+import { ADMIN_PATH, ONE_MINUTE_MS, RFQM_PATH, RFQT_V1_PATH, RFQT_V2_PATH, RFQ_MAKER_PATH } from '../core/constants';
 import { getDbDataSourceAsync } from '../getDbDataSourceAsync';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
@@ -41,6 +41,7 @@ import { ConfigManager } from '../utils/config_manager';
 import { RfqmDbUtils } from '../utils/rfqm_db_utils';
 import { buildRfqmServicesAsync, getAxiosRequestConfig, RfqmServices } from '../utils/rfqm_service_builder';
 import { buildRfqtServicesAsync, RfqtServices } from '../utils/rfqtServiceBuilder';
+import { RfqDynamicBlacklist } from '../utils/rfq_dynamic_blacklist';
 import { RfqMakerDbUtils } from '../utils/rfq_maker_db_utils';
 import { closeRedisConnectionsAsync } from '../utils/runner_utils';
 import { TokenPriceOracle } from '../utils/TokenPriceOracle';
@@ -78,6 +79,7 @@ if (require.main === module) {
             ...defaultHttpServiceConfig,
         };
         const connection = await getDbDataSourceAsync();
+        const rfqDynamicBlacklist = new RfqDynamicBlacklist(connection, new Set(), ONE_MINUTE_MS * 30);
         const rfqmDbUtils = new RfqmDbUtils(connection);
         const rfqMakerDbUtils = new RfqMakerDbUtils(connection);
         const configManager = new ConfigManager();
@@ -100,7 +102,12 @@ if (require.main === module) {
             redis,
         );
 
-        const rfqtServices = await buildRfqtServicesAsync(CHAIN_CONFIGURATIONS, rfqMakerDbUtils, redis);
+        const rfqtServices = await buildRfqtServicesAsync(
+            CHAIN_CONFIGURATIONS,
+            rfqMakerDbUtils,
+            rfqDynamicBlacklist,
+            redis,
+        );
 
         const rfqAdminService = buildRfqAdminService(rfqmDbUtils);
         const rfqMakerService = buildRfqMakerService(rfqMakerDbUtils, configManager);

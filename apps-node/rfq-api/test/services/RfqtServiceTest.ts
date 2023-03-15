@@ -26,6 +26,7 @@ import { RfqMakerAssetOfferings, RfqMakerManager } from '../../src/utils/rfq_mak
 import { TokenMetadataManager } from '../../src/utils/TokenMetadataManager';
 import { TokenPriceOracle } from '../../src/utils/TokenPriceOracle';
 import { ZeroExApiClient } from '../../src/utils/ZeroExApiClient';
+import { RfqDynamicBlacklist } from '../../src/utils/rfq_dynamic_blacklist';
 
 jest.mock('../../src/utils/rfq_maker_manager', () => ({
     RfqMakerManager: jest.fn().mockImplementation(() => {
@@ -84,6 +85,7 @@ const mockRfqMakerBalanceCacheService = jest.mocked(
 );
 const mockCacheClient = jest.mocked({} as CacheClient);
 const mockTokenPriceOracle = jest.mocked({} as TokenPriceOracle);
+const mockRfqDynamicBlacklist = jest.mocked(new Set() as RfqDynamicBlacklist);
 
 describe('Rfqt Service', () => {
     beforeEach(() => {
@@ -110,6 +112,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerBalanceCacheService,
                     mockCacheClient,
                     mockTokenPriceOracle,
+                    mockRfqDynamicBlacklist,
                 );
 
                 await rfqtService.getV1PricesAsync({
@@ -200,6 +203,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerBalanceCacheService,
                     mockCacheClient,
                     mockTokenPriceOracle,
+                    mockRfqDynamicBlacklist,
                 );
 
                 await rfqtService.getV1QuotesAsync({
@@ -343,6 +347,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerBalanceCacheService,
                     mockCacheClient,
                     mockTokenPriceOracle,
+                    mockRfqDynamicBlacklist,
                 );
 
                 await rfqtService.getV2PricesAsync(quoteContext);
@@ -421,6 +426,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerBalanceCacheService,
                     mockCacheClient,
                     mockTokenPriceOracle,
+                    mockRfqDynamicBlacklist,
                 );
 
                 await rfqtService.getV2PricesAsync(quoteContext);
@@ -498,6 +504,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerBalanceCacheService,
                     mockCacheClient,
                     mockTokenPriceOracle,
+                    mockRfqDynamicBlacklist,
                 );
 
                 await rfqtService.getV2PricesAsync(quoteContext);
@@ -589,6 +596,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerBalanceCacheService,
                     mockCacheClient,
                     mockTokenPriceOracle,
+                    mockRfqDynamicBlacklist,
                 );
 
                 const result = await rfqtService.getV2PricesAsync(quoteContext);
@@ -674,6 +682,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerBalanceCacheService,
                     mockCacheClient,
                     mockTokenPriceOracle,
+                    mockRfqDynamicBlacklist,
                 );
 
                 const result = await rfqtService.getV2PricesAsync(quoteContext);
@@ -758,6 +767,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerBalanceCacheService,
                     mockCacheClient,
                     mockTokenPriceOracle,
+                    mockRfqDynamicBlacklist,
                 );
 
                 const result = await rfqtService.getV2QuotesAsync(quoteContext);
@@ -840,6 +850,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerBalanceCacheService,
                     mockCacheClient,
                     mockTokenPriceOracle,
+                    mockRfqDynamicBlacklist,
                 );
 
                 const result = await rfqtService.getV2QuotesAsync(quoteContext, fakeNow);
@@ -932,6 +943,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerBalanceCacheService,
                     mockCacheClient,
                     mockTokenPriceOracle,
+                    mockRfqDynamicBlacklist,
                 );
 
                 const result = await rfqtService.getV2QuotesAsync(quoteContext);
@@ -1008,6 +1020,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerBalanceCacheService,
                     mockCacheClient,
                     mockTokenPriceOracle,
+                    mockRfqDynamicBlacklist,
                 );
 
                 const result = await rfqtService.getV2QuotesAsync(quoteContext, fakeNow);
@@ -1092,6 +1105,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerBalanceCacheService,
                     mockCacheClient,
                     mockTokenPriceOracle,
+                    mockRfqDynamicBlacklist,
                 );
 
                 const result = await rfqtService.getV2QuotesAsync(quoteContext, fakeNow);
@@ -1167,6 +1181,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerBalanceCacheService,
                     mockCacheClient,
                     mockTokenPriceOracle,
+                    mockRfqDynamicBlacklist,
                 );
 
                 const result = await rfqtService.getV2QuotesAsync(quoteContext, fakeNow);

@@ -25,6 +25,7 @@ import { RfqBlockchainUtils } from '../../utils/rfq_blockchain_utils';
 import { DEFAULT_MIN_EXPIRY_DURATION_MS } from '../../core/constants';
 import { CacheClient } from '../../utils/cache_client';
 import { TokenPriceOracle } from '../../utils/TokenPriceOracle';
+import { RfqDynamicBlacklist } from '../../utils/rfq_dynamic_blacklist';
 
 jest.mock('../../services/RfqtService', () => {
     return {
@@ -66,6 +67,7 @@ const mockRfqtService = jest.mocked(
         {} as RfqMakerBalanceCacheService,
         {} as CacheClient,
         {} as TokenPriceOracle,
+        new Set() as RfqDynamicBlacklist,
     ),
 );
 // Jest workaround for getter
