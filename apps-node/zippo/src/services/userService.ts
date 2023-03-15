@@ -32,13 +32,14 @@ export async function getById(
  *
  * @param input User email
  */
- export async function getByEmail(email: z.infer<typeof zippoRouterDefinition.user.getByEmail.input>,
-    ): Promise<z.infer<typeof zippoRouterDefinition.user.getByEmail.output>> {
+export async function getByEmail(
+    email: z.infer<typeof zippoRouterDefinition.user.getByEmail.input>,
+): Promise<z.infer<typeof zippoRouterDefinition.user.getByEmail.output>> {
     return prisma.user.findUnique({
-      where: { email: email },
-      select: defaultUserSelect,
+        where: { email: email },
+        select: defaultUserSelect,
     });
-  }
+}
 
 /**
  * Create a new user.
