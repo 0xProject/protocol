@@ -138,7 +138,7 @@ export default function SetPasswordPage() {
                                 <IconButton
                                     onClick={() => setShowPassword(!showPassword)}
                                     color="white"
-                                    className="shadow-md h-11 w-11"
+                                    className="h-11 w-11 shadow-md"
                                     size="xs"
                                     roundness="sm"
                                     type="button"
@@ -148,7 +148,7 @@ export default function SetPasswordPage() {
                                 </IconButton>
                             }
                         />
-                        <Button type="submit" className="col-span-2">
+                        <Button type="submit" className="col-span- justify-center">
                             Continue →
                         </Button>
                     </Form>

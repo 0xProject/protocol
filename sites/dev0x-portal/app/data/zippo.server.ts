@@ -22,3 +22,8 @@ export async function verifyEmailVerificationToken(_email: string, _token: strin
     // currently stubbed, but this is where we would check with the backend to verify the email verification token
     return _token === '1337-420-69';
 }
+
+export async function createTeam(_userId: string, _teamName: string, _teamType: string): Promise<string> {
+    // currently stubbed, but this is where we would check with the backend to create a new team
+    return _teamName;
+}

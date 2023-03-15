@@ -18,6 +18,9 @@ export const loader = async ({ request, params }: LoaderArgs) => {
         throw redirect('/create-account', { headers });
     }
 
+    if (!user.team) {
+        throw redirect('/create-account/create-team', { headers });
+    }
     return json(
         {
             apps: allApps,

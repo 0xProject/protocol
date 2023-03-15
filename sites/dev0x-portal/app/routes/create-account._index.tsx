@@ -117,7 +117,7 @@ export default function CreateAccount() {
                             error={actionData?.errors.email}
                             initialValue={actionData?.values?.email || maybeSessionInfo?.email}
                         />
-                        <Button type="submit" className="col-span-2">
+                        <Button type="submit" className="col-span-2 justify-center">
                             Continue →
                         </Button>
                     </Form>
