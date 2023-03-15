@@ -374,7 +374,6 @@ describe('Rfqt Service', () => {
                         "sellTokenAddress": "0x2",
                         "takerAddress": "0x0",
                         "txOrigin": "0xtakeraddress",
-                        "workflow": "rfqt",
                       },
                       [Function],
                     ]
@@ -453,7 +452,6 @@ describe('Rfqt Service', () => {
                         "sellTokenAddress": "0x2",
                         "takerAddress": "0x0",
                         "txOrigin": "0xtakeraddress",
-                        "workflow": "gasless-rfqt",
                       },
                       [Function],
                     ]
@@ -531,7 +529,6 @@ describe('Rfqt Service', () => {
                         "sellTokenAddress": "0x2",
                         "takerAddress": "0x0",
                         "txOrigin": "0xtakeraddress",
-                        "workflow": "rfqt",
                       },
                       [Function],
                     ]

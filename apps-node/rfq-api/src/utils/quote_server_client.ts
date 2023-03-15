@@ -200,6 +200,10 @@ export class QuoteServerClient {
         };
         logger.info({ headers, parameters, integratorId: integrator.integratorId, makerUri }, 'v2/price request to MM');
 
+        const tempParams = { ...parameters };
+        delete tempParams.trader;
+        delete tempParams.worflow;
+
         const response = await this._axiosInstance.get(makerUriToUrl(makerUri), {
             timeout: RFQ_PRICE_ENDPOINT_TIMEOUT_MS,
             validateStatus: (status: number) => {
@@ -211,7 +215,7 @@ export class QuoteServerClient {
                 return true;
             },
             headers,
-            params: parameters,
+            params: tempParams,
         });
         logger.info({ makerUri, body: response.data, status: response.status }, 'v2/price response from MM');
 
@@ -317,10 +321,10 @@ export class QuoteServerClient {
                 orderHash: payload.orderHash,
                 expiry: payload.expiry,
                 takerSignature: payload.takerSignature,
-                trader: payload.trader,
+                // trader: payload.trader,
                 feeToken: payload.fee.token,
                 feeAmount: payload.fee.amount,
-                workflow: payload.workflow,
+                // workflow: payload.workflow,
                 ...(TAKER_SPECIFIED_SIDE_ENABLED &&
                     payload.takerSpecifiedSide && { takerSpecifiedSide: payload.takerSpecifiedSide }),
             },

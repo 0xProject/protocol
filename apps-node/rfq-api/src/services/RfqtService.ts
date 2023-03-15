@@ -84,8 +84,8 @@ export function transformRfqtV2PricesParameters(p: QuoteContext, fee: Fee, chain
         integratorId: p.integrator.integratorId,
         takerAddress: p.takerAddress,
         txOrigin: p.txOrigin,
-        trader: p.trader,
-        workflow: p.workflow,
+        // trader: p.trader,
+        // workflow: p.workflow,
         protocolVersion: '4', //hardcode - will break some MMs if missing!
     };
 
