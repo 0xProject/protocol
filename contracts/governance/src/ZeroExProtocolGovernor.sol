@@ -35,13 +35,13 @@ contract ZeroExProtocolGovernor is
     GovernorTimelockControl
 {
     constructor(
-        IVotes _token,
+        IVotes _votes,
         ZeroExTimelock _timelock,
         address _securityCouncil
     )
         Governor("ZeroExProtocolGovernor")
         GovernorSettings(2 days, 7 days, 1000000e18)
-        GovernorVotes(_token)
+        GovernorVotes(_votes)
         GovernorTimelockControl(TimelockController(payable(_timelock)))
     {
         securityCouncil = _securityCouncil;
