@@ -30,6 +30,27 @@ import "../src/ZeroExTimelock.sol";
 import "../src/ZeroExProtocolGovernor.sol";
 import "../src/ZeroExTreasuryGovernor.sol";
 
+function predict(
+    address deployer,
+    uint256 nonce
+) pure returns (address) {
+    require(nonce > 0 && nonce < 128);
+    return
+        address(
+            uint160(
+                uint256(
+                    keccak256(
+                        abi.encodePacked(
+                            bytes2(0xd694),
+                            deployer,
+                            bytes1(uint8(nonce))
+                        )
+                    )
+                )
+            )
+        );
+}
+
 contract BaseTest is Test {
     address payable internal account1 = payable(vm.addr(1));
     address payable internal account2 = payable(vm.addr(2));
@@ -95,21 +116,18 @@ contract BaseTest is Test {
     function setupZRXWrappedToken() internal returns (IERC20, ZRXWrappedToken, ZeroExVotes) {
         vm.startPrank(account1);
         bytes memory _bytecode = vm.getCode("./ZRXToken.json");
-        address _address;
+        IERC20 zrxToken;
         assembly {
-            _address := create(0, add(_bytecode, 0x20), mload(_bytecode))
+            zrxToken := create(0, add(_bytecode, 0x20), mload(_bytecode))
         }
 
-        IERC20 zrxToken = IERC20(address(_address));
-
-        ZeroExVotes votes = new ZeroExVotes();
-        ERC1967Proxy votesProxy = new ERC1967Proxy(address(votes), new bytes(0));
-        votes = ZeroExVotes(address(votesProxy));
-
-        ZRXWrappedToken token = new ZRXWrappedToken(zrxToken, IZeroExVotes(address(votesProxy)));
-        votes.initialize(address(token), quadraticThreshold);
+        address wTokenPrediction = predict(account1, vm.getNonce(account1) + 2);
+        ZeroExVotes votesImpl = new ZeroExVotes(wTokenPrediction);
+        ERC1967Proxy votesProxy = new ERC1967Proxy(address(votesImpl), abi.encodeCall(votesImpl.initialize, (quadraticThreshold)));
+        ZRXWrappedToken wToken = new ZRXWrappedToken(zrxToken, ZeroExVotes(address(votesProxy)));
         vm.stopPrank();
 
-        return (zrxToken, token, votes);
+        assert(address(wToken) == wTokenPrediction);
+        return (zrxToken, wToken, ZeroExVotes(address(votesProxy)));
     }
 }
