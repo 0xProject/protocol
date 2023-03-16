@@ -23,8 +23,11 @@ import "@openzeppelin/token/ERC20/extensions/draft-ERC20Permit.sol";
 import "@openzeppelin/token/ERC20/extensions/ERC20Wrapper.sol";
 import "@openzeppelin/governance/utils/IVotes.sol";
 import "./IZeroExVotes.sol";
+import "./CallWithGas.sol";
 
 contract ZRXWrappedToken is ERC20, ERC20Permit, ERC20Wrapper {
+    using CallWithGas for address;
+
     constructor(
         IERC20 wrappedToken,
         IZeroExVotes _zeroExVotes
@@ -67,7 +70,7 @@ contract ZRXWrappedToken is ERC20, ERC20Permit, ERC20Wrapper {
     function _burn(address account, uint256 amount) internal override(ERC20) {
         super._burn(account, amount);
 
-        zeroExVotes.writeCheckpointTotalSupplyBurn(balanceOf(account) + amount, amount);
+        address(zeroExVotes).functionCallWithGas(abi.encodeCall(zeroExVotes.writeCheckpointTotalSupplyBurn, (balanceOf(account) + amount, amount)), 500_000, 32);
     }
 
     /**
