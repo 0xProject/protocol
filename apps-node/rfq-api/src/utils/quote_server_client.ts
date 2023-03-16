@@ -191,6 +191,7 @@ export class QuoteServerClient {
         integrator: Integrator,
         parameters: QuoteServerPriceParams,
         makerUriToUrl: (u: string) => string,
+        workflow?: 'rfqm' | 'rfqt' | 'gasless-rfqt',
     ): Promise<IndicativeQuote | undefined> {
         const timerStopFn = RFQ_MARKET_MAKER_PRICE_REQUEST_DURATION_SECONDS.startTimer();
         const headers = {
@@ -201,8 +202,12 @@ export class QuoteServerClient {
         logger.info({ headers, parameters, integratorId: integrator.integratorId, makerUri }, 'v2/price request to MM');
 
         const tempParams = { ...parameters };
-        delete tempParams.trader;
-        delete tempParams.worflow;
+        // HACK: as we rollout gasless-rfqt, only send the trader and workflow params if the workflow is gasless-rfqt
+        // TODO(RFQ-870): cleanup
+        if (workflow !== 'gasless-rfqt') {
+            delete tempParams.trader;
+            delete tempParams.workflow;
+        }
 
         const response = await this._axiosInstance.get(makerUriToUrl(makerUri), {
             timeout: RFQ_PRICE_ENDPOINT_TIMEOUT_MS,
@@ -265,10 +270,11 @@ export class QuoteServerClient {
         integrator: Integrator,
         parameters: QuoteServerPriceParams,
         makerUriToUrl: (u: string) => string = (u: string) => `${u}/rfqm/v2/price`,
+        workflow?: 'rfqm' | 'rfqt' | 'gasless-rfqt',
     ): Promise<IndicativeQuote[]> {
         return Promise.all(
             makerUris.map(async (makerUri) => {
-                return this.getPriceV2Async(makerUri, integrator, parameters, makerUriToUrl).catch((err) => {
+                return this.getPriceV2Async(makerUri, integrator, parameters, makerUriToUrl, workflow).catch((err) => {
                     logger.error(
                         {
                             errorMessage: err?.message,
@@ -314,31 +320,37 @@ export class QuoteServerClient {
             'Content-Type': 'application/json',
         };
         logger.info({ headers, payload, integratorId, makerUri }, 'v2/sign request to MM');
-        const rawResponse = await this._axiosInstance.post(
-            makerUriToUrl(makerUri),
-            {
-                order: payload.order,
-                orderHash: payload.orderHash,
-                expiry: payload.expiry,
-                takerSignature: payload.takerSignature,
-                // trader: payload.trader,
-                feeToken: payload.fee.token,
-                feeAmount: payload.fee.amount,
-                // workflow: payload.workflow,
-                ...(TAKER_SPECIFIED_SIDE_ENABLED &&
-                    payload.takerSpecifiedSide && { takerSpecifiedSide: payload.takerSpecifiedSide }),
+        // HACK: use the any type here for now to avoid having to define a new type for the post body.
+        // TODO(RFQ-870): cleanup
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const postBody: any = {
+            order: payload.order,
+            orderHash: payload.orderHash,
+            expiry: payload.expiry,
+            takerSignature: payload.takerSignature,
+            feeToken: payload.fee.token,
+            feeAmount: payload.fee.amount,
+            ...(TAKER_SPECIFIED_SIDE_ENABLED &&
+                payload.takerSpecifiedSide && { takerSpecifiedSide: payload.takerSpecifiedSide }),
+        };
+
+        // HACK: as we rollout gasless-rfqt, only send the trader and workflow params if the workflow is gasless-rfqt
+        // TODO(RFQ-870): cleanup - move trader and workflow params into the postBody, all the time
+        if (payload.workflow === 'gasless-rfqt') {
+            postBody.trader = payload.trader;
+            postBody.workflow = payload.workflow;
+        }
+
+        const rawResponse = await this._axiosInstance.post(makerUriToUrl(makerUri), postBody, {
+            timeout: RFQ_SIGN_ENDPOINT_TIMEOUT_MS,
+            headers: {
+                '0x-api-key': integratorId,
+                '0x-integrator-id': integratorId,
+                '0x-request-uuid': requestUuid,
+                'Content-Type': 'application/json',
             },
-            {
-                timeout: RFQ_SIGN_ENDPOINT_TIMEOUT_MS,
-                headers: {
-                    '0x-api-key': integratorId,
-                    '0x-integrator-id': integratorId,
-                    '0x-request-uuid': requestUuid,
-                    'Content-Type': 'application/json',
-                },
-                validateStatus: () => true, // Don't throw errors on 4xx or 5xx
-            },
-        );
+            validateStatus: () => true, // Don't throw errors on 4xx or 5xx
+        });
         logger.info(
             {
                 makerUri,

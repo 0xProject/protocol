@@ -295,6 +295,14 @@ describe('Rfqt Service', () => {
             rfqmUri: null,
             rfqtUri: 'maker2.uri',
         });
+        const altonomy = new RfqMaker({
+            makerId: 'fc8468a7-8bc3-4df0-abce-2bbd04c24cb0',
+            chainId: 1337,
+            updatedAt: new Date(),
+            pairs: [['0x1', '0x2']],
+            rfqmUri: null,
+            rfqtUri: 'altonomy.uri',
+        });
         const integrator: Integrator = {
             allowedChainIds: [1337], // tslint:disable-line: custom-no-magic-numbers
             apiKeys: [],
@@ -379,8 +387,10 @@ describe('Rfqt Service', () => {
                         "sellTokenAddress": "0x2",
                         "takerAddress": "0x0",
                         "txOrigin": "0xtakeraddress",
+                        "workflow": "rfqt",
                       },
                       [Function],
+                      "rfqt",
                     ]
                 `);
             });
@@ -403,7 +413,7 @@ describe('Rfqt Service', () => {
                     txOrigin: '0xtakeraddress',
                 };
 
-                mockRfqMakerManager.getRfqtV2MakersForPair = jest.fn().mockReturnValue([maker]);
+                mockRfqMakerManager.getRfqtV2MakersForPair = jest.fn().mockReturnValue([altonomy]);
                 mockFeeService.calculateFeeAsync = jest.fn().mockResolvedValue({
                     feeWithDetails: {
                         token: '0x0b1ba0af832d7c05fd64161e0db78e85978e8082',
@@ -434,7 +444,7 @@ describe('Rfqt Service', () => {
                 expect(mockQuoteServerClient.batchGetPriceV2Async.mock.calls[0]).toMatchInlineSnapshot(`
                     [
                       [
-                        "maker.uri",
+                        "altonomy.uri",
                       ],
                       {
                         "allowedChainIds": [
@@ -458,8 +468,10 @@ describe('Rfqt Service', () => {
                         "sellTokenAddress": "0x2",
                         "takerAddress": "0x0",
                         "txOrigin": "0xtakeraddress",
+                        "workflow": "gasless-rfqt",
                       },
                       [Function],
+                      "gasless-rfqt",
                     ]
                 `);
             });
@@ -536,8 +548,10 @@ describe('Rfqt Service', () => {
                         "sellTokenAddress": "0x2",
                         "takerAddress": "0x0",
                         "txOrigin": "0xtakeraddress",
+                        "workflow": "rfqt",
                       },
                       [Function],
+                      "rfqt",
                     ]
                 `);
             });
@@ -1053,11 +1067,11 @@ describe('Rfqt Service', () => {
                     txOrigin: takerAddress,
                 };
 
-                mockRfqMakerManager.getRfqtV2MakersForPair = jest.fn().mockReturnValue([maker]);
+                mockRfqMakerManager.getRfqtV2MakersForPair = jest.fn().mockReturnValue([altonomy]);
                 mockQuoteServerClient.batchGetPriceV2Async = jest.fn().mockResolvedValue([
                     {
                         maker: makerAddress,
-                        makerUri: maker.rfqtUri,
+                        makerUri: altonomy.rfqtUri,
                         makerToken,
                         takerToken,
                         makerAmount: new BigNumber(999),
@@ -1066,7 +1080,7 @@ describe('Rfqt Service', () => {
                     },
                     {
                         maker: makerAddress,
-                        makerUri: maker.rfqtUri,
+                        makerUri: altonomy.rfqtUri,
                         makerToken,
                         takerToken,
                         makerAmount: new BigNumber(900),

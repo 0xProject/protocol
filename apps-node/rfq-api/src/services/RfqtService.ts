@@ -85,8 +85,8 @@ export function transformRfqtV2PricesParameters(p: QuoteContext, fee: Fee, chain
         integratorId: p.integrator.integratorId,
         takerAddress: p.takerAddress,
         txOrigin: p.txOrigin,
-        // trader: p.trader,
-        // workflow: p.workflow,
+        trader: p.trader,
+        workflow: p.workflow,
         protocolVersion: '4', //hardcode - will break some MMs if missing!
     };
 
@@ -542,6 +542,22 @@ export class RfqtService {
             if (integrator.whitelistMakerIds && !integrator.whitelistMakerIds.includes(m.makerId)) {
                 return false;
             }
+            // HACK: This is the "rollout" of the gasless RFQT feature. Add MMs as they are ready. Remove when all MMs are ready
+            // TODO(RFQ-870): cleanup
+            const makers = {
+                Altonomy: 'fc8468a7-8bc3-4df0-abce-2bbd04c24cb0',
+                Jump: '4d8d01e7-347e-411e-bee2-69006ac91bb6',
+                Kyber: '8e8f34ce-29bf-43bc-b4e0-d4664e096dab',
+                OneBitQuant: '5986b45d-74db-4c79-9bd9-0c2cc3606ee1',
+                Wintermute: '5b2c5bac-958b-4c06-a563-f6c32537b4bb',
+                WooTrade: '70d67317-3ded-4aef-ab1c-58055252185d',
+                AlphaLab: '4f914fb7-8152-41fb-a07d-6327649bb4d0',
+                RavenDAO: '433d9e25-dd96-40bf-91b9-6db32da8a089',
+            };
+            const allowedGaslessRfqtMakers = new Set([makers.Altonomy]);
+            if (quoteContext.workflow === 'gasless-rfqt' && !allowedGaslessRfqtMakers.has(m.makerId)) {
+                return false;
+            }
             return true;
         });
 
@@ -560,6 +576,7 @@ export class RfqtService {
                 integrator,
                 transformRfqtV2PricesParameters(quoteContext, fee, this._chainId),
                 (url) => `${url}/rfqt/v2/price`,
+                quoteContext.workflow,
             )
         ).map((price) => {
             const maker = makers.find((m) => m.rfqtUri === price.makerUri);
