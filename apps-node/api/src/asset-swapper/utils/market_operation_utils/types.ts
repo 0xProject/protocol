@@ -80,14 +80,6 @@ export interface LidoInfo {
     wstEthToken: string;
 }
 
-/**
- * Configuration info for a Balancer V2 pool.
- */
-export interface BalancerV2PoolInfo {
-    poolId: string;
-    vault: string;
-}
-
 export interface AaveInfo {
     lendingPool: string;
     aToken: string;
@@ -126,11 +118,6 @@ export interface BalancerSwapInfo {
 
 export interface BalancerFillData extends FillData {
     poolAddress: string;
-}
-
-export interface BalancerV2FillData extends FillData {
-    vault: string;
-    poolId: string;
 }
 
 export interface BalancerV2BatchSwapFillData extends FillData {

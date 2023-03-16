@@ -69,8 +69,6 @@ import {
     BalancerFillData,
     BalancerSwapInfo,
     BalancerV2BatchSwapFillData,
-    BalancerV2FillData,
-    BalancerV2PoolInfo,
     BancorFillData,
     BatchedOperation,
     CompoundFillData,
@@ -495,38 +493,6 @@ export class SamplerOperations {
                 }
                 return [];
             },
-        });
-    }
-
-    public getBalancerV2SellQuotes(
-        poolInfo: BalancerV2PoolInfo,
-        makerToken: string,
-        takerToken: string,
-        takerFillAmounts: BigNumber[],
-        source: ERC20BridgeSource,
-    ): SourceQuoteOperation<BalancerV2FillData> {
-        return new SamplerContractOperation({
-            source,
-            fillData: poolInfo,
-            contract: this._samplerContract,
-            function: this._samplerContract.sampleSellsFromBalancerV2,
-            params: [poolInfo, takerToken, makerToken, takerFillAmounts],
-        });
-    }
-
-    public getBalancerV2BuyQuotes(
-        poolInfo: BalancerV2PoolInfo,
-        makerToken: string,
-        takerToken: string,
-        makerFillAmounts: BigNumber[],
-        source: ERC20BridgeSource,
-    ): SourceQuoteOperation<BalancerV2FillData> {
-        return new SamplerContractOperation({
-            source,
-            fillData: poolInfo,
-            contract: this._samplerContract,
-            function: this._samplerContract.sampleBuysFromBalancerV2,
-            params: [poolInfo, takerToken, makerToken, makerFillAmounts],
         });
     }
 

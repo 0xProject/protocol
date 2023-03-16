@@ -10,7 +10,6 @@
         "./contracts/src/BalancerSampler.sol",
         "./contracts/src/BalancerV2BatchSampler.sol",
         "./contracts/src/BalancerV2Common.sol",
-        "./contracts/src/BalancerV2Sampler.sol",
         "./contracts/src/BancorSampler.sol",
         "./contracts/src/BancorV3Sampler.sol",
         "./contracts/src/CompoundSampler.sol",

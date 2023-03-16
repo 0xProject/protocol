@@ -11,7 +11,6 @@ export * from '../test/generated-wrappers/balance_checker';
 export * from '../test/generated-wrappers/balancer_sampler';
 export * from '../test/generated-wrappers/balancer_v2_batch_sampler';
 export * from '../test/generated-wrappers/balancer_v2_common';
-export * from '../test/generated-wrappers/balancer_v2_sampler';
 export * from '../test/generated-wrappers/bancor_sampler';
 export * from '../test/generated-wrappers/bancor_v3_sampler';
 export * from '../test/generated-wrappers/compound_sampler';

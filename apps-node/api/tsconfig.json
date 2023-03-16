@@ -34,7 +34,6 @@
         "test/generated-artifacts/BalancerSampler.json",
         "test/generated-artifacts/BalancerV2BatchSampler.json",
         "test/generated-artifacts/BalancerV2Common.json",
-        "test/generated-artifacts/BalancerV2Sampler.json",
         "test/generated-artifacts/BancorSampler.json",
         "test/generated-artifacts/BancorV3Sampler.json",
         "test/generated-artifacts/CompoundSampler.json",

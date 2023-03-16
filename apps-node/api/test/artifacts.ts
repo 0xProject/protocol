@@ -13,7 +13,6 @@ import * as BalanceChecker from '../test/generated-artifacts/BalanceChecker.json
 import * as BalancerSampler from '../test/generated-artifacts/BalancerSampler.json';
 import * as BalancerV2BatchSampler from '../test/generated-artifacts/BalancerV2BatchSampler.json';
 import * as BalancerV2Common from '../test/generated-artifacts/BalancerV2Common.json';
-import * as BalancerV2Sampler from '../test/generated-artifacts/BalancerV2Sampler.json';
 import * as BancorSampler from '../test/generated-artifacts/BancorSampler.json';
 import * as BancorV3Sampler from '../test/generated-artifacts/BancorV3Sampler.json';
 import * as CompoundSampler from '../test/generated-artifacts/CompoundSampler.json';
@@ -65,7 +64,6 @@ export const artifacts = {
     BalancerSampler: BalancerSampler as ContractArtifact,
     BalancerV2BatchSampler: BalancerV2BatchSampler as ContractArtifact,
     BalancerV2Common: BalancerV2Common as ContractArtifact,
-    BalancerV2Sampler: BalancerV2Sampler as ContractArtifact,
     BancorSampler: BancorSampler as ContractArtifact,
     BancorV3Sampler: BancorV3Sampler as ContractArtifact,
     CompoundSampler: CompoundSampler as ContractArtifact,
