@@ -137,7 +137,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
         uint256 srcBalance,
         uint256 dstBalance,
         uint256 amount
-    ) public onlyToken {
+    ) public onlyToken returns (bool) {
         if (src != dst) {
             if (src != address(0)) {
                 (
@@ -163,12 +163,13 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
                 emit DelegateQuadraticVotesChanged(dst, oldQuadraticWeight, newQuadraticWeight);
             }
         }
+        return true;
     }
 
     /**
      * @inheritdoc IZeroExVotes
      */
-    function writeCheckpointTotalSupplyMint(uint256 accountBalance, uint256 amount) public onlyToken {
+    function writeCheckpointTotalSupplyMint(uint256 accountBalance, uint256 amount) public onlyToken returns (bool) {
         (, uint256 newWeight, , uint256 newQuadraticWeight) = _writeCheckpoint(
             _totalSupplyCheckpoints,
             _add,
@@ -177,12 +178,13 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
         );
 
         emit TotalSupplyChanged(newWeight, newQuadraticWeight);
+        return true;
     }
 
     /**
      * @inheritdoc IZeroExVotes
      */
-    function writeCheckpointTotalSupplyBurn(uint256 accountBalance, uint256 amount) public onlyToken {
+    function writeCheckpointTotalSupplyBurn(uint256 accountBalance, uint256 amount) public onlyToken returns (bool) {
         (, uint256 newWeight, , uint256 newQuadraticWeight) = _writeCheckpoint(
             _totalSupplyCheckpoints,
             _subtract,
@@ -191,6 +193,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
         );
 
         emit TotalSupplyChanged(newWeight, newQuadraticWeight);
+        return true;
     }
 
     /**
