@@ -726,8 +726,8 @@ export class MarketOperationUtils {
             ? undefined
             : {
                   ...phaseOneResult.optimizerResult,
-                  onChainOptimalQuoteReport,
-                  onChainOptimalExtendedQuoteReportSources,
+                  quoteReport: onChainOptimalQuoteReport,
+                  extendedQuoteReportSources: onChainOptimalExtendedQuoteReportSources,
               };
         return { finalResult, onChainOptimalRoute };
     }
