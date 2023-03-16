@@ -1,48 +1,5 @@
 pragma solidity >=0.6;
 
-interface IUniswapV3QuoterV2 {
-    /// @return Returns the address of the Uniswap V3 factory
-    function factory() external view returns (IUniswapV3Factory);
-
-    // @notice Returns the amount out received for a given exact input swap without executing the swap
-    // @param path The path of the swap, i.e. each token pair and the pool fee
-    // @param amountIn The amount of the first token to swap
-    // @return amountOut The amount of the last token that would be received
-    // @return sqrtPriceX96AfterList List of the sqrt price after the swap for each pool in the path
-    // @return initializedTicksCrossedList List of the initialized ticks that the swap crossed for each pool in the path
-    // @return gasEstimate The estimate of the gas that the swap consumes
-    function quoteExactInput(
-        bytes memory path,
-        uint256 amountIn
-    )
-        external
-        returns (
-            uint256 amountOut,
-            uint160[] memory sqrtPriceX96AfterList,
-            uint32[] memory initializedTicksCrossedList,
-            uint256 gasEstimate
-        );
-
-    // @notice Returns the amount in required for a given exact output swap without executing the swap
-    // @param path The path of the swap, i.e. each token pair and the pool fee. Path must be provided in reverse order
-    // @param amountOut The amount of the last token to receive
-    // @return amountIn The amount of first token required to be paid
-    // @return sqrtPriceX96AfterList List of the sqrt price after the swap for each pool in the path
-    // @return initializedTicksCrossedList List of the initialized ticks that the swap crossed for each pool in the path
-    // @return gasEstimate The estimate of the gas that the swap consumes
-    function quoteExactOutput(
-        bytes memory path,
-        uint256 amountOut
-    )
-        external
-        returns (
-            uint256 amountIn,
-            uint160[] memory sqrtPriceX96AfterList,
-            uint32[] memory initializedTicksCrossedList,
-            uint256 gasEstimate
-        );
-}
-
 interface IUniswapV3Pool {
     /// @notice The first of the two tokens of the pool, sorted by address
     /// @return The token contract address
@@ -134,27 +91,5 @@ interface IUniswapV3Factory {
     /// @param b The contract address of the other token
     /// @param fee The fee collected upon every swap in the pool, denominated in hundredths of a bip
     /// @return pool The pool address
-    function getPool(address a, address b, uint24 fee) external view returns (IUniswapV3Pool pool);
-}
-
-interface IUniswapV3MultiQuoter {
-    // @notice Returns the amounts out received for a given set of exact input swaps without executing the swap
-    /// @param factory The factory contract managing UniswapV3 pools
-    /// @param path The path of the swap, i.e. each token pair and the pool fee
-    /// @param amountsIn The amounts in of the first token to swap
-    function quoteExactMultiInput(
-        IUniswapV3Factory factory,
-        bytes memory path,
-        uint256[] memory amountsIn
-    ) external view;
-
-    /// @notice Returns the amounts in received for a given set of exact output swaps without executing the swap
-    /// @param factory The factory contract managing UniswapV3 pools
-    /// @param path The path of the swap, i.e. each token pair and the pool fee. Path must be provided in reverse order
-    /// @param amountsOut The amounts out of the last token to receive
-    function quoteExactMultiOutput(
-        IUniswapV3Factory factory,
-        bytes memory path,
-        uint256[] memory amountsOut
-    ) external view;
+    function getPool(address a, address b, uint24 fee) external view returns (address pool);
 }

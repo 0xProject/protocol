@@ -23,6 +23,7 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
 import "./interfaces/IUniswapV3.sol";
+import "./interfaces/IMultiQuoter.sol";
 
 contract UniswapV3Common {
     /// @dev Gas limit for UniswapV3 calls
@@ -79,8 +80,8 @@ contract UniswapV3Common {
 
     /// @dev Returns `poolPaths` to sample against. The caller is responsible for not using path involinvg zero address(es).
     function getPoolPaths(
-        IUniswapV3Factory factory,
-        IUniswapV3MultiQuoter multiQuoter,
+        address factory,
+        IMultiQuoter multiQuoter,
         IERC20TokenV06[] memory path,
         uint256 inputAmount
     ) internal view returns (IUniswapV3Pool[][] memory poolPaths) {
@@ -94,8 +95,8 @@ contract UniswapV3Common {
     }
 
     function getPoolPathSingleHop(
-        IUniswapV3Factory factory,
-        IUniswapV3MultiQuoter multiQuoter,
+        address factory,
+        IMultiQuoter multiQuoter,
         IERC20TokenV06[] memory path,
         uint256 inputAmount
     ) private view returns (IUniswapV3Pool[][] memory poolPaths) {
@@ -120,8 +121,8 @@ contract UniswapV3Common {
     }
 
     function getPoolPathTwoHop(
-        IUniswapV3Factory factory,
-        IUniswapV3MultiQuoter multiQuoter,
+        address factory,
+        IMultiQuoter multiQuoter,
         IERC20TokenV06[] memory path,
         uint256 inputAmount
     ) private view returns (IUniswapV3Pool[][] memory poolPaths) {
@@ -159,8 +160,8 @@ contract UniswapV3Common {
     }
 
     struct GetTopTwoPoolsParams {
-        IUniswapV3Factory factory;
-        IUniswapV3MultiQuoter multiQuoter;
+        address factory;
+        IMultiQuoter multiQuoter;
         IERC20TokenV06 inputToken;
         IERC20TokenV06 outputToken;
         uint256 inputAmount;
@@ -180,10 +181,12 @@ contract UniswapV3Common {
 
         uint24[4] memory validPoolFees = [uint24(0.0001e6), uint24(0.0005e6), uint24(0.003e6), uint24(0.01e6)];
         for (uint256 i = 0; i < validPoolFees.length; ++i) {
-            IUniswapV3Pool pool = params.factory.getPool(
-                address(params.inputToken),
-                address(params.outputToken),
-                validPoolFees[i]
+            IUniswapV3Pool pool = IUniswapV3Pool(
+                IUniswapV3Factory(params.factory).getPool(
+                    address(params.inputToken),
+                    address(params.outputToken),
+                    validPoolFees[i]
+                )
             );
             if (!isValidPool(pool)) {
                 continue;
@@ -200,7 +203,7 @@ contract UniswapV3Common {
                     inputAmounts
                 )
             {} catch (bytes memory reason) {
-                (bool success, uint256[] memory outputAmounts, ) = catchMultiSwapResult(reason);
+                (bool success, uint256[] memory outputAmounts, ) = catchUniswapV3MultiSwapResult(reason);
                 if (success) {
                     // Keeping track of the top 2 pools.
                     if (outputAmounts[0] > topOutputAmounts[0]) {
@@ -247,7 +250,7 @@ contract UniswapV3Common {
         return true;
     }
 
-    function catchMultiSwapResult(
+    function catchUniswapV3MultiSwapResult(
         bytes memory revertReason
     ) internal pure returns (bool success, uint256[] memory amounts, uint256[] memory gasEstimates) {
         bytes4 selector;

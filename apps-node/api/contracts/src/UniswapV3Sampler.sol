@@ -23,11 +23,10 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
 import "./UniswapV3Common.sol";
-import "./interfaces/IUniswapV3.sol";
+import "./interfaces/IMultiQuoter.sol";
 
 contract UniswapV3Sampler is UniswapV3Common {
-    IUniswapV3MultiQuoter private constant multiQuoter =
-        IUniswapV3MultiQuoter(0x5555555555555555555555555555555555555556);
+    IMultiQuoter private constant multiQuoter = IMultiQuoter(0x5555555555555555555555555555555555555556);
 
     /// @dev Sample sell quotes from UniswapV3.
     /// @param factory UniswapV3 Factory contract.
@@ -37,7 +36,7 @@ contract UniswapV3Sampler is UniswapV3Common {
     /// @return uniswapGasUsed Estimated amount of gas used
     /// @return makerTokenAmounts Maker amounts bought at each taker token amount.
     function sampleSellsFromUniswapV3(
-        IUniswapV3Factory factory,
+        address factory,
         IERC20TokenV06[] memory path,
         uint256[] memory takerTokenAmounts
     )
@@ -69,7 +68,7 @@ contract UniswapV3Sampler is UniswapV3Common {
                 bytes memory reason
             ) {
                 bool success;
-                (success, amountsOut, gasEstimates) = catchMultiSwapResult(reason);
+                (success, amountsOut, gasEstimates) = catchUniswapV3MultiSwapResult(reason);
 
                 if (!success) {
                     continue;
@@ -101,7 +100,7 @@ contract UniswapV3Sampler is UniswapV3Common {
     /// @return uniswapGasUsed Estimated amount of gas used
     /// @return takerTokenAmounts Taker amounts sold at each maker token amount.
     function sampleBuysFromUniswapV3(
-        IUniswapV3Factory factory,
+        address factory,
         IERC20TokenV06[] memory path,
         uint256[] memory makerTokenAmounts
     )
@@ -134,7 +133,7 @@ contract UniswapV3Sampler is UniswapV3Common {
                 bytes memory reason
             ) {
                 bool success;
-                (success, amountsIn, gasEstimates) = catchMultiSwapResult(reason);
+                (success, amountsIn, gasEstimates) = catchUniswapV3MultiSwapResult(reason);
 
                 if (!success) {
                     continue;

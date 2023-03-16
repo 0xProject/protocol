@@ -1,43 +1,5 @@
 pragma solidity >=0.6;
 
-interface IAlgebraQuoter {
-    /// @notice Returns the amount out received for a given exact input swap without executing the swap
-    /// @param path The path of the swap, i.e. each token pair
-    /// @param amountIn The amount of the first token to swap
-    /// @return amountOut The amount of the last token that would be received
-    function quoteExactInput(
-        bytes memory path,
-        uint256 amountIn
-    ) external returns (uint256 amountOut, uint16[] memory fees);
-
-    /// @notice Returns the amount in required for a given exact output swap without executing the swap
-    /// @param path The path of the swap, i.e. each token pair. Path must be provided in reverse order
-    /// @param amountOut The amount of the last token to receive
-    /// @return amountIn The amount of first token required to be paid
-    function quoteExactOutput(
-        bytes memory path,
-        uint256 amountOut
-    ) external returns (uint256 amountIn, uint16[] memory fees);
-}
-
-interface IAlgebraMultiQuoter {
-    // @notice Returns the amounts out received for a given set of exact input swaps without executing the swap
-    /// @param factory The factory contract managing UniswapV3 pools
-    /// @param path The path of the swap, i.e. each token pair and the pool fee
-    /// @param amountsIn The amounts in of the first token to swap
-    function quoteExactMultiInput(IAlgebraFactory factory, bytes memory path, uint256[] memory amountsIn) external view;
-
-    /// @notice Returns the amounts in received for a given set of exact output swaps without executing the swap
-    /// @param factory The factory contract managing UniswapV3 pools
-    /// @param path The path of the swap, i.e. each token pair and the pool fee. Path must be provided in reverse order
-    /// @param amountsOut The amounts out of the last token to receive
-    function quoteExactMultiOutput(
-        IAlgebraFactory factory,
-        bytes memory path,
-        uint256[] memory amountsOut
-    ) external view;
-}
-
 interface IAlgebraFactory {
     /**
      *  @notice Returns the pool address for a given pair of tokens and a fee, or address 0 if it does not exist
@@ -46,7 +8,7 @@ interface IAlgebraFactory {
      *  @param tokenB The contract address of the other token
      *  @return pool The pool address
      */
-    function poolByPair(address tokenA, address tokenB) external view returns (IAlgebraPool pool);
+    function poolByPair(address tokenA, address tokenB) external view returns (address pool);
 }
 
 interface IAlgebraPool {

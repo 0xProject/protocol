@@ -7,7 +7,50 @@ import "forge-std/Test.sol";
 import "../src/UniswapV3MultiQuoter.sol";
 import "../src/UniswapV3Common.sol";
 
-contract TestUniswapV3Sampler is Test, UniswapV3Common {
+interface IUniswapV3QuoterV2 {
+    /// @return Returns the address of the Uniswap V3 factory
+    function factory() external view returns (IUniswapV3Factory);
+
+    // @notice Returns the amount out received for a given exact input swap without executing the swap
+    // @param path The path of the swap, i.e. each token pair and the pool fee
+    // @param amountIn The amount of the first token to swap
+    // @return amountOut The amount of the last token that would be received
+    // @return sqrtPriceX96AfterList List of the sqrt price after the swap for each pool in the path
+    // @return initializedTicksCrossedList List of the initialized ticks that the swap crossed for each pool in the path
+    // @return gasEstimate The estimate of the gas that the swap consumes
+    function quoteExactInput(
+        bytes memory path,
+        uint256 amountIn
+    )
+        external
+        returns (
+            uint256 amountOut,
+            uint160[] memory sqrtPriceX96AfterList,
+            uint32[] memory initializedTicksCrossedList,
+            uint256 gasEstimate
+        );
+
+    // @notice Returns the amount in required for a given exact output swap without executing the swap
+    // @param path The path of the swap, i.e. each token pair and the pool fee. Path must be provided in reverse order
+    // @param amountOut The amount of the last token to receive
+    // @return amountIn The amount of first token required to be paid
+    // @return sqrtPriceX96AfterList List of the sqrt price after the swap for each pool in the path
+    // @return initializedTicksCrossedList List of the initialized ticks that the swap crossed for each pool in the path
+    // @return gasEstimate The estimate of the gas that the swap consumes
+    function quoteExactOutput(
+        bytes memory path,
+        uint256 amountOut
+    )
+        external
+        returns (
+            uint256 amountIn,
+            uint160[] memory sqrtPriceX96AfterList,
+            uint32[] memory initializedTicksCrossedList,
+            uint256 gasEstimate
+        );
+}
+
+contract TestUniswapV3MultiQuoter is Test, UniswapV3Common {
     /// @dev error threshold in wei for comparison between MultiQuoter and UniswapV3's official QuoterV2.
     /// MultiQuoter results in some rounding errors due to SqrtPriceMath library.
     uint256 constant ERROR_THRESHOLD = 125;
@@ -148,8 +191,8 @@ contract TestUniswapV3Sampler is Test, UniswapV3Common {
     ) private returns (uint256 uniQuoterGasUsage, uint256 multiQuoterGasUsage) {
         uint256 gas0 = gasleft();
         uint256[] memory multiQuoterAmountsOut;
-        try multiQuoter.quoteExactMultiInput(factory, path, amountsIn) {} catch (bytes memory reason) {
-            (, multiQuoterAmountsOut, ) = catchMultiSwapResult(reason);
+        try multiQuoter.quoteExactMultiInput(address(factory), path, amountsIn) {} catch (bytes memory reason) {
+            (, multiQuoterAmountsOut, ) = catchUniswapV3MultiSwapResult(reason);
         }
         uint256 gas1 = gasleft();
 
@@ -187,8 +230,8 @@ contract TestUniswapV3Sampler is Test, UniswapV3Common {
     ) private returns (uint256 uniQuoterGasUsage, uint256 multiQuoterGasUsage) {
         uint256 gas0 = gasleft();
         uint256[] memory multiQuoterAmountsIn;
-        try multiQuoter.quoteExactMultiOutput(factory, path, amountsOut) {} catch (bytes memory reason) {
-            (, multiQuoterAmountsIn, ) = catchMultiSwapResult(reason);
+        try multiQuoter.quoteExactMultiOutput(address(factory), path, amountsOut) {} catch (bytes memory reason) {
+            (, multiQuoterAmountsIn, ) = catchUniswapV3MultiSwapResult(reason);
         }
         uint256 gas1 = gasleft();
 
@@ -264,8 +307,8 @@ contract TestUniswapV3Sampler is Test, UniswapV3Common {
 
         {
             uint256[] memory mqGasEstimates;
-            try multiQuoter.quoteExactMultiInput(factory, path, amounts) {} catch (bytes memory reason) {
-                (, , mqGasEstimates) = catchMultiSwapResult(reason);
+            try multiQuoter.quoteExactMultiInput(address(factory), path, amounts) {} catch (bytes memory reason) {
+                (, , mqGasEstimates) = catchUniswapV3MultiSwapResult(reason);
             }
             for (uint256 i = 0; i < amounts.length; ++i) {
                 console.log("MQ Gas Estimates: i=%d, MQ: %d", i, mqGasEstimates[i]);
@@ -276,8 +319,8 @@ contract TestUniswapV3Sampler is Test, UniswapV3Common {
 
         {
             uint256[] memory mqGasEstimates;
-            try multiQuoter.quoteExactMultiInput(factory, path, amounts) {} catch (bytes memory reason) {
-                (, , mqGasEstimates) = catchMultiSwapResult(reason);
+            try multiQuoter.quoteExactMultiInput(address(factory), path, amounts) {} catch (bytes memory reason) {
+                (, , mqGasEstimates) = catchUniswapV3MultiSwapResult(reason);
             }
             for (uint256 i = 0; i < amounts.length; ++i) {
                 console.log("MQ Gas Estimates: i=%d, MQ: %d", i, mqGasEstimates[i]);

@@ -2027,11 +2027,14 @@ const UNSAFE_GAS_SCHEDULE: GasSchedule = {
         if (isFinalPathFillData(dexFillData)) {
             // the coefficient is based on linear regression
             // y = ax + b where y is actual gas used and x is the raw gas estimate
-            // for test data, b was calculated to be ~250k
-            // since FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD == 150k, we set b to 100k
-            return dexFillData.gasUsed * 4 + 100e3;
+            // for test data, b was calculated to be ~275k
+            // since FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD == 150k, we set b to 125k
+            return dexFillData.gasUsed * 1.65 + 125e3;
         }
-        return 150e3; // average taken from test data
+        const pathAmountsWithGasUsed = dexFillData.pathAmounts.filter((p) => p.gasUsed > 0);
+        const medianGasUsedForPath =
+            pathAmountsWithGasUsed[Math.floor(pathAmountsWithGasUsed.length / 2)]?.gasUsed ?? 0;
+        return medianGasUsedForPath * 1.65 + 125e3;
     },
     [ERC20BridgeSource.KyberDmm]: (fillData?: FillData) => {
         let gas = 170e3;

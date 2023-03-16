@@ -34,7 +34,7 @@ contract KyberElasticSampler is KyberElasticCommon {
     /// @return outputAmounts Maker amounts bought at each taker token amount.
     function sampleSellsFromKyberElastic(
         IMultiQuoter quoter,
-        IFactory factory,
+        address factory,
         address[] memory path,
         uint256[] memory inputAmounts
     ) public view returns (bytes[] memory paths, uint256[] memory gasEstimates, uint256[] memory outputAmounts) {
@@ -42,7 +42,12 @@ contract KyberElasticSampler is KyberElasticCommon {
         paths = new bytes[](inputAmounts.length);
         gasEstimates = new uint256[](inputAmounts.length);
 
-        IPool[][] memory poolPaths = _getPoolPaths(quoter, factory, path, inputAmounts[inputAmounts.length - 1]);
+        IKyberElasticPool[][] memory poolPaths = _getPoolPaths(
+            quoter,
+            factory,
+            path,
+            inputAmounts[inputAmounts.length - 1]
+        );
         for (uint256 i = 0; i < poolPaths.length; ++i) {
             if (!_isValidPoolPath(poolPaths[i])) {
                 continue;
@@ -50,17 +55,30 @@ contract KyberElasticSampler is KyberElasticCommon {
 
             bytes memory dexPath = _toPath(path, poolPaths[i]);
 
-            (uint256[] memory amountsOut, uint256[] memory gasEstimate) = quoter.quoteExactMultiInput(
-                factory,
-                dexPath,
-                inputAmounts
-            );
+            uint256[] memory amountsOut;
+            uint256[] memory gasEstimatesTemp;
 
-            for (uint256 j = 0; j < outputAmounts.length; ++j) {
-                if (outputAmounts[j] < amountsOut[j]) {
-                    outputAmounts[j] = amountsOut[j];
-                    paths[j] = dexPath;
-                    gasEstimates[j] = gasEstimate[j];
+            try quoter.quoteExactMultiInput(factory, dexPath, inputAmounts) {} catch (bytes memory reason) {
+                bool success;
+                (success, amountsOut, gasEstimatesTemp) = catchKyberElasticMultiSwapResult(reason);
+
+                if (!success) {
+                    continue;
+                }
+
+                for (uint256 j = 0; j < amountsOut.length; ++j) {
+                    if (amountsOut[j] == 0) {
+                        break;
+                    }
+
+                    if (outputAmounts[j] < amountsOut[j]) {
+                        outputAmounts[j] = amountsOut[j];
+                        paths[j] = dexPath;
+                        gasEstimates[j] = gasEstimatesTemp[j];
+                    } else if (outputAmounts[j] == amountsOut[j] && gasEstimates[j] > gasEstimatesTemp[j]) {
+                        paths[j] = dexPath;
+                        gasEstimates[j] = gasEstimatesTemp[j];
+                    }
                 }
             }
         }
@@ -75,7 +93,7 @@ contract KyberElasticSampler is KyberElasticCommon {
     /// @return outputAmounts Taker amounts sold at each maker token amount.
     function sampleBuysFromKyberElastic(
         IMultiQuoter quoter,
-        IFactory factory,
+        address factory,
         address[] memory path,
         uint256[] memory inputAmounts
     ) public view returns (bytes[] memory paths, uint256[] memory gasEstimates, uint256[] memory outputAmounts) {
@@ -84,7 +102,7 @@ contract KyberElasticSampler is KyberElasticCommon {
         gasEstimates = new uint256[](inputAmounts.length);
 
         address[] memory reversedPath = _reverseTokenPath(path);
-        IPool[][] memory poolPaths = _getPoolPaths(
+        IKyberElasticPool[][] memory poolPaths = _getPoolPaths(
             quoter,
             factory,
             reversedPath,
@@ -98,17 +116,30 @@ contract KyberElasticSampler is KyberElasticCommon {
 
             bytes memory poolPath = _toPath(reversedPath, poolPaths[i]);
 
-            (uint256[] memory amountsOut, uint256[] memory gasEstimate) = quoter.quoteExactMultiOutput(
-                factory,
-                poolPath,
-                inputAmounts
-            );
+            uint256[] memory amountsIn;
+            uint256[] memory gasEstimatesTemp;
 
-            for (uint256 j = 0; j < amountsOut.length; ++j) {
-                if (amountsOut[j] > 0 && (outputAmounts[j] == 0 || outputAmounts[j] < amountsOut[j])) {
-                    outputAmounts[j] = amountsOut[j];
-                    paths[j] = _toPath(path, _reversePoolPath(poolPaths[i]));
-                    gasEstimates[j] = gasEstimate[j];
+            try quoter.quoteExactMultiOutput(factory, poolPath, inputAmounts) {} catch (bytes memory reason) {
+                bool success;
+                (success, amountsIn, gasEstimatesTemp) = catchKyberElasticMultiSwapResult(reason);
+
+                if (!success) {
+                    continue;
+                }
+
+                for (uint256 j = 0; j < amountsIn.length; ++j) {
+                    if (amountsIn[j] == 0) {
+                        break;
+                    }
+
+                    if (outputAmounts[j] == 0 || outputAmounts[j] > amountsIn[j]) {
+                        outputAmounts[j] = amountsIn[j];
+                        paths[j] = _toPath(path, _reversePoolPath(poolPaths[i]));
+                        gasEstimates[j] = gasEstimatesTemp[j];
+                    } else if (outputAmounts[j] == amountsIn[j] && outputAmounts[j] > gasEstimatesTemp[j]) {
+                        paths[j] = _toPath(path, _reversePoolPath(poolPaths[i]));
+                        gasEstimates[j] = gasEstimatesTemp[j];
+                    }
                 }
             }
         }

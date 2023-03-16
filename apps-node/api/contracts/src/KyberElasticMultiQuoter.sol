@@ -20,8 +20,6 @@
 // transitive dependencies PathHelper.sol and BytesLib.sol require 0.8.9
 pragma solidity 0.8.9;
 
-import "./libraries/Multiswap.sol";
-import "./interfaces/IMultiQuoter.sol";
 import "@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol";
 import "@kybernetwork/ks-elastic-sc/contracts/libraries/TickMath.sol";
 import "@kybernetwork/ks-elastic-sc/contracts/libraries/SwapMath.sol";
@@ -29,12 +27,14 @@ import "@kybernetwork/ks-elastic-sc/contracts/libraries/Linkedlist.sol";
 import "@kybernetwork/ks-elastic-sc/contracts/libraries/LiqDeltaMath.sol";
 import "@kybernetwork/ks-elastic-sc/contracts/periphery/libraries/PathHelper.sol";
 
-/// @title Provides quotes for multiple swap amounts
-/// @notice Allows getting the expected amount out or amount in for multiple given swap amounts without executing the swap
-contract KyberElasticMultiQuoter is IMultiQuoter {
+import "./interfaces/IKyberElastic.sol";
+import "./MultiQuoter.sol";
+
+contract KyberElasticMultiQuoter is MultiQuoter {
     using SafeCast for uint256;
     using LowGasSafeMath for int256;
     using SafeCast for int128;
+    using PathHelper for bytes;
 
     // temporary swap variables, some of which will be used to update the pool state
     struct SwapData {
@@ -44,7 +44,7 @@ contract KyberElasticMultiQuoter is IMultiQuoter {
         int24 currentTick; // the tick associated with the current price
         int24 nextTick; // the next initialized tick
         uint160 nextSqrtP; // the price of nextTick
-        bool isToken0; // true if specifiedAmount is in token0, false if in token1
+        bool zeroForOne; // true if swap is token0 for token 1
         bool isExactInput; // true = input qty, false = output qty
         uint128 baseL; // the cached base pool liquidity without reinvestment liquidity
         uint128 reinvestL; // the cached reinvestment liquidity
@@ -53,94 +53,15 @@ contract KyberElasticMultiQuoter is IMultiQuoter {
         uint256 gasResidual; // amount of gas used between current tick and current price
     }
 
-    // TODO: same as uniswapv3 multiquoter logic. see if we can make generic.
-    function quoteExactMultiInput(
-        IFactory factory,
+    /// @inheritdoc MultiQuoter
+    function getFirstSwapDetails(
+        address factory,
         bytes memory path,
-        uint256[] memory amountsIn
-    ) public view returns (uint256[] memory amountsOut, uint256[] memory gasEstimate) {
-        for (uint256 i = 1; i < amountsIn.length; ++i) {
-            require(amountsIn[i] >= amountsIn[i - 1], "multiswap amounts must be monotonically increasing");
-        }
-        gasEstimate = new uint256[](amountsIn.length);
-        while (true) {
-            (address tokenIn, address tokenOut, uint24 fee) = PathHelper.decodeFirstPool(path);
-
-            // NOTE: this is equivalent to UniswapV3's zeroForOne.
-            // if tokenIn < tokenOut, token input and specified token is token0, swap from 0 to 1
-            bool isToken0 = tokenIn < tokenOut;
-            IPool pool = IPool(factory.getPool(tokenIn, tokenOut, fee));
-
-            // multiswap only accepts int256[] for input amounts
-            int256[] memory amounts = new int256[](amountsIn.length);
-            for (uint256 i = 0; i < amountsIn.length; ++i) {
-                amounts[i] = int256(amountsIn[i]);
-            }
-
-            Multiswap.Result memory result = multiswap(
-                pool,
-                isToken0,
-                amounts,
-                isToken0 ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1
-            );
-
-            for (uint256 i = 0; i < amountsIn.length; ++i) {
-                amountsIn[i] = isToken0 ? uint256(-result.amounts1[i]) : uint256(-result.amounts0[i]);
-                gasEstimate[i] += result.gasEstimates[i];
-            }
-
-            // decide whether to continue or terminate
-            if (PathHelper.hasMultiplePools(path)) {
-                path = PathHelper.skipToken(path);
-            } else {
-                return (amountsIn, gasEstimate);
-            }
-        }
-    }
-
-    // TODO: same as uniswapv3 multiquoter logic. see if we can make generic.
-    function quoteExactMultiOutput(
-        IFactory factory,
-        bytes memory path,
-        uint256[] memory amountsOut
-    ) public view returns (uint256[] memory amountsIn, uint256[] memory gasEstimate) {
-        for (uint256 i = 1; i < amountsOut.length; ++i) {
-            require(amountsOut[i] >= amountsOut[i - 1], "multiswap amounts must be monotonically inreasing");
-        }
-        gasEstimate = new uint256[](amountsOut.length);
-        while (true) {
-            (address tokenOut, address tokenIn, uint24 fee) = PathHelper.decodeFirstPool(path);
-
-            // NOTE: this is equivalent to UniswapV3's zeroForOne.
-            // if tokenIn > tokenOut, output token and specified token is token0, swap from token1 to token0
-            bool isToken0 = tokenIn > tokenOut;
-            IPool pool = IPool(factory.getPool(tokenIn, tokenOut, fee));
-
-            // multiswap only accepts int256[] for input amounts
-            int256[] memory amounts = new int256[](amountsOut.length);
-            for (uint256 i = 0; i < amountsOut.length; ++i) {
-                amounts[i] = -int256(amountsOut[i]);
-            }
-
-            Multiswap.Result memory result = multiswap(
-                pool,
-                isToken0,
-                amounts,
-                isToken0 ? TickMath.MAX_SQRT_RATIO - 1 : TickMath.MIN_SQRT_RATIO + 1
-            );
-
-            for (uint256 i = 0; i < amountsOut.length; ++i) {
-                amountsOut[i] = isToken0 ? uint256(result.amounts0[i]) : uint256(result.amounts1[i]);
-                gasEstimate[i] += result.gasEstimates[i];
-            }
-
-            // decide whether to continue or terminate
-            if (PathHelper.hasMultiplePools(path)) {
-                path = PathHelper.skipToken(path);
-            } else {
-                return (amountsOut, gasEstimate);
-            }
-        }
+        bool isExactInput
+    ) internal view override returns (address pool, bool zeroForOne) {
+        (address tokenA, address tokenB, uint24 fee) = path.decodeFirstPool();
+        zeroForOne = tokenA < tokenB;
+        pool = IKyberElasticFactory(factory).getPool(tokenA, tokenB, fee);
     }
 
     /// @dev Return initial data before swapping
@@ -151,7 +72,7 @@ contract KyberElasticMultiQuoter is IMultiQuoter {
     /// @return currentTick current pool tick
     /// @return nextTick next tick to calculate data
     function _getInitialSwapData(
-        IPool pool,
+        IKyberElasticPool pool,
         bool willUpTick
     ) internal view returns (uint128 baseL, uint128 reinvestL, uint160 sqrtP, int24 currentTick, int24 nextTick) {
         (sqrtP, currentTick, nextTick, ) = pool.getPoolState();
@@ -163,25 +84,27 @@ contract KyberElasticMultiQuoter is IMultiQuoter {
         }
     }
 
-    /// @notice swap multiple amounts of token0 for token1 or token1 for token0
+    /// @inheritdoc MultiQuoter
     function multiswap(
-        IPool pool,
-        bool isToken0,
-        int256[] memory amounts,
-        uint160 limitSqrtP
-    ) private view returns (Multiswap.Result memory result) {
+        address p,
+        bool zeroForOne,
+        int256[] memory amounts
+    ) internal view override returns (MultiSwapResult memory result) {
         result.gasEstimates = new uint256[](amounts.length);
         result.amounts0 = new int256[](amounts.length);
         result.amounts1 = new int256[](amounts.length);
         uint256 gasBefore = gasleft();
 
+        IKyberElasticPool pool = IKyberElasticPool(p);
+
         SwapData memory swapData;
         swapData.specifiedAmount = amounts[0];
-        swapData.isToken0 = isToken0;
+        swapData.zeroForOne = zeroForOne;
         swapData.isExactInput = swapData.specifiedAmount > 0;
 
         // tick (token1Qty/token0Qty) will increase for swapping from token1 to token0
-        bool willUpTick = (swapData.isExactInput != isToken0);
+        bool willUpTick = (swapData.isExactInput != zeroForOne);
+        uint160 limitSqrtP = willUpTick ? TickMath.MAX_SQRT_RATIO - 1 : TickMath.MIN_SQRT_RATIO + 1;
         (
             swapData.baseL,
             swapData.reinvestL,
@@ -235,7 +158,7 @@ contract KyberElasticMultiQuoter is IMultiQuoter {
                     swapFeeUnits,
                     swapData.specifiedAmount,
                     swapData.isExactInput,
-                    swapData.isToken0
+                    swapData.zeroForOne
                 );
 
                 swapData.specifiedAmount -= usedAmount;
@@ -246,10 +169,6 @@ contract KyberElasticMultiQuoter is IMultiQuoter {
             // if price has not reached the next sqrt price (still liquidity in current tick)
             if (swapData.sqrtP != swapData.nextSqrtP) {
                 swapData.currentTick = TickMath.getTickAtSqrtRatio(swapData.sqrtP);
-                if (swapData.amountsIndex == amounts.length - 1) {
-                    break;
-                }
-
                 // use max since we want to over estimate
                 swapData.gasResidual = max(swapData.gasResidual, gasBefore - gasleft());
                 gasBefore = gasleft();
@@ -270,7 +189,7 @@ contract KyberElasticMultiQuoter is IMultiQuoter {
                 gasBefore = gasleft();
             }
             if (swapData.specifiedAmount == 0) {
-                (result.amounts0[swapData.amountsIndex], result.amounts1[swapData.amountsIndex]) = isToken0 ==
+                (result.amounts0[swapData.amountsIndex], result.amounts1[swapData.amountsIndex]) = zeroForOne ==
                     swapData.isExactInput
                     ? (amounts[swapData.amountsIndex], swapData.returnedAmount)
                     : (swapData.returnedAmount, amounts[swapData.amountsIndex]);
@@ -287,12 +206,11 @@ contract KyberElasticMultiQuoter is IMultiQuoter {
         }
 
         for (uint256 i = swapData.amountsIndex; i < amounts.length; ++i) {
-            (result.amounts0[i], result.amounts1[i]) = isToken0 == swapData.isExactInput
+            (result.amounts0[i], result.amounts1[i]) = zeroForOne == swapData.isExactInput
                 ? (amounts[i], swapData.returnedAmount)
                 : (swapData.returnedAmount, amounts[i]);
+            result.gasEstimates[i] = swapData.gasAggregate + swapData.gasResidual;
         }
-
-        result.gasEstimates[swapData.amountsIndex] = swapData.gasAggregate + swapData.gasResidual;
     }
 
     function max(uint256 a, uint256 b) internal pure returns (uint256) {
@@ -301,7 +219,7 @@ contract KyberElasticMultiQuoter is IMultiQuoter {
 
     /// @dev Update liquidity net data and do cross tick
     function _updateLiquidityAndCrossTick(
-        IPool pool,
+        IKyberElasticPool pool,
         int24 nextTick,
         uint128 currentLiquidity,
         bool willUpTick
@@ -318,5 +236,15 @@ contract KyberElasticMultiQuoter is IMultiQuoter {
             liquidityNet >= 0 ? uint128(liquidityNet) : liquidityNet.revToUint128(),
             liquidityNet >= 0
         );
+    }
+
+    /// @inheritdoc MultiQuoter
+    function pathHasMultiplePools(bytes memory path) internal pure override returns (bool) {
+        return path.hasMultiplePools();
+    }
+
+    /// @inheritdoc MultiQuoter
+    function pathSkipToken(bytes memory path) internal pure override returns (bytes memory) {
+        return path.skipToken();
     }
 }

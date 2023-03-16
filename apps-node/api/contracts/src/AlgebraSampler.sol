@@ -21,7 +21,7 @@ pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 import "./AlgebraCommon.sol";
-import "./interfaces/IAlgebra.sol";
+import "./interfaces/IMultiQuoter.sol";
 
 contract AlgebraSampler is AlgebraCommon {
     /// @dev Sample sell quotes from Algebra.
@@ -33,8 +33,8 @@ contract AlgebraSampler is AlgebraCommon {
     /// @return gasEstimates Estimated amount of gas used
     /// @return outputAmounts Maker amounts bought at each taker token amount.
     function sampleSellsFromAlgebra(
-        IAlgebraMultiQuoter quoter,
-        IAlgebraFactory factory,
+        IMultiQuoter quoter,
+        address factory,
         address[] memory tokenPath,
         uint256[] memory inputAmounts
     ) public view returns (bytes memory path, uint256[] memory gasEstimates, uint256[] memory outputAmounts) {
@@ -60,8 +60,8 @@ contract AlgebraSampler is AlgebraCommon {
     /// @return gasEstimates Estimated amount of gas used
     /// @return inputAmounts Taker amounts sold at each maker token amount.
     function sampleBuysFromAlgebra(
-        IAlgebraMultiQuoter quoter,
-        IAlgebraFactory factory,
+        IMultiQuoter quoter,
+        address factory,
         address[] memory tokenPath,
         uint256[] memory outputAmounts
     ) public view returns (bytes memory path, uint256[] memory gasEstimates, uint256[] memory inputAmounts) {

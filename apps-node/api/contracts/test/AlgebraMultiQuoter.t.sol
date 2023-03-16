@@ -5,6 +5,26 @@ import "forge-std/Test.sol";
 import "../src/AlgebraMultiQuoter.sol";
 import "../src/AlgebraCommon.sol";
 
+interface IAlgebraQuoter {
+    /// @notice Returns the amount out received for a given exact input swap without executing the swap
+    /// @param path The path of the swap, i.e. each token pair
+    /// @param amountIn The amount of the first token to swap
+    /// @return amountOut The amount of the last token that would be received
+    function quoteExactInput(
+        bytes memory path,
+        uint256 amountIn
+    ) external returns (uint256 amountOut, uint16[] memory fees);
+
+    /// @notice Returns the amount in required for a given exact output swap without executing the swap
+    /// @param path The path of the swap, i.e. each token pair. Path must be provided in reverse order
+    /// @param amountOut The amount of the last token to receive
+    /// @return amountIn The amount of first token required to be paid
+    function quoteExactOutput(
+        bytes memory path,
+        uint256 amountOut
+    ) external returns (uint256 amountIn, uint16[] memory fees);
+}
+
 contract TestAlgebraMultiQuoter is Test, AlgebraCommon {
     /// @dev error threshold for comparison between MultiQuoter and UniswapV3's official QuoterV2.
     /// MultiQuoter results in some rounding errors due to SqrtPriceMath library.
@@ -134,7 +154,7 @@ contract TestAlgebraMultiQuoter is Test, AlgebraCommon {
     ) private returns (uint256 algebraQuoterGasUsage, uint256 multiQuoterGasUsage) {
         uint256 gas0 = gasleft();
         uint256[] memory multiQuoterAmountsOut;
-        try multiQuoter.quoteExactMultiInput(factory, path, amountsIn) {} catch (bytes memory reason) {
+        try multiQuoter.quoteExactMultiInput(address(factory), path, amountsIn) {} catch (bytes memory reason) {
             (, multiQuoterAmountsOut, ) = catchAlgebraMultiSwapResult(reason);
         }
         uint256 gas1 = gasleft();
@@ -162,7 +182,7 @@ contract TestAlgebraMultiQuoter is Test, AlgebraCommon {
     ) private returns (uint256 algebraQuoterGasUsage, uint256 multiQuoterGasUsage) {
         uint256 gas0 = gasleft();
         uint256[] memory multiQuoterAmountsIn;
-        try multiQuoter.quoteExactMultiOutput(factory, path, amountsOut) {} catch (bytes memory reason) {
+        try multiQuoter.quoteExactMultiOutput(address(factory), path, amountsOut) {} catch (bytes memory reason) {
             (, multiQuoterAmountsIn, ) = catchAlgebraMultiSwapResult(reason);
         }
         uint256 gas1 = gasleft();

@@ -10,10 +10,10 @@ contract KyberElasticCommon {
     /// @dev Returns `poolPaths` to sample against. The caller is responsible for not using path involving zero address(es).
     function _getPoolPaths(
         IMultiQuoter quoter,
-        IFactory factory,
+        address factory,
         address[] memory path,
         uint256 inputAmount
-    ) internal view returns (IPool[][] memory poolPaths) {
+    ) internal view returns (IKyberElasticPool[][] memory poolPaths) {
         if (path.length == 2) {
             return _getPoolPathSingleHop(quoter, factory, path, inputAmount);
         }
@@ -25,17 +25,17 @@ contract KyberElasticCommon {
 
     function _getPoolPathSingleHop(
         IMultiQuoter quoter,
-        IFactory factory,
+        address factory,
         address[] memory path,
         uint256 inputAmount
-    ) internal view returns (IPool[][] memory poolPaths) {
-        poolPaths = new IPool[][](2);
-        (IPool[2] memory topPools, ) = _getTopTwoPools(quoter, factory, path[0], path[1], inputAmount);
+    ) internal view returns (IKyberElasticPool[][] memory poolPaths) {
+        poolPaths = new IKyberElasticPool[][](2);
+        (IKyberElasticPool[2] memory topPools, ) = _getTopTwoPools(quoter, factory, path[0], path[1], inputAmount);
 
         uint256 pathCount = 0;
         for (uint256 i = 0; i < 2; i++) {
-            IPool topPool = topPools[i];
-            poolPaths[pathCount] = new IPool[](1);
+            IKyberElasticPool topPool = topPools[i];
+            poolPaths[pathCount] = new IKyberElasticPool[](1);
             poolPaths[pathCount][0] = topPool;
             pathCount++;
         }
@@ -43,25 +43,31 @@ contract KyberElasticCommon {
 
     function _getPoolPathTwoHop(
         IMultiQuoter quoter,
-        IFactory factory,
+        address factory,
         address[] memory path,
         uint256 inputAmount
-    ) internal view returns (IPool[][] memory poolPaths) {
-        poolPaths = new IPool[][](4);
-        (IPool[2] memory firstHopTopPools, uint256[2] memory firstHopAmounts) = _getTopTwoPools(
+    ) internal view returns (IKyberElasticPool[][] memory poolPaths) {
+        poolPaths = new IKyberElasticPool[][](4);
+        (IKyberElasticPool[2] memory firstHopTopPools, uint256[2] memory firstHopAmounts) = _getTopTwoPools(
             quoter,
             factory,
             path[0],
             path[1],
             inputAmount
         );
-        (IPool[2] memory secondHopTopPools, ) = _getTopTwoPools(quoter, factory, path[1], path[2], firstHopAmounts[0]);
+        (IKyberElasticPool[2] memory secondHopTopPools, ) = _getTopTwoPools(
+            quoter,
+            factory,
+            path[1],
+            path[2],
+            firstHopAmounts[0]
+        );
 
         uint256 pathCount = 0;
         for (uint256 i = 0; i < 2; i++) {
             for (uint256 j = 0; j < 2; j++) {
-                poolPaths[pathCount] = new IPool[](2);
-                IPool[] memory currentPath = poolPaths[pathCount];
+                poolPaths[pathCount] = new IKyberElasticPool[](2);
+                IKyberElasticPool[] memory currentPath = poolPaths[pathCount];
                 currentPath[0] = firstHopTopPools[i];
                 currentPath[1] = secondHopTopPools[j];
                 pathCount++;
@@ -73,11 +79,11 @@ contract KyberElasticCommon {
     /// Addresses in `topPools` can be zero addresses when there are pool isn't available.
     function _getTopTwoPools(
         IMultiQuoter multiQuoter,
-        IFactory factory,
+        address factory,
         address inputToken,
         address outputToken,
         uint256 inputAmount
-    ) internal view returns (IPool[2] memory topPools, uint256[2] memory outputAmounts) {
+    ) internal view returns (IKyberElasticPool[2] memory topPools, uint256[2] memory topOutputAmounts) {
         address[] memory tokenPath = new address[](2);
         tokenPath[0] = inputToken;
         tokenPath[1] = outputToken;
@@ -87,33 +93,38 @@ contract KyberElasticCommon {
 
         uint16[5] memory validPoolFees = [uint16(8), uint16(10), uint16(40), uint16(300), uint16(1000)]; // in bps
         for (uint256 i = 0; i < validPoolFees.length; ++i) {
-            IPool pool = IPool(factory.getPool(inputToken, outputToken, validPoolFees[i]));
+            IKyberElasticPool pool = IKyberElasticPool(
+                IKyberElasticFactory(factory).getPool(inputToken, outputToken, validPoolFees[i])
+            );
             if (!_isValidPool(pool)) {
                 continue;
             }
 
-            IPool[] memory poolPath = new IPool[](1);
+            IKyberElasticPool[] memory poolPath = new IKyberElasticPool[](1);
             poolPath[0] = pool;
             bytes memory dexPath = _toPath(tokenPath, poolPath);
 
             try
                 multiQuoter.quoteExactMultiInput{gas: POOL_FILTERING_QUOTE_GAS}(factory, dexPath, inputAmounts)
-            returns (uint256[] memory amountsOut, uint256[] memory /* gasEstimate */) {
-                // Keeping track of the top 2 pools.
-                if (amountsOut[0] > outputAmounts[0]) {
-                    outputAmounts[1] = outputAmounts[0];
-                    topPools[1] = topPools[0];
-                    outputAmounts[0] = amountsOut[0];
-                    topPools[0] = pool;
-                } else if (amountsOut[0] > outputAmounts[1]) {
-                    outputAmounts[1] = amountsOut[0];
-                    topPools[1] = pool;
+            {} catch (bytes memory reason) {
+                (bool success, uint256[] memory outputAmounts, ) = catchKyberElasticMultiSwapResult(reason);
+                if (success) {
+                    // Keeping track of the top 2 pools.
+                    if (outputAmounts[0] > topOutputAmounts[0]) {
+                        topOutputAmounts[1] = topOutputAmounts[0];
+                        topPools[1] = topPools[0];
+                        topOutputAmounts[0] = outputAmounts[0];
+                        topPools[0] = pool;
+                    } else if (outputAmounts[0] > topOutputAmounts[1]) {
+                        topOutputAmounts[1] = outputAmounts[0];
+                        topPools[1] = pool;
+                    }
                 }
-            } catch {}
+            }
         }
     }
 
-    function _isValidPool(IPool pool) internal view returns (bool isValid) {
+    function _isValidPool(IKyberElasticPool pool) internal view returns (bool isValid) {
         // Check if it has been deployed.
         uint256 codeSize;
         assembly {
@@ -122,7 +133,7 @@ contract KyberElasticCommon {
         return codeSize != 0;
     }
 
-    function _isValidPoolPath(IPool[] memory poolPaths) internal pure returns (bool) {
+    function _isValidPoolPath(IKyberElasticPool[] memory poolPaths) internal pure returns (bool) {
         for (uint256 i = 0; i < poolPaths.length; i++) {
             if (address(poolPaths[i]) == address(0)) {
                 return false;
@@ -131,7 +142,10 @@ contract KyberElasticCommon {
         return true;
     }
 
-    function _toPath(address[] memory tokenPath, IPool[] memory poolPath) internal view returns (bytes memory path) {
+    function _toPath(
+        address[] memory tokenPath,
+        IKyberElasticPool[] memory poolPath
+    ) internal view returns (bytes memory path) {
         require(tokenPath.length >= 2 && tokenPath.length == poolPath.length + 1, "invalid path lengths");
         // paths are tightly packed as:
         // [token0, token0token1PairFee, token1, token1Token2PairFee, token2, ...]
@@ -163,10 +177,33 @@ contract KyberElasticCommon {
         }
     }
 
-    function _reversePoolPath(IPool[] memory poolPath) internal pure returns (IPool[] memory reversed) {
-        reversed = new IPool[](poolPath.length);
+    function _reversePoolPath(
+        IKyberElasticPool[] memory poolPath
+    ) internal pure returns (IKyberElasticPool[] memory reversed) {
+        reversed = new IKyberElasticPool[](poolPath.length);
         for (uint256 i = 0; i < poolPath.length; ++i) {
             reversed[i] = poolPath[poolPath.length - i - 1];
         }
+    }
+
+    function catchKyberElasticMultiSwapResult(
+        bytes memory revertReason
+    ) internal pure returns (bool success, uint256[] memory amounts, uint256[] memory gasEstimates) {
+        bytes4 selector;
+        assembly {
+            selector := mload(add(revertReason, 32))
+        }
+
+        if (selector != bytes4(keccak256("result(uint256[],uint256[])"))) {
+            return (false, amounts, gasEstimates);
+        }
+
+        assembly {
+            let length := sub(mload(revertReason), 4)
+            revertReason := add(revertReason, 4)
+            mstore(revertReason, length)
+        }
+        (amounts, gasEstimates) = abi.decode(revertReason, (uint256[], uint256[]));
+        return (true, amounts, gasEstimates);
     }
 }

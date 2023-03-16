@@ -21,6 +21,7 @@ pragma solidity >=0.6;
 pragma experimental ABIEncoderV2;
 
 import "./interfaces/IAlgebra.sol";
+import "./interfaces/IMultiQuoter.sol";
 
 contract AlgebraCommon {
     function toAlgebraPath(address[] memory tokenPath) internal pure returns (bytes memory algebraPath) {
@@ -42,10 +43,10 @@ contract AlgebraCommon {
         }
     }
 
-    function isValidTokenPath(IAlgebraFactory factory, address[] memory tokenPath) internal view returns (bool) {
+    function isValidTokenPath(address factory, address[] memory tokenPath) internal view returns (bool) {
         for (uint256 i = 0; i < tokenPath.length - 1; ++i) {
-            IAlgebraPool pool = factory.poolByPair(tokenPath[i], tokenPath[i + 1]);
-            if (address(pool) == address(0)) {
+            address pool = IAlgebraFactory(factory).poolByPair(tokenPath[i], tokenPath[i + 1]);
+            if (pool == address(0)) {
                 return false;
             }
         }

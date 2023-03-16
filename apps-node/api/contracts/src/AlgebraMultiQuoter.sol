@@ -23,13 +23,9 @@ import "@cryptoalgebra/core/contracts/libraries/LiquidityMath.sol";
 import "@cryptoalgebra/periphery/contracts/libraries/Path.sol";
 
 import "./interfaces/IAlgebra.sol";
+import "./MultiQuoter.sol";
 
-contract AlgebraMultiQuoter is IAlgebraMultiQuoter {
-    // TODO: both quoteExactMultiInput and quoteExactMultiOutput revert at the end of the quoting logic
-    // and return results encodied into a revert reason. The revert should be removed and replaced with
-    // a normal return statement whenever UniswapV3Sampler and KyberElasticSampler stop having the
-    // two pool filtering logic. AlgebraMultiQuoter has the same revert logic in order to have a common
-    // interface across tick based AMM MultiQuoters.
+contract AlgebraMultiQuoter is MultiQuoter {
     using SafeCast for uint256;
     using LowGasSafeMath for int256;
     using Path for bytes;
@@ -72,172 +68,36 @@ contract AlgebraMultiQuoter is IAlgebraMultiQuoter {
         uint256 gasBefore;
     }
 
-    // the result of multiswap
-    struct MultiSwapResult {
-        // the gas estimate for each of swap amounts
-        uint256[] gasEstimates;
-        // the token0 delta for each swap amount, positive indicates sent and negative indicates receipt
-        int256[] amounts0;
-        // the token1 delta for each swap amount, positive indicates sent and negative indicates receipt
-        int256[] amounts1;
-    }
-
-    /// @notice Quotes amounts out for a set of exact input swaps and provides results encoded into a revert reason
-    /// @param factory The factory contract managing Algebra pools
-    /// @param path The path of the swap, i.e. each token pair and the pool fee
-    /// @param amountsIn The amounts in of the first token to swap
-    /// @dev This function reverts at the end of the quoting logic and encodes (uint256[] amountsOut, uint256[] gasEstimates)
-    /// into the revert reason. See additional documentation below.
-    function quoteExactMultiInput(
-        IAlgebraFactory factory,
+    /// @inheritdoc MultiQuoter
+    function getFirstSwapDetails(
+        address factory,
         bytes memory path,
-        uint256[] memory amountsIn
-    ) public view override {
-        for (uint256 i = 0; i < amountsIn.length - 1; ++i) {
-            require(amountsIn[i] <= amountsIn[i + 1], "AlgebraMultiQuoter/amountsIn must be monotonically increasing");
+        bool isExactInput
+    ) internal view override returns (address pool, bool zeroForOne) {
+        address tokenIn;
+        address tokenOut;
+        if (isExactInput) {
+            (tokenIn, tokenOut) = path.decodeFirstPool();
+        } else {
+            (tokenOut, tokenIn) = path.decodeFirstPool();
         }
 
-        uint256[] memory gasEstimates = new uint256[](amountsIn.length);
-
-        while (true) {
-            (address tokenIn, address tokenOut) = path.decodeFirstPool();
-            bool zeroForOne = tokenIn < tokenOut;
-            IAlgebraPool pool = factory.poolByPair(tokenIn, tokenOut);
-
-            // multiswap only accepts int256[] for input amounts
-            int256[] memory amounts = new int256[](amountsIn.length);
-            for (uint256 i = 0; i < amountsIn.length; ++i) {
-                amounts[i] = int256(amountsIn[i]);
-            }
-
-            MultiSwapResult memory result = multiswap(
-                pool,
-                zeroForOne,
-                amounts,
-                zeroForOne ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1
-            );
-
-            for (uint256 i = 0; i < amountsIn.length; ++i) {
-                amountsIn[i] = zeroForOne ? uint256(-result.amounts1[i]) : uint256(-result.amounts0[i]);
-                gasEstimates[i] += result.gasEstimates[i];
-            }
-
-            //decide whether to continue or terminate
-            if (path.hasMultiplePools()) {
-                path = path.skipToken();
-            } else {
-                // quote results must be encoded into a revert because otherwise subsequent calls
-                // to AlgebraMultiQuoter result in multiswap hitting pool storage slots that are
-                // already warm. This results in very inaccurate gas estimates when estimating gas
-                // usage for settlement.
-                bytes memory revertResult = abi.encodeWithSignature(
-                    "result(uint256[],uint256[])",
-                    amountsIn,
-                    gasEstimates
-                );
-                assembly {
-                    revert(add(revertResult, 0x20), mload(revertResult))
-                }
-            }
-        }
+        zeroForOne = tokenIn < tokenOut;
+        pool = IAlgebraFactory(factory).poolByPair(tokenIn, tokenOut);
     }
 
-    /// @notice Quotes amounts in a set of exact output swaps and provides results encoded into a revert reason
-    /// @param factory The factory contract managing Algebra pools
-    /// @param path The path of the swap, i.e. each token pair and the pool fee. Path must be provided in reverse order
-    /// @param amountsOut The amounts out of the last token to receive
-    /// @dev This function reverts at the end of the quoting logic and encodes (uint256[] amountsIn, uint256[] gasEstimates)
-    /// into the revert reason. See additional documentation below.
-    function quoteExactMultiOutput(
-        IAlgebraFactory factory,
-        bytes memory path,
-        uint256[] memory amountsOut
-    ) public view override {
-        uint256[] memory amountsIn = new uint256[](amountsOut.length);
-        uint256[] memory gasEstimates = new uint256[](amountsOut.length);
-
-        for (uint256 i = 0; i < amountsOut.length - 1; ++i) {
-            require(
-                amountsOut[i] <= amountsOut[i + 1],
-                "AlgebraMultiQuoter/amountsOut must be monotonically increasing"
-            );
-        }
-
-        uint256 nextAmountsLength = amountsOut.length;
-        while (true) {
-            (address tokenOut, address tokenIn) = path.decodeFirstPool();
-            bool zeroForOne = tokenIn < tokenOut;
-            IAlgebraPool pool = factory.poolByPair(tokenIn, tokenOut);
-
-            // multiswap only accepts int256[] for output amounts
-            int256[] memory amounts = new int256[](nextAmountsLength);
-            for (uint256 i = 0; i < nextAmountsLength; ++i) {
-                amounts[i] = -int256(amountsOut[i]);
-            }
-
-            MultiSwapResult memory result = multiswap(
-                pool,
-                zeroForOne,
-                amounts,
-                zeroForOne ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1
-            );
-
-            for (uint256 i = 0; i < nextAmountsLength; ++i) {
-                uint256 amountReceived = zeroForOne ? uint256(-result.amounts1[i]) : uint256(-result.amounts0[i]);
-                if (amountReceived != amountsOut[i]) {
-                    // for exact output swaps we need to check whether we would receive the full amount due to
-                    // multiswap behavior when hitting the limit
-                    nextAmountsLength = i;
-                    break;
-                } else {
-                    // populate amountsOut for the next pool
-                    amountsOut[i] = zeroForOne ? uint256(result.amounts0[i]) : uint256(result.amounts1[i]);
-                    gasEstimates[i] += result.gasEstimates[i];
-                }
-            }
-
-            if (nextAmountsLength == 0 || !path.hasMultiplePools()) {
-                for (uint256 i = 0; i < nextAmountsLength; ++i) {
-                    amountsIn[i] = amountsOut[i];
-                }
-
-                // quote results must be encoded into a revert because otherwise subsequent calls
-                // to UniswapV3MultiQuoter result in multiswap hitting pool storage slots that are
-                // already warm. This results in very inaccurate gas estimates when estimating gas
-                // usage for settlement.
-                bytes memory revertResult = abi.encodeWithSignature(
-                    "result(uint256[],uint256[])",
-                    amountsIn,
-                    gasEstimates
-                );
-                assembly {
-                    revert(add(revertResult, 0x20), mload(revertResult))
-                }
-            }
-
-            path = path.skipToken();
-        }
-    }
-
-    /// @notice swap multiple amounts of token0 for token1 or token1 for token1
-    /// @dev The results of multiswap includes slight rounding issues resulting from rounding up/rounding down in SqrtPriceMath library. Additionally,
-    /// it should be noted that multiswap requires a monotonically increasing list of amounts for exact inputs and monotonically decreasing list of
-    /// amounts for exact outputs.
-    /// @param pool The Algebra pool to simulate each of the swap amounts for
-    /// @param zeroForOne The direction of the swap, true for token0 to token1, false for token1 to token0
-    /// @param amounts The amounts of the swaps, positive values indicate exactInput and negative values indicate exact output
-    /// @param sqrtPriceLimitX96 The Q64.96 sqrt price limit. If zero for one, the price cannot be less than this
-    /// value after the swap. If one for zero, the price cannot be greater than this value after the swap
-    /// @return result The results of the swap as a MultiSwapResult struct with gas used, token0 and token1 deltas
+    /// @inheritdoc MultiQuoter
     function multiswap(
-        IAlgebraPool pool,
+        address p,
         bool zeroForOne,
-        int256[] memory amounts,
-        uint160 sqrtPriceLimitX96
-    ) private view returns (MultiSwapResult memory result) {
+        int256[] memory amounts
+    ) internal view override returns (MultiSwapResult memory result) {
         result.gasEstimates = new uint256[](amounts.length);
         result.amounts0 = new int256[](amounts.length);
         result.amounts1 = new int256[](amounts.length);
+
+        uint160 sqrtPriceLimitX96 = zeroForOne ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1;
+        IAlgebraPool pool = IAlgebraPool(p);
 
         (uint160 sqrtPriceX96Start, int24 tickStart, uint16 fee, , , , ) = pool.globalState();
         int24 tickSpacing = pool.tickSpacing();
@@ -462,5 +322,15 @@ contract AlgebraMultiQuoter is IAlgebraMultiQuoter {
             word := sub(word, shr(1, word))
         }
         return (getSingleSignificantBit(word));
+    }
+
+    /// @inheritdoc MultiQuoter
+    function pathHasMultiplePools(bytes memory path) internal pure override returns (bool) {
+        return path.hasMultiplePools();
+    }
+
+    /// @inheritdoc MultiQuoter
+    function pathSkipToken(bytes memory path) internal pure override returns (bytes memory) {
+        return path.skipToken();
     }
 }
