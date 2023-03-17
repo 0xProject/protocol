@@ -49,9 +49,11 @@ contract ZeroExVotesTest is BaseTest {
     function testShouldNotBeAbleToStopBurn() public {
         // wrap some token
         vm.startPrank(account2);
-        token.approve(address(wToken), 1 ether);
-        wToken.depositFor(account2, 1 ether);
+        token.approve(address(wToken), 1700000e18);
+        wToken.depositFor(account2, 1700000e18);
         vm.stopPrank();
+        assertEq(token.balanceOf(account2), 0);
+        assertEq(wToken.balanceOf(account2), 1700000e18);
 
         // malicious upgrade
         vm.startPrank(account1);
@@ -61,7 +63,9 @@ contract ZeroExVotesTest is BaseTest {
 
         // try to withdraw withdraw
         vm.prank(account2);
-        wToken.withdrawTo(account2, 1 ether);
+        wToken.withdrawTo(account2, 1700000e18);
+        assertEq(token.balanceOf(account2), 1700000e18);
+        assertEq(wToken.balanceOf(account2), 0);
     }
 
     function testShouldBeAbleToReadCheckpoints() public {
