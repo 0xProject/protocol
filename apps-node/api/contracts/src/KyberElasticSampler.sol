@@ -42,12 +42,7 @@ contract KyberElasticSampler is KyberElasticCommon {
         paths = new bytes[](inputAmounts.length);
         gasEstimates = new uint256[](inputAmounts.length);
 
-        IKyberElasticPool[][] memory poolPaths = _getPoolPaths(
-            quoter,
-            factory,
-            path,
-            inputAmounts[inputAmounts.length - 1]
-        );
+        address[][] memory poolPaths = _getPoolPaths(quoter, factory, path, inputAmounts[inputAmounts.length - 1]);
         for (uint256 i = 0; i < poolPaths.length; ++i) {
             if (!_isValidPoolPath(poolPaths[i])) {
                 continue;
@@ -60,7 +55,7 @@ contract KyberElasticSampler is KyberElasticCommon {
 
             try quoter.quoteExactMultiInput(factory, dexPath, inputAmounts) {} catch (bytes memory reason) {
                 bool success;
-                (success, amountsOut, gasEstimatesTemp) = catchKyberElasticMultiSwapResult(reason);
+                (success, amountsOut, gasEstimatesTemp) = decodeMultiSwapRevert(reason);
 
                 if (!success) {
                     continue;
@@ -101,8 +96,8 @@ contract KyberElasticSampler is KyberElasticCommon {
         paths = new bytes[](inputAmounts.length);
         gasEstimates = new uint256[](inputAmounts.length);
 
-        address[] memory reversedPath = _reverseTokenPath(path);
-        IKyberElasticPool[][] memory poolPaths = _getPoolPaths(
+        address[] memory reversedPath = reverseAddressPath(path);
+        address[][] memory poolPaths = _getPoolPaths(
             quoter,
             factory,
             reversedPath,
@@ -121,7 +116,7 @@ contract KyberElasticSampler is KyberElasticCommon {
 
             try quoter.quoteExactMultiOutput(factory, poolPath, inputAmounts) {} catch (bytes memory reason) {
                 bool success;
-                (success, amountsIn, gasEstimatesTemp) = catchKyberElasticMultiSwapResult(reason);
+                (success, amountsIn, gasEstimatesTemp) = decodeMultiSwapRevert(reason);
 
                 if (!success) {
                     continue;
@@ -134,10 +129,10 @@ contract KyberElasticSampler is KyberElasticCommon {
 
                     if (outputAmounts[j] == 0 || outputAmounts[j] > amountsIn[j]) {
                         outputAmounts[j] = amountsIn[j];
-                        paths[j] = _toPath(path, _reversePoolPath(poolPaths[i]));
+                        paths[j] = _toPath(path, reverseAddressPath(poolPaths[i]));
                         gasEstimates[j] = gasEstimatesTemp[j];
                     } else if (outputAmounts[j] == amountsIn[j] && outputAmounts[j] > gasEstimatesTemp[j]) {
-                        paths[j] = _toPath(path, _reversePoolPath(poolPaths[i]));
+                        paths[j] = _toPath(path, reverseAddressPath(poolPaths[i]));
                         gasEstimates[j] = gasEstimatesTemp[j];
                     }
                 }

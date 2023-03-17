@@ -22,8 +22,9 @@ pragma experimental ABIEncoderV2;
 
 import "./interfaces/IAlgebra.sol";
 import "./interfaces/IMultiQuoter.sol";
+import "./TickBasedAMMCommon.sol";
 
-contract AlgebraCommon {
+contract AlgebraCommon is TickBasedAMMCommon {
     function toAlgebraPath(address[] memory tokenPath) internal pure returns (bytes memory algebraPath) {
         require(tokenPath.length >= 2, "AlgebraCommon/invalid path lengths");
 
@@ -51,33 +52,5 @@ contract AlgebraCommon {
             }
         }
         return true;
-    }
-
-    function reverseAlgebraTokenPath(address[] memory tokenPath) internal pure returns (address[] memory reversed) {
-        reversed = new address[](tokenPath.length);
-        for (uint256 i = 0; i < tokenPath.length; ++i) {
-            reversed[i] = tokenPath[tokenPath.length - i - 1];
-        }
-    }
-
-    function catchAlgebraMultiSwapResult(
-        bytes memory revertReason
-    ) internal pure returns (bool success, uint256[] memory amounts, uint256[] memory gasEstimates) {
-        bytes4 selector;
-        assembly {
-            selector := mload(add(revertReason, 32))
-        }
-
-        if (selector != bytes4(keccak256("result(uint256[],uint256[])"))) {
-            return (false, amounts, gasEstimates);
-        }
-
-        assembly {
-            let length := sub(mload(revertReason), 4)
-            revertReason := add(revertReason, 4)
-            mstore(revertReason, length)
-        }
-        (amounts, gasEstimates) = abi.decode(revertReason, (uint256[], uint256[]));
-        return (true, amounts, gasEstimates);
     }
 }

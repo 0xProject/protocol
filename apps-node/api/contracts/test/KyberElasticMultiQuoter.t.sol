@@ -60,9 +60,9 @@ contract TestKyberElasticMultiQuoter is Test, KyberElasticCommon {
     address constant ETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     address constant LINK = 0x514910771AF9Ca656af840dff83E8264EcF986CA;
 
-    IKyberElasticPool constant ETH_KNC_POOL_100_BIP = IKyberElasticPool(0xB5e643250FF59311071C5008f722488543DD7b3C);
-    IKyberElasticPool constant ETH_KNC_POOL_30_BIP = IKyberElasticPool(0xa38a0165e82B7a5E8650109E9e54087a34C93020);
-    IKyberElasticPool constant LINK_ETH_POOL_30_BIP = IKyberElasticPool(0x8990b58Ab653C9954415f4544e8deB72c2b12ED8);
+    address constant ETH_KNC_POOL_100_BIP = 0xB5e643250FF59311071C5008f722488543DD7b3C;
+    address constant ETH_KNC_POOL_30_BIP = 0xa38a0165e82B7a5E8650109E9e54087a34C93020;
+    address constant LINK_ETH_POOL_30_BIP = 0x8990b58Ab653C9954415f4544e8deB72c2b12ED8;
     IQuoterV2 constant kyberQuoter = IQuoterV2(0x0D125c15D54cA1F8a813C74A81aEe34ebB508C1f);
     IKyberElasticFactory constant factory = IKyberElasticFactory(0x5F1dddbf348aC2fbe22a163e30F99F9ECE3DD50a);
     KyberElasticMultiQuoter multiQuoter;
@@ -106,7 +106,7 @@ contract TestKyberElasticMultiQuoter is Test, KyberElasticCommon {
         tokenPath[0] = ETH;
         tokenPath[1] = KNC;
 
-        IKyberElasticPool[] memory poolPath = new IKyberElasticPool[](1);
+        address[] memory poolPath = new address[](1);
         poolPath[0] = ETH_KNC_POOL_100_BIP;
 
         testAllAmountsAndPaths(tokenPath, poolPath);
@@ -117,7 +117,7 @@ contract TestKyberElasticMultiQuoter is Test, KyberElasticCommon {
         tokenPath[0] = ETH;
         tokenPath[1] = KNC;
 
-        IKyberElasticPool[] memory poolPath = new IKyberElasticPool[](1);
+        address[] memory poolPath = new address[](1);
         poolPath[0] = ETH_KNC_POOL_30_BIP;
 
         testAllAmountsAndPaths(tokenPath, poolPath);
@@ -129,7 +129,7 @@ contract TestKyberElasticMultiQuoter is Test, KyberElasticCommon {
         tokenPath[1] = KNC;
         tokenPath[2] = LINK;
 
-        IKyberElasticPool[] memory poolPath = new IKyberElasticPool[](2);
+        address[] memory poolPath = new address[](2);
         poolPath[0] = ETH_KNC_POOL_100_BIP;
         poolPath[1] = LINK_ETH_POOL_30_BIP;
 
@@ -137,8 +137,8 @@ contract TestKyberElasticMultiQuoter is Test, KyberElasticCommon {
     }
 
     function testPool() public {
-        assert(ETH_KNC_POOL_100_BIP.token0() == ETH);
-        assert(ETH_KNC_POOL_100_BIP.token1() == KNC);
+        assert(IKyberElasticPool(ETH_KNC_POOL_100_BIP).token0() == ETH);
+        assert(IKyberElasticPool(ETH_KNC_POOL_100_BIP).token1() == KNC);
 
         address testPool = factory.getPool(ETH, KNC, uint16(1000));
         assert(testPool == address(ETH_KNC_POOL_100_BIP));
@@ -147,24 +147,24 @@ contract TestKyberElasticMultiQuoter is Test, KyberElasticCommon {
         tokenPath[0] = ETH;
         tokenPath[1] = KNC;
 
-        IKyberElasticPool[][] memory poolPaths = _getPoolPaths(multiQuoter, address(factory), tokenPath, 1 ether);
+        address[][] memory poolPaths = _getPoolPaths(multiQuoter, address(factory), tokenPath, 1 ether);
         assert(poolPaths.length == 2);
         for (uint256 i; i < poolPaths.length; ++i) {
             for (uint256 j; j < poolPaths[i].length; ++j) {
-                address token0 = poolPaths[i][j].token0();
+                address token0 = IKyberElasticPool(poolPaths[i][j]).token0();
                 assert(token0 == ETH);
-                address token1 = poolPaths[i][j].token1();
+                address token1 = IKyberElasticPool(poolPaths[i][j]).token1();
                 assert(token1 == KNC);
             }
         }
     }
 
-    function testAllAmountsAndPaths(address[] memory tokenPath, IKyberElasticPool[] memory poolPath) private {
+    function testAllAmountsAndPaths(address[] memory tokenPath, address[] memory poolPath) private {
         uint256 kyberQuoterGasUsage;
         uint256 multiQuoterGasUsage;
 
         bytes memory path = _toPath(tokenPath, poolPath);
-        bytes memory reversePath = _toPath(_reverseTokenPath(tokenPath), _reversePoolPath(poolPath));
+        bytes memory reversePath = _toPath(reverseAddressPath(tokenPath), reverseAddressPath(poolPath));
 
         console.log("Quoter Gas Comparison");
         console.log("Token Path:");
@@ -211,7 +211,7 @@ contract TestKyberElasticMultiQuoter is Test, KyberElasticCommon {
         uint256 gas0 = gasleft();
         uint256[] memory multiQuoterAmountsOut;
         try multiQuoter.quoteExactMultiInput(address(factory), path, amountsIn) {} catch (bytes memory reason) {
-            (, multiQuoterAmountsOut, ) = catchKyberElasticMultiSwapResult(reason);
+            (, multiQuoterAmountsOut, ) = decodeMultiSwapRevert(reason);
         }
         uint256 gas1 = gasleft();
 
@@ -235,7 +235,7 @@ contract TestKyberElasticMultiQuoter is Test, KyberElasticCommon {
         uint256 gas0 = gasleft();
         uint256[] memory multiQuoterAmountsIn;
         try multiQuoter.quoteExactMultiOutput(address(factory), path, amountsOut) {} catch (bytes memory reason) {
-            (, multiQuoterAmountsIn, ) = catchKyberElasticMultiSwapResult(reason);
+            (, multiQuoterAmountsIn, ) = decodeMultiSwapRevert(reason);
         }
         uint256 gas1 = gasleft();
 

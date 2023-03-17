@@ -108,7 +108,7 @@ contract TestAlgebraMultiQuoter is Test, AlgebraCommon {
         uint256 multiQuoterGasUsage;
 
         bytes memory path = toAlgebraPath(tokenPath);
-        bytes memory reversePath = toAlgebraPath(reverseAlgebraTokenPath(tokenPath));
+        bytes memory reversePath = toAlgebraPath(reverseAddressPath(tokenPath));
 
         console.log("Quoter Gas Comparison ");
         console.log("Token Path: ");
@@ -155,7 +155,7 @@ contract TestAlgebraMultiQuoter is Test, AlgebraCommon {
         uint256 gas0 = gasleft();
         uint256[] memory multiQuoterAmountsOut;
         try multiQuoter.quoteExactMultiInput(address(factory), path, amountsIn) {} catch (bytes memory reason) {
-            (, multiQuoterAmountsOut, ) = catchAlgebraMultiSwapResult(reason);
+            (, multiQuoterAmountsOut, ) = decodeMultiSwapRevert(reason);
         }
         uint256 gas1 = gasleft();
 
@@ -183,7 +183,7 @@ contract TestAlgebraMultiQuoter is Test, AlgebraCommon {
         uint256 gas0 = gasleft();
         uint256[] memory multiQuoterAmountsIn;
         try multiQuoter.quoteExactMultiOutput(address(factory), path, amountsOut) {} catch (bytes memory reason) {
-            (, multiQuoterAmountsIn, ) = catchAlgebraMultiSwapResult(reason);
+            (, multiQuoterAmountsIn, ) = decodeMultiSwapRevert(reason);
         }
         uint256 gas1 = gasleft();
 

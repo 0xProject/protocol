@@ -37,13 +37,13 @@ contract UniswapV3Sampler is UniswapV3Common {
     /// @return makerTokenAmounts Maker amounts bought at each taker token amount.
     function sampleSellsFromUniswapV3(
         address factory,
-        IERC20TokenV06[] memory path,
+        address[] memory path,
         uint256[] memory takerTokenAmounts
     )
         public
         returns (bytes[] memory uniswapPaths, uint256[] memory uniswapGasUsed, uint256[] memory makerTokenAmounts)
     {
-        IUniswapV3Pool[][] memory poolPaths = getPoolPaths(
+        address[][] memory poolPaths = getPoolPaths(
             factory,
             multiQuoter,
             path,
@@ -68,7 +68,7 @@ contract UniswapV3Sampler is UniswapV3Common {
                 bytes memory reason
             ) {
                 bool success;
-                (success, amountsOut, gasEstimates) = catchUniswapV3MultiSwapResult(reason);
+                (success, amountsOut, gasEstimates) = decodeMultiSwapRevert(reason);
 
                 if (!success) {
                     continue;
@@ -101,14 +101,14 @@ contract UniswapV3Sampler is UniswapV3Common {
     /// @return takerTokenAmounts Taker amounts sold at each maker token amount.
     function sampleBuysFromUniswapV3(
         address factory,
-        IERC20TokenV06[] memory path,
+        address[] memory path,
         uint256[] memory makerTokenAmounts
     )
         public
         returns (bytes[] memory uniswapPaths, uint256[] memory uniswapGasUsed, uint256[] memory takerTokenAmounts)
     {
-        IERC20TokenV06[] memory reversedPath = reverseTokenPath(path);
-        IUniswapV3Pool[][] memory poolPaths = getPoolPaths(
+        address[] memory reversedPath = reverseAddressPath(path);
+        address[][] memory poolPaths = getPoolPaths(
             factory,
             multiQuoter,
             reversedPath,
@@ -133,7 +133,7 @@ contract UniswapV3Sampler is UniswapV3Common {
                 bytes memory reason
             ) {
                 bool success;
-                (success, amountsIn, gasEstimates) = catchUniswapV3MultiSwapResult(reason);
+                (success, amountsIn, gasEstimates) = decodeMultiSwapRevert(reason);
 
                 if (!success) {
                     continue;
@@ -146,10 +146,10 @@ contract UniswapV3Sampler is UniswapV3Common {
 
                     if (takerTokenAmounts[j] == 0 || takerTokenAmounts[j] > amountsIn[j]) {
                         takerTokenAmounts[j] = amountsIn[j];
-                        uniswapPaths[j] = toUniswapPath(path, reversePoolPath(poolPaths[i]));
+                        uniswapPaths[j] = toUniswapPath(path, reverseAddressPath(poolPaths[i]));
                         uniswapGasUsed[j] = gasEstimates[j];
                     } else if (takerTokenAmounts[j] == amountsIn[j] && uniswapGasUsed[j] > gasEstimates[j]) {
-                        uniswapPaths[j] = toUniswapPath(path, reversePoolPath(poolPaths[i]));
+                        uniswapPaths[j] = toUniswapPath(path, reverseAddressPath(poolPaths[i]));
                         uniswapGasUsed[j] = gasEstimates[j];
                     }
                 }

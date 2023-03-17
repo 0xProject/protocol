@@ -47,7 +47,7 @@ contract AlgebraSampler is AlgebraCommon {
         path = toAlgebraPath(tokenPath);
 
         try quoter.quoteExactMultiInput(factory, path, inputAmounts) {} catch (bytes memory reason) {
-            (, outputAmounts, gasEstimates) = catchAlgebraMultiSwapResult(reason);
+            (, outputAmounts, gasEstimates) = decodeMultiSwapRevert(reason);
         }
     }
 
@@ -68,7 +68,7 @@ contract AlgebraSampler is AlgebraCommon {
         inputAmounts = new uint256[](outputAmounts.length);
         gasEstimates = new uint256[](outputAmounts.length);
 
-        address[] memory reverseTokenPath = reverseAlgebraTokenPath(tokenPath);
+        address[] memory reverseTokenPath = reverseAddressPath(tokenPath);
         if (!isValidTokenPath(factory, reverseTokenPath)) {
             return (path, gasEstimates, inputAmounts);
         }
@@ -77,7 +77,7 @@ contract AlgebraSampler is AlgebraCommon {
         bytes memory reversePath = toAlgebraPath(reverseTokenPath);
 
         try quoter.quoteExactMultiOutput(factory, reversePath, outputAmounts) {} catch (bytes memory reason) {
-            (, inputAmounts, gasEstimates) = catchAlgebraMultiSwapResult(reason);
+            (, inputAmounts, gasEstimates) = decodeMultiSwapRevert(reason);
         }
     }
 }

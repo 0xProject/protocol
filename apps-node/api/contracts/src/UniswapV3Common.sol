@@ -24,14 +24,15 @@ import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
 import "./interfaces/IUniswapV3.sol";
 import "./interfaces/IMultiQuoter.sol";
+import "./TickBasedAMMCommon.sol";
 
-contract UniswapV3Common {
+contract UniswapV3Common is TickBasedAMMCommon {
     /// @dev Gas limit for UniswapV3 calls
     uint256 private constant POOL_FILTERING_GAS_LIMIT = 450e3;
 
     function toUniswapPath(
-        IERC20TokenV06[] memory tokenPath,
-        IUniswapV3Pool[] memory poolPath
+        address[] memory tokenPath,
+        address[] memory poolPath
     ) internal view returns (bytes memory uniswapPath) {
         require(
             tokenPath.length >= 2 && tokenPath.length == poolPath.length + 1,
@@ -46,13 +47,13 @@ contract UniswapV3Common {
         }
         for (uint256 i = 0; i < tokenPath.length; ++i) {
             if (i > 0) {
-                uint24 poolFee = poolPath[i - 1].fee();
+                uint24 poolFee = IUniswapV3Pool(poolPath[i - 1]).fee();
                 assembly {
                     mstore(o, shl(232, poolFee))
                     o := add(o, 3)
                 }
             }
-            IERC20TokenV06 token = tokenPath[i];
+            address token = tokenPath[i];
             assembly {
                 mstore(o, shl(96, token))
                 o := add(o, 20)
@@ -60,31 +61,13 @@ contract UniswapV3Common {
         }
     }
 
-    function reverseTokenPath(
-        IERC20TokenV06[] memory tokenPath
-    ) internal pure returns (IERC20TokenV06[] memory reversed) {
-        reversed = new IERC20TokenV06[](tokenPath.length);
-        for (uint256 i = 0; i < tokenPath.length; ++i) {
-            reversed[i] = tokenPath[tokenPath.length - i - 1];
-        }
-    }
-
-    function reversePoolPath(
-        IUniswapV3Pool[] memory poolPath
-    ) internal pure returns (IUniswapV3Pool[] memory reversed) {
-        reversed = new IUniswapV3Pool[](poolPath.length);
-        for (uint256 i = 0; i < poolPath.length; ++i) {
-            reversed[i] = poolPath[poolPath.length - i - 1];
-        }
-    }
-
     /// @dev Returns `poolPaths` to sample against. The caller is responsible for not using path involinvg zero address(es).
     function getPoolPaths(
         address factory,
         IMultiQuoter multiQuoter,
-        IERC20TokenV06[] memory path,
+        address[] memory path,
         uint256 inputAmount
-    ) internal view returns (IUniswapV3Pool[][] memory poolPaths) {
+    ) internal view returns (address[][] memory poolPaths) {
         if (path.length == 2) {
             return getPoolPathSingleHop(factory, multiQuoter, path, inputAmount);
         }
@@ -97,11 +80,11 @@ contract UniswapV3Common {
     function getPoolPathSingleHop(
         address factory,
         IMultiQuoter multiQuoter,
-        IERC20TokenV06[] memory path,
+        address[] memory path,
         uint256 inputAmount
-    ) private view returns (IUniswapV3Pool[][] memory poolPaths) {
-        poolPaths = new IUniswapV3Pool[][](2);
-        (IUniswapV3Pool[2] memory topPools, ) = getTopTwoPools(
+    ) private view returns (address[][] memory poolPaths) {
+        poolPaths = new address[][](2);
+        (address[2] memory topPools, ) = getTopTwoPools(
             GetTopTwoPoolsParams({
                 factory: factory,
                 multiQuoter: multiQuoter,
@@ -113,8 +96,8 @@ contract UniswapV3Common {
 
         uint256 pathCount = 0;
         for (uint256 i = 0; i < 2; i++) {
-            IUniswapV3Pool topPool = topPools[i];
-            poolPaths[pathCount] = new IUniswapV3Pool[](1);
+            address topPool = topPools[i];
+            poolPaths[pathCount] = new address[](1);
             poolPaths[pathCount][0] = topPool;
             pathCount++;
         }
@@ -123,11 +106,11 @@ contract UniswapV3Common {
     function getPoolPathTwoHop(
         address factory,
         IMultiQuoter multiQuoter,
-        IERC20TokenV06[] memory path,
+        address[] memory path,
         uint256 inputAmount
-    ) private view returns (IUniswapV3Pool[][] memory poolPaths) {
-        poolPaths = new IUniswapV3Pool[][](4);
-        (IUniswapV3Pool[2] memory firstHopTopPools, uint256[2] memory firstHopAmounts) = getTopTwoPools(
+    ) private view returns (address[][] memory poolPaths) {
+        poolPaths = new address[][](4);
+        (address[2] memory firstHopTopPools, uint256[2] memory firstHopAmounts) = getTopTwoPools(
             GetTopTwoPoolsParams({
                 factory: factory,
                 multiQuoter: multiQuoter,
@@ -137,7 +120,7 @@ contract UniswapV3Common {
             })
         );
 
-        (IUniswapV3Pool[2] memory secondHopTopPools, ) = getTopTwoPools(
+        (address[2] memory secondHopTopPools, ) = getTopTwoPools(
             GetTopTwoPoolsParams({
                 factory: factory,
                 multiQuoter: multiQuoter,
@@ -150,8 +133,8 @@ contract UniswapV3Common {
         uint256 pathCount = 0;
         for (uint256 i = 0; i < 2; i++) {
             for (uint256 j = 0; j < 2; j++) {
-                poolPaths[pathCount] = new IUniswapV3Pool[](2);
-                IUniswapV3Pool[] memory currentPath = poolPaths[pathCount];
+                poolPaths[pathCount] = new address[](2);
+                address[] memory currentPath = poolPaths[pathCount];
                 currentPath[0] = firstHopTopPools[i];
                 currentPath[1] = secondHopTopPools[j];
                 pathCount++;
@@ -162,8 +145,8 @@ contract UniswapV3Common {
     struct GetTopTwoPoolsParams {
         address factory;
         IMultiQuoter multiQuoter;
-        IERC20TokenV06 inputToken;
-        IERC20TokenV06 outputToken;
+        address inputToken;
+        address outputToken;
         uint256 inputAmount;
     }
 
@@ -171,8 +154,8 @@ contract UniswapV3Common {
     /// Addresses in `topPools` can be zero addresses when there are pool isn't available.
     function getTopTwoPools(
         GetTopTwoPoolsParams memory params
-    ) private view returns (IUniswapV3Pool[2] memory topPools, uint256[2] memory topOutputAmounts) {
-        IERC20TokenV06[] memory path = new IERC20TokenV06[](2);
+    ) private view returns (address[2] memory topPools, uint256[2] memory topOutputAmounts) {
+        address[] memory path = new address[](2);
         path[0] = params.inputToken;
         path[1] = params.outputToken;
 
@@ -181,18 +164,16 @@ contract UniswapV3Common {
 
         uint24[4] memory validPoolFees = [uint24(0.0001e6), uint24(0.0005e6), uint24(0.003e6), uint24(0.01e6)];
         for (uint256 i = 0; i < validPoolFees.length; ++i) {
-            IUniswapV3Pool pool = IUniswapV3Pool(
-                IUniswapV3Factory(params.factory).getPool(
-                    address(params.inputToken),
-                    address(params.outputToken),
-                    validPoolFees[i]
-                )
+            address pool = IUniswapV3Factory(params.factory).getPool(
+                params.inputToken,
+                params.outputToken,
+                validPoolFees[i]
             );
             if (!isValidPool(pool)) {
                 continue;
             }
 
-            IUniswapV3Pool[] memory poolPath = new IUniswapV3Pool[](1);
+            address[] memory poolPath = new address[](1);
             poolPath[0] = pool;
             bytes memory uniswapPath = toUniswapPath(path, poolPath);
 
@@ -203,7 +184,7 @@ contract UniswapV3Common {
                     inputAmounts
                 )
             {} catch (bytes memory reason) {
-                (bool success, uint256[] memory outputAmounts, ) = catchUniswapV3MultiSwapResult(reason);
+                (bool success, uint256[] memory outputAmounts, ) = decodeMultiSwapRevert(reason);
                 if (success) {
                     // Keeping track of the top 2 pools.
                     if (outputAmounts[0] > topOutputAmounts[0]) {
@@ -220,54 +201,35 @@ contract UniswapV3Common {
         }
     }
 
-    function isValidPool(IUniswapV3Pool pool) internal view returns (bool isValid) {
+    function isValidPool(address pool) internal view returns (bool isValid) {
         // Check if it has been deployed.
-        {
-            uint256 codeSize;
-            assembly {
-                codeSize := extcodesize(pool)
-            }
-            if (codeSize == 0) {
-                return false;
-            }
+        uint256 codeSize;
+        assembly {
+            codeSize := extcodesize(pool)
         }
+        if (codeSize == 0) {
+            return false;
+        }
+
         // Must have a balance of both tokens.
-        if (IERC20TokenV06(pool.token0()).balanceOf(address(pool)) == 0) {
+        IERC20TokenV06 token0 = IERC20TokenV06(IUniswapV3Pool(pool).token0());
+        if (token0.balanceOf(pool) == 0) {
             return false;
         }
-        if (IERC20TokenV06(pool.token1()).balanceOf(address(pool)) == 0) {
+        IERC20TokenV06 token1 = IERC20TokenV06(IUniswapV3Pool(pool).token1());
+        if (token1.balanceOf(pool) == 0) {
             return false;
         }
+
         return true;
     }
 
-    function isValidPoolPath(IUniswapV3Pool[] memory poolPaths) internal pure returns (bool) {
-        for (uint256 i = 0; i < poolPaths.length; i++) {
-            if (address(poolPaths[i]) == address(0)) {
+    function isValidPoolPath(address[] memory poolPath) internal pure returns (bool) {
+        for (uint256 i = 0; i < poolPath.length; i++) {
+            if (poolPath[i] == address(0)) {
                 return false;
             }
         }
         return true;
-    }
-
-    function catchUniswapV3MultiSwapResult(
-        bytes memory revertReason
-    ) internal pure returns (bool success, uint256[] memory amounts, uint256[] memory gasEstimates) {
-        bytes4 selector;
-        assembly {
-            selector := mload(add(revertReason, 32))
-        }
-
-        if (selector != bytes4(keccak256("result(uint256[],uint256[])"))) {
-            return (false, amounts, gasEstimates);
-        }
-
-        assembly {
-            let length := sub(mload(revertReason), 4)
-            revertReason := add(revertReason, 4)
-            mstore(revertReason, length)
-        }
-        (amounts, gasEstimates) = abi.decode(revertReason, (uint256[], uint256[]));
-        return (true, amounts, gasEstimates);
     }
 }
