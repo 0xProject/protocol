@@ -18,7 +18,7 @@
 */
 pragma solidity ^0.8.19;
 
-abstract contract ISecurityCouncil {
+abstract contract SecurityCouncil {
     address public securityCouncil;
 
     event SecurityCouncilAssigned(address securityCouncil);

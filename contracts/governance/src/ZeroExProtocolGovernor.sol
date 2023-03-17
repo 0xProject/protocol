@@ -18,7 +18,7 @@
 */
 pragma solidity ^0.8.19;
 
-import "./ISecurityCouncil.sol";
+import "./SecurityCouncil.sol";
 import "./ZeroExTimelock.sol";
 import "@openzeppelin/governance/Governor.sol";
 import "@openzeppelin/governance/extensions/GovernorSettings.sol";
@@ -27,7 +27,7 @@ import "@openzeppelin/governance/extensions/GovernorVotes.sol";
 import "@openzeppelin/governance/extensions/GovernorTimelockControl.sol";
 
 contract ZeroExProtocolGovernor is
-    ISecurityCouncil,
+    SecurityCouncil,
     Governor,
     GovernorSettings,
     GovernorCountingSimple,
