@@ -21,7 +21,7 @@ interface IUniswapV3Factory {
 // Copied from:
 //   https://github.com/Uniswap/v3-core/blob/e3589b192d0be27e100cd0daaf6c97204fdb1899/contracts/interfaces/pool/IUniswapV3PoolState.sol
 //   https://github.com/Uniswap/v3-core/blob/e3589b192d0be27e100cd0daaf6c97204fdb1899/contracts/interfaces/pool/IUniswapV3PoolImmutables.sol
-interface IUniswapV3Pool {
+interface IUniV3Pool {
     /// @notice The 0th storage slot in the pool stores many values, and is exposed as a single method to save gas
     /// when accessed externally.
     /// @return sqrtPriceX96 The current price of the pool as a sqrt(token1/token0) Q64.96 value
@@ -57,14 +57,14 @@ interface IUniswapV3Pool {
     function token1() external view returns (address);
 }
 
-struct UniswapV3PoolData {
+struct UniswapV3Pool {
     address poolAddress;
     // Fee denominated in hundredths of a bip .
     uint24 fee;
     uint256 totalValueInToken1;
 }
 
-contract UniswapV3PoolDataFetcher {
+contract UniswapV3PoolFetcher {
     using SafeERC20Lib for ERC20;
 
     // NOTE: the address is different on Celo.
@@ -74,22 +74,18 @@ contract UniswapV3PoolDataFetcher {
 
     constructor() {}
 
-    function getAllPoolData(address tokenA, address tokenB) public view returns (UniswapV3PoolData[] memory pools) {
-        pools = new UniswapV3PoolData[](4);
+    function getPools(address tokenA, address tokenB) public view returns (UniswapV3Pool[] memory pools) {
+        pools = new UniswapV3Pool[](4);
 
         // 1bps, 5bps, 30bps, 100bps
         uint24[4] memory fees = [uint24(100), uint24(500), uint24(3000), uint24(10000)];
 
         for (uint256 i = 0; i < 4; i++) {
-            pools[i] = getPoolData(tokenA, tokenB, fees[i]);
+            pools[i] = getPool(tokenA, tokenB, fees[i]);
         }
     }
 
-    function getPoolData(
-        address tokenA,
-        address tokenB,
-        uint24 fee
-    ) internal view returns (UniswapV3PoolData memory data) {
+    function getPool(address tokenA, address tokenB, uint24 fee) internal view returns (UniswapV3Pool memory data) {
         address poolAddress = factory.getPool(tokenA, tokenB, fee);
         data.poolAddress = poolAddress;
         data.fee = fee;
@@ -98,7 +94,7 @@ contract UniswapV3PoolDataFetcher {
             return data;
         }
 
-        IUniswapV3Pool pool = IUniswapV3Pool(poolAddress);
+        IUniV3Pool pool = IUniV3Pool(poolAddress);
         ERC20 token0 = ERC20(pool.token0());
         ERC20 token1 = ERC20(pool.token1());
         (uint160 sqrtPriceX96, , , , , , ) = pool.slot0();

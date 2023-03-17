@@ -3,11 +3,11 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 
-import {UniswapV3PoolDataFetcher, UniswapV3PoolData, IUniswapV3Factory} from "../src/contracts/UniswapV3PoolDataFetcher.sol";
+import {UniswapV3PoolFetcher, UniswapV3Pool, IUniswapV3Factory} from "../src/contracts/UniswapV3PoolFetcher.sol";
 import {FakeERC20} from "./fakes/FakeERC20.sol";
 
 contract VoidUniswapV3Factory {
-    function getPool(address, address, uint24) external view returns (address) {
+    function getPool(address, address, uint24) external pure returns (address) {
         return address(0);
     }
 }
@@ -36,24 +36,24 @@ contract MockUniswapV3Pool {
     }
 }
 
-contract UniswapV3PoolDataFetcherTest is Test {
+contract UniswapV3PoolFetcherTest is Test {
     FakeERC20 public fakeUsdc;
     FakeERC20 public fakeWeth;
     FakeERC20 public fakeDai;
-    UniswapV3PoolDataFetcher public fetcher;
+    UniswapV3PoolFetcher public fetcher;
 
     function setUp() public {
         fakeUsdc = new FakeERC20("USD Coin", "USDC", 6);
         fakeWeth = new FakeERC20("Wrapped ETH", "WETH", 18);
         fakeDai = new FakeERC20("Dai Stablecoin", "DAI", 18);
-        fetcher = new UniswapV3PoolDataFetcher();
+        fetcher = new UniswapV3PoolFetcher();
 
         // Make `factoryAddress`  to return 0 address on getPool();
         vm.etch(address(fetcher.factory()), address(new VoidUniswapV3Factory()).code);
     }
 
     function testZeroAddressAndTvlWhenNoPools() public {
-        UniswapV3PoolData[] memory pools = fetcher.getAllPoolData(address(42), address(43));
+        UniswapV3Pool[] memory pools = fetcher.getPools(address(42), address(43));
 
         assertEq(pools.length, 4);
 
@@ -115,7 +115,7 @@ contract UniswapV3PoolDataFetcherTest is Test {
             abi.encode(address(pool30bps))
         );
 
-        UniswapV3PoolData[] memory pools = fetcher.getAllPoolData(address(fakeUsdc), address(fakeWeth));
+        UniswapV3Pool[] memory pools = fetcher.getPools(address(fakeUsdc), address(fakeWeth));
 
         assertEq(pools[1].fee, 500);
         assertEq(pools[1].poolAddress, address(pool5bps));
@@ -149,7 +149,7 @@ contract UniswapV3PoolDataFetcherTest is Test {
             abi.encode(address(pool1bps))
         );
 
-        UniswapV3PoolData[] memory pools = fetcher.getAllPoolData(address(fakeDai), address(fakeUsdc));
+        UniswapV3Pool[] memory pools = fetcher.getPools(address(fakeDai), address(fakeUsdc));
 
         assertEq(pools[0].fee, 100);
         assertEq(pools[0].poolAddress, address(pool1bps));
