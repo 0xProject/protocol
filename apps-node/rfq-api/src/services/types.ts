@@ -95,9 +95,6 @@ export interface MetaTransactionV2QuoteResponse extends BaseRfqmQuoteResponse {
     fees?: TruncatedFees;
 }
 
-// TODO: This needs to be updated to the new meta-transaction type when smart contract changes are finished and corresponding types are published in packages
-export class MetaTransactionV2 extends MetaTransaction {}
-
 export interface LiquiditySource {
     name: string;
     proportion: BigNumber;

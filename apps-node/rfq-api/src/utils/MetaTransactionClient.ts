@@ -1,6 +1,6 @@
 import { ValidationError, ValidationErrorCodes, ValidationErrorItem } from '@0x/api-utils';
 import pino from 'pino';
-import { MetaTransaction, MetaTransactionFields } from '@0x/protocol-utils';
+import { MetaTransaction, MetaTransactionFields, MetaTransactionV2, MetaTransactionV2Fields } from '@0x/protocol-utils';
 import { EIP712DomainWithDefaultSchema } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
@@ -13,7 +13,7 @@ import { GaslessTypes, SwapQuoterError } from '../core/types';
 import { FeeConfigs, Fees, RawFees } from '../core/types/meta_transaction_fees';
 
 import { FetchIndicativeQuoteResponse, LiquiditySource } from '../services/types';
-import { stringsToMetaTransactionFields } from './rfqm_request_utils';
+import { stringsToMetaTransactionFields, stringsToMetaTransactionV2Fields } from './rfqm_request_utils';
 
 interface QuoteParams {
     affiliateAddress?: string;
@@ -117,12 +117,26 @@ interface GetMetaTransactionV1QuoteResponse extends RawBasePriceResponse {
 }
 
 /****** Types for 0x-api meta-transaction v2 endpoints ******/
-type RawTradeResponse = RawMetaTransactionV1TradeResponse /** add RawMetaTransactionV2TradeResponse when it's ready */;
+type RawTradeResponse = RawMetaTransactionV1TradeResponse | RawMetaTransactionV2TradeResponse;
 
 interface RawMetaTransactionV1TradeResponse {
     kind: GaslessTypes.MetaTransaction;
     hash: string;
     metaTransaction: Record<keyof Omit<MetaTransactionFields, 'chainId'>, string> & { chainId: number };
+}
+
+interface RawMetaTransactionV2TradeResponse {
+    kind: GaslessTypes.MetaTransactionV2;
+    hash: string;
+    metaTransaction: Record<keyof Omit<MetaTransactionV2Fields, 'chainId' | 'fees'>, string> & {
+        chainId: number;
+    } & Record<
+            'fees',
+            {
+                recipient: string;
+                amount: string;
+            }[]
+        >;
 }
 
 // Quote response sent by meta-transaction v2 /quote endpoint
@@ -132,13 +146,18 @@ interface GetMetaTransactionV2QuoteResponse extends RawBasePriceResponse {
 }
 
 /****** Response types for client quote endpoints ******/
-type MetaTransactionClientTradeResponse =
-    MetaTransactionV1ClientTradeResponse /* | MetaTransactionV2ClientTradeResponse */;
+type MetaTransactionClientTradeResponse = MetaTransactionV1ClientTradeResponse | MetaTransactionV2ClientTradeResponse;
 
 interface MetaTransactionV1ClientTradeResponse {
     kind: GaslessTypes.MetaTransaction;
     hash: string;
     metaTransaction: MetaTransaction;
+}
+
+interface MetaTransactionV2ClientTradeResponse {
+    kind: GaslessTypes.MetaTransactionV2;
+    hash: string;
+    metaTransaction: MetaTransactionV2;
 }
 
 export interface MetaTransactionClientQuoteResponse {
@@ -278,16 +297,37 @@ export async function getV2QuoteAsync(
     stopTimer && stopTimer({ success: 'true' });
 
     const {
-        buyAmount,
+        buyAmount: rawBuyAmount,
         buyTokenAddress,
-        estimatedPriceImpact,
-        price,
-        sellAmount,
+        estimatedPriceImpact: rawEstimatedPriceImpact,
+        price: rawPrice,
+        sellAmount: rawSellAmount,
         sellTokenAddress,
         trade: rawTrade,
     } = response.data;
 
-    switch (rawTrade.kind) {
+    // Construct common fields
+    const price = {
+        buyAmount: new BigNumber(rawBuyAmount),
+        buyTokenAddress,
+        estimatedPriceImpact: rawEstimatedPriceImpact ? new BigNumber(rawEstimatedPriceImpact) : null,
+        price: new BigNumber(rawPrice),
+        sellAmount: new BigNumber(rawSellAmount),
+        sellTokenAddress,
+    };
+    const sources = response.data.sources
+        .map((source) => {
+            return {
+                ...source,
+                proportion: new BigNumber(source.proportion),
+            };
+        })
+        .filter((source) => source.proportion.gt(ZERO));
+    const fees = rawFeesToFees(response.data.fees);
+
+    // Typescript does not narrow types on nested values so need to extract it explicitly
+    const tradeKind = rawTrade.kind;
+    switch (tradeKind) {
         case GaslessTypes.MetaTransaction: {
             const metaTransaction = new MetaTransaction(
                 stringsToMetaTransactionFields({
@@ -308,29 +348,38 @@ export async function getV2QuoteAsync(
                     hash: rawTrade.hash,
                     metaTransaction,
                 },
-                price: {
-                    buyAmount: new BigNumber(buyAmount),
-                    buyTokenAddress,
-                    estimatedPriceImpact: estimatedPriceImpact ? new BigNumber(estimatedPriceImpact) : null,
-                    price: new BigNumber(price),
-                    sellAmount: new BigNumber(sellAmount),
-                    sellTokenAddress,
+                price,
+                sources,
+                fees,
+            };
+        }
+        case GaslessTypes.MetaTransactionV2: {
+            const metaTransaction = new MetaTransactionV2(
+                stringsToMetaTransactionV2Fields({ ...rawTrade.metaTransaction }),
+            );
+
+            const computedHash = metaTransaction.getHash();
+            if (computedHash !== rawTrade.hash) {
+                throw new Error(
+                    `Computered meta-transaction v2 hash ${computedHash} is different from hash returned from meta-transaction endpoints ${rawTrade.hash}`,
+                );
+            }
+
+            return {
+                trade: {
+                    kind: GaslessTypes.MetaTransactionV2,
+                    hash: rawTrade.hash,
+                    metaTransaction,
                 },
-                sources: response.data.sources
-                    .map((source) => {
-                        return {
-                            ...source,
-                            proportion: new BigNumber(source.proportion),
-                        };
-                    })
-                    .filter((source) => source.proportion.gt(ZERO)),
-                fees: rawFeesToFees(response.data.fees),
+                price,
+                sources,
+                fees,
             };
         }
         default:
             ((_x: never) => {
                 throw new Error('unreachable');
-            })(rawTrade.kind);
+            })(tradeKind);
     }
 }
 

@@ -1,4 +1,4 @@
-import { OtcOrder, Signature } from '@0x/protocol-utils';
+import { MetaTransactionV2Fee, OtcOrder, Signature } from '@0x/protocol-utils';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
@@ -131,7 +131,7 @@ export interface MetaTransactionV2Eip712Context {
         salt: BigNumber;
         callData: string;
         feeToken: string;
-        fees: MetaTransactionV2Eip712Fee[];
+        fees: MetaTransactionV2Fee[];
     };
 }
 
@@ -145,11 +145,6 @@ export type MetaTransactionV2Eip712Types = {
     MetaTransactionDataV2: Eip712DataField[];
     MetaTransactionFeeData: Eip712DataField[];
 };
-
-export interface MetaTransactionV2Eip712Fee {
-    recipient: string;
-    amount: BigNumber;
-}
 
 /**
  * Generic EIP-712 params and interfaces

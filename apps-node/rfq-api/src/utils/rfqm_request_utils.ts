@@ -1,4 +1,4 @@
-import { MetaTransactionFields, OtcOrderFields, Signature } from '@0x/protocol-utils';
+import { MetaTransactionFields, MetaTransactionV2Fields, OtcOrderFields, Signature } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
 import { Eip712DataField, Eip712Domain, ExecuteMetaTransactionEip712Context, PermitEip712Context } from '../core/types';
@@ -16,6 +16,15 @@ export type RawOtcOrderFields = Record<keyof Omit<OtcOrderFields, 'chainId'>, st
 // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type RawMetaTransactionFields = Record<keyof Omit<MetaTransactionFields, 'chainId'>, string> & { chainId: any };
+export type RawMetaTransactionV2Fields = Record<keyof Omit<MetaTransactionV2Fields, 'chainId' | 'fees'>, string> & {
+    chainId: number;
+} & Record<
+        'fees',
+        {
+            recipient: string;
+            amount: string;
+        }[]
+    >;
 export interface RawEIP712ContextFields {
     types: Record<string, Record<keyof Eip712DataField, string>[]>;
     primaryType: string;
@@ -54,6 +63,28 @@ export function stringsToMetaTransactionFields(strings: RawMetaTransactionFields
         sender: strings.sender,
         signer: strings.signer,
         value: new BigNumber(strings.value),
+        verifyingContract: strings.verifyingContract,
+    };
+}
+/**
+ * Convert the request payload for a gasless swap metatransaction v2 into
+ * the appropriate types
+ */
+export function stringsToMetaTransactionV2Fields(strings: RawMetaTransactionV2Fields): MetaTransactionV2Fields {
+    return {
+        callData: strings.callData,
+        chainId: strings.chainId,
+        expirationTimeSeconds: new BigNumber(strings.expirationTimeSeconds),
+        feeToken: strings.feeToken,
+        fees: strings.fees.map((fee) => {
+            return {
+                recipient: fee.recipient,
+                amount: new BigNumber(fee.amount),
+            };
+        }),
+        salt: new BigNumber(strings.salt),
+        sender: strings.sender,
+        signer: strings.signer,
         verifyingContract: strings.verifyingContract,
     };
 }

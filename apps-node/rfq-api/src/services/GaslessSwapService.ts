@@ -10,7 +10,12 @@ import * as _ from 'lodash';
 import { Counter, Summary } from 'prom-client';
 import { Producer as SqsProducer } from 'sqs-producer';
 
-import { META_TRANSACTION_V1_EIP_712_TYPES, ONE_MINUTE_S, ONE_SECOND_MS } from '../core/constants';
+import {
+    META_TRANSACTION_V1_EIP_712_TYPES,
+    META_TRANSACTION_V2_EIP_712_TYPES,
+    ONE_MINUTE_S,
+    ONE_SECOND_MS,
+} from '../core/constants';
 import { MetaTransactionJobConstructorOpts } from '../entities/MetaTransactionJobEntity';
 import { RfqmJobStatus } from '../entities/types';
 import { logger } from '../logger';
@@ -46,6 +51,7 @@ import { extractEIP712DomainType } from '../utils/Eip712Utils';
 
 import { RfqmService } from './rfqm_service';
 import { quoteReportUtils } from '../utils/quote_report_utils';
+import { MetaTransaction } from '@0x/protocol-utils';
 
 /**
  * When a metatransaction quote is issued, the hash
@@ -382,7 +388,7 @@ export class GaslessSwapService {
                     return {
                         ...metaTransactionQuote.price,
                         approval: approval ?? undefined,
-                        metaTransaction,
+                        metaTransaction: metaTransaction as MetaTransaction,
                         metaTransactionHash,
                         type: GaslessTypes.MetaTransaction,
                         allowanceTarget: this._blockchainUtils.getExchangeProxyAddress(),
@@ -474,25 +480,22 @@ export class GaslessSwapService {
                     },
                 };
             }
-            // TODO: uncomment once MetaTransaction v2 is supported
-            // case GaslessTypes.MetaTransactionV2:
-            //     return {
-            //         kind,
-            //         hash,
-            //         eip712: {
-            //             types: {
-            //                 ...eip712DomainType,
-            //                 ...META_TRANSACTION_V2_EIP_712_TYPES,
-            //             },
-            //             primaryType: 'MetaTransactionDataV2',
-            //             domain: eip712Domain,
-            //             message: {
-            //                 ...quote.trade.metaTransaction,
-            //                 fees: feesToMetaTransactionV2Eip712Fees(quote.fees),
-            //             },
-            //         },
-            //     };
-            //     break;
+            case GaslessTypes.MetaTransactionV2: {
+                const message = _.omit(quote.trade.metaTransaction, ['chainId', 'verifyingContract']);
+                return {
+                    type: kind,
+                    hash,
+                    eip712: {
+                        types: {
+                            ...eip712DomainType,
+                            ...META_TRANSACTION_V2_EIP_712_TYPES,
+                        },
+                        primaryType: 'MetaTransactionDataV2',
+                        domain: eip712Domain,
+                        message,
+                    },
+                };
+            }
             default:
                 ((_x: never) => {
                     throw new Error('unreachable');
