@@ -21,10 +21,12 @@ pragma solidity ^0.8.19;
 import "../src/ZeroExVotes.sol";
 
 contract ZeroExVotesMalicious is ZeroExVotes {
+    constructor(address _token) ZeroExVotes(_token) {}
 
-  constructor(address _token) ZeroExVotes(_token) {}
-
-  function writeCheckpointTotalSupplyBurn(uint256 amount, uint256 accountBalance) public virtual override onlyToken returns (bool) {
-    revert("I am evil");
-  }
+    function writeCheckpointTotalSupplyBurn(
+        uint256 amount,
+        uint256 accountBalance
+    ) public virtual override onlyToken returns (bool) {
+        revert("I am evil");
+    }
 }

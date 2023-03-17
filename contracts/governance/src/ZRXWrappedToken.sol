@@ -70,7 +70,11 @@ contract ZRXWrappedToken is ERC20, ERC20Permit, ERC20Wrapper {
     function _burn(address account, uint256 amount) internal override(ERC20) {
         super._burn(account, amount);
 
-        address(zeroExVotes).functionCallWithGas(abi.encodeCall(zeroExVotes.writeCheckpointTotalSupplyBurn, (balanceOf(account) + amount, amount)), 500_000, 32);
+        address(zeroExVotes).functionCallWithGas(
+            abi.encodeCall(zeroExVotes.writeCheckpointTotalSupplyBurn, (balanceOf(account) + amount, amount)),
+            500_000,
+            32
+        );
     }
 
     /**
