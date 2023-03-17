@@ -19,6 +19,7 @@
 pragma solidity ^0.8.19;
 
 import "./BaseTest.t.sol";
+import "./ZeroExVotesMalicious.sol";
 import "../src/ZRXWrappedToken.sol";
 import "@openzeppelin/token/ERC20/ERC20.sol";
 
@@ -43,6 +44,28 @@ contract ZeroExVotesTest is BaseTest {
     function testShouldNotBeAbleToReinitialise() public {
         vm.expectRevert("Initializable: contract is already initialized");
         votes.initialize(quadraticThreshold);
+    }
+
+    function testShouldNotBeAbleToStopBurn() public {
+        // wrap some token
+        vm.startPrank(account2);
+        token.approve(address(wToken), 1700000e18);
+        wToken.depositFor(account2, 1700000e18);
+        vm.stopPrank();
+        assertEq(token.balanceOf(account2), 0);
+        assertEq(wToken.balanceOf(account2), 1700000e18);
+
+        // malicious upgrade
+        vm.startPrank(account1);
+        IZeroExVotes maliciousImpl = new ZeroExVotesMalicious(votes.token());
+        votes.upgradeTo(address(maliciousImpl));
+        vm.stopPrank();
+
+        // try to withdraw withdraw
+        vm.prank(account2);
+        wToken.withdrawTo(account2, 1700000e18);
+        assertEq(token.balanceOf(account2), 1700000e18);
+        assertEq(wToken.balanceOf(account2), 0);
     }
 
     function testShouldBeAbleToReadCheckpoints() public {

@@ -114,9 +114,15 @@ interface IZeroExVotes {
      * @param dstBalance balance of the delegator whose delegatee is `dst`. This is value _after_ the transfer.
      * @param amount The amount of tokens transferred from the source delegate to destination delegate.
      */
-    function moveVotingPower(address src, address dst, uint256 srcBalance, uint256 dstBalance, uint256 amount) external;
+    function moveVotingPower(
+        address src,
+        address dst,
+        uint256 srcBalance,
+        uint256 dstBalance,
+        uint256 amount
+    ) external returns (bool);
 
-    function writeCheckpointTotalSupplyMint(uint256 accountBalance, uint256 amount) external;
+    function writeCheckpointTotalSupplyMint(uint256 accountBalance, uint256 amount) external returns (bool);
 
-    function writeCheckpointTotalSupplyBurn(uint256 accountBalance, uint256 amount) external;
+    function writeCheckpointTotalSupplyBurn(uint256 accountBalance, uint256 amount) external returns (bool);
 }
