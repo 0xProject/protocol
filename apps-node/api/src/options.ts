@@ -11,13 +11,7 @@ import {
     SwapQuoterOpts,
     SwapQuoterRfqOpts,
 } from './asset-swapper';
-import {
-    CHAIN_ID,
-    RFQT_INTEGRATORS,
-    RFQT_TX_ORIGIN_BLACKLIST,
-    SAMPLE_DISTRIBUTION_BASE,
-    ZERO_EX_GAS_API_URL,
-} from './config';
+import { CHAIN_ID, RFQT_INTEGRATORS, SAMPLE_DISTRIBUTION_BASE, ZERO_EX_GAS_API_URL } from './config';
 import { DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE, QUOTE_ORDER_EXPIRATION_BUFFER_MS, TX_BASE_GAS } from './constants';
 
 const FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD = new BigNumber(150e3);
@@ -105,7 +99,6 @@ const SAMPLER_OVERRIDES: SamplerOverrides | undefined = (() => {
 
 const SWAP_QUOTER_RFQT_OPTS: SwapQuoterRfqOpts = {
     integratorsWhitelist: RFQT_INTEGRATORS,
-    txOriginBlacklist: RFQT_TX_ORIGIN_BLACKLIST,
 };
 
 export const SWAP_QUOTER_OPTS: Partial<SwapQuoterOpts> = {

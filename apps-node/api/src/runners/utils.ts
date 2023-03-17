@@ -30,7 +30,6 @@ import { HttpServiceConfig, AppDependencies } from '../types';
 import { AssetSwapperOrderbook } from '../orderbook/asset_swapper_orderbook';
 import { NoOpOrderbook } from '../orderbook/no_op_orderbook';
 import { RfqClient } from '../utils/rfq_client';
-import { RfqDynamicBlacklist } from '../utils/rfq_dyanmic_blacklist';
 import { S3Client } from '../utils/s3_client';
 import { SlippageModelManager } from '../utils/slippage_model_manager';
 
@@ -158,7 +157,6 @@ export async function getDefaultAppDependenciesAsync(
             provider,
             contractAddresses,
             rfqClient,
-            RfqDynamicBlacklist.create(connection),
             slippageModelManager,
         );
         metaTransactionService = createMetaTxnServiceFromSwapService(swapService, contractAddresses);

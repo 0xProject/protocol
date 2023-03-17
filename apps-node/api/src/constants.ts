@@ -68,8 +68,6 @@ export const META_TRANSACTION_DOCS_URL = 'https://0x.org/docs/api#meta_transacti
 
 export const DEFAULT_ZERO_EX_GAS_API_URL = 'https://gas.api.0x.org/source/median';
 
-export const RFQ_DYNAMIC_BLACKLIST_TTL = ONE_SECOND_MS * 30;
-
 // General cache control
 export const DEFAULT_CACHE_AGE_SECONDS = 13;
 

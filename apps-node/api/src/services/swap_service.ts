@@ -75,7 +75,6 @@ import {
 } from '../types';
 import { calculateFees } from '../utils/fee_calculator';
 import { RfqClient } from '../utils/rfq_client';
-import { RfqDynamicBlacklist } from '../utils/rfq_dyanmic_blacklist';
 import { serviceUtils, getBuyTokenPercentageFeeOrZero } from '../utils/service_utils';
 import { SlippageModelFillAdjustor } from '../utils/slippage_model_fill_adjustor';
 import { SlippageModelManager } from '../utils/slippage_model_manager';
@@ -97,7 +96,6 @@ export class SwapService implements ISwapService {
     private readonly _contractAddresses: ContractAddresses;
     private readonly _swapQuoterOpts: Partial<SwapQuoterOpts>;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
-    private _altRfqMarketsCache: any;
     private _swapQuoter: SwapQuoter;
 
     /**
@@ -206,19 +204,13 @@ export class SwapService implements ISwapService {
         provider: SupportedProvider,
         contractAddresses: AssetSwapperContractAddresses,
         private readonly _rfqClient: RfqClient,
-        rfqDynamicBlacklist?: RfqDynamicBlacklist,
         readonly slippageModelManager?: SlippageModelManager,
     ) {
         this._provider = provider;
-
         this._swapQuoterOpts = {
             ...SWAP_QUOTER_OPTS,
             contractAddresses,
         };
-
-        if (this._swapQuoterOpts.rfqt !== undefined && rfqDynamicBlacklist !== undefined) {
-            this._swapQuoterOpts.rfqt.txOriginBlacklist = rfqDynamicBlacklist;
-        }
 
         if (CHAIN_ID === ChainId.Ganache) {
             this._swapQuoterOpts.samplerOverrides = {

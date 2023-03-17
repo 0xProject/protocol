@@ -344,14 +344,6 @@ export class SwapQuoter {
         return this._integratorIdsSet.has(integratorId);
     }
 
-    private _isTxOriginBlacklisted(txOrigin: string | undefined): boolean {
-        if (!txOrigin) {
-            return false;
-        }
-        const blacklistedTxOrigins = this._rfqtOptions ? this._rfqtOptions.txOriginBlacklist : new Set();
-        return blacklistedTxOrigins.has(txOrigin.toLowerCase());
-    }
-
     private _validateRfqtOpts(
         sourceFilters: SourceFilters,
         rfqt: RfqRequestOpts | undefined,
@@ -376,18 +368,6 @@ export class SwapQuoter {
             );
             return undefined;
         }
-
-        // If the requested tx origin is blacklisted, raise a warning and disable RFQ
-        if (this._isTxOriginBlacklisted(txOrigin)) {
-            logger.warn(
-                {
-                    txOrigin,
-                },
-                'Attempt at using a tx Origin that is blacklisted. Disabling RFQ for the request lifetime.',
-            );
-            return undefined;
-        }
-
         // Otherwise check other RFQ options
         if (
             intentOnFilling && // The requestor is asking for a firm quote

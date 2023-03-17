@@ -313,7 +313,6 @@ export interface Integrator {
 
 export interface SwapQuoterRfqOpts {
     integratorsWhitelist: Integrator[];
-    txOriginBlacklist: Set<string>;
 }
 
 export type AssetSwapperContractAddresses = ContractAddresses;

@@ -48,7 +48,6 @@ const DEFAULT_SWAP_QUOTER_OPTS: SwapQuoterOpts = {
     zeroExGasApiUrl: ZERO_EX_GAS_API_URL,
     rfqt: {
         integratorsWhitelist: [],
-        txOriginBlacklist: new Set(),
     },
     tokenAdjacencyGraph: DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID[ChainId.Mainnet],
 };

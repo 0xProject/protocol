@@ -40,7 +40,6 @@
         "start:service:sra_http": "node -r dotenv/config __build__/src/runners/http_sra_service_runner.js",
         "start:service:swap_http": "node -r dotenv/config __build__/src/runners/http_swap_service_runner.js",
         "start:service:meta_transaction_http": "node -r dotenv/config __build__/src/runners/http_meta_transaction_service_runner.js",
-        "start:service:rfq_maker_balance_cache": "node -r dotenv/config __build__/src/runners/rfq_maker_balance_cache_runner.js",
         "sampler-size": "jq .compilerOutput.evm.deployedBytecode.object  -- test/generated-artifacts/ERC20BridgeSampler.json | echo $(( $(wc -c) / 2 - 1 ))",
         "lint": "ts-prune -e && eslint src test && yarn prettier:ci",
         "lint:ci": "yarn lint && yarn circular"
