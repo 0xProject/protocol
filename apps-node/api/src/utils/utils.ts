@@ -1,11 +1,6 @@
 import { TX_BASE_GAS } from '../constants';
 
 export const utils = {
-    isNil: (value: unknown): boolean => {
-        // undefined == null => true
-        // undefined == undefined => true
-        return value == null;
-    },
     calculateCallDataGas: (bytes: string) => {
         const buf = Buffer.from(bytes.replace(/0x/g, ''), 'hex');
         let gas = TX_BASE_GAS.toNumber();

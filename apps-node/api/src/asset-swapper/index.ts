@@ -1,5 +1,4 @@
 export { ContractAddresses, ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
-export { V4RFQIndicativeQuote } from '@0x/quote-server';
 export { BigNumber } from '@0x/utils';
 export {
     LimitOrderFields,

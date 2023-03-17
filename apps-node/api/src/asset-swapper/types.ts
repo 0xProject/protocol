@@ -102,13 +102,13 @@ export interface SignedLimitOrder {
     signature: Signature;
 }
 
-export interface SignedRfqOrder {
+interface SignedRfqOrder {
     order: RfqOrderFields;
     type: FillQuoteTransformerOrderType.Rfq;
     signature: Signature;
 }
 
-export interface SignedOtcOrder {
+interface SignedOtcOrder {
     order: OtcOrderFields;
     type: FillQuoteTransformerOrderType.Otc;
     signature: Signature;
