@@ -94,6 +94,14 @@ export type PermitEip712Types = {
 };
 
 /**
+ * Internal type to distinguish different gasless service types used in `GaslessSwapService`.
+ */
+export enum GaslessSwapServiceTypes {
+    ZeroG = 'zero_g',
+    TxRelay = 'tx_relay',
+}
+
+/**
  * Trade object encapsulates the EIP-712 context for tx-relay trades.
  */
 export enum GaslessTypes {

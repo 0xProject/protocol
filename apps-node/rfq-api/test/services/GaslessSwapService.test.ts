@@ -32,7 +32,7 @@ import { RfqmDbUtils } from '../../src/utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
 import { RfqMakerManager } from '../../src/utils/rfq_maker_manager';
 import { TokenMetadataManager } from '../../src/utils/TokenMetadataManager';
-import { GaslessTypes } from '../../src/core/types';
+import { GaslessSwapServiceTypes, GaslessTypes } from '../../src/core/types';
 import { Fees } from '../../src/core/types/meta_transaction_fees';
 import { ContractAddresses } from '@0x/contract-addresses';
 import { SupportedProvider } from 'ethereum-types';
@@ -297,7 +297,7 @@ describe('GaslessSwapService', () => {
                         sellToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
                         sellTokenDecimals: 18,
                     },
-                    GaslessTypes.MetaTransaction,
+                    GaslessSwapServiceTypes.ZeroG,
                 )) as FetchIndicativeQuoteResponse & { liquiditySource: 'rfq' | 'amm' };
 
                 expect(result?.liquiditySource).toEqual('rfq');
@@ -336,7 +336,7 @@ describe('GaslessSwapService', () => {
                         sellToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
                         sellTokenDecimals: 18,
                     },
-                    GaslessTypes.MetaTransaction,
+                    GaslessSwapServiceTypes.ZeroG,
                 )) as FetchIndicativeQuoteResponse & { liquiditySource: 'rfq' | 'amm' };
 
                 expect(result?.liquiditySource).toEqual('amm');
@@ -376,7 +376,7 @@ describe('GaslessSwapService', () => {
                         sellToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
                         sellTokenDecimals: 18,
                     },
-                    GaslessTypes.MetaTransaction,
+                    GaslessSwapServiceTypes.ZeroG,
                 )) as FetchIndicativeQuoteResponse & { liquiditySource: 'rfq' | 'amm' };
 
                 expect(result?.liquiditySource).toEqual('amm');
@@ -407,7 +407,7 @@ describe('GaslessSwapService', () => {
                         sellToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
                         sellTokenDecimals: 18,
                     },
-                    GaslessTypes.MetaTransaction,
+                    GaslessSwapServiceTypes.ZeroG,
                 );
 
                 expect(result).toBeNull();
@@ -431,7 +431,7 @@ describe('GaslessSwapService', () => {
                             sellToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
                             sellTokenDecimals: 18,
                         },
-                        GaslessTypes.MetaTransaction,
+                        GaslessSwapServiceTypes.ZeroG,
                     ),
                 ).rejects.toThrow('Error fetching price');
             });
@@ -459,7 +459,7 @@ describe('GaslessSwapService', () => {
                             sellTokenDecimals: 18,
                             takerAddress: '0xtaker',
                         },
-                        GaslessTypes.MetaTransaction,
+                        GaslessSwapServiceTypes.ZeroG,
                     ),
                 ).rejects.toThrow(ValidationError);
             });
@@ -491,7 +491,7 @@ describe('GaslessSwapService', () => {
                         feeRecipient: integratorAddress,
                         feeSellTokenPercentage: new BigNumber(0.1),
                     },
-                    GaslessTypes.MetaTransactionV2,
+                    GaslessSwapServiceTypes.TxRelay,
                 )) as FetchIndicativeQuoteResponse & { sources: LiquiditySource[]; fees?: Fees };
 
                 expect(result).toMatchInlineSnapshot(`
@@ -563,7 +563,7 @@ describe('GaslessSwapService', () => {
                         feeRecipient: integratorAddress,
                         feeSellTokenPercentage: new BigNumber(0.1),
                     },
-                    GaslessTypes.MetaTransactionV2,
+                    GaslessSwapServiceTypes.TxRelay,
                 )) as FetchIndicativeQuoteResponse & { sources: LiquiditySource[]; fees?: Fees };
 
                 expect(result).toMatchInlineSnapshot(`
@@ -625,7 +625,7 @@ describe('GaslessSwapService', () => {
                         feeRecipient: integratorAddress,
                         feeSellTokenPercentage: new BigNumber(0.1),
                     },
-                    GaslessTypes.MetaTransactionV2,
+                    GaslessSwapServiceTypes.TxRelay,
                 );
 
                 expect(result).toBeNull();
@@ -649,7 +649,7 @@ describe('GaslessSwapService', () => {
                             feeRecipient: integratorAddress,
                             feeSellTokenPercentage: new BigNumber(0.1),
                         },
-                        GaslessTypes.MetaTransactionV2,
+                        GaslessSwapServiceTypes.TxRelay,
                     ),
                 ).rejects.toThrow('Error fetching price');
             });
@@ -679,7 +679,7 @@ describe('GaslessSwapService', () => {
                             feeRecipient: integratorAddress,
                             feeSellTokenPercentage: new BigNumber(0.1),
                         },
-                        GaslessTypes.MetaTransactionV2,
+                        GaslessSwapServiceTypes.TxRelay,
                     ),
                 ).rejects.toThrow(ValidationError);
             });
@@ -702,7 +702,7 @@ describe('GaslessSwapService', () => {
                         takerAddress: '0xtaker',
                         checkApproval: false,
                     },
-                    GaslessTypes.MetaTransaction,
+                    GaslessSwapServiceTypes.ZeroG,
                 )) as OtcOrderRfqmQuoteResponse & { liquiditySource: 'rfq' | 'amm' };
 
                 expect(result).not.toBeNull();
@@ -761,7 +761,7 @@ describe('GaslessSwapService', () => {
                         takerAddress: '0xtaker',
                         checkApproval: false,
                     },
-                    GaslessTypes.MetaTransaction,
+                    GaslessSwapServiceTypes.ZeroG,
                 )) as MetaTransactionV1QuoteResponse & { liquiditySource: 'rfq' | 'amm' };
 
                 expect(result).not.toBeNull();
@@ -826,7 +826,7 @@ describe('GaslessSwapService', () => {
                             takerAddress: '0xtaker',
                             checkApproval: false,
                         },
-                        GaslessTypes.MetaTransaction,
+                        GaslessSwapServiceTypes.ZeroG,
                     ),
                 ).rejects.toThrow(ValidationError);
             });
@@ -853,7 +853,7 @@ describe('GaslessSwapService', () => {
                         takerAddress: '0xtaker',
                         checkApproval: false,
                     },
-                    GaslessTypes.MetaTransaction,
+                    GaslessSwapServiceTypes.ZeroG,
                 );
                 expect(getMetaTransactionV1QuoteAsyncMock.mock.calls[0][/* params */ 2]['affiliateAddress']).toEqual(
                     '0xaffiliateAddress',
@@ -883,7 +883,7 @@ describe('GaslessSwapService', () => {
                         takerAddress: '0xtaker',
                         checkApproval: false,
                     },
-                    GaslessTypes.MetaTransaction,
+                    GaslessSwapServiceTypes.ZeroG,
                 );
                 expect(getMetaTransactionV1QuoteAsyncMock.mock.calls[0][/* params */ 2]['affiliateAddress']).toEqual(
                     '0xaffiliateAddressShouldUse',
@@ -905,7 +905,7 @@ describe('GaslessSwapService', () => {
                         takerAddress: '0xtaker',
                         checkApproval: false,
                     },
-                    GaslessTypes.MetaTransaction,
+                    GaslessSwapServiceTypes.ZeroG,
                 );
 
                 expect(result).toBeNull();
@@ -931,7 +931,7 @@ describe('GaslessSwapService', () => {
                             takerAddress: '0xtaker',
                             checkApproval: false,
                         },
-                        GaslessTypes.MetaTransaction,
+                        GaslessSwapServiceTypes.ZeroG,
                     ),
                 ).rejects.toThrow('Error fetching quote');
             });
@@ -958,7 +958,7 @@ describe('GaslessSwapService', () => {
                         takerAddress: '0xtaker',
                         checkApproval: false,
                     },
-                    GaslessTypes.MetaTransaction,
+                    GaslessSwapServiceTypes.ZeroG,
                 );
 
                 expect(mockRedis.set).toBeCalledWith(
@@ -995,7 +995,7 @@ describe('GaslessSwapService', () => {
                         takerAddress: '0xtaker',
                         checkApproval: true,
                     },
-                    GaslessTypes.MetaTransaction,
+                    GaslessSwapServiceTypes.ZeroG,
                 );
 
                 expect(result?.approval).not.toBeUndefined();
@@ -1032,7 +1032,7 @@ describe('GaslessSwapService', () => {
                         feeRecipient: integratorAddress,
                         feeSellTokenPercentage: new BigNumber(0.1),
                     },
-                    GaslessTypes.MetaTransactionV2,
+                    GaslessSwapServiceTypes.TxRelay,
                 )) as MetaTransactionV2QuoteResponse;
 
                 expect(result).not.toBeNull();
@@ -1199,7 +1199,7 @@ describe('GaslessSwapService', () => {
                         feeRecipient: integratorAddress,
                         feeSellTokenPercentage: new BigNumber(0.1),
                     },
-                    GaslessTypes.MetaTransactionV2,
+                    GaslessSwapServiceTypes.TxRelay,
                 )) as MetaTransactionV2QuoteResponse;
 
                 expect(result).not.toBeNull();
@@ -1367,7 +1367,7 @@ describe('GaslessSwapService', () => {
                             feeRecipient: integratorAddress,
                             feeSellTokenPercentage: new BigNumber(0.1),
                         },
-                        GaslessTypes.MetaTransactionV2,
+                        GaslessSwapServiceTypes.TxRelay,
                     ),
                 ).rejects.toThrow(ValidationError);
             });
@@ -1401,7 +1401,7 @@ describe('GaslessSwapService', () => {
                         feeRecipient: integratorAddress,
                         feeSellTokenPercentage: new BigNumber(0.1),
                     },
-                    GaslessTypes.MetaTransactionV2,
+                    GaslessSwapServiceTypes.TxRelay,
                 );
                 expect(getMetaTransactionV2QuoteAsyncMock.mock.calls[0][/* params */ 2]['affiliateAddress']).toEqual(
                     '0xaffiliateAddress',
@@ -1438,7 +1438,7 @@ describe('GaslessSwapService', () => {
                         feeRecipient: integratorAddress,
                         feeSellTokenPercentage: new BigNumber(0.1),
                     },
-                    GaslessTypes.MetaTransactionV2,
+                    GaslessSwapServiceTypes.TxRelay,
                 );
                 expect(getMetaTransactionV2QuoteAsyncMock.mock.calls[0][/* params */ 2]['affiliateAddress']).toEqual(
                     '0xaffiliateAddressShouldUse',
@@ -1462,7 +1462,7 @@ describe('GaslessSwapService', () => {
                         feeRecipient: integratorAddress,
                         feeSellTokenPercentage: new BigNumber(0.1),
                     },
-                    GaslessTypes.MetaTransactionV2,
+                    GaslessSwapServiceTypes.TxRelay,
                 );
 
                 expect(result).toBeNull();
@@ -1488,7 +1488,7 @@ describe('GaslessSwapService', () => {
                             feeRecipient: integratorAddress,
                             feeSellTokenPercentage: new BigNumber(0.1),
                         },
-                        GaslessTypes.MetaTransactionV2,
+                        GaslessSwapServiceTypes.TxRelay,
                     ),
                 ).rejects.toThrow('Error fetching quote');
             });
@@ -1522,7 +1522,7 @@ describe('GaslessSwapService', () => {
                         feeRecipient: integratorAddress,
                         feeSellTokenPercentage: new BigNumber(0.1),
                     },
-                    GaslessTypes.MetaTransactionV2,
+                    GaslessSwapServiceTypes.TxRelay,
                 );
 
                 expect(mockRedis.set).toBeCalledWith(
@@ -1566,7 +1566,7 @@ describe('GaslessSwapService', () => {
                         feeRecipient: integratorAddress,
                         feeSellTokenPercentage: new BigNumber(0.1),
                     },
-                    GaslessTypes.MetaTransactionV2,
+                    GaslessSwapServiceTypes.TxRelay,
                 );
 
                 expect(result?.approval).not.toBeUndefined();

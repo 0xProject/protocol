@@ -484,7 +484,7 @@ describe('GaslessSwapHandlers', () => {
                         "slippagePercentage": undefined,
                         "takerAddress": "0x4c42a706410f1190f97d26fe3c999c90070aa40f",
                       },
-                      "metatransaction",
+                      "zero_g",
                     ]
                 `);
             });
@@ -605,7 +605,7 @@ describe('GaslessSwapHandlers', () => {
                         "slippagePercentage": undefined,
                         "takerAddress": "0x4c42a706410f1190f97d26fe3c999c90070aa40f",
                       },
-                      "metatransaction_v2",
+                      "tx_relay",
                     ]
                 `);
             });
@@ -724,7 +724,7 @@ describe('GaslessSwapHandlers', () => {
                         "slippagePercentage": undefined,
                         "takerAddress": "0x4c42a706410f1190f97d26fe3c999c90070aa40f",
                       },
-                      "metatransaction",
+                      "zero_g",
                     ]
                 `);
             });
@@ -877,7 +877,7 @@ describe('GaslessSwapHandlers', () => {
                         "slippagePercentage": undefined,
                         "takerAddress": "0x4c42a706410f1190f97d26fe3c999c90070aa40f",
                       },
-                      "metatransaction_v2",
+                      "tx_relay",
                     ]
                 `);
             });

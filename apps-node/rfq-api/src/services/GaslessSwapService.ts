@@ -20,7 +20,7 @@ import { MetaTransactionJobConstructorOpts } from '../entities/MetaTransactionJo
 import { RfqmJobStatus } from '../entities/types';
 import { logger } from '../logger';
 import { feesToRawFees, feesToTruncatedFees, getFeeConfigsFromParams } from '../core/meta_transaction_fee_utils';
-import { GaslessTypes, Approval } from '../core/types';
+import { GaslessTypes, Approval, GaslessSwapServiceTypes } from '../core/types';
 import { FeeConfigs, TruncatedFees } from '../core/types/meta_transaction_fees';
 import { getV1QuoteAsync, getV2QuoteAsync, MetaTransactionClientQuoteResponse } from '../utils/MetaTransactionClient';
 import { RfqmDbUtils } from '../utils/rfqm_db_utils';
@@ -161,13 +161,13 @@ export class GaslessSwapService {
      */
     public async fetchPriceAsync(
         params: FetchIndicativeQuoteParams,
-        kind: GaslessTypes,
+        serviceType: GaslessSwapServiceTypes,
     ): Promise<
         | (FetchIndicativeQuoteResponse &
               ({ liquiditySource: 'rfq' | 'amm' } | { sources: LiquiditySource[]; fees?: TruncatedFees }))
         | null
     > {
-        if (kind === GaslessTypes.MetaTransaction) {
+        if (serviceType === GaslessSwapServiceTypes.ZeroG) {
             try {
                 const rfqPrice = await this._rfqmService.fetchIndicativeQuoteAsync(params, 'gaslessSwapRfq');
 
@@ -188,7 +188,7 @@ export class GaslessSwapService {
 
         try {
             let feeConfigs: FeeConfigs | undefined;
-            if (kind === GaslessTypes.MetaTransactionV2) {
+            if (serviceType === GaslessSwapServiceTypes.TxRelay) {
                 feeConfigs = this._getFeeConfigs(params, 'on-chain'); // integrator billing type would always be on-chain for now
             }
 
@@ -205,10 +205,8 @@ export class GaslessSwapService {
 
             let metaTransactionQuote: MetaTransactionClientQuoteResponse | null;
 
-            // In this context, `kind` refers to the type of endpoints that the quote will be fetched from.
-            // MetaTransaction refers to the old zero-g flow, and MetaTransactionV2 refers to /tx-relay.
-            switch (kind) {
-                case GaslessTypes.MetaTransaction:
+            switch (serviceType) {
+                case GaslessSwapServiceTypes.ZeroG:
                     metaTransactionQuote = await getV1QuoteAsync(
                         this._axiosInstance,
                         new URL(`${this._metaTransactionServiceBaseUrl.toString()}/v1/quote`),
@@ -220,7 +218,7 @@ export class GaslessSwapService {
                         logger.warn.bind(logger),
                     );
                     break;
-                case GaslessTypes.MetaTransactionV2:
+                case GaslessSwapServiceTypes.TxRelay:
                     metaTransactionQuote = await getV2QuoteAsync(
                         this._axiosInstance,
                         new URL(`${this._metaTransactionServiceBaseUrl.toString()}/v2/quote`),
@@ -232,17 +230,14 @@ export class GaslessSwapService {
                         logger.warn.bind(logger),
                     );
                     break;
-                case GaslessTypes.OtcOrder:
-                    // This should never happen
-                    throw new Error('GaslessTypes.OtcOrder should not be reached');
                 default:
                     ((_x: never) => {
                         throw new Error('unreachable');
-                    })(kind);
+                    })(serviceType);
             }
 
             if (metaTransactionQuote) {
-                if (kind === GaslessTypes.MetaTransaction) {
+                if (serviceType === GaslessSwapServiceTypes.ZeroG) {
                     return {
                         ...metaTransactionQuote.price,
                         allowanceTarget: this._blockchainUtils.getExchangeProxyAddress(),
@@ -288,14 +283,14 @@ export class GaslessSwapService {
      */
     public async fetchQuoteAsync(
         params: FetchFirmQuoteParams,
-        kind: GaslessTypes,
+        serviceType: GaslessSwapServiceTypes,
     ): Promise<
         | ((OtcOrderRfqmQuoteResponse | MetaTransactionV1QuoteResponse) & { liquiditySource: 'rfq' | 'amm' })
         | MetaTransactionV2QuoteResponse
         | null
     > {
         let rfqQuoteReportId: string | null = null;
-        if (kind === GaslessTypes.MetaTransaction) {
+        if (serviceType === GaslessSwapServiceTypes.ZeroG) {
             try {
                 const { quote: rfqQuote, quoteReportId } = await this._rfqmService.fetchFirmQuoteAsync(
                     params,
@@ -319,7 +314,7 @@ export class GaslessSwapService {
 
         try {
             let feeConfigs: FeeConfigs | undefined;
-            if (kind === GaslessTypes.MetaTransactionV2) {
+            if (serviceType === GaslessSwapServiceTypes.TxRelay) {
                 feeConfigs = this._getFeeConfigs(params, 'on-chain'); // integrator billing type would always be on-chain for now
             }
 
@@ -328,17 +323,16 @@ export class GaslessSwapService {
                 chainId: this._chainId,
                 affiliateAddress: params.affiliateAddress ?? params.integrator.affiliateAddress,
                 integratorId: params.integrator.integratorId,
-                quoteUniqueId: kind === GaslessTypes.MetaTransaction ? rfqQuoteReportId ?? undefined : undefined,
+                quoteUniqueId:
+                    serviceType === GaslessSwapServiceTypes.ZeroG ? rfqQuoteReportId ?? undefined : undefined,
                 metaTransactionVersion: 'v1' as 'v1' | 'v2',
                 feeConfigs,
             };
 
             let metaTransactionQuote: MetaTransactionClientQuoteResponse | null;
 
-            // In this context, `kind` refers to the type of endpoints that the quote will be fetched from.
-            // MetaTransaction refers to the old zero-g flow, and MetaTransactionV2 refers to /tx-relay.
-            switch (kind) {
-                case GaslessTypes.MetaTransaction:
+            switch (serviceType) {
+                case GaslessSwapServiceTypes.ZeroG:
                     metaTransactionQuote = await getV1QuoteAsync(
                         this._axiosInstance,
                         new URL(`${this._metaTransactionServiceBaseUrl.toString()}/v1/quote`),
@@ -350,7 +344,7 @@ export class GaslessSwapService {
                         logger.warn.bind(logger),
                     );
                     break;
-                case GaslessTypes.MetaTransactionV2:
+                case GaslessSwapServiceTypes.TxRelay:
                     metaTransactionQuote = await getV2QuoteAsync(
                         this._axiosInstance,
                         new URL(`${this._metaTransactionServiceBaseUrl.toString()}/v2/quote`),
@@ -362,13 +356,10 @@ export class GaslessSwapService {
                         logger.warn.bind(logger),
                     );
                     break;
-                case GaslessTypes.OtcOrder:
-                    // This should never happen
-                    throw new Error('GaslessTypes.OtcOrder should not be reached');
                 default:
                     ((_x: never) => {
                         throw new Error('unreachable');
-                    })(kind);
+                    })(serviceType);
             }
 
             if (metaTransactionQuote) {
@@ -382,7 +373,7 @@ export class GaslessSwapService {
                 const { metaTransaction, hash: metaTransactionHash } = metaTransactionQuote.trade;
                 await this._storeMetaTransactionHashAsync(metaTransaction.getHash());
 
-                if (kind === GaslessTypes.MetaTransaction) {
+                if (serviceType === GaslessSwapServiceTypes.ZeroG) {
                     // Response from /meta_transaction/v1 endpoint. The meta-transaction type
                     // can ONLY be meta-transaction v1
                     return {

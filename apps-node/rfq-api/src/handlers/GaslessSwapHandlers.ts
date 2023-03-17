@@ -25,7 +25,7 @@ import {
     SubmitMetaTransactionV2SignedQuoteParams,
     SubmitRfqmSignedQuoteWithApprovalParams,
 } from '../services/types';
-import { Approval, Eip712DataField, GaslessApprovalTypes, GaslessTypes } from '../core/types';
+import { Approval, Eip712DataField, GaslessApprovalTypes, GaslessSwapServiceTypes, GaslessTypes } from '../core/types';
 import { ConfigManager } from '../utils/config_manager';
 import { HealthCheckResult, transformResultToShortResponse } from '../utils/rfqm_health_check';
 import {
@@ -76,7 +76,7 @@ export class GaslessSwapHandlers {
      * Handler for the /price endpoint
      */
     public async getPriceAsync(req: express.Request, res: express.Response): Promise<void> {
-        const metaTransactionType = getMetaTransactionType(req.baseUrl);
+        const metaTransactionType = getGaslessSwapServiceType(req.baseUrl);
         const { chainId, params } = await this._parsePriceParamsAsync(req);
         // Consistent with `rfqm_handlers`: not all requests are emitted if they fail parsing
         ZEROG_GASLESS_SWAP_REQUEST.inc({
@@ -108,7 +108,7 @@ export class GaslessSwapHandlers {
      * Handler for the /quote endpoint
      */
     public async getQuoteAsync(req: express.Request, res: express.Response): Promise<void> {
-        const metaTransactionType = getMetaTransactionType(req.baseUrl);
+        const metaTransactionType = getGaslessSwapServiceType(req.baseUrl);
         // Parse request
         const { chainId, params } = await this._parseFetchFirmQuoteParamsAsync(req);
         // Consistent with `rfqm_handlers`: not all requests are emitted if they fail parsing
@@ -663,14 +663,14 @@ function validateNotNativeTokenOrThrow(token: string, chainId: number, field: st
 }
 
 /**
- * Get the meta-transaction type to pass to service.
+ * Get gasless swap service type to pass to service.
  */
-function getMetaTransactionType(baseURL: string): GaslessTypes {
+function getGaslessSwapServiceType(baseURL: string): GaslessSwapServiceTypes {
     if (ZERO_G_PATH.includes(baseURL) || ZERO_G_ALIAS_PATH.includes(baseURL)) {
-        return GaslessTypes.MetaTransaction;
+        return GaslessSwapServiceTypes.ZeroG;
     }
     if (TX_RELAY_V1_PATH.includes(baseURL)) {
-        return GaslessTypes.MetaTransactionV2;
+        return GaslessSwapServiceTypes.TxRelay;
     }
 
     // This should never happen
