@@ -554,7 +554,7 @@ export class RfqtService {
                 AlphaLab: '4f914fb7-8152-41fb-a07d-6327649bb4d0',
                 RavenDAO: '433d9e25-dd96-40bf-91b9-6db32da8a089',
             };
-            const allowedGaslessRfqtMakers = new Set([makers.Altonomy]);
+            const allowedGaslessRfqtMakers = new Set([makers.Altonomy, makers.Jump, makers.Kyber]);
             if (quoteContext.workflow === 'gasless-rfqt' && !allowedGaslessRfqtMakers.has(m.makerId)) {
                 return false;
             }
