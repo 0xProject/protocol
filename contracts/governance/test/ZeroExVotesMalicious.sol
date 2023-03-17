@@ -18,11 +18,13 @@
 */
 pragma solidity ^0.8.19;
 
-import {ZeroExVotes} from "../src/ZeroExVotes.sol";
-import "@openzeppelin/utils/math/Math.sol";
+import "../src/ZeroExVotes.sol";
 
 contract ZeroExVotesMalicious is ZeroExVotes {
-  function writeCheckpointTotalSupplyBurn(uint256 amount, uint256 accountBalance) public virtual override onlyToken {
+
+  constructor(address _token) ZeroExVotes(_token) {}
+
+  function writeCheckpointTotalSupplyBurn(uint256 amount, uint256 accountBalance) public virtual override onlyToken returns (bool) {
     revert("I am evil");
   }
 }

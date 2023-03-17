@@ -19,9 +19,9 @@
 pragma solidity ^0.8.19;
 
 import "./BaseTest.t.sol";
+import "./ZeroExVotesMalicious.sol";
 import "../src/ZRXWrappedToken.sol";
 import "@openzeppelin/token/ERC20/ERC20.sol";
-import {ZeroExVotesMalicious} from "./ZeroExVotesMalicious.sol";
 
 contract ZeroExVotesTest is BaseTest {
     IERC20 private token;
@@ -54,8 +54,10 @@ contract ZeroExVotesTest is BaseTest {
         vm.stopPrank();
 
         // malicious upgrade
-        IZeroExVotes maliciousImpl = new ZeroExVotesMalicious();
+        vm.startPrank(account1);
+        IZeroExVotes maliciousImpl = new ZeroExVotesMalicious(votes.token());
         votes.upgradeTo(address(maliciousImpl));
+        vm.stopPrank();
 
         // try to withdraw withdraw
         vm.prank(account2);
