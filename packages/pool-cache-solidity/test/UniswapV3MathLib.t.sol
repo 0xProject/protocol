@@ -2,9 +2,9 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
+
 import {UniswapV3MathLib} from "../src/contracts/utils/UniswapV3MathLib.sol";
 import {FakeERC20} from "./fakes/FakeERC20.sol";
-import {ERC721} from "solmate/tokens/ERC721.sol";
 
 contract Empty {
     constructor() {}
@@ -31,7 +31,7 @@ contract UniswapV3MathLibTest is Test {
         // token1: WETH (18 decimals)
         uint160 sqrtPriceX96 = 1952778395280128921191001709604188;
 
-        // price of 1 full unit of USDC in WETH / 10e18.
+        // price of 1 full unit of USDC in WETH / 1e18.
         uint256 price = UniswapV3MathLib.getToken0PriceInToken1(fakeUsdc, sqrtPriceX96);
 
         // echo '(1952778395280128921191001709604188^2) * 10^6 / (2^192)' | bc
@@ -43,7 +43,7 @@ contract UniswapV3MathLibTest is Test {
         // token1: USDC (6 decimals)
         uint160 sqrtPriceX96 = 79229406225302662243734;
 
-        // price of 1 full unit of DAI in USDC / 10e6.
+        // price of 1 full unit of DAI in USDC / 1e6.
         uint256 price = UniswapV3MathLib.getToken0PriceInToken1(fakeDai, sqrtPriceX96);
 
         // echo '(79229406225302662243734^2) * 10^18 / (2^192)' | bc
@@ -55,7 +55,7 @@ contract UniswapV3MathLibTest is Test {
         // token1: WETH (18 decimals)
         uint160 sqrtPriceX96 = 1942142447267710574382686197;
 
-        // price of 1 full unit of DAI in WETH / 10e18.
+        // price of 1 full unit of DAI in WETH / 1e18.
         uint256 price = UniswapV3MathLib.getToken0PriceInToken1(fakeDai, sqrtPriceX96);
 
         // echo '(1942142447267710574382686197^2) * 10^18 / (2^192)' | bc
@@ -67,7 +67,7 @@ contract UniswapV3MathLibTest is Test {
         // token1: WETH (18 decimals)
         uint160 sqrtPriceX96 = 4729455117412656742828900030;
 
-        // price of 1 full unit of token0 in WETH / 10e18.
+        // price of 1 full unit of token0 in WETH / 1e18.
         uint256 price = UniswapV3MathLib.getToken0PriceInToken1(fakeDai, sqrtPriceX96);
 
         // echo '(4729455117412656742828900030^2) * 10^18 / (2^192)' | bc

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
+import {ERC20} from "solmate/tokens/ERC20.sol";
 import {FullMathLib} from "./FullMathLib.sol";
 import {SafeERC20Lib} from "./SafeERC20Lib.sol";
-import {ERC20} from "solmate/tokens/ERC20.sol";
 
 library UniswapV3MathLib {
     using SafeERC20Lib for ERC20;
