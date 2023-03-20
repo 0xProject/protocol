@@ -58,9 +58,9 @@ interface IUniV3Pool {
 }
 
 struct UniswapV3Pool {
-    address poolAddress;
     // Fee denominated in hundredths of a bip .
     uint24 fee;
+    address poolAddress;
     uint256 totalValueInToken1;
 }
 
@@ -70,23 +70,24 @@ contract UniswapV3PoolFetcher {
     // NOTE: the address is different on Celo.
     // If Celo is integrated in the future it should be set differently.
     // https://docs.uniswap.org/contracts/v3/reference/deployments
-    IUniswapV3Factory public constant factory = IUniswapV3Factory(0x1F98431c8aD98523631AE4a59f267346ea31F984);
+    IUniswapV3Factory public constant uniV3Factory = IUniswapV3Factory(0x1F98431c8aD98523631AE4a59f267346ea31F984);
+    uint256 internal constant numUniV3FeeTiers = 4;
 
     constructor() {}
 
     function getPools(address tokenA, address tokenB) public view returns (UniswapV3Pool[] memory pools) {
-        pools = new UniswapV3Pool[](4);
+        pools = new UniswapV3Pool[](numUniV3FeeTiers);
 
         // 1bps, 5bps, 30bps, 100bps
         uint24[4] memory fees = [uint24(100), uint24(500), uint24(3000), uint24(10000)];
 
-        for (uint256 i = 0; i < 4; i++) {
+        for (uint256 i = 0; i < numUniV3FeeTiers; i++) {
             pools[i] = getPool(tokenA, tokenB, fees[i]);
         }
     }
 
     function getPool(address tokenA, address tokenB, uint24 fee) internal view returns (UniswapV3Pool memory data) {
-        address poolAddress = factory.getPool(tokenA, tokenB, fee);
+        address poolAddress = uniV3Factory.getPool(tokenA, tokenB, fee);
         data.poolAddress = poolAddress;
         data.fee = fee;
 

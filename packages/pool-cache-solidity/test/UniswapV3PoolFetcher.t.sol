@@ -5,36 +5,8 @@ import "forge-std/Test.sol";
 
 import {UniswapV3PoolFetcher, UniswapV3Pool, IUniswapV3Factory} from "../src/contracts/UniswapV3PoolFetcher.sol";
 import {FakeERC20} from "./fakes/FakeERC20.sol";
-
-contract VoidUniswapV3Factory {
-    function getPool(address, address, uint24) external pure returns (address) {
-        return address(0);
-    }
-}
-
-contract MockUniswapV3Pool {
-    uint160 sqrtPriceX96;
-    address token0Address;
-    address token1Address;
-
-    constructor(uint160 _sqrtPriceX96, address _token0, address _token1) {
-        sqrtPriceX96 = _sqrtPriceX96;
-        token0Address = _token0;
-        token1Address = _token1;
-    }
-
-    function slot0() external view returns (uint160, int24, uint16, uint16, uint16, uint8, bool) {
-        return (sqrtPriceX96, 0, 0, 0, 0, 0, false);
-    }
-
-    function token0() external view returns (address) {
-        return token0Address;
-    }
-
-    function token1() external view returns (address) {
-        return token1Address;
-    }
-}
+import {VoidUniswapV3Factory} from "./fakes/VoidUniswapV3Factory.sol";
+import {MockUniswapV3Pool} from "./mocks/MockUniswapV3Pool.sol";
 
 contract UniswapV3PoolFetcherTest is Test {
     FakeERC20 public fakeUsdc;
@@ -48,8 +20,8 @@ contract UniswapV3PoolFetcherTest is Test {
         fakeDai = new FakeERC20("Dai Stablecoin", "DAI", 18);
         fetcher = new UniswapV3PoolFetcher();
 
-        // Make `factoryAddress`  to return 0 address on getPool();
-        vm.etch(address(fetcher.factory()), address(new VoidUniswapV3Factory()).code);
+        // Make `uniV3Factory` to return 0 address on getPool();
+        vm.etch(address(fetcher.uniV3Factory()), address(new VoidUniswapV3Factory()).code);
     }
 
     function testZeroAddressAndTvlWhenNoPools() public {
@@ -75,7 +47,7 @@ contract UniswapV3PoolFetcherTest is Test {
     }
 
     function testUsdcWethPools() public {
-        address factoryAddress = address(fetcher.factory());
+        address factoryAddress = address(fetcher.uniV3Factory());
 
         MockUniswapV3Pool pool5bps = new MockUniswapV3Pool(
             // echo '(1952778395280128921191001709604188^2) * 10^6 / (2^192)' | bc
@@ -129,7 +101,7 @@ contract UniswapV3PoolFetcherTest is Test {
     }
 
     function testUsdcDaiPools() public {
-        address factoryAddress = address(fetcher.factory());
+        address factoryAddress = address(fetcher.uniV3Factory());
         MockUniswapV3Pool pool1bps = new MockUniswapV3Pool(
             // echo '(79231158259708656486340^2) * 10^18 / (2^192)' | bc
             79231158259708656486340, // 1 DAI = 1000075 USDC / 1e6
