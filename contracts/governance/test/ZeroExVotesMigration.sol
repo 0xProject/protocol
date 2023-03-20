@@ -26,7 +26,9 @@ import {CubeRoot} from "./CubeRoot.sol";
 contract ZeroExVotesMigration is ZeroExVotes {
     uint32 public migrationBlock;
 
-    function initialize(address, uint256) public virtual override {
+    constructor(address _token) ZeroExVotes(_token) {}
+
+    function initialize(uint256) public virtual override {
         revert();
     }
 
@@ -71,14 +73,57 @@ contract ZeroExVotesMigration is ZeroExVotes {
             return 0;
         }
 
-        (bool success, Checkpoint storage checkpoint) = _checkpointsLookup(_checkpoints[account], blockNumber);
-        if (!success) {
-            return 0;
-        }
+        Checkpoint storage checkpoint = _checkpointsLookupStorage(_checkpoints[account], blockNumber);
         if (checkpoint.fromBlock <= migrationBlock) {
             return 0;
         }
         return _toMigration(checkpoint).migratedVotes;
+    }
+
+    function _checkpointsLookupStorage(
+        Checkpoint[] storage ckpts,
+        uint256 blockNumber
+    ) internal view returns (Checkpoint storage) {
+        // We run a binary search to look for the earliest checkpoint taken after `blockNumber`.
+        //
+        // Initially we check if the block is recent to narrow the search range.
+        // During the loop, the index of the wanted checkpoint remains in the range [low-1, high).
+        // With each iteration, either `low` or `high` is moved towards the middle of the range to maintain the
+        // invariant.
+        // - If the middle checkpoint is after `blockNumber`, we look in [low, mid)
+        // - If the middle checkpoint is before or equal to `blockNumber`, we look in [mid+1, high)
+        // Once we reach a single value (when low == high), we've found the right checkpoint at the index high-1, if not
+        // out of bounds (in which case we're looking too far in the past and the result is 0).
+        // Note that if the latest checkpoint available is exactly for `blockNumber`, we end up with an index that is
+        // past the end of the array, so we technically don't find a checkpoint after `blockNumber`, but it works out
+        // the same.
+        uint256 length = ckpts.length;
+
+        uint256 low = 0;
+        uint256 high = length;
+
+        if (length > 5) {
+            uint256 mid = length - Math.sqrt(length);
+            if (_unsafeAccess(ckpts, mid).fromBlock > blockNumber) {
+                high = mid;
+            } else {
+                low = mid + 1;
+            }
+        }
+
+        while (low < high) {
+            uint256 mid = Math.average(low, high);
+            if (_unsafeAccess(ckpts, mid).fromBlock > blockNumber) {
+                high = mid;
+            } else {
+                low = mid + 1;
+            }
+        }
+
+        // Leaving here for posterity this is the original OZ implementation which we've replaced
+        // return high == 0 ? 0 : _unsafeAccess(ckpts, high - 1).votes;
+        Checkpoint memory checkpoint = high == 0 ? Checkpoint(0, 0, 0) : _unsafeAccess(ckpts, high - 1);
+        return checkpoint;
     }
 
     // TODO: we're not handling totalSupply
