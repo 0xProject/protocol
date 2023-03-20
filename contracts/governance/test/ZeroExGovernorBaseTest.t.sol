@@ -177,7 +177,9 @@ abstract contract ZeroExGovernorBaseTest is BaseTest {
         governor.assignSecurityCouncil(account1);
     }
 
-    function testSecurityCouncilAreEjectedAfterCancellingAProposal() public {
+    // This functionality is currently not enabled
+    // Leaving this test for potential future use.
+    function SecurityCouncilAreEjectedAfterCancellingAProposal() public {
         // Create a proposal
         address[] memory targets = new address[](1);
         targets[0] = address(callReceiverMock);

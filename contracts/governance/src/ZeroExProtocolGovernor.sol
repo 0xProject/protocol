@@ -85,8 +85,6 @@ contract ZeroExProtocolGovernor is
         bytes32 descriptionHash
     ) public override onlySecurityCouncil {
         _cancel(targets, values, calldatas, descriptionHash);
-
-        ejectSecurityCouncil();
     }
 
     // Like the GovernorTimelockControl.queue function but without the proposal checks,
@@ -103,8 +101,6 @@ contract ZeroExProtocolGovernor is
         // Execute the batch of rollbacks via the timelock controller
         ZeroExTimelock timelockController = ZeroExTimelock(payable(timelock()));
         timelockController.executeRollbackBatch(targets, values, calldatas, 0, descriptionHash);
-
-        ejectSecurityCouncil();
     }
 
     function assignSecurityCouncil(address _securityCouncil) public override onlyGovernance {

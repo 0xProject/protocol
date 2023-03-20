@@ -108,8 +108,6 @@ contract ZeroExTreasuryGovernor is
         bytes32 descriptionHash
     ) public override onlySecurityCouncil {
         _cancel(targets, values, calldatas, descriptionHash);
-
-        ejectSecurityCouncil();
     }
 
     function assignSecurityCouncil(address _securityCouncil) public override onlyGovernance {
