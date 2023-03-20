@@ -531,6 +531,7 @@ export const MAINNET_TOKENS = {
     cUSDC: '0x39aa39c021dfbae8fac545936693ac917d5e7563',
     cDAI: '0x5d3a536e4d6dbd6114cc1ead35777bab948e3643',
     cWBTC: '0xccf4429db6322d5c611ee964527d42e5d685dd6a',
+    PAXG: '0x45804880de22913dafe09f4980848ece6ecbaf78',
 };
 
 export const BSC_TOKENS = {
@@ -703,7 +704,7 @@ export const ARBITRUM_TOKENS = {
     WOO: '0xcafcd85d8ca7ad1e1c6f82f651fa15e33aefd07b',
 };
 
-export const REBASING_TOKENS = Set.of(MAINNET_TOKENS.stETH);
+export const REBASING_TOKENS = Set.of(MAINNET_TOKENS.stETH, MAINNET_TOKENS.PAXG);
 
 const SADDLE_MAINNET_POOLS = {
     // swaps
