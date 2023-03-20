@@ -7,13 +7,14 @@
     "scripts": {
         "build": "tsc",
         "build:forge": "./../../turbo-bin.sh forge build",
-        "generate": "yarn build:forge && yarn generate-typechain && yarn generate-typescript-artifacts",
+        "clean-typechain": "rm -rf src/typechain",
+        "generate": "yarn build:forge && yarn clean-typechain && yarn generate-typechain && yarn generate-typescript-artifacts",
         "generate-typescript-artifacts": "ts-node src/scripts/generate-typescript-artifacts.ts && yarn prettier --write src/artifacts/*",
-        "generate-typechain": "typechain --target ethers-v5 --out-dir typechain 'out/Counter.sol/!(*metadata*).json'",
+        "generate-typechain": "typechain --target ethers-v6 --out-dir src/typechain 'out/PoolFetcher.sol/!(*metadata*).json'",
         "test:ci": "./../../turbo-bin.sh forge test"
     },
     "devDependencies": {
-        "@typechain/ethers-v5": "^10.2.0",
+        "@typechain/ethers-v6": "0.3.0",
         "glob": "^9.2.1",
         "prettier": "^2.8.4",
         "ts-node": "^10.9.1",
@@ -22,7 +23,7 @@
         "typescript": "^4.9.5"
     },
     "dependencies": {
-        "ethers": "5.7.2"
+        "ethers": "6.1.0"
     },
     "exports": {
         ".": {

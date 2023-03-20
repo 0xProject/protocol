@@ -9,7 +9,7 @@ function getDeployedBytecode(contractOrInterfaceName: string) {
 }
 
 async function main() {
-    const solidityFilePaths = globSync(__dirname + '/../**/*.sol');
+    const solidityFilePaths = globSync(__dirname + '/../**/PoolFetcher.sol');
 
     const contractOrInterfaceNames = solidityFilePaths.map((filePath) => {
         const baseName = path.basename(filePath);
