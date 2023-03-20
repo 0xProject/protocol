@@ -29,14 +29,15 @@ import "./IZeroExVotes.sol";
 
 contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpgradeable {
     address public immutable token;
-    uint256 public quadraticThreshold;
+    uint256 public immutable quadraticThreshold;
 
     mapping(address => Checkpoint[]) private _checkpoints;
     Checkpoint[] private _totalSupplyCheckpoints;
 
-    constructor(address _token) {
+    constructor(address _token, uint256 _quadraticThreshold) {
         require(_token != address(0), "ZeroExVotes: token cannot be 0");
         token = _token;
+        quadraticThreshold = _quadraticThreshold;
         _disableInitializers();
     }
 
@@ -47,11 +48,9 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
         _;
     }
 
-    function initialize(uint256 _quadraticThreshold) public onlyProxy initializer {
+    function initialize() public onlyProxy initializer {
         __Ownable_init();
         __UUPSUpgradeable_init();
-
-        quadraticThreshold = _quadraticThreshold;
     }
 
     /**

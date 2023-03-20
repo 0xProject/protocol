@@ -43,7 +43,7 @@ contract ZeroExVotesTest is BaseTest {
 
     function testShouldNotBeAbleToReinitialise() public {
         vm.expectRevert("Initializable: contract is already initialized");
-        votes.initialize(quadraticThreshold);
+        votes.initialize();
     }
 
     function testShouldNotBeAbleToStopBurn() public {
@@ -57,7 +57,7 @@ contract ZeroExVotesTest is BaseTest {
 
         // malicious upgrade
         vm.startPrank(account1);
-        IZeroExVotes maliciousImpl = new ZeroExVotesMalicious(votes.token());
+        IZeroExVotes maliciousImpl = new ZeroExVotesMalicious(votes.token(), votes.quadraticThreshold());
         votes.upgradeTo(address(maliciousImpl));
         vm.stopPrank();
 

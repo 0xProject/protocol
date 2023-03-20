@@ -105,11 +105,8 @@ contract BaseTest is Test {
             zrxToken := create(0, add(_bytecode, 0x20), mload(_bytecode))
         }
         address wTokenPrediction = predict(account1, vm.getNonce(account1) + 2);
-        ZeroExVotes votesImpl = new ZeroExVotes(wTokenPrediction);
-        ERC1967Proxy votesProxy = new ERC1967Proxy(
-            address(votesImpl),
-            abi.encodeCall(votesImpl.initialize, (quadraticThreshold))
-        );
+        ZeroExVotes votesImpl = new ZeroExVotes(wTokenPrediction, quadraticThreshold);
+        ERC1967Proxy votesProxy = new ERC1967Proxy(address(votesImpl), abi.encodeCall(votesImpl.initialize, ()));
         ZRXWrappedToken wToken = new ZRXWrappedToken(zrxToken, ZeroExVotes(address(votesProxy)));
         vm.stopPrank();
 

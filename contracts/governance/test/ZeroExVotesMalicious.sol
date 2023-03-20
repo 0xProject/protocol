@@ -21,7 +21,7 @@ pragma solidity ^0.8.19;
 import "../src/ZeroExVotes.sol";
 
 contract ZeroExVotesMalicious is ZeroExVotes {
-    constructor(address _token) ZeroExVotes(_token) {}
+    constructor(address _token, uint256 _quadraticThreshold) ZeroExVotes(_token, _quadraticThreshold) {}
 
     function writeCheckpointTotalSupplyBurn(
         uint256 amount,
