@@ -1,7 +1,7 @@
 import { forwardRef } from 'react';
 import type { IconProps } from './types';
 
-export const ChevronDown = forwardRef<SVGSVGElement, IconProps>(function ChevronDown(
+export const Copy = forwardRef<SVGSVGElement, IconProps>(function Copy(
     { color = 'currentColor', ...props },
     forwardedRef,
 ) {
