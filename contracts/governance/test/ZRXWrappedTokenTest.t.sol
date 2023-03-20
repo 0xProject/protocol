@@ -258,4 +258,57 @@ contract ZRXWrappedTokenTest is BaseTest {
         assertEq(votes.getVotes(account3), 0);
         assertEq(votes.getQuadraticVotes(account3), 0);
     }
+
+    function testShouldUpdateVotingPowerWhenDepositing() public {
+        // Account 2 wraps ZRX and delegates voting power to itself
+        vm.startPrank(account2);
+        token.approve(address(wToken), 10e18);
+        wToken.depositFor(account2, 7e18);
+        wToken.delegate(account2);
+
+        assertEq(votes.getVotes(account2), 7e18);
+        assertEq(votes.getQuadraticVotes(account2), 7e18);
+
+        wToken.depositFor(account2, 2e18);
+        assertEq(votes.getVotes(account2), 9e18);
+        assertEq(votes.getQuadraticVotes(account2), 9e18);
+    }
+
+    function testShouldUpdateVotingPowerWhenWithdrawing() public {
+        // Account 2 wraps ZRX and delegates voting power to itself
+        vm.startPrank(account2);
+        token.approve(address(wToken), 10e18);
+        wToken.depositFor(account2, 10e18);
+        wToken.delegate(account2);
+
+        assertEq(votes.getVotes(account2), 10e18);
+        assertEq(votes.getQuadraticVotes(account2), 10e18);
+
+        wToken.withdrawTo(account2, 2e18);
+        assertEq(votes.getVotes(account2), 8e18);
+        assertEq(votes.getQuadraticVotes(account2), 8e18);
+    }
+
+    function testShouldSetDelegateBalanceLastUpdatedOnTransfer() public {
+        ZRXWrappedToken.DelegateInfo memory account2DelegateInfo = wToken.delegateInfo(account2);
+        assertEq(account2DelegateInfo.delegate, address(0));
+        assertEq(account2DelegateInfo.balanceLastUpdated, 0);
+
+        // Account 2 wraps ZRX and delegates voting power to account3
+        vm.startPrank(account2);
+        token.approve(address(wToken), 10e18);
+        wToken.depositFor(account2, 10e18);
+        wToken.delegate(account3);
+
+        account2DelegateInfo = wToken.delegateInfo(account2);
+        assertEq(account2DelegateInfo.delegate, account3);
+        assertEq(account2DelegateInfo.balanceLastUpdated, block.timestamp);
+
+        vm.warp(101);
+        wToken.transfer(account3, 3e18);
+
+        account2DelegateInfo = wToken.delegateInfo(account2);
+        assertEq(account2DelegateInfo.delegate, account3);
+        assertEq(account2DelegateInfo.balanceLastUpdated, 101);
+    }
 }

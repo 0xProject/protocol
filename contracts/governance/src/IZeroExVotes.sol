@@ -112,6 +112,8 @@ interface IZeroExVotes {
      * @param dst the delegatee we are moving voting power to
      * @param srcBalance balance of the delegator whose delegatee is `src`. This is value _after_ the transfer.
      * @param dstBalance balance of the delegator whose delegatee is `dst`. This is value _after_ the transfer.
+     * @param srcBalanceLastUpdated timestamp when balance of `src` was last updated.
+     * @param dstBalanceLastUpdated timestamp when balance of `dst` was last updated.
      * @param amount The amount of tokens transferred from the source delegate to destination delegate.
      */
     function moveVotingPower(
@@ -119,6 +121,8 @@ interface IZeroExVotes {
         address dst,
         uint256 srcBalance,
         uint256 dstBalance,
+        uint96 srcBalanceLastUpdated,
+        uint96 dstBalanceLastUpdated,
         uint256 amount
     ) external returns (bool);
 

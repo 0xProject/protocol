@@ -136,6 +136,8 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
         address dst,
         uint256 srcBalance,
         uint256 dstBalance,
+        uint96 srcBalanceLastUpdated,
+        uint96 dstBalanceLastUpdated,
         uint256 amount
     ) public virtual onlyToken returns (bool) {
         if (src != dst) {

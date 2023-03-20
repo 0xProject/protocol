@@ -22,11 +22,17 @@ import "@openzeppelin/token/ERC20/ERC20.sol";
 import "@openzeppelin/token/ERC20/extensions/draft-ERC20Permit.sol";
 import "@openzeppelin/token/ERC20/extensions/ERC20Wrapper.sol";
 import "@openzeppelin/governance/utils/IVotes.sol";
+import "@openzeppelin/utils/math/SafeCast.sol";
 import "./IZeroExVotes.sol";
 import "./CallWithGas.sol";
 
 contract ZRXWrappedToken is ERC20, ERC20Permit, ERC20Wrapper {
     using CallWithGas for address;
+
+    struct DelegateInfo {
+        address delegate;
+        uint96 balanceLastUpdated;
+    }
 
     constructor(
         IERC20 wrappedToken,
@@ -36,7 +42,7 @@ contract ZRXWrappedToken is ERC20, ERC20Permit, ERC20Wrapper {
     }
 
     IZeroExVotes public immutable zeroExVotes;
-    mapping(address => address) private _delegates;
+    mapping(address => DelegateInfo) private _delegates;
 
     bytes32 private constant _DELEGATION_TYPEHASH =
         keccak256("Delegation(address delegatee,uint256 nonce,uint256 expiry)");
@@ -55,10 +61,26 @@ contract ZRXWrappedToken is ERC20, ERC20Permit, ERC20Wrapper {
     function _afterTokenTransfer(address from, address to, uint256 amount) internal override(ERC20) {
         super._afterTokenTransfer(from, to, amount);
 
-        uint256 fromBalance = delegates(from) == address(0) ? 0 : balanceOf(from) + amount;
-        uint256 toBalance = delegates(to) == address(0) ? 0 : balanceOf(to) - amount;
+        DelegateInfo memory fromDelegate = delegateInfo(from);
+        DelegateInfo memory toDelegate = delegateInfo(to);
 
-        zeroExVotes.moveVotingPower(delegates(from), delegates(to), fromBalance, toBalance, amount);
+        uint256 fromBalance = fromDelegate.delegate == address(0) ? 0 : balanceOf(from) + amount;
+        uint256 toBalance = toDelegate.delegate == address(0) ? 0 : balanceOf(to) - amount;
+
+        if (fromDelegate.delegate != address(0))
+            _delegates[from].balanceLastUpdated = SafeCast.toUint96(block.timestamp);
+
+        if (toDelegate.delegate != address(0)) _delegates[to].balanceLastUpdated = SafeCast.toUint96(block.timestamp);
+
+        zeroExVotes.moveVotingPower(
+            fromDelegate.delegate,
+            toDelegate.delegate,
+            fromBalance,
+            toBalance,
+            fromDelegate.balanceLastUpdated,
+            toDelegate.balanceLastUpdated,
+            amount
+        );
     }
 
     function _mint(address account, uint256 amount) internal override(ERC20) {
@@ -81,6 +103,14 @@ contract ZRXWrappedToken is ERC20, ERC20Permit, ERC20Wrapper {
      * @dev Get the address `account` is currently delegating to.
      */
     function delegates(address account) public view returns (address) {
+        return _delegates[account].delegate;
+    }
+
+    function delegatorBalanceLastUpdated(address account) public view returns (uint96) {
+        return _delegates[account].balanceLastUpdated;
+    }
+
+    function delegateInfo(address account) public view returns (DelegateInfo memory) {
         return _delegates[account];
     }
 
@@ -112,12 +142,21 @@ contract ZRXWrappedToken is ERC20, ERC20Permit, ERC20Wrapper {
      * Emits events {DelegateChanged} and {IZeroExVotes-DelegateVotesChanged}.
      */
     function _delegate(address delegator, address delegatee) internal virtual {
-        address currentDelegate = delegates(delegator);
+        DelegateInfo memory delegateInfo = delegateInfo(delegator);
         uint256 delegatorBalance = balanceOf(delegator);
-        _delegates[delegator] = delegatee;
 
-        emit DelegateChanged(delegator, currentDelegate, delegatee);
+        _delegates[delegator] = DelegateInfo(delegatee, SafeCast.toUint96(block.timestamp));
 
-        zeroExVotes.moveVotingPower(currentDelegate, delegatee, delegatorBalance, 0, delegatorBalance);
+        emit DelegateChanged(delegator, delegateInfo.delegate, delegatee);
+
+        zeroExVotes.moveVotingPower(
+            delegateInfo.delegate,
+            delegatee,
+            delegatorBalance,
+            0,
+            delegateInfo.balanceLastUpdated,
+            0,
+            delegatorBalance
+        );
     }
 }
