@@ -192,6 +192,15 @@ export class GaslessSwapService {
                 feeConfigs = this._getFeeConfigs(params, 'on-chain'); // integrator billing type would always be on-chain for now
             }
 
+            const acceptedTypes = params.acceptedTypes ?? [];
+            let metaTransactionVersion: 'v1' | 'v2' | undefined;
+            // Always prefer meta-transaction v2 over meta-transaction
+            if (acceptedTypes.includes(GaslessTypes.MetaTransactionV2)) {
+                metaTransactionVersion = 'v2';
+            } else if (acceptedTypes.includes(GaslessTypes.MetaTransaction)) {
+                metaTransactionVersion = 'v1';
+            }
+
             const metaTransactionRequestParams = {
                 ...params,
                 chainId: this._chainId,
@@ -199,7 +208,7 @@ export class GaslessSwapService {
                 // Can use the null address here since we won't be returning
                 // the actual metatransaction
                 takerAddress: params.takerAddress ?? NULL_ADDRESS,
-                metaTransactionVersion: 'v1' as 'v1' | 'v2',
+                metaTransactionVersion,
                 feeConfigs,
             };
 
@@ -318,6 +327,15 @@ export class GaslessSwapService {
                 feeConfigs = this._getFeeConfigs(params, 'on-chain'); // integrator billing type would always be on-chain for now
             }
 
+            const acceptedTypes = params.acceptedTypes ?? [];
+            let metaTransactionVersion: 'v1' | 'v2' | undefined;
+            // Always prefer meta-transaction v2 over meta-transaction
+            if (acceptedTypes.includes(GaslessTypes.MetaTransactionV2)) {
+                metaTransactionVersion = 'v2';
+            } else if (acceptedTypes.includes(GaslessTypes.MetaTransaction)) {
+                metaTransactionVersion = 'v1';
+            }
+
             const metaTransactionRequestParams = {
                 ...params,
                 chainId: this._chainId,
@@ -325,7 +343,7 @@ export class GaslessSwapService {
                 integratorId: params.integrator.integratorId,
                 quoteUniqueId:
                     serviceType === GaslessSwapServiceTypes.ZeroG ? rfqQuoteReportId ?? undefined : undefined,
-                metaTransactionVersion: 'v1' as 'v1' | 'v2',
+                metaTransactionVersion,
                 feeConfigs,
             };
 

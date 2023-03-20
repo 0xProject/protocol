@@ -76,8 +76,8 @@ export class GaslessSwapHandlers {
      * Handler for the /price endpoint
      */
     public async getPriceAsync(req: express.Request, res: express.Response): Promise<void> {
-        const metaTransactionType = getGaslessSwapServiceType(req.baseUrl);
-        const { chainId, params } = await this._parsePriceParamsAsync(req);
+        const serviceType = getGaslessSwapServiceType(req.baseUrl);
+        const { chainId, params } = await this._parsePriceParamsAsync(req, serviceType);
         // Consistent with `rfqm_handlers`: not all requests are emitted if they fail parsing
         ZEROG_GASLESS_SWAP_REQUEST.inc({
             chainId,
@@ -87,7 +87,7 @@ export class GaslessSwapHandlers {
 
         let price;
         try {
-            price = await this._getServiceForChain(chainId).fetchPriceAsync(params, metaTransactionType);
+            price = await this._getServiceForChain(chainId).fetchPriceAsync(params, serviceType);
         } catch (err) {
             ZEROG_GASLESS_SWAP_REQUEST_ERROR.inc({
                 chainId,
@@ -108,9 +108,9 @@ export class GaslessSwapHandlers {
      * Handler for the /quote endpoint
      */
     public async getQuoteAsync(req: express.Request, res: express.Response): Promise<void> {
-        const metaTransactionType = getGaslessSwapServiceType(req.baseUrl);
+        const serviceType = getGaslessSwapServiceType(req.baseUrl);
         // Parse request
-        const { chainId, params } = await this._parseFetchFirmQuoteParamsAsync(req);
+        const { chainId, params } = await this._parseFetchFirmQuoteParamsAsync(req, serviceType);
         // Consistent with `rfqm_handlers`: not all requests are emitted if they fail parsing
         ZEROG_GASLESS_SWAP_REQUEST.inc({
             chainId,
@@ -120,7 +120,7 @@ export class GaslessSwapHandlers {
 
         let quote;
         try {
-            quote = await this._getServiceForChain(chainId).fetchQuoteAsync(params, metaTransactionType);
+            quote = await this._getServiceForChain(chainId).fetchQuoteAsync(params, serviceType);
         } catch (err) {
             ZEROG_GASLESS_SWAP_REQUEST_ERROR.inc({
                 chainId,
@@ -207,13 +207,14 @@ export class GaslessSwapHandlers {
 
     private async _parseFetchFirmQuoteParamsAsync(
         req: express.Request,
+        serviceType: GaslessSwapServiceTypes,
     ): Promise<{ chainId: number; params: FetchFirmQuoteParams }> {
         // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         schemaUtils.validateSchema(req.query, schemas.firmQuoteRequestSchema as any);
         const takerAddress = req.query.takerAddress;
         const shouldCheckApproval = req.query.checkApproval === 'true' ? true : false;
-        const { chainId, params } = await this._parseIndicativeAndFirmQuoteSharedParamsAsync(req);
+        const { chainId, params } = await this._parseIndicativeAndFirmQuoteSharedParamsAsync(req, serviceType);
         if (!addressUtils.isAddress(takerAddress as string)) {
             throw new ValidationError([
                 {
@@ -267,12 +268,13 @@ export class GaslessSwapHandlers {
 
     private async _parsePriceParamsAsync(
         req: express.Request,
+        serviceType: GaslessSwapServiceTypes,
     ): Promise<{ chainId: number; params: FetchIndicativeQuoteParams }> {
         // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         schemaUtils.validateSchema(req.query, schemas.indicativeQuoteRequestSchema as any);
         const { takerAddress } = req.query;
-        const { chainId, params } = await this._parseIndicativeAndFirmQuoteSharedParamsAsync(req);
+        const { chainId, params } = await this._parseIndicativeAndFirmQuoteSharedParamsAsync(req, serviceType);
 
         return {
             chainId,
@@ -288,6 +290,7 @@ export class GaslessSwapHandlers {
      */
     private async _parseIndicativeAndFirmQuoteSharedParamsAsync(
         req: express.Request,
+        serviceType: GaslessSwapServiceTypes,
     ): Promise<{ chainId: number; params: FetchQuoteParamsBase }> {
         const chainId = extractChainId(req, this._gaslessSwapServices);
         const { integrator } = this._validateApiKey(req.header('0x-api-key'), chainId);
@@ -370,6 +373,38 @@ export class GaslessSwapHandlers {
             ]);
         }
 
+        let acceptedTypes: GaslessTypes[] = [];
+        if (serviceType === GaslessSwapServiceTypes.TxRelay) {
+            if (req.query.acceptedTypes) {
+                const rawAcceptedTypes = (req.query.acceptedTypes as string).split(',');
+                acceptedTypes = rawAcceptedTypes.map((rawAcceptedType) => {
+                    // TODO: Uncomment when tx-relay supports all order types in `GaslessTypes`
+                    // if (Object.values(GaslessTypes).includes(rawAcceptedType as GaslessTypes)) {
+                    //     return rawAcceptedType as GaslessTypes;
+                    // }
+                    // Currently tx-relay only supports meta-transaction
+                    if ((rawAcceptedType as GaslessTypes) === GaslessTypes.MetaTransaction) {
+                        return rawAcceptedType as GaslessTypes;
+                    }
+
+                    throw new ValidationError([
+                        {
+                            field: 'acceptedTypes',
+                            code: ValidationErrorCodes.IncorrectFormat,
+                            reason: `acceptedTypes ${req.query.acceptedTypes} is of wrong format. ${rawAcceptedType} is not supported yet`,
+                        },
+                    ]);
+                });
+            } else {
+                // Caller does not pass in `acceptedTypes` which means the caller is fine with any order type
+                // TODO: Add GaslessTypes.OtcOrder and GaslessTypes.MetaTransactionV2 when tx-relay supports them
+                acceptedTypes = [GaslessTypes.MetaTransaction];
+            }
+        } else {
+            // `acceptedTypes` does not apply to zero/g
+            acceptedTypes = [GaslessTypes.MetaTransaction, GaslessTypes.OtcOrder];
+        }
+
         if (req.query.feeType) {
             if (req.query.feeType !== 'volume') {
                 throw new ValidationError([
@@ -427,6 +462,7 @@ export class GaslessSwapHandlers {
                 affiliateAddress: affiliateAddress as string,
                 slippagePercentage,
                 priceImpactProtectionPercentage,
+                acceptedTypes,
                 feeType,
                 feeSellTokenPercentage,
                 feeRecipient,

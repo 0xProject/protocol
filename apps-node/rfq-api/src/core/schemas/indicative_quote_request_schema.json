@@ -25,6 +25,9 @@
         "priceImpactProtectionPercentage": {
             "$ref": "/numberSchema"
         },
+        "acceptedTypes": {
+            "type": "string"
+        },
         "feeType": {
             "type": "string",
             "enum": ["volume"]

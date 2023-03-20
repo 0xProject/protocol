@@ -296,6 +296,7 @@ describe('GaslessSwapService', () => {
                         integrator: {} as Integrator,
                         sellToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
                         sellTokenDecimals: 18,
+                        acceptedTypes: [GaslessTypes.MetaTransaction, GaslessTypes.OtcOrder],
                     },
                     GaslessSwapServiceTypes.ZeroG,
                 )) as FetchIndicativeQuoteResponse & { liquiditySource: 'rfq' | 'amm' };
@@ -335,6 +336,7 @@ describe('GaslessSwapService', () => {
                         integrator: {} as Integrator,
                         sellToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
                         sellTokenDecimals: 18,
+                        acceptedTypes: [GaslessTypes.MetaTransaction, GaslessTypes.OtcOrder],
                     },
                     GaslessSwapServiceTypes.ZeroG,
                 )) as FetchIndicativeQuoteResponse & { liquiditySource: 'rfq' | 'amm' };
@@ -375,6 +377,7 @@ describe('GaslessSwapService', () => {
                         integrator: {} as Integrator,
                         sellToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
                         sellTokenDecimals: 18,
+                        acceptedTypes: [GaslessTypes.MetaTransaction, GaslessTypes.OtcOrder],
                     },
                     GaslessSwapServiceTypes.ZeroG,
                 )) as FetchIndicativeQuoteResponse & { liquiditySource: 'rfq' | 'amm' };
@@ -406,6 +409,7 @@ describe('GaslessSwapService', () => {
                         integrator: {} as Integrator,
                         sellToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
                         sellTokenDecimals: 18,
+                        acceptedTypes: [GaslessTypes.MetaTransaction, GaslessTypes.OtcOrder],
                     },
                     GaslessSwapServiceTypes.ZeroG,
                 );
@@ -430,6 +434,7 @@ describe('GaslessSwapService', () => {
                             integrator: {} as Integrator,
                             sellToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
                             sellTokenDecimals: 18,
+                            acceptedTypes: [GaslessTypes.MetaTransaction, GaslessTypes.OtcOrder],
                         },
                         GaslessSwapServiceTypes.ZeroG,
                     ),
@@ -458,6 +463,7 @@ describe('GaslessSwapService', () => {
                             sellToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
                             sellTokenDecimals: 18,
                             takerAddress: '0xtaker',
+                            acceptedTypes: [GaslessTypes.MetaTransaction, GaslessTypes.OtcOrder],
                         },
                         GaslessSwapServiceTypes.ZeroG,
                     ),
@@ -490,10 +496,12 @@ describe('GaslessSwapService', () => {
                         feeType: 'volume',
                         feeRecipient: integratorAddress,
                         feeSellTokenPercentage: new BigNumber(0.1),
+                        acceptedTypes: [GaslessTypes.MetaTransaction],
                     },
                     GaslessSwapServiceTypes.TxRelay,
                 )) as FetchIndicativeQuoteResponse & { sources: LiquiditySource[]; fees?: Fees };
 
+                expect(getMetaTransactionV2QuoteAsyncMock.mock.calls[0][2].metaTransactionVersion).toEqual('v1');
                 expect(result).toMatchInlineSnapshot(`
                     {
                       "allowanceTarget": "0x12345",
@@ -562,10 +570,12 @@ describe('GaslessSwapService', () => {
                         feeType: 'volume',
                         feeRecipient: integratorAddress,
                         feeSellTokenPercentage: new BigNumber(0.1),
+                        acceptedTypes: [GaslessTypes.MetaTransaction, GaslessTypes.MetaTransactionV2],
                     },
                     GaslessSwapServiceTypes.TxRelay,
                 )) as FetchIndicativeQuoteResponse & { sources: LiquiditySource[]; fees?: Fees };
 
+                expect(getMetaTransactionV2QuoteAsyncMock.mock.calls[0][2].metaTransactionVersion).toEqual('v2');
                 expect(result).toMatchInlineSnapshot(`
                     {
                       "allowanceTarget": "0x12345",
@@ -624,10 +634,12 @@ describe('GaslessSwapService', () => {
                         feeType: 'volume',
                         feeRecipient: integratorAddress,
                         feeSellTokenPercentage: new BigNumber(0.1),
+                        acceptedTypes: [GaslessTypes.MetaTransaction],
                     },
                     GaslessSwapServiceTypes.TxRelay,
                 );
 
+                expect(getMetaTransactionV2QuoteAsyncMock.mock.calls[0][2].metaTransactionVersion).toEqual('v1');
                 expect(result).toBeNull();
             });
 
@@ -648,6 +660,7 @@ describe('GaslessSwapService', () => {
                             feeType: 'volume',
                             feeRecipient: integratorAddress,
                             feeSellTokenPercentage: new BigNumber(0.1),
+                            acceptedTypes: [GaslessTypes.MetaTransactionV2],
                         },
                         GaslessSwapServiceTypes.TxRelay,
                     ),
@@ -678,6 +691,7 @@ describe('GaslessSwapService', () => {
                             feeType: 'volume',
                             feeRecipient: integratorAddress,
                             feeSellTokenPercentage: new BigNumber(0.1),
+                            acceptedTypes: [GaslessTypes.MetaTransaction],
                         },
                         GaslessSwapServiceTypes.TxRelay,
                     ),
@@ -701,6 +715,7 @@ describe('GaslessSwapService', () => {
                         sellTokenDecimals: 18,
                         takerAddress: '0xtaker',
                         checkApproval: false,
+                        acceptedTypes: [GaslessTypes.MetaTransaction, GaslessTypes.OtcOrder],
                     },
                     GaslessSwapServiceTypes.ZeroG,
                 )) as OtcOrderRfqmQuoteResponse & { liquiditySource: 'rfq' | 'amm' };
@@ -760,6 +775,7 @@ describe('GaslessSwapService', () => {
                         sellTokenDecimals: 18,
                         takerAddress: '0xtaker',
                         checkApproval: false,
+                        acceptedTypes: [GaslessTypes.MetaTransaction, GaslessTypes.OtcOrder],
                     },
                     GaslessSwapServiceTypes.ZeroG,
                 )) as MetaTransactionV1QuoteResponse & { liquiditySource: 'rfq' | 'amm' };
@@ -825,6 +841,7 @@ describe('GaslessSwapService', () => {
                             sellTokenDecimals: 18,
                             takerAddress: '0xtaker',
                             checkApproval: false,
+                            acceptedTypes: [GaslessTypes.MetaTransaction, GaslessTypes.OtcOrder],
                         },
                         GaslessSwapServiceTypes.ZeroG,
                     ),
@@ -852,6 +869,7 @@ describe('GaslessSwapService', () => {
                         sellTokenDecimals: 18,
                         takerAddress: '0xtaker',
                         checkApproval: false,
+                        acceptedTypes: [GaslessTypes.MetaTransaction, GaslessTypes.OtcOrder],
                     },
                     GaslessSwapServiceTypes.ZeroG,
                 );
@@ -882,6 +900,7 @@ describe('GaslessSwapService', () => {
                         sellTokenDecimals: 18,
                         takerAddress: '0xtaker',
                         checkApproval: false,
+                        acceptedTypes: [GaslessTypes.MetaTransaction, GaslessTypes.OtcOrder],
                     },
                     GaslessSwapServiceTypes.ZeroG,
                 );
@@ -904,6 +923,7 @@ describe('GaslessSwapService', () => {
                         sellTokenDecimals: 18,
                         takerAddress: '0xtaker',
                         checkApproval: false,
+                        acceptedTypes: [GaslessTypes.MetaTransaction, GaslessTypes.OtcOrder],
                     },
                     GaslessSwapServiceTypes.ZeroG,
                 );
@@ -930,6 +950,7 @@ describe('GaslessSwapService', () => {
                             sellTokenDecimals: 18,
                             takerAddress: '0xtaker',
                             checkApproval: false,
+                            acceptedTypes: [GaslessTypes.MetaTransaction, GaslessTypes.OtcOrder],
                         },
                         GaslessSwapServiceTypes.ZeroG,
                     ),
@@ -957,6 +978,7 @@ describe('GaslessSwapService', () => {
                         sellTokenDecimals: 18,
                         takerAddress: '0xtaker',
                         checkApproval: false,
+                        acceptedTypes: [GaslessTypes.MetaTransaction, GaslessTypes.OtcOrder],
                     },
                     GaslessSwapServiceTypes.ZeroG,
                 );
@@ -994,6 +1016,7 @@ describe('GaslessSwapService', () => {
                         sellTokenDecimals: 18,
                         takerAddress: '0xtaker',
                         checkApproval: true,
+                        acceptedTypes: [GaslessTypes.MetaTransaction, GaslessTypes.OtcOrder],
                     },
                     GaslessSwapServiceTypes.ZeroG,
                 );
@@ -1031,10 +1054,12 @@ describe('GaslessSwapService', () => {
                         feeType: 'volume',
                         feeRecipient: integratorAddress,
                         feeSellTokenPercentage: new BigNumber(0.1),
+                        acceptedTypes: [GaslessTypes.MetaTransaction],
                     },
                     GaslessSwapServiceTypes.TxRelay,
                 )) as MetaTransactionV2QuoteResponse;
 
+                expect(getMetaTransactionV2QuoteAsyncMock.mock.calls[0][2].metaTransactionVersion).toEqual('v1');
                 expect(result).not.toBeNull();
                 expect(result?.trade.type).toEqual(GaslessTypes.MetaTransaction);
                 expect(result?.trade.hash).toEqual(metaTransactionV1.getHash());
@@ -1198,10 +1223,12 @@ describe('GaslessSwapService', () => {
                         feeType: 'volume',
                         feeRecipient: integratorAddress,
                         feeSellTokenPercentage: new BigNumber(0.1),
+                        acceptedTypes: [GaslessTypes.MetaTransaction, GaslessTypes.MetaTransactionV2],
                     },
                     GaslessSwapServiceTypes.TxRelay,
                 )) as MetaTransactionV2QuoteResponse;
 
+                expect(getMetaTransactionV2QuoteAsyncMock.mock.calls[0][2].metaTransactionVersion).toEqual('v2');
                 expect(result).not.toBeNull();
                 expect(result?.trade.type).toEqual(GaslessTypes.MetaTransactionV2);
                 expect(result?.trade.hash).toEqual(metaTransactionV2.getHash());
@@ -1366,6 +1393,7 @@ describe('GaslessSwapService', () => {
                             feeType: 'volume',
                             feeRecipient: integratorAddress,
                             feeSellTokenPercentage: new BigNumber(0.1),
+                            acceptedTypes: [GaslessTypes.MetaTransaction],
                         },
                         GaslessSwapServiceTypes.TxRelay,
                     ),
@@ -1400,10 +1428,12 @@ describe('GaslessSwapService', () => {
                         feeType: 'volume',
                         feeRecipient: integratorAddress,
                         feeSellTokenPercentage: new BigNumber(0.1),
+                        acceptedTypes: [GaslessTypes.MetaTransaction],
                     },
                     GaslessSwapServiceTypes.TxRelay,
                 );
-                expect(getMetaTransactionV2QuoteAsyncMock.mock.calls[0][/* params */ 2]['affiliateAddress']).toEqual(
+                expect(getMetaTransactionV2QuoteAsyncMock.mock.calls[0][2].metaTransactionVersion).toEqual('v1');
+                expect(getMetaTransactionV2QuoteAsyncMock.mock.calls[0][/* params */ 2].affiliateAddress).toEqual(
                     '0xaffiliateAddress',
                 );
             });
@@ -1437,10 +1467,13 @@ describe('GaslessSwapService', () => {
                         feeType: 'volume',
                         feeRecipient: integratorAddress,
                         feeSellTokenPercentage: new BigNumber(0.1),
+                        acceptedTypes: [GaslessTypes.MetaTransaction],
                     },
                     GaslessSwapServiceTypes.TxRelay,
                 );
-                expect(getMetaTransactionV2QuoteAsyncMock.mock.calls[0][/* params */ 2]['affiliateAddress']).toEqual(
+
+                expect(getMetaTransactionV2QuoteAsyncMock.mock.calls[0][2].metaTransactionVersion).toEqual('v1');
+                expect(getMetaTransactionV2QuoteAsyncMock.mock.calls[0][/* params */ 2].affiliateAddress).toEqual(
                     '0xaffiliateAddressShouldUse',
                 );
             });
@@ -1461,10 +1494,12 @@ describe('GaslessSwapService', () => {
                         feeType: 'volume',
                         feeRecipient: integratorAddress,
                         feeSellTokenPercentage: new BigNumber(0.1),
+                        acceptedTypes: [GaslessTypes.MetaTransaction, GaslessTypes.MetaTransactionV2],
                     },
                     GaslessSwapServiceTypes.TxRelay,
                 );
 
+                expect(getMetaTransactionV2QuoteAsyncMock.mock.calls[0][2].metaTransactionVersion).toEqual('v2');
                 expect(result).toBeNull();
             });
 
@@ -1487,6 +1522,7 @@ describe('GaslessSwapService', () => {
                             feeType: 'volume',
                             feeRecipient: integratorAddress,
                             feeSellTokenPercentage: new BigNumber(0.1),
+                            acceptedTypes: [GaslessTypes.MetaTransaction],
                         },
                         GaslessSwapServiceTypes.TxRelay,
                     ),
@@ -1521,10 +1557,12 @@ describe('GaslessSwapService', () => {
                         feeType: 'volume',
                         feeRecipient: integratorAddress,
                         feeSellTokenPercentage: new BigNumber(0.1),
+                        acceptedTypes: [GaslessTypes.MetaTransaction],
                     },
                     GaslessSwapServiceTypes.TxRelay,
                 );
 
+                expect(getMetaTransactionV2QuoteAsyncMock.mock.calls[0][2].metaTransactionVersion).toEqual('v1');
                 expect(mockRedis.set).toBeCalledWith(
                     `metaTransactionHash.${metaTransactionV1.getHash()}`,
                     0,
@@ -1565,10 +1603,12 @@ describe('GaslessSwapService', () => {
                         feeType: 'volume',
                         feeRecipient: integratorAddress,
                         feeSellTokenPercentage: new BigNumber(0.1),
+                        acceptedTypes: [GaslessTypes.MetaTransactionV2],
                     },
                     GaslessSwapServiceTypes.TxRelay,
                 );
 
+                expect(getMetaTransactionV2QuoteAsyncMock.mock.calls[0][2].metaTransactionVersion).toEqual('v2');
                 expect(result?.approval).not.toBeUndefined();
             });
         });

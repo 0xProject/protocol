@@ -309,6 +309,42 @@ describe('GaslessSwapHandlers', () => {
                 expect(response.statusCode).toEqual(HttpStatus.BAD_REQUEST);
             });
 
+            it('throws if the `acceptedTypes` is invalid for /price', async () => {
+                const response = await supertest(app)
+                    .get(`${TX_RELAY_V1_PATH}/price`)
+                    .set('Content-type', 'application/json')
+                    .set('0x-api-key', 'integrator-api-key')
+                    .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
+                    .query({
+                        buyToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
+                        sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+                        buyAmount: 1000,
+                        takerAddress,
+                        acceptedTypes: 'metatransaction,random',
+                    });
+
+                expect(response.body.validationErrors[0].code).toEqual(ValidationErrorCodes.IncorrectFormat);
+                expect(response.statusCode).toEqual(HttpStatus.BAD_REQUEST);
+            });
+
+            it('throws if the `acceptedTypes` is invalid for /quote', async () => {
+                const response = await supertest(app)
+                    .get(`${TX_RELAY_V1_PATH}/quote`)
+                    .set('Content-type', 'application/json')
+                    .set('0x-api-key', 'integrator-api-key')
+                    .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
+                    .query({
+                        buyToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
+                        sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+                        buyAmount: 1000,
+                        takerAddress,
+                        acceptedTypes: 'metatransaction,random',
+                    });
+
+                expect(response.body.validationErrors[0].code).toEqual(ValidationErrorCodes.IncorrectFormat);
+                expect(response.statusCode).toEqual(HttpStatus.BAD_REQUEST);
+            });
+
             it('throws if the `feeType` is invalid for /quote', async () => {
                 const response = await supertest(app)
                     .get(`${TX_RELAY_V1_PATH}/quote`)
@@ -456,6 +492,10 @@ describe('GaslessSwapHandlers', () => {
                 expect(mockGaslessSwapService.fetchPriceAsync.mock.calls[0]).toMatchInlineSnapshot(`
                     [
                       {
+                        "acceptedTypes": [
+                          "metatransaction",
+                          "otc",
+                        ],
                         "affiliateAddress": undefined,
                         "buyAmount": "1000",
                         "buyToken": "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
@@ -577,6 +617,9 @@ describe('GaslessSwapHandlers', () => {
                 expect(mockGaslessSwapService.fetchPriceAsync.mock.calls[0]).toMatchInlineSnapshot(`
                     [
                       {
+                        "acceptedTypes": [
+                          "metatransaction",
+                        ],
                         "affiliateAddress": undefined,
                         "buyAmount": "1000",
                         "buyToken": "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
@@ -695,6 +738,10 @@ describe('GaslessSwapHandlers', () => {
                 expect(mockGaslessSwapService.fetchQuoteAsync.mock.calls[0]).toMatchInlineSnapshot(`
                     [
                       {
+                        "acceptedTypes": [
+                          "metatransaction",
+                          "otc",
+                        ],
                         "affiliateAddress": undefined,
                         "buyAmount": "1000",
                         "buyToken": "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
@@ -840,6 +887,7 @@ describe('GaslessSwapHandlers', () => {
                         buyAmount: 1000,
                         takerAddress,
                         priceImpactProtectionPercentage: 0.2,
+                        acceptedTypes: 'metatransaction',
                         feeType: 'volume',
                         feeSellTokenPercentage: 0.1,
                         feeRecipient,
@@ -848,6 +896,9 @@ describe('GaslessSwapHandlers', () => {
                 expect(mockGaslessSwapService.fetchQuoteAsync.mock.calls[0]).toMatchInlineSnapshot(`
                     [
                       {
+                        "acceptedTypes": [
+                          "metatransaction",
+                        ],
                         "affiliateAddress": undefined,
                         "buyAmount": "1000",
                         "buyToken": "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",

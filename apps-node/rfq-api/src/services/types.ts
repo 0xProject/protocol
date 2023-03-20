@@ -30,6 +30,7 @@ export interface FetchQuoteParamsBase {
     // fields specific to gasless endpoints
     slippagePercentage?: BigNumber;
     priceImpactProtectionPercentage?: BigNumber;
+    acceptedTypes?: GaslessTypes[];
     feeType?: 'volume';
     feeSellTokenPercentage?: BigNumber;
     feeRecipient?: string;
