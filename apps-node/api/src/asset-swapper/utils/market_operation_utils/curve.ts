@@ -568,11 +568,6 @@ export const CURVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
         pool: '0xf7b55c3732ad8b2c2da7c24f30a69f55c54fb717',
         gasSchedule: 300000,
     }),
-    '0x828b154032950c8ff7cf8085d841723db2696056': createCurveExchangePool({
-        tokens: ['0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2', '0xae7ab96520de3a18e5e111b5eaab095312d7fe84'],
-        pool: '0x828b154032950c8ff7cf8085d841723db2696056',
-        gasSchedule: 355000,
-    }),
     '0xdadfd00a2bbeb1abc4936b1644a3033e1b653228': createCurveExchangePool({
         tokens: ['0xbcb8b7fc9197feda75c101fa69d3211b5a30dcd9', '0x6021444f1706f15465bee85463bcc7d7cc17fc03'],
         pool: '0xdadfd00a2bbeb1abc4936b1644a3033e1b653228',
@@ -753,11 +748,6 @@ export const CURVE_V2_MAINNET_INFOS: { [name: string]: CurveInfo } = {
     '0x1570af3df649fc74872c5b8f280a162a3bdd4eb6': createCurveExchangeV2Pool({
         tokens: ['0x96e61422b6a9ba0e068b6c5add4ffabc6a4aae27', '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'],
         pool: '0x1570af3df649fc74872c5b8f280a162a3bdd4eb6',
-        gasSchedule: 400000,
-    }),
-    '0x3211c6cbef1429da3d0d58494938299c92ad5860': createCurveExchangeV2Pool({
-        tokens: ['0xaf5191b0de278c7286d6c7cc6ab6bb8a73ba2cd6', '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'],
-        pool: '0x3211c6cbef1429da3d0d58494938299c92ad5860',
         gasSchedule: 400000,
     }),
     '0x21410232b484136404911780bc32756d5d1a9fa9': createCurveExchangeV2Pool({
