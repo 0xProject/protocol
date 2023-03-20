@@ -11,6 +11,7 @@ export enum SwapQuoterError {
     AssetUnavailable = 'ASSET_UNAVAILABLE',
     NoGasPriceProvidedOrEstimated = 'NO_GAS_PRICE_PROVIDED_OR_ESTIMATED',
     AssetDataUnsupported = 'ASSET_DATA_UNSUPPORTED',
+    PriceImpactTooHigh = 'PRICE_IMPACT_TOO_HIGH',
 }
 
 export interface SignedOrder<T> {

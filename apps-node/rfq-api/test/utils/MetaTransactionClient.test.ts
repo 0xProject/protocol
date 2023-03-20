@@ -622,6 +622,39 @@ describe('MetaTransactionClient', () => {
             ).rejects.toThrow(ValidationError);
         });
 
+        it('should throw validation error when meta-transaction server returns the price impact too high error', async () => {
+            const examplePriceImpactTooHighErrorResponse = {
+                code: 100,
+                reason: 'Validation Failed',
+                validationErrors: [
+                    {
+                        field: 'priceImpactProtectionPercentage',
+                        code: 1004,
+                        reason: 'PRICE_IMPACT_TOO_HIGH',
+                        description:
+                            'estimated price impact of 0.9215 is greater than priceImpactProtectionPercentage 0.5',
+                    },
+                ],
+            };
+
+            const url = new URL('https://quoteserver.pizza/quote');
+
+            axiosMock.onPost(url.toString()).reply(BAD_REQUEST, examplePriceImpactTooHighErrorResponse);
+
+            await expect(() =>
+                getV2QuoteAsync(axiosClient, url, {
+                    buyToken: 'USDC',
+                    chainId: 137,
+                    integratorId: 'integrator-id',
+                    priceImpactProtectionPercentage: new BigNumber(0.5),
+                    sellToken: '0x0000000000000000000000000000000000000000',
+                    sellAmount: new BigNumber(1000000000000000000000),
+                    takerAddress: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+                    slippagePercentage: new BigNumber(0.2),
+                }),
+            ).rejects.toThrow(ValidationError);
+        });
+
         it("should throw an error if the response doesn't match the no liquidity response + the insufficient fund error", async () => {
             const url = new URL('https://quoteserver.pizza/quote');
 

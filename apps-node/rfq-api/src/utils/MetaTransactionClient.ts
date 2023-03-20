@@ -399,6 +399,36 @@ function handleQuoteError(
             reason: string;
             validationErrors?: ValidationErrorItem[];
         }>;
+
+        //  The response for price impact too high is a 400 status with a body like:
+        //  {
+        //     "code": 100,
+        //     "reason": "Validation Failed",
+        //     "validationErrors": [
+        //       {
+        //         "field": "priceImpactProtectionPercentage",
+        //         "code": 1004,
+        //         "reason": "PRICE_IMPACT_TOO_HIGH",
+        //         "description": "estimated price impact of 0.3215 is greater than priceImpactProtectionPercentage 0.1"
+        //       }
+        //     ]
+        //   }
+        if (
+            axiosError.response?.status === BAD_REQUEST &&
+            axiosError.response?.data?.validationErrors?.length === 1 &&
+            axiosError.response?.data?.validationErrors
+                ?.map((v) => v.reason)
+                .includes(SwapQuoterError.PriceImpactTooHigh)
+        ) {
+            throw new ValidationError([
+                {
+                    field: 'priceImpactProtectionPercentage',
+                    code: ValidationErrorCodes.ValueOutOfRange,
+                    reason: 'price impact higher than specified `priceImpactProtectionPercentage`',
+                },
+            ]);
+        }
+
         //  The response for no liquidity is a 400 status with a body like:
         //  {
         //     "code": 100,
