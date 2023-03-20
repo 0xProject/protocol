@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.19;
 
 import {UniswapV3PoolFetcher, UniswapV3Pool} from "./UniswapV3PoolFetcher.sol";
 

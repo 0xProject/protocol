@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity >=0.8.0;
 
 // Copied from https://github.com/Uniswap/v3-core/blob/05c10bf6d547d6121622ac51c457f93775e1df09/contracts/libraries/FullMath.sol
 // Modified to make it work with Solidity v0.8
