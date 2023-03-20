@@ -5,15 +5,20 @@
     "scripts": {
         "build": "tsc",
         "examples:client": "tsx examples/client.ts",
-        "dev:server": "nodemon src/main.ts"
+        "dev:server": "nodemon src/main.ts",
+        "test": "jest",
+        "test:ci": "jest"
     },
     "dependencies": {
-        "pool-cache-interface": "*",
         "@trpc/server": "^10.14.1",
+        "pool-cache-interface": "*",
         "zod": "^3.20.6"
     },
     "devDependencies": {
+        "@types/jest": "^29.5.0",
+        "jest": "^29.5.0",
         "nodemon": "^2.0.21",
+        "ts-jest": "^29.0.5",
         "ts-node": "^10.9.1",
         "tsconfig": "*",
         "tsx": "^3.12.3",
