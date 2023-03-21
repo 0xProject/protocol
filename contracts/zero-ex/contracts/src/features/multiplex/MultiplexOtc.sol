@@ -82,13 +82,12 @@ abstract contract MultiplexOtc is FixinEIP712 {
                 address(order.makerToken) == params.tokens[state.hopIndex + 1],
             "MultiplexOtcOrder::_multiHopSellOtcOrder/INVALID_TOKENS"
         );
-        uint256 sellAmount = state.outputTokenAmount;
         // Try filling the Otc order. Bubble up reverts.
         (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount) = IOtcOrdersFeature(address(this))
             ._fillOtcOrder(
                 order,
                 signature,
-                sellAmount.safeDowncastToUint128(),
+                state.outputTokenAmount.safeDowncastToUint128(),
                 state.from,
                 params.useSelfBalance,
                 state.to

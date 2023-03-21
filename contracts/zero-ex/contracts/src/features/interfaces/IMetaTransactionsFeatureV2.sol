@@ -47,7 +47,7 @@ interface IMetaTransactionsFeatureV2 {
 
     /// @dev Emitted whenever a meta-transaction is executed via
     ///      `executeMetaTransaction()` or `executeMetaTransactions()`.
-    /// @param hash The meta-transaction hash.
+    /// @param hash The EIP712 hash of the MetaTransactionDataV2 struct.
     /// @param selector The selector of the function being executed.
     /// @param signer Who to execute the meta-transaction on behalf of.
     /// @param sender Who executed the meta-transaction.
@@ -60,7 +60,7 @@ interface IMetaTransactionsFeatureV2 {
     function executeMetaTransactionV2(
         MetaTransactionDataV2 calldata mtx,
         LibSignature.Signature calldata signature
-    ) external payable returns (bytes memory returnResult);
+    ) external returns (bytes memory returnResult);
 
     /// @dev Execute multiple meta-transactions.
     /// @param mtxs The meta-transactions.
@@ -69,7 +69,7 @@ interface IMetaTransactionsFeatureV2 {
     function batchExecuteMetaTransactionsV2(
         MetaTransactionDataV2[] calldata mtxs,
         LibSignature.Signature[] calldata signatures
-    ) external payable returns (bytes[] memory returnResults);
+    ) external returns (bytes[] memory returnResults);
 
     /// @dev Get the block at which a meta-transaction has been executed.
     /// @param mtx The meta-transaction.
@@ -79,7 +79,7 @@ interface IMetaTransactionsFeatureV2 {
     ) external view returns (uint256 blockNumber);
 
     /// @dev Get the block at which a meta-transaction hash has been executed.
-    /// @param mtxHash The meta-transaction hash.
+    /// @param mtxHash The EIP712 hash of the MetaTransactionDataV2 struct.
     /// @return blockNumber The block height when the meta-transactioin was executed.
     function getMetaTransactionV2HashExecutedBlock(bytes32 mtxHash) external view returns (uint256 blockNumber);
 

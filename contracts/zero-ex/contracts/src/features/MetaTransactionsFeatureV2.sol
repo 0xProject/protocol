@@ -104,19 +104,10 @@ contract MetaTransactionsFeatureV2 is
     /// @dev The WETH token contract.
     IEtherToken private immutable WETH;
 
-    /// @dev Refunds up to `msg.value` leftover ETH at the end of the call.
-    modifier refundsAttachedEth() {
-        _;
-        uint256 remainingBalance = LibSafeMathV06.min256(msg.value, address(this).balance);
-        if (remainingBalance > 0) {
-            msg.sender.transfer(remainingBalance);
-        }
-    }
-
     /// @dev Ensures that the ETH balance of `this` does not go below the
     ///      initial ETH balance before the call (excluding ETH attached to the call).
     modifier doesNotReduceEthBalance() {
-        uint256 initialBalance = address(this).balance - msg.value;
+        uint256 initialBalance = address(this).balance;
         _;
         require(initialBalance <= address(this).balance, "MetaTransactionsFeatureV2/ETH_LEAK");
     }
@@ -144,15 +135,7 @@ contract MetaTransactionsFeatureV2 is
     function executeMetaTransactionV2(
         MetaTransactionDataV2 memory mtx,
         LibSignature.Signature memory signature
-    )
-        public
-        payable
-        override
-        nonReentrant(REENTRANCY_MTX)
-        doesNotReduceEthBalance
-        refundsAttachedEth
-        returns (bytes memory returnResult)
-    {
+    ) public override nonReentrant(REENTRANCY_MTX) doesNotReduceEthBalance returns (bytes memory returnResult) {
         ExecuteState memory state;
         state.sender = msg.sender;
         state.mtx = mtx;
@@ -169,15 +152,7 @@ contract MetaTransactionsFeatureV2 is
     function batchExecuteMetaTransactionsV2(
         MetaTransactionDataV2[] memory mtxs,
         LibSignature.Signature[] memory signatures
-    )
-        public
-        payable
-        override
-        nonReentrant(REENTRANCY_MTX)
-        doesNotReduceEthBalance
-        refundsAttachedEth
-        returns (bytes[] memory returnResults)
-    {
+    ) public override nonReentrant(REENTRANCY_MTX) doesNotReduceEthBalance returns (bytes[] memory returnResults) {
         if (mtxs.length != signatures.length) {
             LibMetaTransactionsRichErrors
                 .InvalidMetaTransactionsArrayLengthsError(mtxs.length, signatures.length)
