@@ -62,6 +62,9 @@ contract ZeroExVotesTest is BaseTest {
         wToken.delegate(account3);
         vm.stopPrank();
 
+        assertEq(votes.getVotes(account3), 300e18);
+        assertEq(votes.getQuadraticVotes(account3), 300e18);
+
         vm.roll(block.number + 1);
 
         ZeroExVotesMigration newImpl = new ZeroExVotesMigration(address(wToken), quadraticThreshold);
@@ -83,12 +86,25 @@ contract ZeroExVotesTest is BaseTest {
             address(newImpl)
         );
 
+        ZeroExVotesMigration upgradedVotes = ZeroExVotesMigration(address(votes));
+
+        assertEq(upgradedVotes.getVotes(account3), 300e18);
+        assertEq(upgradedVotes.getQuadraticVotes(account3), 300e18);
+
         vm.roll(block.number + 1);
 
         vm.prank(account2);
         wToken.transfer(address(this), 50e18);
+
+        assertEq(upgradedVotes.getVotes(account3), 250e18);
+        assertEq(upgradedVotes.getQuadraticVotes(account3), 250e18);
+        assertEq(upgradedVotes.getMigratedVotes(account3), CubeRoot.cbrt(50e18));
+
         vm.prank(account3);
         wToken.transfer(address(this), 100e18);
+        assertEq(upgradedVotes.getVotes(account3), 150e18);
+        assertEq(upgradedVotes.getQuadraticVotes(account3), 150e18);
+        assertEq(upgradedVotes.getMigratedVotes(account3), CubeRoot.cbrt(50e18) + CubeRoot.cbrt(100e18));
     }
 
     function testShouldNotBeAbleToStopBurn() public {
