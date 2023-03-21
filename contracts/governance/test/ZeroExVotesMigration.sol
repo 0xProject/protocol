@@ -138,6 +138,7 @@ contract ZeroExVotesMigration is ZeroExVotes {
         Checkpoint[] storage ckpts,
         function(uint256, uint256) view returns (uint256) op,
         uint256 userBalance,
+        uint96 balanceLastUpdated,
         uint256 delta
     )
         internal
@@ -163,9 +164,10 @@ contract ZeroExVotesMigration is ZeroExVotes {
                 ? userBalance
                 : quadraticThreshold + Math.sqrt((userBalance - quadraticThreshold) * 1e18);
             oldCkpt.quadraticVotes -= SafeCast.toUint96(oldQuadraticVotingPower);
-        }
-        if (oldCkpt.fromBlock > migrationBlock) {
-            oldCkpt.migratedVotes -= SafeCast.toUint32(CubeRoot.cbrt(userBalance)); // underflow
+
+            if (oldCkpt.fromBlock > migrationBlock && balanceLastUpdated > migrationBlock) {
+                oldCkpt.migratedVotes -= SafeCast.toUint32(CubeRoot.cbrt(userBalance));
+            }
         }
 
         // if wallet > threshold, calculate quadratic power over the treshold only, below threshold is linear

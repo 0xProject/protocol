@@ -64,7 +64,7 @@ contract ZeroExVotesTest is BaseTest {
 
         vm.roll(block.number + 1);
 
-        ZeroExVotesMigration newImpl = new ZeroExVotesMigration(address(token), quadraticThreshold);
+        ZeroExVotesMigration newImpl = new ZeroExVotesMigration(address(wToken), quadraticThreshold);
         assertFalse(
             address(
                 uint160(

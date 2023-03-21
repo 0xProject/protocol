@@ -146,7 +146,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
                     uint256 newWeight,
                     uint256 oldQuadraticWeight,
                     uint256 newQuadraticWeight
-                ) = _writeCheckpoint(_checkpoints[src], _subtract, srcBalance, amount);
+                ) = _writeCheckpoint(_checkpoints[src], _subtract, srcBalance, srcBalanceLastUpdated, amount);
 
                 emit DelegateVotesChanged(src, oldWeight, newWeight);
                 emit DelegateQuadraticVotesChanged(src, oldQuadraticWeight, newQuadraticWeight);
@@ -158,7 +158,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
                     uint256 newWeight,
                     uint256 oldQuadraticWeight,
                     uint256 newQuadraticWeight
-                ) = _writeCheckpoint(_checkpoints[dst], _add, dstBalance, amount);
+                ) = _writeCheckpoint(_checkpoints[dst], _add, dstBalance, dstBalanceLastUpdated, amount);
 
                 emit DelegateVotesChanged(dst, oldWeight, newWeight);
                 emit DelegateQuadraticVotesChanged(dst, oldQuadraticWeight, newQuadraticWeight);
@@ -178,6 +178,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
             _totalSupplyCheckpoints,
             _add,
             accountBalance,
+            0,
             amount
         );
 
@@ -196,6 +197,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
             _totalSupplyCheckpoints,
             _subtract,
             accountBalance,
+            0,
             amount
         );
 
@@ -258,8 +260,13 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
         Checkpoint[] storage ckpts,
         function(uint256, uint256) view returns (uint256) op,
         uint256 userBalance,
+        uint96 balanceLastUpdated,
         uint256 delta
-    ) internal virtual returns (uint256 oldWeight, uint256 newWeight, uint256 oldQuadraticWeight, uint256 newQuadraticWeight) {
+    )
+        internal
+        virtual
+        returns (uint256 oldWeight, uint256 newWeight, uint256 oldQuadraticWeight, uint256 newQuadraticWeight)
+    {
         uint256 pos = ckpts.length;
 
         Checkpoint memory oldCkpt = pos == 0 ? Checkpoint(0, 0, 0) : _unsafeAccess(ckpts, pos - 1);
