@@ -2,7 +2,7 @@
 import { TokenMetadata } from '@0x/token-metadata';
 import { BigNumber } from '@0x/utils';
 
-import { BPS_TO_RATIO, ZERO } from '../core/constants';
+import { BPS_TO_RATIO, RFQT_GAS_IMPROVEMENT, ZERO } from '../core/constants';
 import {
     ConversionRates,
     DefaultFeeDetailsDeprecated,
@@ -42,6 +42,8 @@ interface CalculateFeeResponse {
  * @param tradeTokenAmount amount of trade token (in base unit) in the trade.
  * @param feeRateBps flat fee rate represented by number of base points.
  * @param tradeTokenBaseUnitPriceUsd USD price of 1 base unit of trade token.
+ * @param feeTokenBaseUnitPriceUsd USD price of 1 base unit of fee token.
+ * @param fixedFee optional fixed fee amount in fee token base unit - used to add a fixed fee portion to the variable fee
  * @returns `default` fee amount in fee token base unit.
  */
 export const calculateDefaultFeeAmount = (
@@ -49,12 +51,14 @@ export const calculateDefaultFeeAmount = (
     feeRateBps: number,
     tradeTokenBaseUnitPriceUsd: BigNumber | null,
     feeTokenBaseUnitPriceUsd: BigNumber | null,
+    fixedFee?: BigNumber,
 ): BigNumber => {
     if (feeRateBps > 0 && tradeTokenBaseUnitPriceUsd !== null && feeTokenBaseUnitPriceUsd !== null) {
         return tradeTokenAmount
             .times(feeRateBps * BPS_TO_RATIO)
             .times(tradeTokenBaseUnitPriceUsd)
             .div(feeTokenBaseUnitPriceUsd)
+            .plus(fixedFee || ZERO)
             .integerValue();
     }
 
@@ -339,6 +343,10 @@ export class FeeService {
             return gasFee;
         }
 
+        // Add a gas improvement fee for RFQT only
+        // TODO: this is a temporary experiment to see if we can improve RFQt revenues. Remove if experiment is not successful
+        const rfqtFixedFee = gasFee.breakdown.gas?.details.gasPrice.times(RFQT_GAS_IMPROVEMENT) || ZERO;
+
         const zeroExFeeAmount =
             tradeSizeBps > 0
                 ? calculateDefaultFeeAmount(
@@ -348,6 +356,7 @@ export class FeeService {
                       tradeSizeBps,
                       tradeTokenBaseUnitPriceUsd,
                       feeTokenBaseUnitPriceUsd,
+                      workflow === 'rfqt' ? rfqtFixedFee : undefined,
                   )
                 : ZERO;
         return {
