@@ -26,13 +26,9 @@ import {CubeRoot} from "./CubeRoot.sol";
 contract ZeroExVotesMigration is ZeroExVotes {
     uint32 public migrationBlock;
 
-    constructor(address _token) ZeroExVotes(_token) {}
+    constructor(address _token, uint256 _quadraticThreshold) ZeroExVotes(_token, _quadraticThreshold) {}
 
-    function initialize(uint256) public virtual override {
-        revert();
-    }
-
-    function initialize() public virtual onlyProxy reinitializer(2) {
+    function initialize() public virtual override onlyProxy reinitializer(2) {
         migrationBlock = uint32(block.number);
     }
 
@@ -83,7 +79,7 @@ contract ZeroExVotesMigration is ZeroExVotes {
     function _checkpointsLookupStorage(
         Checkpoint[] storage ckpts,
         uint256 blockNumber
-    ) internal view returns (Checkpoint storage) {
+    ) internal view returns (Checkpoint storage result) {
         // We run a binary search to look for the earliest checkpoint taken after `blockNumber`.
         //
         // Initially we check if the block is recent to narrow the search range.
@@ -122,8 +118,17 @@ contract ZeroExVotesMigration is ZeroExVotes {
 
         // Leaving here for posterity this is the original OZ implementation which we've replaced
         // return high == 0 ? 0 : _unsafeAccess(ckpts, high - 1).votes;
-        Checkpoint memory checkpoint = high == 0 ? Checkpoint(0, 0, 0) : _unsafeAccess(ckpts, high - 1);
-        return checkpoint;
+        // Checkpoint memory checkpoint = high == 0 ? Checkpoint(0, 0, 0) : _unsafeAccess(ckpts, high - 1);
+        // return checkpoint;
+        // TODO: bad. very bad. only works on accident
+        if (high > 0) {
+            result = _unsafeAccess(ckpts, high - 1);
+        } else {
+            // suppress compiler warning, which really shouldn't be suppressed
+            assembly {
+                result.slot := 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF
+            }
+        }
     }
 
     // TODO: we're not handling totalSupply
