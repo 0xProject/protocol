@@ -1,9 +1,9 @@
 [submodule "apps-node/api/contracts/lib/forge-std"]
 	path = apps-node/api/contracts/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
-[submodule "packages/pool-cache-solidity/lib/forge-std"]
-	path = packages/pool-cache-solidity/lib/forge-std
+[submodule "apps-node/pool-cache/lib/forge-std"]
+	path = apps-node/pool-cache/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
-[submodule "packages/pool-cache-solidity/lib/solmate"]
-	path = packages/pool-cache-solidity/lib/solmate
+[submodule "apps-node/pool-cache/lib/solmate"]
+	path = apps-node/pool-cache/lib/solmate
 	url = https://github.com/transmissions11/solmate

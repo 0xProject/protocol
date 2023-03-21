@@ -1,2 +1,9 @@
 __build__/
 node_modules/
+# foundry:
+lib
+out
+cache
+
+# generated code:
+src/typechain
