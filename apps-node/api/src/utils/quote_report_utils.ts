@@ -1,6 +1,7 @@
 import { Producer } from 'kafkajs';
 
 import { BigNumber, ExtendedQuoteReport, ExtendedQuoteReportSources, jsonifyFillData } from '../asset-swapper';
+import { ExtendedQuoteReportSourcesDelivered, ExtendedQuoteReportIndexedEntry } from '../asset-swapper/types';
 import { KAFKA_TOPIC_QUOTE_REPORT } from '../config';
 import { logger } from '../logger';
 
@@ -23,7 +24,8 @@ interface QuoteReportLogOptionsBase {
     estimatedPriceImpact: BigNumber | null;
     priceImpactProtectionPercentage: number;
     onChainOptimalRoute?: {
-        quoteReportSources?: ExtendedQuoteReportSources;
+        quoteReportSources?: ExtendedQuoteReportSourcesDelivered;
+        bestSinglePool?: ExtendedQuoteReportIndexedEntry;
         estimatedGasForRouter: BigNumber;
         quotedBuyAmount?: BigNumber;
     };
@@ -98,10 +100,9 @@ export function publishQuoteReport(
             estimatedPriceImpact: logOpts.estimatedPriceImpact?.toString(),
             priceImpactProtectionPercentage: logOpts.priceImpactProtectionPercentage * 100,
             onChainOptimalRoute: {
-                sourcesConsidered:
-                    logOpts.onChainOptimalRoute?.quoteReportSources?.sourcesConsidered.map(jsonifyFillData) || [],
                 sourcesDelivered:
                     logOpts.onChainOptimalRoute?.quoteReportSources?.sourcesDelivered?.map(jsonifyFillData),
+                bestSinglePool: logOpts.onChainOptimalRoute?.bestSinglePool,
                 estimatedGasForRouter: bigNumberToStringOrUndefined(logOpts.onChainOptimalRoute?.estimatedGasForRouter),
                 quotedBuyAmount: bigNumberToStringOrUndefined(logOpts.onChainOptimalRoute?.quotedBuyAmount),
             },

@@ -82,6 +82,10 @@ export type ExtendedQuoteReportIndexedEntry = ExtendedQuoteReportEntry & {
     isDelivered: boolean;
 };
 
+export interface ExtendedQuoteReportSourcesDelivered {
+    sourcesDelivered: ExtendedQuoteReportIndexedEntry[] | undefined;
+}
+
 export interface ExtendedQuoteReportSources {
     sourcesConsidered: ExtendedQuoteReportIndexedEntry[];
     sourcesDelivered: ExtendedQuoteReportIndexedEntry[] | undefined;

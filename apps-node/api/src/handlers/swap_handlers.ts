@@ -7,7 +7,7 @@ import { Kafka, Producer } from 'kafkajs';
 import _ = require('lodash');
 import { Counter, Histogram } from 'prom-client';
 
-import { ERC20BridgeSource, RfqRequestOpts, SwapQuoterError } from '../asset-swapper';
+import { ERC20BridgeSource, ExtendedQuoteReportSources, RfqRequestOpts, SwapQuoterError } from '../asset-swapper';
 import {
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
@@ -156,11 +156,27 @@ export class SwapHandlers {
 
         if (quote.extendedQuoteReportSources && kafkaProducer) {
             const quoteId = getQuoteIdFromSwapQuote(quote);
+            const bestSinglePool = _.first(
+                _.sortBy(
+                    _.filter(quote.onChainOptimalRoute?.extendedQuoteReportSources?.sourcesConsidered, (source) => {
+                        return source.liquiditySource !== ERC20BridgeSource.MultiHop;
+                    }),
+                    (source) => {
+                        return -source.makerAmount.dividedBy(source.takerAmount);
+                    },
+                ),
+            );
+            const quoteReportSources: ExtendedQuoteReportSources = {
+                sourcesConsidered: _.filter(quote.extendedQuoteReportSources?.sourcesConsidered, (source) => {
+                    return source.liquiditySource === ERC20BridgeSource.Native;
+                }),
+                sourcesDelivered: quote.extendedQuoteReportSources?.sourcesDelivered,
+            };
             publishQuoteReport(
                 {
                     quoteId,
                     taker: params.takerAddress,
-                    quoteReportSources: quote.extendedQuoteReportSources,
+                    quoteReportSources,
                     submissionBy: 'taker',
                     decodedUniqueId: quote.decodedUniqueId,
                     buyTokenAddress: quote.buyTokenAddress,
@@ -179,7 +195,11 @@ export class SwapHandlers {
                     estimatedPriceImpact: quote.estimatedPriceImpact,
                     priceImpactProtectionPercentage: params.priceImpactProtectionPercentage,
                     onChainOptimalRoute: {
-                        quoteReportSources: quote.onChainOptimalRoute?.extendedQuoteReportSources,
+                        quoteReportSources: _.omit(
+                            quote.onChainOptimalRoute?.extendedQuoteReportSources,
+                            'sourcesConsidered',
+                        ),
+                        bestSinglePool,
                         estimatedGasForRouter:
                             quote.onChainOptimalRoute?.estimatedGasForRouter || constants.ZERO_AMOUNT,
                         quotedBuyAmount: quote.onChainOptimalRoute?.quotedBuyAmount,
