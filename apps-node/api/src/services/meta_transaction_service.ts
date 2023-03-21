@@ -3,6 +3,7 @@ import { MetaTransaction, MetaTransactionV2 } from '@0x/protocol-utils';
 import { ExchangeProxyMetaTransaction } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { Kafka, Producer } from 'kafkajs';
+import _ = require('lodash');
 
 import { ContractAddresses, AffiliateFeeType, NATIVE_FEE_TOKEN_BY_CHAIN_ID } from '../asset-swapper';
 import { CHAIN_ID, FEE_RECIPIENT_ADDRESS, KAFKA_BROKERS, META_TX_EXPIRATION_BUFFER_MS } from '../config';
@@ -303,7 +304,10 @@ export class MetaTransactionService implements IMetaTransactionService {
                     estimatedPriceImpact: quote.estimatedPriceImpact,
                     priceImpactProtectionPercentage: params.priceImpactProtectionPercentage,
                     onChainOptimalRoute: {
-                        quoteReportSources: quote.onChainOptimalRoute?.extendedQuoteReportSources,
+                        quoteReportSources: _.omit(
+                            quote.onChainOptimalRoute?.extendedQuoteReportSources,
+                            'sourcesConsidered',
+                        ),
                         estimatedGasForRouter: quote.onChainOptimalRoute?.estimatedGasForRouter || ZERO,
                         quotedBuyAmount: quote.onChainOptimalRoute?.quotedBuyAmount,
                     },

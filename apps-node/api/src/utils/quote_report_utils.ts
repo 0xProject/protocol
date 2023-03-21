@@ -102,7 +102,9 @@ export function publishQuoteReport(
             onChainOptimalRoute: {
                 sourcesDelivered:
                     logOpts.onChainOptimalRoute?.quoteReportSources?.sourcesDelivered?.map(jsonifyFillData),
-                bestSinglePool: logOpts.onChainOptimalRoute?.bestSinglePool,
+                bestSinglePool: logOpts.onChainOptimalRoute?.bestSinglePool
+                    ? jsonifyFillData(logOpts.onChainOptimalRoute?.bestSinglePool)
+                    : undefined,
                 estimatedGasForRouter: bigNumberToStringOrUndefined(logOpts.onChainOptimalRoute?.estimatedGasForRouter),
                 quotedBuyAmount: bigNumberToStringOrUndefined(logOpts.onChainOptimalRoute?.quotedBuyAmount),
             },

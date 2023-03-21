@@ -53,7 +53,7 @@ export interface ExtendedQuoteReport {
     priceImpactProtectionPercentage: number;
     onChainOptimalRoute: {
         sourcesDelivered: ExtendedQuoteReportIndexedEntryOutbound[] | undefined;
-        bestSinglePool?: ExtendedQuoteReportIndexedEntry;
+        bestSinglePool?: ExtendedQuoteReportIndexedEntryOutbound;
         estimatedGasForRouter?: string;
         quotedBuyAmount?: string;
     };
