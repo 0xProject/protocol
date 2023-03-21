@@ -14,11 +14,12 @@ datasource db {
 // A 0x integrator that acesses various 0x services
 // NOTE: initially a user will have a single auto-generated team. use of this model will expand in the future
 model IntegratorTeam {
-  id        String   @id @default(cuid()) @map("id")
-  name      String   @map("name")
-  image     String?  @map("image")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id          String   @id @default(cuid()) @map("id")
+  name        String   @map("name")
+  image       String?  @map("image")
+  productType String   @map("product_type")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   users          User[]
   integratorApps IntegratorApp[]
@@ -37,14 +38,17 @@ model User {
   email            String?   @unique @map("email")
   emailVerifiedAt  DateTime? @map("email_verified_at")
   image            String?   @map("image")
+  passwordHash     String    @map("password_hash")
+  salt             String    @map("salt")
   lastLoginAt      DateTime? @map("last_login_at")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
 
   accounts Account[]
 
-  integratorTeam IntegratorTeam @relation(fields: [integratorTeamId], references: [id], onDelete: Cascade)
-  Session        Session[]
+  integratorTeam    IntegratorTeam      @relation(fields: [integratorTeamId], references: [id], onDelete: Cascade)
+  Session           Session[]
+  VerificationToken VerificationToken[]
 
   @@map("users")
 }
@@ -75,7 +79,7 @@ model Account {
 model Session {
   id           String   @id @default(cuid()) @map("id")
   sessionToken String   @unique @map("session_token")
-  userId       String   @map("user_id")
+  userId       String   @unique @map("user_id")
   expires      DateTime @map("expires")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -84,11 +88,13 @@ model Session {
 }
 
 model VerificationToken {
-  identifier String   @map("identifier")
-  token      String   @unique @map("token")
-  expires    DateTime @map("expires")
+  id                String   @id @default(cuid()) @map("id")
+  verificationToken String   @unique @default(cuid()) @map("verification_token")
+  userEmail         String   @unique @map("user_email")
+  expires           DateTime @map("expires")
 
-  @@unique([identifier, token])
+  user User @relation(fields: [userEmail], references: [email], onDelete: Cascade)
+
   @@map("verification_tokens")
 }
 

@@ -22,6 +22,9 @@ const envSchema = z.object({
     KONG_ADMIN_URL: z.string().url().default('http://127.0.0.1:8001'),
     KONG_ADMIN_HTTP_TIMEOUT: z.coerce.number().positive().default(1000),
     LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
+    MAILGUN_DEPLOY_URL: z.string().url().default('http://localhost:3000'),
+    MAILGUN_KEY: z.string(),
+    MAILGUN_DOMAIN: z.string().default('mg.0x.org'),
 });
 
 const parsed = envSchema.safeParse(process.env);

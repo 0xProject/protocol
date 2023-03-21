@@ -3,10 +3,11 @@ import prisma from '../prisma';
 import { z } from 'zod';
 import { zippoRouterDefinition } from 'zippo-interface';
 
-const defaultTeamSelect = Prisma.validator<Prisma.UserSelect>()({
+const defaultTeamSelect = Prisma.validator<Prisma.IntegratorTeamSelect>()({
     id: true,
     name: true,
     image: true,
+    productType: true,
     createdAt: true,
     updatedAt: true,
 });
@@ -28,9 +29,9 @@ export async function getById(id: z.output<typeof teamRouterDefinition.get.input
  *
  * @param input Team information
  */
-export async function create(parameters: z.output<typeof teamRouterDefinition.create.input>) {
-    return await prisma.integratorTeam.create({
-        data: { ...parameters },
+export async function create(input: z.output<typeof teamRouterDefinition.create.input>) {
+    return prisma.integratorTeam.create({
+        data: { ...input },
         select: defaultTeamSelect,
     });
 }
@@ -38,18 +39,19 @@ export async function create(parameters: z.output<typeof teamRouterDefinition.cr
 /**
  * Update an existing team.
  *
+ * @param id Team ID
  * @param input Team information
  */
 export async function update(
     id: z.output<typeof teamRouterDefinition.update.input>['id'],
-    parameters: Omit<z.infer<typeof teamRouterDefinition.update.input>, 'id'>,
+    input: Omit<z.infer<typeof teamRouterDefinition.update.input>, 'id'>,
 ) {
-    return await prisma.integratorTeam.update({
+    return prisma.integratorTeam.update({
         where: {
             id,
         },
         data: {
-            ...parameters,
+            ...input,
         },
         select: defaultTeamSelect,
     });

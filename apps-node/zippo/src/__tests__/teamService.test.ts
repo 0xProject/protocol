@@ -8,6 +8,7 @@ describe('teamService', () => {
             id,
             name: 'dev0xluv',
             image: '',
+            productType: 'CEX',
             createdAt: new Date(),
             updatedAt: new Date(),
         };
@@ -27,6 +28,7 @@ describe('teamService', () => {
             id: 'ccldj5ue5r000008mt8l0y74b9',
             name: 'Pretty Kitty',
             image: '',
+            productType: 'Meta-aggregator',
             createdAt: new Date(),
             updatedAt: new Date(),
         };
@@ -37,6 +39,7 @@ describe('teamService', () => {
                 create({
                     name: team.name,
                     image: team.image,
+                    productType: team.productType,
                 }),
             ).resolves.toEqual(team);
         });
@@ -52,6 +55,7 @@ describe('teamService', () => {
             id: 'cldj5v14x000108mta006czv9',
             name: 'Teju 4 President',
             image: '',
+            productType: 'DCA',
             createdAt: new Date(),
             updatedAt: new Date(),
         };
@@ -60,6 +64,7 @@ describe('teamService', () => {
             id: team.id,
             name: 'Mike 4 President',
             image: '',
+            productType: 'DCA',
             createdAt: team.createdAt,
             updatedAt: new Date(),
         };

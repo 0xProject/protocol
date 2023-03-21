@@ -11,10 +11,11 @@ async function main() {
     const newUser = await basic.user.create.mutate({
         name: `Bob${bobId}`,
         email: `bob${bobId}@example.com`,
+        password: 'zfv2ymw3ydv.PND0mpe',
     });
     console.log(`Created user ${newUser.id}`);
 
-    const result = await basic.user.get.query(newUser.id);
+    const result = await basic.user.getById.query(newUser.id);
 
     if (result) {
         console.log('Found user: ', result.name);
