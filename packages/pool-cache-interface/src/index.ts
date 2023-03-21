@@ -1,43 +1,49 @@
 import type { defineTrpcRouter } from 'trpc-toolbox';
 
-export type Protocol = 'uniswap-v3';
+// Fee denominated in hundredths of a bip .
+export type UniswapV3Fee = 100 | 500 | 3000 | 10000;
 
-interface PoolBase {
-    protocol: Protocol;
+export interface UniswapV3Pool {
+    // token0 address
+    token0: string;
+    // token1 address
+    token1: string;
+    // Pool fee
+    fee: UniswapV3Fee;
     // Normalized liquidity score [0, 100]
     score: number;
 }
 
-export interface UniswapV3Pool extends PoolBase {
-    protocol: 'uniswap-v3';
-    poolAddress: string;
-    // Fee denominated in hundredths of a bip .
-    fee: 100 | 500 | 3000 | 10000;
-}
-
-export type Pool = UniswapV3Pool;
-
-export interface PoolCache {
+export interface UniswapV3PoolCache {
     // Unix timestamp when pool data was fetched (in seconds).
-    timestamp: number;
+    //`timestamp` is undefined when there was no cache.
+    timestamp?: number;
     // Pools sorted by the liquidity score (descending).
-    pools: Pool[];
+    pools: UniswapV3Pool[];
 }
 
-export interface GetPoolCacheOfPairInput {
+export interface GetPoolCacheOfPairsOutput {
+    // The order corresponds to the order of `GetPoolCacheOfPairsInput.uniswapPairs`.
+    uniswapV3Cache: UniswapV3PoolCache[];
+}
+
+export interface TokenPair {
+    // Token A address (the order doesn't matter).
+    tokenA: string;
+    // Token B address (the order doesn't matter).
+    tokenB: string;
+}
+
+export interface GetPoolCacheOfPairsInput {
     chainId: number;
-    protocol: Protocol;
-    // Token 0 address (the order doesn't matter).
-    token0: string;
-    // Token 1 address (the order doesn't matter).
-    token1: string;
+    uniswapV3Pairs: TokenPair[];
 }
 
 type RouterProcedures = {
-    getPoolCacheOfPair: {
+    getPoolCacheOfPairs: {
         type: 'query';
-        input: GetPoolCacheOfPairInput;
-        output: PoolCache;
+        input: GetPoolCacheOfPairsInput;
+        output: GetPoolCacheOfPairsOutput;
     };
 };
 

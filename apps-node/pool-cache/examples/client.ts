@@ -10,12 +10,17 @@ const client = createTRPCProxyClient<PoolCacheRouter>({
 });
 
 async function main() {
-    const resp = await client.getPoolCacheOfPair.query({
-        chainId: 42,
-        protocol: 'uniswap-v3',
-        token0: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
-        token1: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
-    });
+    const resp = await client.getPoolCacheOfPairs.query([
+        {
+            chainId: 42,
+            uniswapV3Pairs: [
+                {
+                    tokenA: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+                    tokenB: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+                },
+            ],
+        },
+    ]);
     console.log(resp);
 }
 
