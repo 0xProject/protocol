@@ -4,10 +4,12 @@
     "private": true,
     "scripts": {
         "build": "tsc",
-        "examples:client": "tsx examples/client.ts",
         "dev:server": "nodemon src/main.ts",
-        "test": "jest",
-        "test:ci": "jest --runInBand --forceExit"
+        "examples:client": "tsx examples/client.ts",
+        "fix": "prettier --write .",
+        "lint:ci": "prettier --check . && eslint .",
+        "test:ci": "jest --runInBand --forceExit",
+        "test": "jest"
     },
     "dependencies": {
         "@trpc/server": "^10.14.1",
@@ -23,6 +25,7 @@
         "ts-node": "^10.9.1",
         "tsconfig": "*",
         "tsx": "^3.12.3",
-        "typescript": "^4.9.5"
+        "typescript": "^4.9.5",
+        "eslint-config-common": "*"
     }
 }

@@ -33,7 +33,7 @@ export const poolCacheRouter = t.router({
     getPoolCacheOfPair: t.procedure
         .input(getPoolCacheOfPairInputShape)
         .output(poolCacheShape)
-        .query(({ input }) => {
+        .query(({ input: _input }) => {
             // TODO: implement
             return {
                 timestamp: 42000,
