@@ -14,7 +14,7 @@ import {
     kongRemoveRateLimit,
 } from '../gateway/kongGateway';
 import { ensureKongIsRunning, resetKongConfiguration } from './utils/kongUtils';
-import { ZippoRateLimit } from '../gateway/types';
+import { TZippoRateLimit } from 'zippo-interface';
 
 jest.setTimeout(30000);
 
@@ -193,22 +193,22 @@ describe('kong gateway integration', () => {
 
         it('should start with an empty kong configuration', async () => {
             await expect(kongEnsureConsumer('app1')).resolves.not.toBeNull();
-            await expect(kongGetRateLimit('app1', 'swap_price_v1_route_optimism')).resolves.toBeNull();
-            await expect(kongGetRateLimit('app1', 'swap_price_v1_route_fantom')).resolves.toBeNull();
+            await expect(kongGetRateLimit('app1', 'swap_v1_prices_route_optimism')).resolves.toBeNull();
+            await expect(kongGetRateLimit('app1', 'swap_v1_prices_route_fantom')).resolves.toBeNull();
         });
 
-        const rateLimit: ZippoRateLimit = {
+        const rateLimit: TZippoRateLimit = {
             second: 2,
             minute: 60,
         };
 
         it('should add a rate-limit to a route', async () => {
-            await expect(kongEnsureRateLimit('app1', 'swap_price_v1_route_optimism', rateLimit)).resolves.toEqual(
+            await expect(kongEnsureRateLimit('app1', 'swap_v1_prices_route_optimism', rateLimit)).resolves.toEqual(
                 expect.objectContaining({
                     config: expect.objectContaining(rateLimit),
                 }),
             );
-            await expect(kongEnsureRateLimit('app1', 'swap_price_v1_route_fantom', rateLimit)).resolves.toEqual(
+            await expect(kongEnsureRateLimit('app1', 'swap_v1_prices_route_fantom', rateLimit)).resolves.toEqual(
                 expect.objectContaining({
                     config: expect.objectContaining(rateLimit),
                 }),
@@ -216,12 +216,12 @@ describe('kong gateway integration', () => {
         });
 
         it('should confirm we can get the new rate-limit', async () => {
-            await expect(kongGetRateLimit('app1', 'swap_price_v1_route_optimism')).resolves.toEqual(
+            await expect(kongGetRateLimit('app1', 'swap_v1_prices_route_optimism')).resolves.toEqual(
                 expect.objectContaining({
                     config: expect.objectContaining(rateLimit),
                 }),
             );
-            await expect(kongGetRateLimit('app1', 'swap_price_v1_route_fantom')).resolves.toEqual(
+            await expect(kongGetRateLimit('app1', 'swap_v1_prices_route_fantom')).resolves.toEqual(
                 expect.objectContaining({
                     config: expect.objectContaining(rateLimit),
                 }),
@@ -234,42 +234,46 @@ describe('kong gateway integration', () => {
 
         it('should start with an empty kong configuration', async () => {
             await expect(kongEnsureConsumer('app1')).resolves.not.toBeNull();
-            await expect(kongGetRateLimit('app1', 'swap_price_v1_route_optimism')).resolves.toBeNull();
-            await expect(kongGetRateLimit('app1', 'swap_price_v1_route_fantom')).resolves.toBeNull();
+            await expect(kongGetRateLimit('app1', 'swap_v1_prices_route_optimism')).resolves.toBeNull();
+            await expect(kongGetRateLimit('app1', 'swap_v1_prices_route_fantom')).resolves.toBeNull();
         });
 
-        const initialRateLimit: ZippoRateLimit = {
+        const initialRateLimit: TZippoRateLimit = {
             second: 2,
             minute: 60,
         };
 
         it('should add a rate-limit to a route', async () => {
             await expect(
-                kongEnsureRateLimit('app1', 'swap_price_v1_route_optimism', initialRateLimit),
+                kongEnsureRateLimit('app1', 'swap_v1_prices_route_optimism', initialRateLimit),
             ).resolves.toEqual(
                 expect.objectContaining({
                     config: expect.objectContaining(initialRateLimit),
                 }),
             );
-            await expect(kongEnsureRateLimit('app1', 'swap_price_v1_route_fantom', initialRateLimit)).resolves.toEqual(
+            await expect(kongEnsureRateLimit('app1', 'swap_v1_prices_route_fantom', initialRateLimit)).resolves.toEqual(
                 expect.objectContaining({
                     config: expect.objectContaining(initialRateLimit),
                 }),
             );
         });
 
-        const updateRateLimit: ZippoRateLimit = {
+        const updateRateLimit: TZippoRateLimit = {
             second: 4,
             minute: 100,
         };
 
         it('should update a rate-limit for a route', async () => {
-            await expect(kongEnsureRateLimit('app1', 'swap_price_v1_route_optimism', updateRateLimit)).resolves.toEqual(
+            await expect(
+                kongEnsureRateLimit('app1', 'swap_v1_prices_route_optimism', updateRateLimit),
+            ).resolves.toEqual(
                 expect.objectContaining({
                     config: expect.objectContaining(updateRateLimit),
                 }),
             );
-            await expect(kongEnsureRateLimit('app1', 'swap_price_v1_route_optimism', updateRateLimit)).resolves.toEqual(
+            await expect(
+                kongEnsureRateLimit('app1', 'swap_v1_prices_route_optimism', updateRateLimit),
+            ).resolves.toEqual(
                 expect.objectContaining({
                     config: expect.objectContaining(updateRateLimit),
                 }),
@@ -347,7 +351,7 @@ describe('kong gateway integration', () => {
     describe('kong remove rate limit', () => {
         beforeAll(async () => await resetKongConfiguration());
 
-        const rateLimit: ZippoRateLimit = {
+        const rateLimit: TZippoRateLimit = {
             second: 2,
             minute: 60,
         };
@@ -358,21 +362,21 @@ describe('kong gateway integration', () => {
 
         it('should give the app a rate-limit', async () => {
             await expect(
-                kongEnsureRateLimit('app1', 'swap_price_v1_route_optimism', rateLimit),
+                kongEnsureRateLimit('app1', 'swap_v1_prices_route_optimism', rateLimit),
             ).resolves.not.toBeNull();
-            await expect(kongEnsureRateLimit('app1', 'swap_price_v1_route_fantom', rateLimit)).resolves.not.toBeNull();
-            await expect(kongGetRateLimit('app1', 'swap_price_v1_route_optimism')).resolves.not.toBeNull();
-            await expect(kongGetRateLimit('app1', 'swap_price_v1_route_fantom')).resolves.not.toBeNull();
+            await expect(kongEnsureRateLimit('app1', 'swap_v1_prices_route_fantom', rateLimit)).resolves.not.toBeNull();
+            await expect(kongGetRateLimit('app1', 'swap_v1_prices_route_optimism')).resolves.not.toBeNull();
+            await expect(kongGetRateLimit('app1', 'swap_v1_prices_route_fantom')).resolves.not.toBeNull();
         });
 
         it('should remove rate-limit from app', async () => {
-            await expect(kongRemoveRateLimit('app1', 'swap_price_v1_route_optimism')).resolves.toBeTruthy();
-            await expect(kongRemoveRateLimit('app1', 'swap_price_v1_route_fantom')).resolves.toBeTruthy();
+            await expect(kongRemoveRateLimit('app1', 'swap_v1_prices_route_optimism')).resolves.toBeTruthy();
+            await expect(kongRemoveRateLimit('app1', 'swap_v1_prices_route_fantom')).resolves.toBeTruthy();
         });
 
         it('should no longer have a rate-limit for the app', async () => {
-            await expect(kongGetRateLimit('app1', 'swap_price_v1_route_optimism')).resolves.toBeNull();
-            await expect(kongGetRateLimit('app1', 'swap_price_v1_route_fantom')).resolves.toBeNull();
+            await expect(kongGetRateLimit('app1', 'swap_v1_prices_route_optimism')).resolves.toBeNull();
+            await expect(kongGetRateLimit('app1', 'swap_v1_prices_route_fantom')).resolves.toBeNull();
         });
     });
 });

@@ -1,7 +1,8 @@
 import { env } from '../env';
-import { KongConsumer, KongKey, KongAcl, KongPlugins, KongPlugin, ZippoRateLimit, KongKeys } from './types';
+import { KongConsumer, KongKey, KongAcl, KongPlugins, KongPlugin, KongKeys } from './types';
 import axios, { AxiosResponse, AxiosHeaders } from 'axios';
 import { StatusCodes } from 'http-status-codes';
+import { TZippoRateLimit } from 'zippo-interface';
 
 const axiosInstance = axios.create({
     baseURL: env.KONG_ADMIN_URL,
@@ -178,7 +179,7 @@ export async function kongRemoveAcl(appId: string, group: string): Promise<boole
  * @param appId Kong consumer appId
  * @param routeName route name in which to fetch the rate limit
  */
-export async function kongGetRateLimit(appId: string, routeName: string): Promise<KongPlugin<ZippoRateLimit> | null> {
+export async function kongGetRateLimit(appId: string, routeName: string): Promise<KongPlugin<TZippoRateLimit> | null> {
     try {
         const { data, status } = await kongGet<KongPlugins>(`/consumers/${appId}/plugins`);
         if (status !== StatusCodes.OK) {
@@ -191,7 +192,7 @@ export async function kongGetRateLimit(appId: string, routeName: string): Promis
                     plugin.tags &&
                     plugin.tags.length > 0 &&
                     plugin.tags.includes(`zippo_route:${routeName}`),
-            ) as KongPlugin<ZippoRateLimit>) || null
+            ) as KongPlugin<TZippoRateLimit>) || null
         );
     } catch {
         return null;
@@ -207,8 +208,8 @@ export async function kongGetRateLimit(appId: string, routeName: string): Promis
 export async function kongEnsureRateLimit(
     appId: string,
     routeName: string,
-    rateLimit: ZippoRateLimit,
-): Promise<KongPlugin<ZippoRateLimit> | null> {
+    rateLimit: TZippoRateLimit,
+): Promise<KongPlugin<TZippoRateLimit> | null> {
     let redisConfig = {};
     if (env.ZIPPO_REDIS_URL) {
         const redisUrl = new URL(env.ZIPPO_REDIS_URL);
@@ -237,13 +238,13 @@ export async function kongEnsureRateLimit(
 
     const existingRateLimit = await kongGetRateLimit(appId, routeName);
     if (existingRateLimit) {
-        const { data, status } = await kongPut<KongPlugin<ZippoRateLimit>>(
+        const { data, status } = await kongPut<KongPlugin<TZippoRateLimit>>(
             `/consumers/${appId}/plugins/${existingRateLimit.id}`,
             req,
         );
         return status !== StatusCodes.OK ? null : data;
     } else {
-        const { data, status } = await kongPost<KongPlugin<ZippoRateLimit>>(`/consumers/${appId}/plugins`, req);
+        const { data, status } = await kongPost<KongPlugin<TZippoRateLimit>>(`/consumers/${appId}/plugins`, req);
         return status !== StatusCodes.CREATED ? null : data;
     }
 }

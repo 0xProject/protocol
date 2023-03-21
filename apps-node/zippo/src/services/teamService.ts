@@ -17,7 +17,7 @@ const { team: teamRouterDefinition } = zippoRouterDefinition;
 /**
  * Get a team by ID.
  */
-export async function getById(id: z.output<typeof teamRouterDefinition.get.input>) {
+export async function getById(id: z.output<typeof teamRouterDefinition.getById.input>) {
     return prisma.integratorTeam.findUnique({
         where: { id },
         select: defaultTeamSelect,

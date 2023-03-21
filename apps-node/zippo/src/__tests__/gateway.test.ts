@@ -1,7 +1,7 @@
 import { kongMock } from './mocks/kongMock';
 
 import { provisionIntegratorAccess } from '../gateway';
-import { ZippoRouteTag } from '../gateway/types';
+import { TZippoRouteTag } from 'zippo-interface';
 
 describe('gateway tests', () => {
     describe('provision integrator', () => {
@@ -32,7 +32,12 @@ describe('gateway tests', () => {
 
         it('should provision integrator access', async () => {
             await expect(
-                provisionIntegratorAccess('integrator12345', 'app12345', [ZippoRouteTag.SwapV1Price], [{ minute: 30 }]),
+                provisionIntegratorAccess(
+                    'integrator12345',
+                    'app12345',
+                    [TZippoRouteTag.SwapV1Prices],
+                    [{ minute: 30 }],
+                ),
             ).resolves.toBeTruthy();
         });
 
@@ -41,13 +46,13 @@ describe('gateway tests', () => {
             expect(kongMock.kongEnsureRequestTransformer.mock.calls[0][0]).toEqual('app12345');
             expect(kongMock.kongEnsureRequestTransformer.mock.calls[0][1]).toEqual('integrator12345');
             expect(kongMock.kongEnsureAcl.mock.calls[0][0]).toEqual('app12345');
-            expect(kongMock.kongEnsureAcl.mock.calls[0][1]).toEqual('swap_v1_price_group');
+            expect(kongMock.kongEnsureAcl.mock.calls[0][1]).toEqual('swap_v1_prices_group');
             expect(kongMock.kongEnsureRateLimit.mock.calls[0][0]).toEqual('app12345');
-            expect(kongMock.kongEnsureRateLimit.mock.calls[0][1]).toEqual('swap_price_v1_route_optimism');
+            expect(kongMock.kongEnsureRateLimit.mock.calls[0][1]).toEqual('swap_v1_prices_route_optimism');
             expect(kongMock.kongEnsureRateLimit.mock.calls[0][2]).toEqual({
                 minute: 30,
             });
-            expect(kongMock.kongEnsureRateLimit.mock.calls[1][1]).toEqual('swap_price_v1_route_fantom');
+            expect(kongMock.kongEnsureRateLimit.mock.calls[1][1]).toEqual('swap_v1_prices_route_fantom');
             expect(kongMock.kongEnsureRateLimit.mock.calls[1][2]).toEqual({
                 minute: 30,
             });

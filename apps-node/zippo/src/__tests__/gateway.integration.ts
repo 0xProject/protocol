@@ -1,7 +1,8 @@
 import { env } from '../env';
 import { kongGetAcl, kongGetConsumer, kongGetKey, kongGetRateLimit } from '../gateway/kongGateway';
 import { ensureKongIsRunning, resetKongConfiguration } from './utils/kongUtils';
-import { ZippoRouteTag } from '../gateway/types';
+import { TZippoRouteTag } from 'zippo-interface';
+
 import {
     deprovisionIntegratorAccess,
     provisionIntegratorAccess,
@@ -18,9 +19,9 @@ describe('gateway integration', () => {
     describe('provision integrator', () => {
         beforeAll(async () => await resetKongConfiguration());
 
-        const routeInfo = env.ZIPPO_ROUTE_MAP[ZippoRouteTag.SwapV1Price];
+        const routeInfo = env.ZIPPO_ROUTE_MAP[TZippoRouteTag.SwapV1Prices];
         if (!routeInfo) {
-            throw new Error('ROUTE_MAP does not contain SwapV1Price info');
+            throw new Error('ROUTE_MAP does not contain SwapV1Prices info');
         }
 
         it('should confirm kong consumer does not exist yet', async () => {
@@ -33,7 +34,7 @@ describe('gateway integration', () => {
 
         it('should confirm provisioning new integrator indicates success', async () => {
             await expect(
-                provisionIntegratorAccess('integrator9876', 'app9876', [ZippoRouteTag.SwapV1Price], [{ minute: 30 }]),
+                provisionIntegratorAccess('integrator9876', 'app9876', [TZippoRouteTag.SwapV1Prices], [{ minute: 30 }]),
             ).resolves.toBeTruthy();
         });
 
@@ -77,9 +78,9 @@ describe('gateway integration', () => {
     describe('deprovision integrator', () => {
         beforeAll(async () => await resetKongConfiguration());
 
-        const routeInfo = env.ZIPPO_ROUTE_MAP[ZippoRouteTag.SwapV1Price];
+        const routeInfo = env.ZIPPO_ROUTE_MAP[TZippoRouteTag.SwapV1Prices];
         if (!routeInfo) {
-            throw new Error('ROUTE_MAP does not contain SwapV1Price info');
+            throw new Error('ROUTE_MAP does not contain SwapV1Prices info');
         }
 
         it('should confirm kong consumer does not exist yet', async () => {
@@ -88,7 +89,7 @@ describe('gateway integration', () => {
 
         it('should confirm provisioning new integrator indicates success', async () => {
             await expect(
-                provisionIntegratorAccess('integrator9876', 'app9876', [ZippoRouteTag.SwapV1Price], [{ minute: 30 }]),
+                provisionIntegratorAccess('integrator9876', 'app9876', [TZippoRouteTag.SwapV1Prices], [{ minute: 30 }]),
             ).resolves.toBeTruthy();
         });
 
@@ -114,7 +115,7 @@ describe('gateway integration', () => {
 
         it('should remove integrator access to a route', async () => {
             await expect(
-                deprovisionIntegratorAccess('integrator9876', 'app9876', [ZippoRouteTag.SwapV1Price]),
+                deprovisionIntegratorAccess('integrator9876', 'app9876', [TZippoRouteTag.SwapV1Prices]),
             ).resolves.toBeTruthy();
         });
 
@@ -140,7 +141,7 @@ describe('gateway integration', () => {
 
         it('should confirm provisioning new integrator indicates success', async () => {
             await expect(
-                provisionIntegratorAccess('integrator9876', 'app9876', [ZippoRouteTag.SwapV1Price], [{ minute: 30 }]),
+                provisionIntegratorAccess('integrator9876', 'app9876', [TZippoRouteTag.SwapV1Prices], [{ minute: 30 }]),
             ).resolves.toBeTruthy();
         });
 

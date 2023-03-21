@@ -1,13 +1,13 @@
 import { z } from 'zod';
 import * as dotenv from 'dotenv';
-import { ZippoRouteTag } from './gateway/types';
+import { TZippoRouteTag } from 'zippo-interface';
 
 dotenv.config();
 
 const RouteMapShape = z.record(
-    z.nativeEnum(ZippoRouteTag),
+    z.nativeEnum(TZippoRouteTag),
     z.object({
-        tag: z.nativeEnum(ZippoRouteTag),
+        tag: z.nativeEnum(TZippoRouteTag),
         routeNames: z.array(z.string()),
         groupName: z.string(),
     }),

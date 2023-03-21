@@ -1,7 +1,7 @@
 _format_version: '3.0'
 consumers:
   - acls:
-      - group: swap_price_v1_group
+      - group: swap_v1_prices_group
     username: 0x_anonymous
 plugins:
   - config:
@@ -36,7 +36,7 @@ plugins:
       - grpcs
       - http
       - https
-    route: swap_price_v1_route_fantom
+    route: swap_v1_prices_route_fantom
   - config:
       day: null
       error_code: 429
@@ -69,7 +69,7 @@ plugins:
       - grpcs
       - http
       - https
-    route: swap_price_v1_route_optimism
+    route: swap_v1_prices_route_optimism
 services:
   - connect_timeout: 60000
     enabled: true
@@ -111,6 +111,37 @@ services:
               run_on_preflight: true
             enabled: true
             name: key-auth
+            protocols:
+              - grpc
+              - grpcs
+              - http
+              - https
+          - config:
+              add:
+                body: []
+                headers:
+                  - 0x-Chain-Id:250
+                querystring: []
+              append:
+                body: []
+                headers: []
+                querystring: []
+              http_method: null
+              remove:
+                body: []
+                headers: []
+                querystring: []
+              rename:
+                body: []
+                headers: []
+                querystring: []
+              replace:
+                body: []
+                headers: []
+                querystring: []
+                uri: null
+            enabled: true
+            name: request-transformer
             protocols:
               - grpc
               - grpcs
@@ -160,6 +191,37 @@ services:
               - grpcs
               - http
               - https
+          - config:
+              add:
+                body: []
+                headers:
+                  - 0x-Chain-Id:10
+                querystring: []
+              append:
+                body: []
+                headers: []
+                querystring: []
+              http_method: null
+              remove:
+                body: []
+                headers: []
+                querystring: []
+              rename:
+                body: []
+                headers: []
+                querystring: []
+              replace:
+                body: []
+                headers: []
+                querystring: []
+                uri: null
+            enabled: true
+            name: request-transformer
+            protocols:
+              - grpc
+              - grpcs
+              - http
+              - https
         preserve_host: false
         protocols:
           - http
@@ -181,14 +243,14 @@ services:
       - hosts:
           - fantom.api.0x.org
         https_redirect_status_code: 426
-        name: swap_price_v1_route_fantom
+        name: swap_v1_prices_route_fantom
         path_handling: v0
         paths:
           - /swap/v1/price
         plugins:
           - config:
               allow:
-                - swap_price_v1_group
+                - swap_v1_prices_group
               deny: null
               hide_groups_header: true
             enabled: true
@@ -209,6 +271,37 @@ services:
               run_on_preflight: true
             enabled: true
             name: key-auth
+            protocols:
+              - grpc
+              - grpcs
+              - http
+              - https
+          - config:
+              add:
+                body: []
+                headers:
+                  - 0x-Chain-Id:250
+                querystring: []
+              append:
+                body: []
+                headers: []
+                querystring: []
+              http_method: null
+              remove:
+                body: []
+                headers: []
+                querystring: []
+              rename:
+                body: []
+                headers: []
+                querystring: []
+              replace:
+                body: []
+                headers: []
+                querystring: []
+                uri: null
+            enabled: true
+            name: request-transformer
             protocols:
               - grpc
               - grpcs
@@ -225,14 +318,14 @@ services:
       - hosts:
           - optimism.api.0x.org
         https_redirect_status_code: 426
-        name: swap_price_v1_route_optimism
+        name: swap_v1_prices_route_optimism
         path_handling: v0
         paths:
           - /swap/v1/price
         plugins:
           - config:
               allow:
-                - swap_price_v1_group
+                - swap_v1_prices_group
               deny: null
               hide_groups_header: true
             enabled: true
@@ -253,6 +346,37 @@ services:
               run_on_preflight: true
             enabled: true
             name: key-auth
+            protocols:
+              - grpc
+              - grpcs
+              - http
+              - https
+          - config:
+              add:
+                body: []
+                headers:
+                  - 0x-Chain-Id:10
+                querystring: []
+              append:
+                body: []
+                headers: []
+                querystring: []
+              http_method: null
+              remove:
+                body: []
+                headers: []
+                querystring: []
+              rename:
+                body: []
+                headers: []
+                querystring: []
+              replace:
+                body: []
+                headers: []
+                querystring: []
+                uri: null
+            enabled: true
+            name: request-transformer
             protocols:
               - grpc
               - grpcs
@@ -269,14 +393,14 @@ services:
       - hosts:
           - fantom.api.0x.org
         https_redirect_status_code: 426
-        name: swap_quote_v1_route_fantom
+        name: swap_v1_route_fantom
         path_handling: v0
         paths:
-          - /swap/v1/quote
+          - /swap/v1
         plugins:
           - config:
               allow:
-                - swap_quote_v1_group
+                - swap_v1_group
               deny: null
               hide_groups_header: true
             enabled: true
@@ -297,6 +421,37 @@ services:
               run_on_preflight: true
             enabled: true
             name: key-auth
+            protocols:
+              - grpc
+              - grpcs
+              - http
+              - https
+          - config:
+              add:
+                body: []
+                headers:
+                  - 0x-Chain-Id:250
+                querystring: []
+              append:
+                body: []
+                headers: []
+                querystring: []
+              http_method: null
+              remove:
+                body: []
+                headers: []
+                querystring: []
+              rename:
+                body: []
+                headers: []
+                querystring: []
+              replace:
+                body: []
+                headers: []
+                querystring: []
+                uri: null
+            enabled: true
+            name: request-transformer
             protocols:
               - grpc
               - grpcs
@@ -313,14 +468,14 @@ services:
       - hosts:
           - optimism.api.0x.org
         https_redirect_status_code: 426
-        name: swap_quote_v1_route_optimism
+        name: swap_v1_route_optimism
         path_handling: v0
         paths:
-          - /swap/v1/quote
+          - /swap/v1
         plugins:
           - config:
               allow:
-                - swap_quote_v1_group
+                - swap_v1_group
               deny: null
               hide_groups_header: true
             enabled: true
@@ -341,6 +496,37 @@ services:
               run_on_preflight: true
             enabled: true
             name: key-auth
+            protocols:
+              - grpc
+              - grpcs
+              - http
+              - https
+          - config:
+              add:
+                body: []
+                headers:
+                  - 0x-Chain-Id:10
+                querystring: []
+              append:
+                body: []
+                headers: []
+                querystring: []
+              http_method: null
+              remove:
+                body: []
+                headers: []
+                querystring: []
+              rename:
+                body: []
+                headers: []
+                querystring: []
+              replace:
+                body: []
+                headers: []
+                querystring: []
+                uri: null
+            enabled: true
+            name: request-transformer
             protocols:
               - grpc
               - grpcs

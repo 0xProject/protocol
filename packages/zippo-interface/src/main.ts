@@ -1,6 +1,22 @@
 import { defineTrpcRouter, TProcedureTree } from 'trpc-toolbox';
 import { z } from 'zod';
 
+export enum TZippoRouteTag {
+    SwapV1 = 'swap_v1_route',
+    SwapV1Prices = 'swap_v1_prices_route',
+    OrderbookV1 = 'orderbook_v1_route',
+    MetatxnV1 = 'metatxn_v1_route',
+    MetatxnV2 = 'metatxn_v2_route',
+    TxrelayV1 = 'txrelay_v1_route',
+}
+
+export interface TZippoRateLimit {
+    second?: number;
+    minute?: number;
+    hour?: number;
+    day?: number;
+}
+
 /**
  * API representation the `User` model in integrator-db prisma schema
  */
@@ -11,7 +27,7 @@ const user = z.object({
     id: z.string().cuid(),
     createdAt: z.date(),
     updatedAt: z.date(),
-    integratorTeamId: z.string(),
+    integratorTeamId: z.string().cuid(),
 });
 
 /**
@@ -24,6 +40,46 @@ const team = z.object({
     productType: z.string(),
     createdAt: z.date(),
     updatedAt: z.date(),
+});
+
+/**
+ * API representation the `IntegratorApiKey` model in integrator-db prisma schema
+ */
+const apiKey = z.object({
+    id: z.string().cuid(),
+    apiKey: z.string().uuid(),
+    description: z.string().nullable(),
+    disabled: z.boolean(),
+    createdAt: z.date(),
+    updatedAt: z.date(),
+    integratorAppId: z.string().cuid(),
+});
+
+/**
+ * API representation the `IntegratorAccess` model in integrator-db prisma schema
+ */
+const integratorAccess = z.object({
+    routeTag: z.string(),
+    rateLimit: z.string(),
+    createdAt: z.date(),
+    updatedAt: z.date(),
+    integratorAppId: z.string().cuid(),
+});
+
+/**
+ * API representation the `IntegratorApp` model in integrator-db prisma schema
+ */
+const app = z.object({
+    id: z.string().cuid(),
+    name: z.string(),
+    description: z.string().nullable(),
+    affiliateAddress: z.string().nullable(),
+    category: z.string().nullable(),
+    createdAt: z.date(),
+    updatedAt: z.date(),
+    integratorTeamId: z.string().cuid(),
+    apiKeys: z.array(apiKey),
+    integratorAccess: z.array(integratorAccess),
 });
 
 /**
@@ -178,7 +234,7 @@ export const zippoRouterDefinition = {
         },
     },
     team: {
-        get: {
+        getById: {
             // Get a team by its ID
             input: z.string().cuid().describe('The team ID'),
             output: team.strip().nullable().describe('The team, or null if not found'),
@@ -206,6 +262,103 @@ export const zippoRouterDefinition = {
                 .merge(z.object({ id: z.string().cuid().describe('The team ID') })),
             output: team.strip().nullable().describe('The updated team'),
             type: 'mutation',
+        },
+    },
+    app: {
+        list: {
+            // Get a list of apps for a given team
+            input: z.string().cuid().describe('The team ID'),
+            output: z.array(app.strip().nullable().describe('The list of apps')),
+            type: 'query',
+        },
+        getById: {
+            // Get an app by its ID
+            input: z.string().cuid().describe('The app ID'),
+            output: app.strip().nullable().describe('The app, or null if not found'),
+            type: 'query',
+        },
+        create: {
+            // Create a new app
+            input: z.object({
+                integratorTeamId: z.string().cuid(),
+                name: z.string().min(1, { message: 'Name is required' }),
+                description: z.string().optional(),
+                affiliateAddress: z.string().optional(),
+                category: z.string().optional(),
+            }),
+            output: app.nullable().describe('The newly created app'),
+            type: 'mutation',
+        },
+        update: {
+            // Update an existing app
+            input: z
+                .object({
+                    name: z.string().min(1, { message: 'Name is required' }),
+                    description: z.string().optional(),
+                    affiliateAddress: z.string().optional(),
+                    category: z.string().optional(),
+                })
+                .partial()
+                .merge(z.object({ id: z.string().cuid().describe('The app ID') })),
+            output: app.nullable().describe('The updated app'),
+            type: 'mutation',
+        },
+        provisionAccess: {
+            // Provision access for an app to a given set of route-tag/rate-limit pairs
+            input: z.object({
+                id: z.string().cuid().describe('The app ID'),
+                routeTags: z.array(z.nativeEnum(TZippoRouteTag)),
+                rateLimits: z.array(
+                    z
+                        .object({
+                            second: z.number().optional(),
+                            minute: z.number().optional(),
+                            hour: z.number().optional(),
+                            day: z.number().optional(),
+                        })
+                        .partial(),
+                ),
+            }),
+            output: app.nullable().describe('The updated app'),
+            type: 'mutation',
+        },
+        deprovisionAccess: {
+            // De-provision access for an app to a given set of route-tags
+            input: z.object({
+                id: z.string().cuid().describe('The app ID'),
+                routeTags: z.array(z.nativeEnum(TZippoRouteTag)),
+            }),
+            output: app.nullable().describe('The updated app'),
+            type: 'mutation',
+        },
+        key: {
+            create: {
+                // Create a new app api key
+                input: z.object({
+                    integratorTeamId: z.string().cuid(),
+                    integratorAppId: z.string().cuid(),
+                    description: z.string().optional(),
+                }),
+                output: app.nullable().describe('The app with the new key'),
+                type: 'mutation',
+            },
+            update: {
+                // Update an existing app api key
+                input: z
+                    .object({
+                        description: z.string().optional(),
+                    })
+                    .partial()
+                    .merge(z.object({ id: z.string().cuid().describe('The key ID') })),
+                output: app.nullable().describe('The app with the updated key'),
+                type: 'mutation',
+            },
+            delete: {
+                // Delete an app api key
+                input: z.string().cuid().describe('The key ID'),
+                output: app.nullable().describe('The app with the removed key'),
+                type: 'mutation',
+            },
         },
     },
 } satisfies TProcedureTree;
