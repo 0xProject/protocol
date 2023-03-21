@@ -67,10 +67,9 @@ contract ZRXWrappedToken is ERC20, ERC20Permit, ERC20Wrapper {
         uint256 fromBalance = fromDelegate.delegate == address(0) ? 0 : balanceOf(from) + amount;
         uint256 toBalance = toDelegate.delegate == address(0) ? 0 : balanceOf(to) - amount;
 
-        if (fromDelegate.delegate != address(0))
-            _delegates[from].balanceLastUpdated = SafeCast.toUint96(block.timestamp);
+        if (fromDelegate.delegate != address(0)) _delegates[from].balanceLastUpdated = SafeCast.toUint96(block.number);
 
-        if (toDelegate.delegate != address(0)) _delegates[to].balanceLastUpdated = SafeCast.toUint96(block.timestamp);
+        if (toDelegate.delegate != address(0)) _delegates[to].balanceLastUpdated = SafeCast.toUint96(block.number);
 
         zeroExVotes.moveVotingPower(
             fromDelegate.delegate,
@@ -106,6 +105,9 @@ contract ZRXWrappedToken is ERC20, ERC20Permit, ERC20Wrapper {
         return _delegates[account].delegate;
     }
 
+    /**
+     * @dev Get the last block number when `account`'s balance changed.
+     */
     function delegatorBalanceLastUpdated(address account) public view returns (uint96) {
         return _delegates[account].balanceLastUpdated;
     }

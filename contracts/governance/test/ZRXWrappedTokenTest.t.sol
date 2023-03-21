@@ -302,13 +302,13 @@ contract ZRXWrappedTokenTest is BaseTest {
 
         account2DelegateInfo = wToken.delegateInfo(account2);
         assertEq(account2DelegateInfo.delegate, account3);
-        assertEq(account2DelegateInfo.balanceLastUpdated, block.timestamp);
+        assertEq(account2DelegateInfo.balanceLastUpdated, 1); // Set to the block.number
 
-        vm.warp(101);
+        vm.roll(3);
         wToken.transfer(account3, 3e18);
 
         account2DelegateInfo = wToken.delegateInfo(account2);
         assertEq(account2DelegateInfo.delegate, account3);
-        assertEq(account2DelegateInfo.balanceLastUpdated, 101);
+        assertEq(account2DelegateInfo.balanceLastUpdated, 3);
     }
 }
