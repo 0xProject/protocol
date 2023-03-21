@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
-        "outDir": "__build__"
+        "outDir": "__build__",
+        "target": "ES2020"
     },
     "extends": "tsconfig/tsconfig.common.json",
     "include": ["src/**/*"]

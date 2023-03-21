@@ -1,0 +1,8 @@
+version: '3'
+services:
+  anvil:
+     container_name: anvil
+     image: ghcr.io/foundry-rs/foundry:nightly
+     entrypoint: "anvil --host 0.0.0.0"
+     ports:
+      - "0100:8545"

@@ -7,10 +7,11 @@
         "examples:client": "tsx examples/client.ts",
         "dev:server": "nodemon src/main.ts",
         "test": "jest",
-        "test:ci": "jest"
+        "test:ci": "jest --runInBand --forceExit"
     },
     "dependencies": {
         "@trpc/server": "^10.14.1",
+        "ethers": "6.1.0",
         "pool-cache-interface": "*",
         "zod": "^3.20.6"
     },
