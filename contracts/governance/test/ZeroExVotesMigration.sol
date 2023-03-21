@@ -115,7 +115,7 @@ contract ZeroExVotesMigration is ZeroExVotes {
             oldCkpt.quadraticVotes -= SafeCast.toUint96(oldQuadraticVotingPower);
         }
         if (oldCkpt.fromBlock > migrationBlock) {
-            oldCkpt.migratedVotes -= SafeCast.toUint32(CubeRoot.cbrt(userBalance));
+            oldCkpt.migratedVotes -= SafeCast.toUint32(CubeRoot.cbrt(userBalance)); // underflow
         }
 
         // if wallet > threshold, calculate quadratic power over the treshold only, below threshold is linear
