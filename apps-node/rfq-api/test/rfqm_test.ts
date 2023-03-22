@@ -245,9 +245,9 @@ describe('RFQM Integration', () => {
 
         // Create the mock rfqBlockchainUtils
         rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
-        when(rfqBlockchainUtilsMock.generateMetaTransactionCallData(anything(), anything(), anything())).thenReturn(
-            MOCK_META_TX_CALL_DATA,
-        );
+        when(
+            rfqBlockchainUtilsMock.generateMetaTransactionCallData(anything(), 'v1', anything(), anything()),
+        ).thenReturn(MOCK_META_TX_CALL_DATA);
         when(rfqBlockchainUtilsMock.getTokenBalancesAsync(anything())).thenResolve([new BigNumber(1)]);
         when(rfqBlockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([new BigNumber(1)]);
         when(rfqBlockchainUtilsMock.getNonceAsync(anything())).thenResolve(1);

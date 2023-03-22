@@ -22,6 +22,7 @@ import {
 } from '../config';
 import { GaslessTypes } from '../core/types';
 import { MetaTransactionJobEntity, RfqmV2JobEntity } from '../entities';
+import { MetaTransactionV2JobEntity } from '../entities/MetaTransactionV2JobEntity';
 import { getDbDataSourceAsync } from '../getDbDataSourceAsync';
 import { logger } from '../logger';
 import { WorkerService } from '../services/WorkerService';
@@ -181,25 +182,21 @@ export function createGaslessSwapWorker(
             const messageBody = JSON.parse(message.Body);
             const type = messageBody.type as GaslessTypes;
             let identifier;
-            let kind: (RfqmV2JobEntity | MetaTransactionJobEntity)['kind'];
+            let kind: (RfqmV2JobEntity | MetaTransactionJobEntity | MetaTransactionV2JobEntity)['kind'];
 
             switch (type) {
                 case GaslessTypes.OtcOrder:
-                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                    // eslint-disable-next-line no-case-declarations
-                    const { orderHash } = messageBody;
-                    identifier = orderHash;
+                    identifier = messageBody.orderHash;
                     kind = 'rfqm_v2_job';
                     break;
                 case GaslessTypes.MetaTransaction:
-                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                    // eslint-disable-next-line no-case-declarations
-                    const { id } = messageBody;
-                    identifier = id;
+                    identifier = messageBody.id;
                     kind = 'meta_transaction_job';
                     break;
                 case GaslessTypes.MetaTransactionV2:
-                    throw new Error('MetaTransaction V2 job is not supported yet');
+                    identifier = messageBody.id;
+                    kind = 'meta_transaction_v2_job';
+                    break;
                 default:
                     ((_x: never) => {
                         throw new Error('unreachable');

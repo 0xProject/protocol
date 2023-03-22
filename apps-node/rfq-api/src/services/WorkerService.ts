@@ -29,6 +29,8 @@ import {
     RfqmV2JobEntity,
     RfqmV2TransactionSubmissionEntity,
 } from '../entities';
+import { MetaTransactionV2JobEntity } from '../entities/MetaTransactionV2JobEntity';
+import { MetaTransactionV2SubmissionEntity } from '../entities/MetaTransactionV2SubmissionEntity';
 import {
     RfqmJobStatus,
     RfqmTransactionSubmissionStatus,
@@ -205,18 +207,18 @@ export class WorkerService {
         return null;
     }
 
-    // Returns a failure status for an invalid meta-transaction job or null if job is valid.
+    // Returns a failure status for an invalid meta-transaction / meta-transaction v2 job or null if job is valid.
     public static validateMetaTransactionJob(
-        job: MetaTransactionJobEntity,
+        job: MetaTransactionJobEntity | MetaTransactionV2JobEntity,
         now: Date = new Date(),
     ): RfqmJobStatus | null {
-        const { expiry, fee, metaTransaction, takerSignature } = job;
+        const { expiry, metaTransaction, takerSignature } = job;
 
         if (metaTransaction === null) {
             return RfqmJobStatus.FailedValidationNoOrder;
         }
 
-        if (fee === null) {
+        if (job.kind === 'meta_transaction_job' && job.fee === null) {
             return RfqmJobStatus.FailedValidationNoFee;
         }
 
@@ -273,6 +275,7 @@ export class WorkerService {
         const unresolvedJobs = await Promise.all([
             this._dbUtils.findV2UnresolvedJobsAsync(workerAddress, this._chainId),
             this._dbUtils.findUnresolvedMetaTransactionJobsAsync(workerAddress, this._chainId),
+            this._dbUtils.findUnresolvedMetaTransactionV2JobsAsync(workerAddress, this._chainId),
         ]).then((x) => x.flat());
 
         RFQM_JOB_REPAIR.labels(workerAddress, this._chainId.toString()).inc(unresolvedJobs.length);
@@ -285,6 +288,7 @@ export class WorkerService {
                     jobIdentifier = job.orderHash;
                     break;
                 case 'meta_transaction_job':
+                case 'meta_transaction_v2_job':
                     jobIdentifier = job.id;
                     break;
                 default:
@@ -334,8 +338,8 @@ export class WorkerService {
     }
 
     /**
-     * Top-level logic the worker uses to take a v2 job or meta-transaction job to completion.
-     * The identifier (orderHash for v2 job and jod id for meta-transaction job) can come from
+     * Top-level logic the worker uses to take a v2 job, meta-transaction job or meta-transaction v2 job
+     * to completion. The identifier (orderHash for v2 job and jod id for meta-transaction jobs) can come from
      * either an unfinished job found during the worker before logic or from an SQS message.
      *
      * Big picture steps:
@@ -354,7 +358,7 @@ export class WorkerService {
     public async processJobAsync(
         identifier: string,
         workerAddress: string,
-        kind: (RfqmV2JobEntity | MetaTransactionJobEntity)['kind'] = 'rfqm_v2_job',
+        kind: (RfqmV2JobEntity | MetaTransactionJobEntity | MetaTransactionV2JobEntity)['kind'] = 'rfqm_v2_job',
     ): Promise<void> {
         logger.info({ kind, identifier, workerAddress }, 'Start process job');
         const timerStopFunction = RFQM_PROCESS_JOB_LATENCY.labels(this._chainId.toString(), kind).startTimer();
@@ -368,6 +372,9 @@ export class WorkerService {
                     break;
                 case 'meta_transaction_job':
                     job = await this._dbUtils.findMetaTransactionJobByIdAsync(identifier);
+                    break;
+                case 'meta_transaction_v2_job':
+                    job = await this._dbUtils.findMetaTransactionV2JobByIdAsync(identifier);
                     break;
                 default:
                     ((_x: never) => {
@@ -421,7 +428,7 @@ export class WorkerService {
      * 7. Submit trade
      */
     public async processApprovalAndTradeAsync(
-        job: RfqmV2JobEntity | MetaTransactionJobEntity,
+        job: RfqmV2JobEntity | MetaTransactionJobEntity | MetaTransactionV2JobEntity,
         workerAddress: string,
     ): Promise<void> {
         const { approval, approvalSignature, kind } = job;
@@ -444,6 +451,7 @@ export class WorkerService {
                 identifier = job.orderHash;
                 break;
             case 'meta_transaction_job':
+            case 'meta_transaction_v2_job':
                 tokenToApprove = job.inputToken;
                 identifier = job.id;
                 break;
@@ -476,6 +484,7 @@ export class WorkerService {
                     tradeCalldata = await this.prepareRfqmV2TradeAsync(job, workerAddress, false);
                     break;
                 case 'meta_transaction_job':
+                case 'meta_transaction_v2_job':
                     tradeCalldata = await this.prepareMetaTransactionTradeAsync(job, workerAddress, false);
                     break;
                 default:
@@ -505,7 +514,7 @@ export class WorkerService {
      * and submit the trade to the blockchain. Note that job status would be updated to the corresponding state.
      */
     public async processTradeAsync(
-        job: RfqmV2JobEntity | MetaTransactionJobEntity,
+        job: RfqmV2JobEntity | MetaTransactionJobEntity | MetaTransactionV2JobEntity,
         workerAddress: string,
     ): Promise<void> {
         const { kind } = job;
@@ -518,6 +527,7 @@ export class WorkerService {
                 calldata = await this.prepareRfqmV2TradeAsync(job, workerAddress);
                 break;
             case 'meta_transaction_job':
+            case 'meta_transaction_v2_job':
                 identifier = job.id;
                 calldata = await this.prepareMetaTransactionTradeAsync(job, workerAddress);
                 break;
@@ -551,7 +561,7 @@ export class WorkerService {
      * 3. Update job status to `PendingProcessing` if current status is `PendingEnqueued`
      */
     public async checkJobPreprocessingAsync(
-        job: RfqmV2JobEntity | MetaTransactionJobEntity,
+        job: RfqmV2JobEntity | MetaTransactionJobEntity | MetaTransactionV2JobEntity,
         now: Date = new Date(),
     ): Promise<void> {
         const { kind, takerSignature } = job;
@@ -564,6 +574,7 @@ export class WorkerService {
                 errorStatus = WorkerService.validateRfqmV2Job(job, now);
                 break;
             case 'meta_transaction_job':
+            case 'meta_transaction_v2_job':
                 identifier = job.id;
                 errorStatus = WorkerService.validateMetaTransactionJob(job, now);
                 break;
@@ -597,7 +608,7 @@ export class WorkerService {
     }
 
     /**
-     * Prepares a rfqm v2 / meta-transaction job for approval submission by validatidating the job and constructing
+     * Prepares a rfqm v2 / meta-transaction / meta-transaction v2 job for approval submission by validatidating the job and constructing
      * the calldata.
      *
      * Note that `job.status` would be modified to `FailedEthCallFailed` if transaction simulation failed.
@@ -608,7 +619,7 @@ export class WorkerService {
      * @throws If the approval cannot be submitted (e.g. it is expired).
      */
     public async prepareApprovalAsync(
-        job: RfqmV2JobEntity | MetaTransactionJobEntity,
+        job: RfqmV2JobEntity | MetaTransactionJobEntity | MetaTransactionV2JobEntity,
         tokenToApprove: string,
         approval: Approval,
         siganature: Signature,
@@ -635,6 +646,13 @@ export class WorkerService {
             case 'meta_transaction_job':
                 identifier = job.id;
                 transactionSubmissions = await this._dbUtils.findMetaTransactionSubmissionsByJobIdAsync(
+                    identifier,
+                    RfqmTransactionSubmissionType.Approval,
+                );
+                break;
+            case 'meta_transaction_v2_job':
+                identifier = job.id;
+                transactionSubmissions = await this._dbUtils.findMetaTransactionV2SubmissionsByJobIdAsync(
                     identifier,
                     RfqmTransactionSubmissionType.Approval,
                 );
@@ -885,7 +903,7 @@ export class WorkerService {
      * @throws If the trade cannot be submitted (e.g. it is expired).
      */
     public async prepareMetaTransactionTradeAsync(
-        job: MetaTransactionJobEntity,
+        job: MetaTransactionJobEntity | MetaTransactionV2JobEntity,
         workerAddress: string,
         // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
         // eslint-disable-next-line @typescript-eslint/no-inferrable-types
@@ -898,18 +916,36 @@ export class WorkerService {
 
         // Check to see if we have already submitted a transaction for this job.
         // If we have, the job is already prepared and we can skip ahead.
-        const transactionSubmissions = await this._dbUtils.findMetaTransactionSubmissionsByJobIdAsync(jobId);
+        let transactionSubmissions: MetaTransactionSubmissionEntity[] | MetaTransactionV2SubmissionEntity[] = [];
+        const jobKind = job.kind;
+        let metaTransactionVersion: 'v1' | 'v2';
+        switch (jobKind) {
+            case 'meta_transaction_job':
+                metaTransactionVersion = 'v1';
+                transactionSubmissions = await this._dbUtils.findMetaTransactionSubmissionsByJobIdAsync(jobId);
+                break;
+            case 'meta_transaction_v2_job':
+                metaTransactionVersion = 'v2';
+                transactionSubmissions = await this._dbUtils.findMetaTransactionV2SubmissionsByJobIdAsync(jobId);
+                break;
+            default:
+                ((_x: never) => {
+                    throw new Error('unreachable');
+                })(jobKind);
+        }
+
         if (transactionSubmissions.length) {
             if (!takerSignature) {
                 // This shouldn't happen
                 throw new Error('Encountered a job with submissions but no taker signature');
             }
-            const existingSubmissionCalldata = this._blockchainUtils.generateMetaTransactionCallData(
+
+            return this._blockchainUtils.generateMetaTransactionCallData(
                 metaTransaction,
+                metaTransactionVersion,
                 takerSignature,
                 affiliateAddress,
             );
-            return existingSubmissionCalldata;
         }
 
         if (shouldValidateJob) {
@@ -925,6 +961,7 @@ export class WorkerService {
         // Generate the calldata
         const calldata = this._blockchainUtils.generateMetaTransactionCallData(
             metaTransaction,
+            metaTransactionVersion,
             takerSignature,
             affiliateAddress,
         );
@@ -1370,7 +1407,7 @@ export class WorkerService {
      * @throws Submission context status is FailedExpired or unhandled exceptions.
      */
     public async submitToChainAsync(opts: {
-        kind: (RfqmV2JobEntity | MetaTransactionJobEntity)['kind'];
+        kind: (RfqmV2JobEntity | MetaTransactionJobEntity | MetaTransactionV2JobEntity)['kind'];
         to: string;
         from: string;
         calldata: string;
@@ -1394,6 +1431,12 @@ export class WorkerService {
                 break;
             case 'meta_transaction_job':
                 previousSubmissionsWithPresubmits = await this._dbUtils.findMetaTransactionSubmissionsByJobIdAsync(
+                    identifier,
+                    submissionType,
+                );
+                break;
+            case 'meta_transaction_v2_job':
+                previousSubmissionsWithPresubmits = await this._dbUtils.findMetaTransactionV2SubmissionsByJobIdAsync(
                     identifier,
                     submissionType,
                 );
@@ -1712,12 +1755,12 @@ export class WorkerService {
      * This function also "closes over" `job` so that it's accessible in the callback function. Refer the docstring of
      * `RfqmTransactionSubmissionContextStatus` for more details on submission context.
      *
-     * @param job A rfqm v2 job or a meta transactino job object.
+     * @param job A rfqm v2 job, a meta-transactino job or a meta-transaction v2 object.
      * @param submissionType Type of submission.
      * @returns Function would make appropriate update to job status according to submission context statuses and submission type.
      */
     private _getOnSubmissionContextStatusUpdateCallback(
-        job: RfqmV2JobEntity | MetaTransactionJobEntity,
+        job: RfqmV2JobEntity | MetaTransactionJobEntity | MetaTransactionV2JobEntity,
         submissionType: RfqmTransactionSubmissionType,
     ): (
         newSubmissionContextStatus: SubmissionContextStatus,
@@ -1764,7 +1807,10 @@ export class WorkerService {
      * this check we can potentially recover it later.
      */
     private async _recoverPresubmitTransactionsAsync<
-        T extends RfqmV2TransactionSubmissionEntity[] | MetaTransactionSubmissionEntity[],
+        T extends
+            | RfqmV2TransactionSubmissionEntity[]
+            | MetaTransactionSubmissionEntity[]
+            | MetaTransactionV2SubmissionEntity[],
     >(transactionSubmissions: T): Promise<T> {
         // Any is so nasty -- https://dev.to/shadow1349/typescript-tip-of-the-week-generics-170g
         // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
@@ -1799,7 +1845,11 @@ export class WorkerService {
      */
     private async _checkSubmissionReceiptsAndUpdateDbAsync(
         identifier: string,
-        submissionContext: SubmissionContext<RfqmV2TransactionSubmissionEntity[] | MetaTransactionSubmissionEntity[]>,
+        submissionContext: SubmissionContext<
+            | RfqmV2TransactionSubmissionEntity[]
+            | MetaTransactionSubmissionEntity[]
+            | MetaTransactionV2SubmissionEntity[]
+        >,
     ): Promise<
         | SubmissionContextStatus.PendingSubmitted
         | SubmissionContextStatus.FailedRevertedConfirmed
@@ -1840,7 +1890,7 @@ export class WorkerService {
      * Determine transaction properties and submit a transaction
      */
     private async _submitTransactionAsync(
-        kind: (RfqmV2JobEntity | MetaTransactionJobEntity)['kind'],
+        kind: (RfqmV2JobEntity | MetaTransactionJobEntity | MetaTransactionV2JobEntity)['kind'],
         identifier: string,
         workerAddress: string,
         callData: string,
@@ -1849,7 +1899,9 @@ export class WorkerService {
         gasEstimate: number,
         submissionType: RfqmTransactionSubmissionType = RfqmTransactionSubmissionType.Trade,
         to: string = this._blockchainUtils.getExchangeProxyAddress(),
-    ): Promise<RfqmV2TransactionSubmissionEntity | MetaTransactionSubmissionEntity> {
+    ): Promise<
+        RfqmV2TransactionSubmissionEntity | MetaTransactionSubmissionEntity | MetaTransactionV2SubmissionEntity
+    > {
         const txOptions = {
             ...gasFees,
             from: workerAddress,
@@ -1901,6 +1953,20 @@ export class WorkerService {
                 };
                 transactionSubmissionEntity = await this._dbUtils.writeMetaTransactionSubmissionAsync(partialEntity);
                 break;
+            case 'meta_transaction_v2_job':
+                partialEntity = {
+                    ...gasFees,
+                    transactionHash,
+                    metaTransactionV2JobId: identifier,
+                    createdAt: new Date(),
+                    from: workerAddress,
+                    to,
+                    nonce,
+                    status: RfqmTransactionSubmissionStatus.Presubmit,
+                    type: submissionType,
+                };
+                transactionSubmissionEntity = await this._dbUtils.writeMetaTransactionV2SubmissionAsync(partialEntity);
+                break;
             default:
                 ((_x: never) => {
                     throw new Error('unreachable');
@@ -1928,7 +1994,10 @@ export class WorkerService {
                 ...transactionSubmissionEntity,
                 status: RfqmTransactionSubmissionStatus.Submitted,
             },
-        ] as RfqmV2TransactionSubmissionEntity[] | MetaTransactionSubmissionEntity[];
+        ] as
+            | RfqmV2TransactionSubmissionEntity[]
+            | MetaTransactionSubmissionEntity[]
+            | MetaTransactionV2SubmissionEntity[];
 
         await this._dbUtils.updateRfqmTransactionSubmissionsAsync(updatedTransactionSubmission);
 
@@ -1940,13 +2009,20 @@ export class WorkerService {
                 );
                 break;
             case 'meta_transaction_job':
+            case 'meta_transaction_v2_job':
                 // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
                 // eslint-disable-next-line no-case-declarations
                 const updatedSubmissionEntities =
-                    await this._dbUtils.findMetaTransactionSubmissionsByTransactionHashAsync(
-                        transactionHashFromSubmit,
-                        submissionType,
-                    );
+                    kind === 'meta_transaction_job'
+                        ? await this._dbUtils.findMetaTransactionSubmissionsByTransactionHashAsync(
+                              transactionHashFromSubmit,
+                              submissionType,
+                          )
+                        : await this._dbUtils.findMetaTransactionV2SubmissionsByTransactionHashAsync(
+                              transactionHashFromSubmit,
+                              submissionType,
+                          );
+
                 if (updatedSubmissionEntities.length !== 1) {
                     // A transaction hash should never be submitted twice in our system. However, RFQ-562 mentioned cases like this could
                     // happen in our system. Add more log and throw the error to surface it.

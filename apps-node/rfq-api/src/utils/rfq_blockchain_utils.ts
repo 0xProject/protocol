@@ -1,6 +1,6 @@
 import { ChainId } from '@0x/contract-addresses';
-import { IZeroExContract } from '@0x/contracts-zero-ex';
-import { MetaTransaction, OtcOrder, Signature } from '@0x/protocol-utils';
+import { IZeroExContract } from '@0x/contract-wrappers';
+import { MetaTransaction, MetaTransactionV2, OtcOrder, Signature } from '@0x/protocol-utils';
 import { PrivateKeyWalletSubprovider, SupportedProvider, Web3ProviderEngine } from '@0x/subproviders';
 import { BigNumber, providerUtils } from '@0x/utils';
 import { HDNode } from '@ethersproject/hdnode';
@@ -171,11 +171,30 @@ export class RfqBlockchainUtils {
     }
 
     public generateMetaTransactionCallData(
-        metaTx: MetaTransaction,
+        metaTx: MetaTransaction | MetaTransactionV2,
+        metaTxVersion: 'v1' | 'v2',
         metaTxSig: Signature,
         affiliateAddress: string | null,
     ): string {
-        const callData = this._exchangeProxy.executeMetaTransaction(metaTx, metaTxSig).getABIEncodedTransactionData();
+        let callData: string;
+
+        switch (metaTxVersion) {
+            case 'v1':
+                callData = this._exchangeProxy
+                    .executeMetaTransaction(metaTx as MetaTransaction, metaTxSig)
+                    .getABIEncodedTransactionData();
+                break;
+            case 'v2':
+                callData = this._exchangeProxy
+                    .executeMetaTransactionV2(metaTx as MetaTransactionV2, metaTxSig)
+                    .getABIEncodedTransactionData();
+                break;
+            default:
+                ((_x: never) => {
+                    throw new Error('unreachable');
+                })(metaTxVersion);
+        }
+
         return serviceUtils.attributeCallData(callData, affiliateAddress).affiliatedData;
     }
 

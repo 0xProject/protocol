@@ -3,6 +3,7 @@ import { providers } from 'ethersv5';
 
 import { ONE_SECOND_MS } from '../core/constants';
 import { MetaTransactionSubmissionEntity, RfqmV2TransactionSubmissionEntity } from '../entities';
+import { MetaTransactionV2SubmissionEntity } from '../entities/MetaTransactionV2SubmissionEntity';
 import { RfqmJobStatus, RfqmTransactionSubmissionStatus, SubmissionContextStatus } from '../entities/types';
 
 import { RfqBlockchainUtils } from './rfq_blockchain_utils';
@@ -23,7 +24,12 @@ function isDefined<T>(value: T): value is NonNullable<T> {
  * all as one unit. It ensures consistency across transactions and makes retrieval
  * of the mined transaction receipt, if one exists, easy.
  */
-export class SubmissionContext<T extends RfqmV2TransactionSubmissionEntity[] | MetaTransactionSubmissionEntity[]> {
+export class SubmissionContext<
+    T extends
+        | RfqmV2TransactionSubmissionEntity[]
+        | MetaTransactionSubmissionEntity[]
+        | MetaTransactionV2SubmissionEntity[],
+> {
     private _transactions: T;
     private readonly _blockchainUtils: RfqBlockchainUtils;
     private readonly _transactionType: 0 | 2;

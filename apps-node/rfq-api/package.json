@@ -90,7 +90,7 @@
         "@0x/api-utils": "^0.0.1",
         "@0x/assert": "^3.0.30",
         "@0x/contract-addresses": "^8.0.1",
-        "@0x/contract-wrappers": "^13.18.1",
+        "@0x/contract-wrappers": "0xProject/gitpkg-registry#0x-contract-wrappers-v13.22.16-a0df630ba",
         "@0x/contracts-zero-ex": "^0.29.3",
         "@0x/json-schemas": "^6.4.0",
         "@0x/protocol-utils": "0xProject/gitpkg-registry#0x-protocol-utils-v11.17.6-5b82e338b",
