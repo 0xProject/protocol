@@ -6,6 +6,7 @@
         "generated-artifacts/AffiliateFeeTransformer.json",
         "generated-artifacts/AvalancheBridgeAdapter.json",
         "generated-artifacts/BSCBridgeAdapter.json",
+        "generated-artifacts/BaseGoerliBridgeAdapter.json",
         "generated-artifacts/BatchFillNativeOrdersFeature.json",
         "generated-artifacts/CeloBridgeAdapter.json",
         "generated-artifacts/CurveLiquidityProvider.json",
