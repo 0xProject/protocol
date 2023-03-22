@@ -27,6 +27,8 @@ import "./interfaces/IMultiQuoter.sol";
 
 contract UniswapV3Sampler is UniswapV3Common {
     IMultiQuoter private constant multiQuoter = IMultiQuoter(0x5555555555555555555555555555555555555556);
+    /// @dev Gas limit for UniswapV3 calls
+    uint256 private constant SAMPLING_GAS_LIMIT = 1500e3;
 
     /// @dev Sample sell quotes from UniswapV3.
     /// @param factory UniswapV3 Factory contract.
@@ -43,12 +45,7 @@ contract UniswapV3Sampler is UniswapV3Common {
         public
         returns (bytes[] memory uniswapPaths, uint256[] memory uniswapGasUsed, uint256[] memory makerTokenAmounts)
     {
-        address[][] memory poolPaths = getPoolPaths(
-            factory,
-            multiQuoter,
-            path,
-            takerTokenAmounts[takerTokenAmounts.length - 1]
-        );
+        address[][] memory poolPaths = getPoolPaths(factory, path);
 
         makerTokenAmounts = new uint256[](takerTokenAmounts.length);
         uniswapPaths = new bytes[](takerTokenAmounts.length);
@@ -64,9 +61,9 @@ contract UniswapV3Sampler is UniswapV3Common {
             uint256[] memory amountsOut;
             uint256[] memory gasEstimates;
 
-            try multiQuoter.quoteExactMultiInput(factory, uniswapPath, takerTokenAmounts) {} catch (
-                bytes memory reason
-            ) {
+            try
+                multiQuoter.quoteExactMultiInput{gas: SAMPLING_GAS_LIMIT}(factory, uniswapPath, takerTokenAmounts)
+            {} catch (bytes memory reason) {
                 bool success;
                 (success, amountsOut, gasEstimates) = decodeMultiSwapRevert(reason);
 
@@ -108,12 +105,7 @@ contract UniswapV3Sampler is UniswapV3Common {
         returns (bytes[] memory uniswapPaths, uint256[] memory uniswapGasUsed, uint256[] memory takerTokenAmounts)
     {
         address[] memory reversedPath = reverseAddressPath(path);
-        address[][] memory poolPaths = getPoolPaths(
-            factory,
-            multiQuoter,
-            reversedPath,
-            makerTokenAmounts[makerTokenAmounts.length - 1]
-        );
+        address[][] memory poolPaths = getPoolPaths(factory, reversedPath);
 
         takerTokenAmounts = new uint256[](makerTokenAmounts.length);
         uniswapPaths = new bytes[](makerTokenAmounts.length);
@@ -129,9 +121,9 @@ contract UniswapV3Sampler is UniswapV3Common {
             uint256[] memory amountsIn;
             uint256[] memory gasEstimates;
 
-            try multiQuoter.quoteExactMultiOutput(factory, uniswapPath, makerTokenAmounts) {} catch (
-                bytes memory reason
-            ) {
+            try
+                multiQuoter.quoteExactMultiOutput{gas: SAMPLING_GAS_LIMIT}(factory, uniswapPath, makerTokenAmounts)
+            {} catch (bytes memory reason) {
                 bool success;
                 (success, amountsIn, gasEstimates) = decodeMultiSwapRevert(reason);
 

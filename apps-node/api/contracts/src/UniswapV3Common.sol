@@ -23,13 +23,9 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
 import "./interfaces/IUniswapV3.sol";
-import "./interfaces/IMultiQuoter.sol";
 import "./TickBasedAMMCommon.sol";
 
 contract UniswapV3Common is TickBasedAMMCommon {
-    /// @dev Gas limit for UniswapV3 calls
-    uint256 private constant POOL_FILTERING_GAS_LIMIT = 450e3;
-
     function toUniswapPath(
         address[] memory tokenPath,
         address[] memory poolPath
@@ -62,36 +58,23 @@ contract UniswapV3Common is TickBasedAMMCommon {
     }
 
     /// @dev Returns `poolPaths` to sample against. The caller is responsible for not using path involinvg zero address(es).
-    function getPoolPaths(
-        address factory,
-        IMultiQuoter multiQuoter,
-        address[] memory path,
-        uint256 inputAmount
-    ) internal view returns (address[][] memory poolPaths) {
+    function getPoolPaths(address factory, address[] memory path) internal view returns (address[][] memory poolPaths) {
         if (path.length == 2) {
-            return getPoolPathSingleHop(factory, multiQuoter, path, inputAmount);
+            return getPoolPathSingleHop(factory, path);
         }
         if (path.length == 3) {
-            return getPoolPathTwoHop(factory, multiQuoter, path, inputAmount);
+            return getPoolPathTwoHop(factory, path);
         }
         revert("UniswapV3Sampler/unsupported token path length");
     }
 
     function getPoolPathSingleHop(
         address factory,
-        IMultiQuoter multiQuoter,
-        address[] memory path,
-        uint256 inputAmount
+        address[] memory path
     ) private view returns (address[][] memory poolPaths) {
         poolPaths = new address[][](2);
-        (address[2] memory topPools, ) = getTopTwoPools(
-            GetTopTwoPoolsParams({
-                factory: factory,
-                multiQuoter: multiQuoter,
-                inputToken: path[0],
-                outputToken: path[1],
-                inputAmount: inputAmount
-            })
+        address[2] memory topPools = getTopTwoPools(
+            GetTopTwoPoolsParams({factory: factory, inputToken: path[0], outputToken: path[1]})
         );
 
         uint256 pathCount = 0;
@@ -105,29 +88,15 @@ contract UniswapV3Common is TickBasedAMMCommon {
 
     function getPoolPathTwoHop(
         address factory,
-        IMultiQuoter multiQuoter,
-        address[] memory path,
-        uint256 inputAmount
+        address[] memory path
     ) private view returns (address[][] memory poolPaths) {
         poolPaths = new address[][](4);
-        (address[2] memory firstHopTopPools, uint256[2] memory firstHopAmounts) = getTopTwoPools(
-            GetTopTwoPoolsParams({
-                factory: factory,
-                multiQuoter: multiQuoter,
-                inputToken: path[0],
-                outputToken: path[1],
-                inputAmount: inputAmount
-            })
+        address[2] memory firstHopTopPools = getTopTwoPools(
+            GetTopTwoPoolsParams({factory: factory, inputToken: path[0], outputToken: path[1]})
         );
 
-        (address[2] memory secondHopTopPools, ) = getTopTwoPools(
-            GetTopTwoPoolsParams({
-                factory: factory,
-                multiQuoter: multiQuoter,
-                inputToken: path[1],
-                outputToken: path[2],
-                inputAmount: firstHopAmounts[0]
-            })
+        address[2] memory secondHopTopPools = getTopTwoPools(
+            GetTopTwoPoolsParams({factory: factory, inputToken: path[1], outputToken: path[2]})
         );
 
         uint256 pathCount = 0;
@@ -144,25 +113,20 @@ contract UniswapV3Common is TickBasedAMMCommon {
 
     struct GetTopTwoPoolsParams {
         address factory;
-        IMultiQuoter multiQuoter;
         address inputToken;
         address outputToken;
-        uint256 inputAmount;
     }
 
     /// @dev Returns top 0-2 pools and corresponding output amounts based on swaping `inputAmount`.
     /// Addresses in `topPools` can be zero addresses when there are pool isn't available.
-    function getTopTwoPools(
-        GetTopTwoPoolsParams memory params
-    ) private view returns (address[2] memory topPools, uint256[2] memory topOutputAmounts) {
+    function getTopTwoPools(GetTopTwoPoolsParams memory params) private view returns (address[2] memory topPools) {
         address[] memory path = new address[](2);
         path[0] = params.inputToken;
         path[1] = params.outputToken;
 
-        uint256[] memory inputAmounts = new uint256[](1);
-        inputAmounts[0] = params.inputAmount;
-
         uint24[4] memory validPoolFees = [uint24(0.0001e6), uint24(0.0005e6), uint24(0.003e6), uint24(0.01e6)];
+        uint128[2] memory topLiquidityAmounts;
+
         for (uint256 i = 0; i < validPoolFees.length; ++i) {
             address pool = IUniswapV3Factory(params.factory).getPool(
                 params.inputToken,
@@ -173,30 +137,15 @@ contract UniswapV3Common is TickBasedAMMCommon {
                 continue;
             }
 
-            address[] memory poolPath = new address[](1);
-            poolPath[0] = pool;
-            bytes memory uniswapPath = toUniswapPath(path, poolPath);
-
-            try
-                params.multiQuoter.quoteExactMultiInput{gas: POOL_FILTERING_GAS_LIMIT}(
-                    params.factory,
-                    uniswapPath,
-                    inputAmounts
-                )
-            {} catch (bytes memory reason) {
-                (bool success, uint256[] memory outputAmounts, ) = decodeMultiSwapRevert(reason);
-                if (success) {
-                    // Keeping track of the top 2 pools.
-                    if (outputAmounts[0] > topOutputAmounts[0]) {
-                        topOutputAmounts[1] = topOutputAmounts[0];
-                        topPools[1] = topPools[0];
-                        topOutputAmounts[0] = outputAmounts[0];
-                        topPools[0] = pool;
-                    } else if (outputAmounts[0] > topOutputAmounts[1]) {
-                        topOutputAmounts[1] = outputAmounts[0];
-                        topPools[1] = pool;
-                    }
-                }
+            uint128 currLiquidity = IUniswapV3Pool(pool).liquidity();
+            if (currLiquidity > topLiquidityAmounts[0]) {
+                topLiquidityAmounts[1] = topLiquidityAmounts[0];
+                topPools[1] = topPools[0];
+                topLiquidityAmounts[0] = currLiquidity;
+                topPools[0] = pool;
+            } else if (currLiquidity > topLiquidityAmounts[1]) {
+                topLiquidityAmounts[1] = currLiquidity;
+                topPools[1] = pool;
             }
         }
     }
