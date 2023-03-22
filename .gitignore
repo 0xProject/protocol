@@ -75,6 +75,9 @@ TODO.md
 # IDE file
 .vscode
 .idea
+*~
+.\#*
+\#*\#
 
 # generated contract artifacts/
 generated-artifacts/
