@@ -3,7 +3,7 @@ import {
     kongEnsureConsumer,
     kongEnsureKey,
     kongEnsureRateLimit,
-    kongEnsureRequestTransformer,
+    kongEnsureZeroexHeaders,
     kongGetAcl,
     kongGetConsumer,
     kongGetKey,
@@ -36,8 +36,8 @@ describe('kong gateway integration', () => {
             );
         });
 
-        it('should create a request transformer', async () => {
-            await expect(kongEnsureRequestTransformer('app1', 'integrator1')).resolves.not.toBeNull();
+        it('should create zeroex headers', async () => {
+            await expect(kongEnsureZeroexHeaders('app1', 'integrator1')).resolves.not.toBeNull();
         });
 
         it('should be able to get the new consumer', async () => {
@@ -61,9 +61,9 @@ describe('kong gateway integration', () => {
             await expect(kongEnsureConsumer('app1')).resolves.not.toBeNull();
         });
 
-        it('should ensure request transformer idempotency', async () => {
-            await expect(kongEnsureRequestTransformer('app1', 'integrator1')).resolves.not.toBeNull();
-            await expect(kongEnsureRequestTransformer('app1', 'integrator1')).resolves.not.toBeNull();
+        it('should ensure zeroex headers idempotency', async () => {
+            await expect(kongEnsureZeroexHeaders('app1', 'integrator1')).resolves.not.toBeNull();
+            await expect(kongEnsureZeroexHeaders('app1', 'integrator1')).resolves.not.toBeNull();
         });
 
         it('should be able to get the new consumer', async () => {
@@ -80,7 +80,7 @@ describe('kong gateway integration', () => {
 
         it('should start with an empty kong configuration', async () => {
             await expect(kongEnsureConsumer('app1')).resolves.not.toBeNull();
-            await expect(kongEnsureRequestTransformer('app1', 'integrator1')).resolves.not.toBeNull();
+            await expect(kongEnsureZeroexHeaders('app1', 'integrator1')).resolves.not.toBeNull();
             await expect(kongGetKey('app1', '56ce736a-37d4-40e4-8d19-820f849383b3')).resolves.toBeNull();
         });
 
@@ -106,7 +106,7 @@ describe('kong gateway integration', () => {
 
         it('should start with an empty kong configuration', async () => {
             await expect(kongEnsureConsumer('app1')).resolves.not.toBeNull();
-            await expect(kongEnsureRequestTransformer('app1', 'integrator1')).resolves.not.toBeNull();
+            await expect(kongEnsureZeroexHeaders('app1', 'integrator1')).resolves.not.toBeNull();
             await expect(kongGetKey('app1', '56ce736a-37d4-40e4-8d19-820f849383b3')).resolves.toBeNull();
             await expect(kongGetKey('app1', 'app1-key2')).resolves.toBeNull();
         });
@@ -143,7 +143,7 @@ describe('kong gateway integration', () => {
 
         it('should start with an empty kong configuration', async () => {
             await expect(kongEnsureConsumer('app1')).resolves.not.toBeNull();
-            await expect(kongEnsureRequestTransformer('app1', 'integrator1')).resolves.not.toBeNull();
+            await expect(kongEnsureZeroexHeaders('app1', 'integrator1')).resolves.not.toBeNull();
             await expect(kongGetKey('app1', '56ce736a-37d4-40e4-8d19-820f849383b3')).resolves.toBeNull();
         });
 
@@ -174,7 +174,7 @@ describe('kong gateway integration', () => {
 
         it('should start with an empty kong configuration', async () => {
             await expect(kongEnsureConsumer('app1')).resolves.not.toBeNull();
-            await expect(kongEnsureRequestTransformer('app1', 'integrator1')).resolves.not.toBeNull();
+            await expect(kongEnsureZeroexHeaders('app1', 'integrator1')).resolves.not.toBeNull();
             await expect(kongEnsureKey('app1', '56ce736a-37d4-40e4-8d19-820f849383b3')).resolves.not.toBeNull();
             await expect(kongGetAcl('app1', 'swap_v1_price_group')).resolves.toBeNull();
         });

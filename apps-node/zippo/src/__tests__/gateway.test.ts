@@ -2,6 +2,7 @@ import { kongMock } from './mocks/kongMock';
 
 import { provisionIntegratorAccess } from '../gateway';
 import { TZippoRouteTag } from 'zippo-interface';
+import { kongEnsureZeroexHeaders } from '../gateway/kongGateway';
 
 describe('gateway tests', () => {
     describe('provision integrator', () => {
@@ -11,7 +12,7 @@ describe('gateway tests', () => {
                 created_at: 12345,
                 username: 'app12345',
             });
-            kongMock.kongEnsureRequestTransformer.mockResolvedValue(true);
+            kongMock.kongEnsureZeroexHeaders.mockResolvedValue(true);
             kongMock.kongEnsureAcl.mockResolvedValue({
                 id: '256f70c1-e993-4293-a4a4-528190f2b46c',
                 consumer: { id: '356f70c1-e993-4293-a4a4-528190f2b46c' },
@@ -43,8 +44,8 @@ describe('gateway tests', () => {
 
         it('should confirm mock calls', () => {
             expect(kongMock.kongEnsureConsumer.mock.calls[0][0]).toEqual('app12345');
-            expect(kongMock.kongEnsureRequestTransformer.mock.calls[0][0]).toEqual('app12345');
-            expect(kongMock.kongEnsureRequestTransformer.mock.calls[0][1]).toEqual('integrator12345');
+            expect(kongMock.kongEnsureZeroexHeaders.mock.calls[0][0]).toEqual('app12345');
+            expect(kongMock.kongEnsureZeroexHeaders.mock.calls[0][1]).toEqual('integrator12345');
             expect(kongMock.kongEnsureAcl.mock.calls[0][0]).toEqual('app12345');
             expect(kongMock.kongEnsureAcl.mock.calls[0][1]).toEqual('swap_v1_prices_group');
             expect(kongMock.kongEnsureRateLimit.mock.calls[0][0]).toEqual('app12345');

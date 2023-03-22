@@ -7,7 +7,7 @@ import {
     kongEnsureConsumer,
     kongEnsureKey,
     kongEnsureRateLimit,
-    kongEnsureRequestTransformer,
+    kongEnsureZeroexHeaders,
     kongRemoveAcl,
     kongRemoveConsumer,
     kongRemoveKey,
@@ -27,9 +27,9 @@ export async function provisionIntegratorKey(integratorId: string, appId: string
         logger.error({ integratorId, appId }, 'Unable to add kong consumer');
         return false;
     }
-    logger.info({ integratorId, appId }, 'Ensuring app has request transformer');
-    if (!(await kongEnsureRequestTransformer(appId, integratorId))) {
-        logger.error({ integratorId, appId }, 'Unable to add request transformer');
+    logger.info({ integratorId, appId }, 'Ensuring app has zeroex headers');
+    if (!(await kongEnsureZeroexHeaders(appId, integratorId))) {
+        logger.error({ integratorId, appId }, 'Unable to add zeroex headers');
     }
     logger.info({ integratorId, appId }, 'Ensuring app api key');
     const kongKey = await kongEnsureKey(appId, key);
@@ -64,9 +64,9 @@ export async function provisionIntegratorAccess(
         logger.error({ integratorId, appId }, 'Unable to add kong consumer');
         return false;
     }
-    logger.info({ integratorId, appId }, 'Ensuring app has request transformer');
-    if (!(await kongEnsureRequestTransformer(appId, integratorId))) {
-        logger.error({ integratorId, appId }, 'Unable to add request transformer');
+    logger.info({ integratorId, appId }, 'Ensuring app has zeroex headers');
+    if (!(await kongEnsureZeroexHeaders(appId, integratorId))) {
+        logger.error({ integratorId, appId }, 'Unable to add zeroex headers');
     }
 
     const grantAccessPromises = routes.map(async (route, i) => {

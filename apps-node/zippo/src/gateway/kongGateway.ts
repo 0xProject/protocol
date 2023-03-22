@@ -44,18 +44,18 @@ export async function kongRemoveConsumer(appId: string): Promise<boolean> {
 }
 
 /**
- * Ensure the kong request-transformer plugin is configured for the app
+ * Ensure the kong zeroex-headers plugin is configured with the app/integrator IDs
  * @param appId Kong consumer appId
  * @param integratorId Integrator ID to map to appId (used in request headers to backend services)
  */
-export async function kongEnsureRequestTransformer(appId: string, integratorId: string): Promise<boolean> {
+export async function kongEnsureZeroexHeaders(appId: string, integratorId: string): Promise<boolean> {
     let foundPlugin;
     try {
         const { data, status } = await kongGet<KongPlugins>(`/consumers/${appId}/plugins`);
         if (status !== StatusCodes.OK) {
             return false;
         }
-        foundPlugin = data.data.find((plugin) => plugin.name === 'request-transformer');
+        foundPlugin = data.data.find((plugin) => plugin.name === 'zeroex-headers');
     } catch {
         return false;
     }
@@ -64,14 +64,10 @@ export async function kongEnsureRequestTransformer(appId: string, integratorId: 
     }
     try {
         const req = {
-            name: 'request-transformer',
+            name: 'zeroex-headers',
             config: {
-                rename: {
-                    headers: ['X-Consumer-Username:0x-App-Id'],
-                },
-                add: {
-                    headers: ['0x-Integrator-Id:' + integratorId],
-                },
+                integrator_id: integratorId,
+                app_id: appId,
             },
         };
         const { status } = await kongPost(`/consumers/${appId}/plugins`, req);

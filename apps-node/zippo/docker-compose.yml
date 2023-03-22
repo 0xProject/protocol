@@ -33,6 +33,11 @@ services:
       - KONG_PROXY_ERROR_LOG=/dev/stderr
       - KONG_ADMIN_ERROR_LOG=/dev/stderr
       - KONG_ADMIN_LISTEN=0.0.0.0:8001, 0.0.0.0:8444 ssl
+      - KONG_LUA_PACKAGE_PATH=/usr/local/custom/?.lua;;
+      - KONG_PLUGINS=bundled,zeroex-headers
+      - KONG_LOG_LEVEL=debug
+    volumes:
+      - ./kong:/usr/local/custom/kong
     ports:
       - '8000:8000'
       - '8443:8443'
