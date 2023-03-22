@@ -157,17 +157,8 @@ contract ZeroExVotesMigration is ZeroExVotes {
 
         oldQuadraticWeight = oldCkpt.quadraticVotes;
 
-        // Remove the entire sqrt userBalance from quadratic voting power.
-        // Note that `userBalance` is value _after_ transfer.
         if (pos > 0) {
-            uint256 oldQuadraticVotingPower = userBalance <= quadraticThreshold
-                ? userBalance
-                : quadraticThreshold + Math.sqrt((userBalance - quadraticThreshold) * 1e18);
-            oldCkpt.quadraticVotes -= SafeCast.toUint96(oldQuadraticVotingPower);
-
-            if (oldCkpt.fromBlock > migrationBlock && balanceLastUpdated > migrationBlock) {
-                oldCkpt.migratedVotes -= SafeCast.toUint32(CubeRoot.cbrt(userBalance));
-            }
+            deductOldWeightFromCheckpoint(oldCkpt, userBalance, balanceLastUpdated);
         }
 
         // if wallet > threshold, calculate quadratic power over the treshold only, below threshold is linear
@@ -179,10 +170,7 @@ contract ZeroExVotesMigration is ZeroExVotes {
         uint256 newMigratedWeight = oldCkpt.migratedVotes + CubeRoot.cbrt(newBalance);
 
         if (pos > 0 && oldCkpt.fromBlock == block.number) {
-            CheckpointMigration storage chpt = _toMigration(_unsafeAccess(ckpts, pos - 1));
-            chpt.votes = SafeCast.toUint96(newWeight);
-            chpt.quadraticVotes = SafeCast.toUint96(newQuadraticWeight);
-            chpt.migratedVotes = SafeCast.toUint32(newMigratedWeight);
+            addCheckpoint(ckpts, pos, newWeight, newQuadraticWeight, newMigratedWeight);
         } else {
             _toMigration(ckpts).push(
                 CheckpointMigration({
@@ -193,5 +181,35 @@ contract ZeroExVotesMigration is ZeroExVotes {
                 })
             );
         }
+    }
+
+    function deductOldWeightFromCheckpoint(
+        CheckpointMigration memory oldCkpt,
+        uint256 userBalance,
+        uint96 balanceLastUpdated
+    ) internal {
+        // Remove the entire sqrt userBalance from quadratic voting power.
+        // Note that `userBalance` is value _after_ transfer.
+        uint256 oldQuadraticVotingPower = userBalance <= quadraticThreshold
+            ? userBalance
+            : quadraticThreshold + Math.sqrt((userBalance - quadraticThreshold) * 1e18);
+        oldCkpt.quadraticVotes -= SafeCast.toUint96(oldQuadraticVotingPower);
+
+        if (oldCkpt.fromBlock > migrationBlock && balanceLastUpdated > migrationBlock) {
+            oldCkpt.migratedVotes -= SafeCast.toUint32(CubeRoot.cbrt(userBalance));
+        }
+    }
+
+    function addCheckpoint(
+        Checkpoint[] storage ckpts,
+        uint256 pos,
+        uint256 newWeight,
+        uint256 newQuadraticWeight,
+        uint256 newMigratedWeight
+    ) internal {
+        CheckpointMigration storage chpt = _toMigration(_unsafeAccess(ckpts, pos - 1));
+        chpt.votes = SafeCast.toUint96(newWeight);
+        chpt.quadraticVotes = SafeCast.toUint96(newQuadraticWeight);
+        chpt.migratedVotes = SafeCast.toUint32(newMigratedWeight);
     }
 }
