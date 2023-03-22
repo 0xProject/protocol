@@ -87,8 +87,8 @@ export async function create(input: z.infer<typeof zippoRouterDefinition.user.cr
     if (!teamEntity) {
         teamEntity = await prisma.integratorTeam.create({
             data: {
-                name: 'My Team',
-                productType: 'DEX',
+                name: '__not_init',
+                productType: '__not_init',
             },
         });
     }

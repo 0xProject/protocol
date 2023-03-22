@@ -82,9 +82,9 @@ describe('userService tests', () => {
 
         const integratorTeam = {
             id: 'cldn88o0x000208mlcyshgoma',
-            name: 'My Team',
+            name: '__not_init',
             image: '',
-            productType: 'DEX',
+            productType: '__not_init',
             createdAt: new Date(),
             updatedAt: new Date(),
         };
