@@ -195,7 +195,7 @@ contract ZeroExVotesMigration is ZeroExVotes {
             : quadraticThreshold + Math.sqrt((userBalance - quadraticThreshold) * 1e18);
         oldCkpt.quadraticVotes -= SafeCast.toUint96(oldQuadraticVotingPower);
 
-        if (oldCkpt.fromBlock > migrationBlock && balanceLastUpdated > migrationBlock) {
+        if (balanceLastUpdated > migrationBlock) {
             oldCkpt.migratedVotes -= SafeCast.toUint32(CubeRoot.cbrt(userBalance));
         }
     }
