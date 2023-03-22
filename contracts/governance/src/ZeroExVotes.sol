@@ -31,7 +31,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
     address public immutable token;
     uint256 public immutable quadraticThreshold;
 
-    mapping(address => Checkpoint[]) private _checkpoints;
+    mapping(address => Checkpoint[]) internal _checkpoints;
     Checkpoint[] private _totalSupplyCheckpoints;
 
     constructor(address _token, uint256 _quadraticThreshold) {
@@ -48,7 +48,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
         _;
     }
 
-    function initialize() public onlyProxy initializer {
+    function initialize() public virtual onlyProxy initializer {
         __Ownable_init();
         __UUPSUpgradeable_init();
     }
@@ -146,7 +146,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
                     uint256 newWeight,
                     uint256 oldQuadraticWeight,
                     uint256 newQuadraticWeight
-                ) = _writeCheckpoint(_checkpoints[src], _subtract, srcBalance, amount);
+                ) = _writeCheckpoint(_checkpoints[src], _subtract, srcBalance, srcBalanceLastUpdated, amount);
 
                 emit DelegateVotesChanged(src, oldWeight, newWeight);
                 emit DelegateQuadraticVotesChanged(src, oldQuadraticWeight, newQuadraticWeight);
@@ -158,7 +158,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
                     uint256 newWeight,
                     uint256 oldQuadraticWeight,
                     uint256 newQuadraticWeight
-                ) = _writeCheckpoint(_checkpoints[dst], _add, dstBalance, amount);
+                ) = _writeCheckpoint(_checkpoints[dst], _add, dstBalance, dstBalanceLastUpdated, amount);
 
                 emit DelegateVotesChanged(dst, oldWeight, newWeight);
                 emit DelegateQuadraticVotesChanged(dst, oldQuadraticWeight, newQuadraticWeight);
@@ -178,6 +178,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
             _totalSupplyCheckpoints,
             _add,
             accountBalance,
+            0,
             amount
         );
 
@@ -196,6 +197,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
             _totalSupplyCheckpoints,
             _subtract,
             accountBalance,
+            0,
             amount
         );
 
@@ -211,7 +213,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
     function _checkpointsLookup(
         Checkpoint[] storage ckpts,
         uint256 blockNumber
-    ) private view returns (Checkpoint memory) {
+    ) internal view returns (Checkpoint memory) {
         // We run a binary search to look for the earliest checkpoint taken after `blockNumber`.
         //
         // Initially we check if the block is recent to narrow the search range.
@@ -258,8 +260,13 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
         Checkpoint[] storage ckpts,
         function(uint256, uint256) view returns (uint256) op,
         uint256 userBalance,
+        uint96 balanceLastUpdated,
         uint256 delta
-    ) private returns (uint256 oldWeight, uint256 newWeight, uint256 oldQuadraticWeight, uint256 newQuadraticWeight) {
+    )
+        internal
+        virtual
+        returns (uint256 oldWeight, uint256 newWeight, uint256 oldQuadraticWeight, uint256 newQuadraticWeight)
+    {
         uint256 pos = ckpts.length;
 
         Checkpoint memory oldCkpt = pos == 0 ? Checkpoint(0, 0, 0) : _unsafeAccess(ckpts, pos - 1);
@@ -313,7 +320,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
      * Implementation from openzeppelin/token/ERC20/extensions/ERC20Votes.sol
      * https://github.com/ethereum/solidity/issues/9117
      */
-    function _unsafeAccess(Checkpoint[] storage ckpts, uint256 pos) private pure returns (Checkpoint storage result) {
+    function _unsafeAccess(Checkpoint[] storage ckpts, uint256 pos) internal pure returns (Checkpoint storage result) {
         assembly ("memory-safe") {
             mstore(0, ckpts.slot)
             result.slot := add(keccak256(0, 0x20), pos)

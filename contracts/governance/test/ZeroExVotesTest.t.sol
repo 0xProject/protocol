@@ -18,10 +18,11 @@
 */
 pragma solidity ^0.8.19;
 
+import "@openzeppelin/token/ERC20/ERC20.sol";
 import "./BaseTest.t.sol";
 import "./ZeroExVotesMalicious.sol";
+import "./ZeroExVotesMigration.sol";
 import "../src/ZRXWrappedToken.sol";
-import "@openzeppelin/token/ERC20/ERC20.sol";
 
 contract ZeroExVotesTest is BaseTest {
     IERC20 private token;
@@ -44,6 +45,66 @@ contract ZeroExVotesTest is BaseTest {
     function testShouldNotBeAbleToReinitialise() public {
         vm.expectRevert("Initializable: contract is already initialized");
         votes.initialize();
+    }
+
+    function testShouldBeAbleToMigrate() public {
+        vm.roll(block.number + 1);
+
+        vm.startPrank(account2);
+        token.approve(address(wToken), 100e18);
+        wToken.depositFor(account2, 100e18);
+        wToken.delegate(account3);
+        vm.stopPrank();
+
+        vm.startPrank(account3);
+        token.approve(address(wToken), 200e18);
+        wToken.depositFor(account3, 200e18);
+        wToken.delegate(account3);
+        vm.stopPrank();
+
+        assertEq(votes.getVotes(account3), 300e18);
+        assertEq(votes.getQuadraticVotes(account3), 300e18);
+
+        vm.roll(block.number + 1);
+
+        ZeroExVotesMigration newImpl = new ZeroExVotesMigration(address(wToken), quadraticThreshold);
+        assertFalse(
+            address(
+                uint160(
+                    uint256(vm.load(address(votes), 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc))
+                )
+            ) == address(newImpl)
+        );
+        vm.prank(account1);
+        votes.upgradeToAndCall(address(newImpl), abi.encodeWithSignature("initialize()"));
+        assertEq(
+            address(
+                uint160(
+                    uint256(vm.load(address(votes), 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc))
+                )
+            ),
+            address(newImpl)
+        );
+
+        ZeroExVotesMigration upgradedVotes = ZeroExVotesMigration(address(votes));
+
+        assertEq(upgradedVotes.getVotes(account3), 300e18);
+        assertEq(upgradedVotes.getQuadraticVotes(account3), 300e18);
+
+        vm.roll(block.number + 1);
+
+        vm.prank(account2);
+        wToken.transfer(address(this), 50e18);
+
+        assertEq(upgradedVotes.getVotes(account3), 250e18);
+        assertEq(upgradedVotes.getQuadraticVotes(account3), 250e18);
+        assertEq(upgradedVotes.getMigratedVotes(account3), CubeRoot.cbrt(50e18));
+
+        vm.prank(account3);
+        wToken.transfer(address(this), 100e18);
+        assertEq(upgradedVotes.getVotes(account3), 150e18);
+        assertEq(upgradedVotes.getQuadraticVotes(account3), 150e18);
+        assertEq(upgradedVotes.getMigratedVotes(account3), CubeRoot.cbrt(50e18) + CubeRoot.cbrt(100e18));
     }
 
     function testShouldNotBeAbleToStopBurn() public {
