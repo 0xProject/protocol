@@ -2,7 +2,7 @@
 import { TokenMetadata } from '@0x/token-metadata';
 import { BigNumber } from '@0x/utils';
 
-import { BPS_TO_RATIO, RFQT_GAS_IMPROVEMENT, ZERO } from '../core/constants';
+import { BPS_TO_RATIO, RFQT_GAS_IMPROVEMENT, RFQT_GAS_IMPROVEMENT_FALLBACK_GAS_PRICE, ZERO } from '../core/constants';
 import {
     ConversionRates,
     DefaultFeeDetailsDeprecated,
@@ -345,7 +345,12 @@ export class FeeService {
 
         // Add a gas improvement fee for RFQT only
         // TODO: this is a temporary experiment to see if we can improve RFQt revenues. Remove if experiment is not successful
-        const rfqtFixedFee = gasFee.breakdown.gas?.details.gasPrice.times(RFQT_GAS_IMPROVEMENT) || ZERO;
+        const gasPrice = gasFee.breakdown.gas?.details.gasPrice || RFQT_GAS_IMPROVEMENT_FALLBACK_GAS_PRICE;
+        const rfqtFixedFee = gasPrice.times(RFQT_GAS_IMPROVEMENT);
+        logger.info(
+            { rfqtFixedFee, gasPrice, gasFeeBreakdown: gasFee.breakdown },
+            'RFQT fixed fee - only applies when fees are applied',
+        );
 
         const zeroExFeeAmount =
             tradeSizeBps > 0

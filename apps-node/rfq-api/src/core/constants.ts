@@ -63,6 +63,7 @@ export const RFQM_TX_GAS_ESTIMATE = 165e3;
 export const RFQM_TX_OTC_ORDER_GAS_ESTIMATE = 100e3;
 export const ZEROG_METATX_GAS_ESTIMATE = 500e3;
 export const RFQT_GAS_IMPROVEMENT = 8e3;
+export const RFQT_GAS_IMPROVEMENT_FALLBACK_GAS_PRICE = new BigNumber(10e9);
 
 // SQS Client
 export const LONG_POLLING_WAIT_TIME_SECONDS = 20;

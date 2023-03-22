@@ -9,6 +9,8 @@ import {
     BPS_TO_RATIO,
     DEFAULT_MIN_EXPIRY_DURATION_MS,
     RFQM_TX_OTC_ORDER_GAS_ESTIMATE,
+    RFQT_GAS_IMPROVEMENT,
+    RFQT_GAS_IMPROVEMENT_FALLBACK_GAS_PRICE,
     ZERO,
 } from '../../src/core/constants';
 import {
@@ -431,6 +433,8 @@ describe('FeeService', () => {
                 feeTokenPrice,
             });
 
+            const rfqtFixedFee = RFQT_GAS_IMPROVEMENT_FALLBACK_GAS_PRICE.times(RFQT_GAS_IMPROVEMENT);
+
             // When
             const { feeWithDetails: fee } = await feeService.calculateFeeAsync({
                 workflow: 'rfqt',
@@ -457,6 +461,7 @@ describe('FeeService', () => {
                 .times(tradeSizeBps * BPS_TO_RATIO)
                 .times(takerTokenPrice)
                 .div(feeTokenPrice)
+                .plus(rfqtFixedFee) // TODO: may need to delete this line if removing the RFQT gas improvement fee
                 .integerValue();
 
             const expectedFee: FeeWithDetails = {
