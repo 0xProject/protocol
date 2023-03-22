@@ -140,6 +140,17 @@ jobs:
           echo "Access this image at" >> $GITHUB_STEP_SUMMARY
           echo "\`${{ env.REPOSITORY_URI }}:${{ env.WORKSPACE_NAME }}__${{ env.WORKSPACE_HASH }}\`" >> $GITHUB_STEP_SUMMARY
 
+      # If the event is a pull request, `github.sha` is the merge commit.
+      # We want to use the head commit instead.
+      # See https://github.com/orgs/community/discussions/25191#discussioncomment-3246770
+      - name: Set commit sha for pull request
+        if: ${{ github.event_name == 'pull_request' }}
+        run: echo "COMMIT_SHA=${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
+
+      - name: Set commit sha for push
+        if: ${{ github.event_name != 'pull_request' }}
+        run: echo "COMMIT_SHA=${{ github.sha }}" >> $GITHUB_ENV
+
       - if: ${{ steps.check-for-image.outputs.image-exists == false }}
         name: Build and push image
         uses: docker/build-push-action@v3
@@ -151,7 +162,7 @@ jobs:
           file: ./.github/Dockerfile-node
           push: true
           tags: |
-            ${{ env.REPOSITORY_URI }}:${{ env.WORKSPACE_NAME }}_${{ github.sha }}
+            ${{ env.REPOSITORY_URI }}:${{ env.WORKSPACE_NAME }}_${{ env.COMMIT_SHA }}
             ${{ env.REPOSITORY_URI }}:${{ env.WORKSPACE_NAME }}__${{ env.WORKSPACE_HASH }}
 
       - if: ${{ steps.check-for-image.outputs.image-exists == false }}
@@ -162,7 +173,8 @@ jobs:
           echo "Access this image at" >> $GITHUB_STEP_SUMMARY
           echo "\`${{ env.REPOSITORY_URI }}:${{ env.WORKSPACE_NAME }}__${{ env.WORKSPACE_HASH }}\`" >> $GITHUB_STEP_SUMMARY
           echo "or" >> $GITHUB_STEP_SUMMARY
-          echo "\`${{ env.REPOSITORY_URI }}:${{ env.WORKSPACE_NAME }}_${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "\`${{ env.REPOSITORY_URI }}:${{ env.WORKSPACE_NAME }}_${{ env.COMMIT_SHA }}\`" >> $GITHUB_STEP_SUMMARY
+
       - name: Comment on the PR that the docker image was built
         if: github.event_name == 'pull_request' && steps.check-for-image.outputs.image-exists == false
         uses: thollander/actions-comment-pull-request@v2.3.1
@@ -172,7 +184,7 @@ jobs:
             Access this image at
             `${{ env.REPOSITORY_URI }}:${{ env.WORKSPACE_NAME }}__${{ env.WORKSPACE_HASH }}`
             or
-            `${{ env.REPOSITORY_URI }}:${{ env.WORKSPACE_NAME }}_${{ github.sha }}`
+            `${{ env.REPOSITORY_URI }}:${{ env.WORKSPACE_NAME }}_${{ env.COMMIT_SHA }}`
 
   summarize_images:
     env:
