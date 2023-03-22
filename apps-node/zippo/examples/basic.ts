@@ -7,10 +7,10 @@ const zippo = createTRPCProxyClient<TZippoRouter>({
 });
 
 async function main() {
-    const bobId = randomUUID();
+    const randomId = randomUUID();
     const newUser = await zippo.user.create.mutate({
-        name: `Bob${bobId}`,
-        email: `bob${bobId}@example.com`,
+        name: `Mike ${randomId}`,
+        email: `mike+${randomId}@example.com`,
         password: 'zfv2ymw3ydv.PND0mpe',
     });
     console.log('Created user: ', newUser);
@@ -25,26 +25,34 @@ async function main() {
         return;
     }
 
-    const provisionedApp = await zippo.app.provisionAccess.mutate({
-        id: app.id,
-        routeTags: [TZippoRouteTag.SwapV1Prices],
-        rateLimits: [{ minute: 3 }],
-    });
-    console.log('Provisioned app: ', provisionedApp);
-    if (!provisionedApp) {
-        console.log('Failed to provision app');
-        return;
-    }
+    // const msg1 = await zippo.user.sendEmail.mutate({
+    //     userId: newUser.id,
+    //     subject: 'test email',
+    //     template: 'test_email',
+    //     emailVars: { title: 'the new title', var1: 'some value' },
+    // });
+    // console.log('Msg: ', msg1);
 
-    const deprovisionedApp = await zippo.app.deprovisionAccess.mutate({
-        id: app.id,
-        routeTags: [TZippoRouteTag.SwapV1Prices],
-    });
-    console.log('deprovisioned app: ', deprovisionedApp);
-    if (!deprovisionedApp) {
-        console.log('Failed to deprovision app');
-        return;
-    }
+    // const provisionedApp = await zippo.app.provisionAccess.mutate({
+    //     id: app.id,
+    //     routeTags: [TZippoRouteTag.SwapV1Prices],
+    //     rateLimits: [{ minute: 3 }],
+    // });
+    // console.log('Provisioned app: ', provisionedApp);
+    // if (!provisionedApp) {
+    //     console.log('Failed to provision app');
+    //     return;
+    // }
+
+    // const deprovisionedApp = await zippo.app.deprovisionAccess.mutate({
+    //     id: app.id,
+    //     routeTags: [TZippoRouteTag.SwapV1Prices],
+    // });
+    // console.log('deprovisioned app: ', deprovisionedApp);
+    // if (!deprovisionedApp) {
+    //     console.log('Failed to deprovision app');
+    //     return;
+    // }
 }
 
 main();

@@ -203,6 +203,7 @@ export const zippoRouterDefinition = {
                     userId: z.string().cuid().describe('The user ID'),
                     subject: z.string({ required_error: 'Email subject is required' }),
                     template: z.string({ required_error: 'Mailgun template is required' }),
+                    emailVars: z.record(z.string()).optional(),
                 })
                 .describe('The information needed to send a an email to the user'),
             output: messageSendResult.strip().nullable().describe('The message resolution.'),

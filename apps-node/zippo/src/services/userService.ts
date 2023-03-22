@@ -65,6 +65,12 @@ export async function getByEmail(
  * Create a new user.
  *
  * @param input user parameters
+ * @param input.name The name for the new user
+ * @param input.password The password for the new user
+ * @param [input.email] The email for the new user
+ * @param [input.image] The image URL for the new user
+ * @param [input.integratorTeamId] The team ID to assign to the new user - either this or integratorTeam must be specified.
+ * @param [input.integratorTeam] The team data for a new team to create and assign to the new user - either this or integratorTeamId must be specified.
  */
 export async function create(input: z.infer<typeof zippoRouterDefinition.user.create.input>) {
     const { integratorTeamId, integratorTeam, password, ...userParameters } = input;
@@ -298,7 +304,7 @@ export async function sendEmailVerifyEmail(
  * @param input email params
  */
 export async function sendEmail(input: z.infer<typeof zippoRouterDefinition.user.sendEmail.input>) {
-    return sendUserEmail(input.userId, input.template, input.subject);
+    return sendUserEmail(input.userId, input.template, input.subject, input.emailVars);
 }
 
 /**
@@ -385,7 +391,7 @@ async function sendUserEmail(
     userId: string,
     template: string,
     subject: string,
-    emailVars: Record<string, unknown> = {},
+    emailVars: Record<string, string> = {},
 ) {
     const user = await prisma.user.findUnique({
         where: { id: userId },
