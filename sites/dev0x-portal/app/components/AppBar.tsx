@@ -31,7 +31,7 @@ export const AppBar = ({ apps, user }: AppBarProps) => {
                         </Button>
                     </AppsDropdownMenu.Trigger>
                 </Toolbar.Button>
-                <AppsDropdownMenu.Content apps={apps} />
+                <AppsDropdownMenu.Content apps={apps} align="start" />
             </AppsDropdownMenu.Root>
 
             <div className="ml-auto grid grid-flow-col gap-x-4">
@@ -53,7 +53,7 @@ export const AppBar = ({ apps, user }: AppBarProps) => {
                             </IconButton>
                         </AccountDropdownMenu.Trigger>
                     </Toolbar.Button>
-                    <AccountDropdownMenu.Content user={user} />
+                    <AccountDropdownMenu.Content user={user} align="end" />
                 </AccountDropdownMenu.Root>
             </div>
         </Toolbar.Root>

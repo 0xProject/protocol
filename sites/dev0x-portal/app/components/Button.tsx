@@ -19,7 +19,7 @@ const button = tv({
             default: 'bg-grey-900 text-white hover:bg-grey-800 shadow-md focus-visible:ring-grey-500 antialiased',
             grey: 'bg-grey-200 text-grey-900 focus-visible:ring-grey-300 ',
             red: 'bg-red-light text-error-700 focus-visible:ring-error-200',
-            transparent: 'bg-transparent border border-solid border-grey-200 text-grey-900',
+            transparent: 'bg-transparent border font-thin border-solid border-grey-200 text-grey-900',
         },
         disabled: {
             true: 'opacity-50 pointer-events-none',

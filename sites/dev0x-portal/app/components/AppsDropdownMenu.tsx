@@ -1,10 +1,11 @@
 import { forwardRef } from 'react';
 import { Link, useLocation } from '@remix-run/react';
+import { twMerge } from 'tailwind-merge';
 import * as DropdownMenu from './DropdownMenu';
+import { Check } from '../icons/Check';
 
 import type { App } from '../types';
 import type { ElementRef, ComponentPropsWithRef, SVGAttributes } from 'react';
-import { Check } from '../icons/Check';
 
 export const Root = DropdownMenu.Root;
 export const Trigger = DropdownMenu.Trigger;
@@ -37,15 +38,20 @@ type AppsDropdownMenuProps = ComponentPropsWithRef<typeof DropdownMenu.Content> 
 };
 
 export const Content = forwardRef<ElementRef<typeof DropdownMenu.Content>, AppsDropdownMenuProps>(function Content(
-    { apps },
+    { apps, className, ...other },
     forwardedRef,
 ) {
     const { pathname } = useLocation();
     return (
         <DropdownMenu.Portal>
-            <DropdownMenu.Content sideOffset={5} ref={forwardedRef} className="min-w-[220px]">
+            <DropdownMenu.Content
+                sideOffset={5}
+                className={twMerge('min-w-[220px] space-y-1.5', className)}
+                {...other}
+                ref={forwardedRef}
+            >
                 <DropdownMenu.Item asChild>
-                    <Link to={'/apps/create'} className="flex items-center">
+                    <Link to={'/apps/create'} className="bg-grey-100 flex items-center">
                         <PlusCirce className="relative -top-[1px] mr-2" />
                         <span>Create an app</span>
                     </Link>

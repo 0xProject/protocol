@@ -13,7 +13,11 @@ export const Separator = forwardRef<
     ComponentPropsWithRef<typeof DropdownMenu.Separator>
 >(function Separator({ className, ...other }, forwardedRef) {
     return (
-        <DropdownMenu.Separator {...other} className={twMerge('bg-grey-200 h-[1px]', className)} ref={forwardedRef} />
+        <DropdownMenu.Separator
+            {...other}
+            className={twMerge('bg-grey-200 mt-[3px] mb-[3px] h-[1px]', className)}
+            ref={forwardedRef}
+        />
     );
 });
 
@@ -24,7 +28,7 @@ export const Content = forwardRef<HTMLDivElement, DropdownMenu.DropdownMenuConte
     return (
         <DropdownMenu.Content
             className={twMerge(
-                'border-grey-200 overflow-hidden rounded-xl border border-solid bg-white p-2 shadow-md',
+                'border-grey-200 overflow-hidden rounded-xl border border-solid bg-white px-2 pt-2 pb-1.5 shadow-md',
                 className,
             )}
             {...other}
@@ -42,7 +46,7 @@ export const Item = forwardRef<HTMLDivElement, DropdownMenu.DropdownMenuItemProp
     return (
         <DropdownMenu.Item
             className={twMerge(
-                'data-[highlighted]:bg-grey-100 text-grey-900 flex select-none rounded-lg py-3 px-4 font-sans text-base font-medium outline-none ',
+                'data-[highlighted]:bg-grey-200 text-grey-900 flex select-none rounded-lg py-3.5 px-4 font-sans text-base font-medium antialiased outline-none ',
                 className,
             )}
             {...other}

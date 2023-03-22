@@ -13,7 +13,7 @@ const iconButton = tv({
         color: {
             default: 'bg-grey-900 hover:bg-grey-800 shadow-md focus-visible:ring-grey-500',
             transparent: 'bg-transparent',
-            grey: 'bg-grey-200 focus-visible:ring-grey-300 ',
+            grey: 'bg-grey-100 focus-visible:ring-grey-300 ',
             white: 'bg-white',
         },
         disabled: {
