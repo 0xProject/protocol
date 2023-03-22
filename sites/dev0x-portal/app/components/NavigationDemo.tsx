@@ -24,15 +24,20 @@ export const NavigationMenuDemo = () => {
                         onPointerMove={(event) => event.preventDefault()}
                         onPointerLeave={(event) => event.preventDefault()}
                     >
-                        <Button color="grey" roundness="lg" endIcon={<ChevronDown className="relative" aria-hidden />}>
+                        <Button
+                            color="grey"
+                            roundness="lg"
+                            endIcon={<ChevronDown className="relative" aria-hidden />}
+                            size="md"
+                        >
                             All apps
                         </Button>
                     </NavigationMenu.Trigger>
                     <NavigationMenu.Content
                         onPointerLeave={(event) => event.preventDefault()}
-                        className="absolute top-0 w-auto left-0 rounded-3xl"
+                        className="absolute top-0 left-0 w-auto rounded-3xl"
                     >
-                        <ul className="m-0 p-3 w-64">
+                        <ul className="m-0 w-64 p-3">
                             <ListItem href="https://stitches.dev/" title="Stitches">
                                 Coinbase Wallet
                             </ListItem>
@@ -47,8 +52,8 @@ export const NavigationMenuDemo = () => {
                 </NavigationMenu.Item>
             </NavigationMenu.List>
 
-            <div className="absolute top-full w-full left-0 flex justify-center">
-                <NavigationMenu.Viewport className="relative w-[var(--radix-navigation-menu-viewport-width)] h-[var(--radix-navigation-menu-viewport-height)] bg-grey-200 rounded-3xl" />
+            <div className="absolute top-full left-0 flex w-full justify-center">
+                <NavigationMenu.Viewport className="bg-grey-200 relative h-[var(--radix-navigation-menu-viewport-height)] w-[var(--radix-navigation-menu-viewport-width)] rounded-3xl" />
             </div>
         </NavigationMenu.Root>
     );

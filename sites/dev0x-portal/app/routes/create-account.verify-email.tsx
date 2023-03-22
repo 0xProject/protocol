@@ -105,16 +105,15 @@ export async function loader({ request }: LoaderArgs) {
 
 function SuccessMessage() {
     return (
-        <div className="w-full max-w-[456px] mt-40">
-            <h1 className="text-2.5xl text-black mb-4">Your email has been verified</h1>
-            <p className="text-grey-500 font-sans leading-[22px] mb-10">
+        <div className="mt-40 w-full max-w-[456px]">
+            <h1 className="text-2.5xl mb-4 text-black">Your email has been verified</h1>
+            <p className="text-grey-500 mb-10 font-sans leading-[22px]">
                 Your email has been successfully verified. You can now login to your account.
             </p>
             <LinkButton
-                size="md"
                 roundness="default"
                 color="grey"
-                className="w-full items-center flex justify-center text-lg"
+                className="flex w-full items-center justify-center text-lg"
                 to="/login"
             >
                 Back to login
@@ -142,29 +141,28 @@ function ErrorMessage({ email, retryIn }: { email: string; retryIn: number }) {
     }, [retryCountdown]);
 
     return (
-        <div className="w-full max-w-[456px] mt-40">
-            <Link className="text-grey-500 text-base mb-8 inline-block" to="/login">
+        <div className="mt-40 w-full max-w-[456px]">
+            <Link className="text-grey-500 mb-8 inline-block text-base" to="/login">
                 Back to login
             </Link>
-            <h1 className="text-2.5xl text-black mb-4">Verification link expired</h1>
-            <p className="text-grey-500 font-sans leading-[22px] mb-10">
+            <h1 className="text-2.5xl mb-4 text-black">Verification link expired</h1>
+            <p className="text-grey-500 mb-10 font-sans leading-[22px]">
                 Request a new verification email to <strong className="text-grey-800 font-medium">{email}</strong> to
                 verify your account and get started.
             </p>
             <Form method="post">
                 <input type="hidden" name="email" value={email} />
                 <Button
-                    size="md"
                     roundness="default"
                     color="grey"
-                    className="w-full items-center flex justify-center text-lg "
+                    className="flex w-full items-center justify-center text-lg "
                     disabled={retryCountdown > 0}
                 >
                     Resend verification email
                 </Button>
             </Form>
             {retryCountdown > 0 && (
-                <span className="text-grey-500 text-base mt-2 inline-block">Resend email ({retryCountdown}s)</span>
+                <span className="text-grey-500 mt-2 inline-block text-base">Resend email ({retryCountdown}s)</span>
             )}
         </div>
     );
@@ -174,8 +172,8 @@ export default function VerifyEmail() {
     const { error, values } = useLoaderData<typeof loader>();
 
     return (
-        <main className="bg-white h-full min-h-full w-full min-w-screen flex flex-col">
-            <div className=" h-full w-full flex justify-center">
+        <main className="min-w-screen flex h-full min-h-full w-full flex-col bg-white">
+            <div className=" flex h-full w-full justify-center">
                 {error ? (
                     <ErrorMessage email={values.email || 'unknown email'} retryIn={values.retryIn} />
                 ) : (

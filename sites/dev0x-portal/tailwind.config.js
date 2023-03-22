@@ -92,6 +92,8 @@ const config = {
         },
         extend: {
             fontSize: {
+                base: ['1rem', '1.375rem'], //ling-height 22px instead of 24
+                lg: ['1.125rem', '1.625rem'],
                 '1.5xl': ['1.5rem', '1.75rem'],
                 '2.5xl': ['1.625rem', '2rem'],
             },

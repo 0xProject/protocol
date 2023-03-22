@@ -24,7 +24,6 @@ export const GoToExplorer = forwardRef<HTMLDivElement, ComponentPropsWithoutRef<
                 rel="noreferrer"
                 target="_blank"
                 className="mt-10"
-                size="md"
                 endIcon={<ArrowUpRight />}
             >
                 <span>Go to 0x explorer</span>

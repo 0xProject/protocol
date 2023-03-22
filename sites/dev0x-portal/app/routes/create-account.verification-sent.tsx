@@ -41,7 +41,7 @@ export default function VerificationSent() {
                             contact us
                         </a>
                     </p>
-                    <Button type="submit" className="col-span-2 w-full" color="grey">
+                    <Button type="submit" className="col-span-2 w-full" color="grey" size="md">
                         Resend email
                     </Button>
                 </div>

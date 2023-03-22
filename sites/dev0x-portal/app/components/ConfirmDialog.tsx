@@ -26,11 +26,11 @@ export const ConfirmDialogFooter = forwardRef<HTMLDivElement, ConfirmDialogFoote
     return (
         <div {...other} className={twMerge('flex', className)} ref={forwardedRef}>
             <Dialog.Close asChild>
-                <Button size="md" color="grey" className="mr-4 w-fit self-start">
+                <Button color="grey" className="mr-4 w-fit self-start">
                     {cancelButtonText}
                 </Button>
             </Dialog.Close>
-            <Button size="md" className="w-full justify-center" color={variant === 'alert' ? 'red' : 'default'}>
+            <Button className="w-full justify-center" color={variant === 'alert' ? 'red' : 'default'}>
                 {confirmButtonText}
             </Button>
         </div>

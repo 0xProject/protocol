@@ -159,7 +159,7 @@ export default function CreateTeam() {
                             />
                         )}
 
-                        <Button type="submit" className="col-span-2 justify-center text-center">
+                        <Button type="submit" className="col-span-2 justify-center text-center" size="md">
                             Finish Setup →
                         </Button>
                     </Form>

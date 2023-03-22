@@ -131,7 +131,7 @@ export default function Login() {
                                     </IconButton>
                                 }
                             />
-                            <Button type="submit" className="col-span-2 justify-center">
+                            <Button type="submit" className="col-span-2 justify-center" size="md">
                                 Continue →
                             </Button>
                         </Form>

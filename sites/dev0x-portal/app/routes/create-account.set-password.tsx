@@ -148,7 +148,7 @@ export default function SetPasswordPage() {
                                 </IconButton>
                             }
                         />
-                        <Button type="submit" className="col-span- justify-center">
+                        <Button type="submit" className="col-span- justify-center" size="md">
                             Continue →
                         </Button>
                     </Form>

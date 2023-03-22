@@ -2,19 +2,21 @@ import { tv } from 'tailwind-variants';
 import { twMerge } from 'tailwind-merge';
 import { forwardRef } from 'react';
 import { Link } from '@remix-run/react';
+
 import type { LinkProps } from '@remix-run/react';
 
 const button = tv({
-    base: 'font-sans text-base focus:outline-none focus-visible:ring-2 inline-flex items-center',
+    base: 'font-sans focus:outline-none focus-visible:ring-2 inline-flex items-center',
     variants: {
         size: {
-            base: 'leading-6.5 px-6 py-4',
-            md: 'leading-6.5 px-4 py-3',
-            sm: 'leading-5.5 p-3',
-            xs: ' leading-5.5 py-1.5 px-2.5',
+            md: 'px-6 py-4 text-lg',
+            base: 'px-4 py-3 text-lg',
+            sm: 'p-3 text-base',
+            xs: 'py-1.5 px-2.5 text-base',
+            '2xs': 'py-1 px-2.5 text-base',
         },
         color: {
-            default: 'bg-grey-900 text-white hover:bg-grey-800 shadow-md focus-visible:ring-grey-500',
+            default: 'bg-grey-900 text-white hover:bg-grey-800 shadow-md focus-visible:ring-grey-500 antialiased',
             grey: 'bg-grey-200 text-grey-900 focus-visible:ring-grey-300 ',
             red: 'bg-red-light text-error-700 focus-visible:ring-error-200',
             transparent: 'bg-transparent border border-solid border-grey-200 text-grey-900',
@@ -23,43 +25,70 @@ const button = tv({
             true: 'opacity-50 pointer-events-none',
         },
         roundness: {
-            default: 'rounded-2xl',
+            default: 'rounded-[0.875rem]',
             lg: 'rounded-3xl',
         },
     },
+    compoundVariants: [
+        {
+            size: ['sm', 'xs', '2xs'],
+            roundness: 'default',
+            className: 'rounded-xl',
+        },
+    ],
 });
 
 const iconContainerBase = tv({
-    base: 'w-6 h-6 inline-flex items-center justify-center',
+    base: 'w-6 h-6 inline-flex items-center justify-center relative top-[1px]',
 });
 const iconStartContainer = tv({
     extend: iconContainerBase,
     variants: {
         size: {
-            base: 'mr-2 -ml-2',
             md: 'mr-2 -ml-2',
+            base: 'mr-2 -ml-2',
             sm: 'mr-1 -ml-1',
-            xs: 'mr-1 -ml-1',
+            xs: 'mr-1 -ml-1 w-5 h-5',
+            '2xs': 'mr-1 -ml-1 w-4 h-4',
+        },
+        roundness: {
+            default: '',
+            lg: '',
         },
     },
+    compoundVariants: [
+        {
+            size: 'sm',
+            roundness: 'lg',
+            className: 'w-5 h-5',
+        },
+    ],
 });
 const iconEndContainer = tv({
     extend: iconContainerBase,
     variants: {
         size: {
-            base: '-mr-2 ml-2',
             md: '-mr-2 ml-2',
+            base: '-mr-2 ml-2',
             sm: '-mr-1 ml-1',
-            xs: '-mr-1 ml-1',
+            xs: '-mr-1 ml-1 w-5 h-5',
+            '2xs': '-mr-1 ml-1 w-4 h-4',
         },
     },
+    compoundVariants: [
+        {
+            size: 'sm',
+            roundness: 'lg',
+            className: 'w-5 h-5',
+        },
+    ],
 });
 
 type BaseButtonProps = {
     /**
      * How large should the button be?
      */
-    size?: 'base' | 'md' | 'sm' | 'xs';
+    size?: 'md' | 'base' | 'sm' | 'xs' | '2xs';
 
     /**
      * What color to use?
