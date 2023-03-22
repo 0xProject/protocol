@@ -1,0 +1,21 @@
+{
+  "name": "@0x/governance",
+  "version": "1.0.0",
+  "description": "Governance implementation for the 0x protocol and treasury",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "forge test",
+    "build": "forge build",
+    "build:smt": "FOUNDRY_PROFILE=smt forge build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/0xProject/protocol.git"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {}
+}
