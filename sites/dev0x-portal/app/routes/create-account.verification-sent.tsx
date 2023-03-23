@@ -1,8 +1,42 @@
 import { useLoaderData } from '@remix-run/react';
-import type { LoaderArgs } from '@remix-run/server-runtime';
+import type { ActionArgs, LoaderArgs } from '@remix-run/server-runtime';
 import { json, redirect } from '@remix-run/server-runtime';
+import { z } from 'zod';
 import { getSignedInUser, sessionStorage } from '../auth.server';
-import { Button } from '../components/Button';
+import { ResendEmailButton } from '../components/ResendEmailButton';
+import { sendVerificationEmail } from '../data/zippo.server';
+import { getResendEmailRetryIn, setResendEmailRetryIn } from '../utils/utils.server';
+
+const zodResendEmailModel = z.object({
+    email: z.string().email(),
+});
+
+export async function action({ request }: ActionArgs) {
+    const [user, headers] = await getSignedInUser(request);
+
+    if (user) {
+        throw redirect('/apps', { headers });
+    }
+
+    const data = Object.fromEntries(await request.formData());
+
+    const zodResult = zodResendEmailModel.safeParse(data);
+
+    if (!zodResult.success) {
+        return json({ error: 'Invalid email' }, 400);
+    }
+
+    const [retryIn] = await getResendEmailRetryIn(request, 'verifyEmail');
+
+    if (retryIn > 0) {
+        return json({ error: 'Please wait before retrying' }, 400);
+    }
+
+    await sendVerificationEmail(zodResult.data.email);
+    const setVerifyEmailHeaders = await setResendEmailRetryIn(request, 'verifyEmail', 45);
+
+    return json({ error: null }, { headers: setVerifyEmailHeaders });
+}
 
 export async function loader({ request }: LoaderArgs) {
     const [user, headers] = await getSignedInUser(request);
@@ -15,13 +49,20 @@ export async function loader({ request }: LoaderArgs) {
     if (!multiformSession.has('verifyEmail')) {
         throw redirect('/');
     }
-    return json({
-        email: multiformSession.get('verifyEmail').email as string,
-    });
+
+    const [retryIn, verifyEmailHeaders] = await getResendEmailRetryIn(request, 'verifyEmail', true);
+
+    return json(
+        {
+            email: multiformSession.get('verifyEmail').email as string,
+            retryIn,
+        },
+        { headers: verifyEmailHeaders },
+    );
 }
 
 export default function VerificationSent() {
-    const loaderData = useLoaderData<{ email: string }>();
+    const loaderData = useLoaderData<typeof loader>();
 
     return (
         <main className="min-w-screen flex h-full min-h-full w-full flex-col bg-white">
@@ -41,9 +82,7 @@ export default function VerificationSent() {
                             contact us
                         </a>
                     </p>
-                    <Button type="submit" className="col-span-2 w-full" color="grey" size="md">
-                        Resend email
-                    </Button>
+                    <ResendEmailButton retryIn={loaderData.retryIn} email={loaderData.email} />
                 </div>
             </div>
         </main>
