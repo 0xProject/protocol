@@ -32,5 +32,15 @@ const config: StorybookConfig = {
         autodocs: 'tag',
     },
     staticDirs: ['../public'],
+    viteFinal: (config) => {
+        config.resolve = {
+            ...(config.resolve || {}),
+            alias: {
+                ...(config.resolve?.alias || {}),
+                '@remix-run/react': require.resolve('./__mocks__/@remix-run/react.ts'),
+            },
+        };
+        return config;
+    },
 };
 export default config;
