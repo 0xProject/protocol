@@ -37,3 +37,18 @@ export const ErrorAlertSmall: Story = {
         className: 'w-[450px]',
     },
 };
+
+export const SuccessAlert: Story = {
+    args: {
+        variant: 'success',
+        children: 'This is an Success alert',
+    },
+};
+
+export const SuccessAlertSmall: Story = {
+    args: {
+        variant: 'success',
+        children: 'This is an Success alert',
+        className: 'w-[450px]',
+    },
+};

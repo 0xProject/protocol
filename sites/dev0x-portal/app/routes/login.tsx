@@ -1,7 +1,7 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node';
 import { redirect } from '@remix-run/node';
 import { json } from '@remix-run/node';
-import { Form, Link, useActionData } from '@remix-run/react';
+import { Form, Link, useActionData, useLoaderData } from '@remix-run/react';
 import React from 'react';
 import { AuthorizationError } from 'remix-auth';
 import { z } from 'zod';
@@ -29,7 +29,9 @@ export const loader = async ({ request }: LoaderArgs) => {
     await auth.isAuthenticated(request, { successRedirect: '/apps' });
     const session = await sessionStorage.getSession(request.headers.get('Cookie'));
     const error = session.get(auth.sessionErrorKey) as LoaderError;
-    return json({ error });
+
+    const successMessage = session.get('pw-reset-success');
+    return json({ error, successMessage }, { headers: { 'Set-Cookie': await sessionStorage.commitSession(session) } }); // committing the session so that the success message is only shown once
 };
 
 export const action = async ({ request }: ActionArgs) => {
@@ -82,6 +84,7 @@ export const action = async ({ request }: ActionArgs) => {
 };
 
 export default function Login() {
+    const { successMessage } = useLoaderData<typeof loader>();
     const actionData = useActionData<typeof action>();
 
     const [showPassword, setShowPassword] = React.useState(false);
@@ -95,6 +98,11 @@ export default function Login() {
                         {actionData?.error && (
                             <Alert variant="error" className="mb-6">
                                 {actionData.error}
+                            </Alert>
+                        )}
+                        {successMessage && (
+                            <Alert variant="success" className="mb-6">
+                                {successMessage}
                             </Alert>
                         )}
                         <h1 className="text-2.5xl mb-6 text-black">Log in</h1>
@@ -136,7 +144,7 @@ export default function Login() {
                             </Button>
                         </Form>
                         <Link
-                            to="/forgot-password"
+                            to="/reset-password"
                             className="mt-20 block text-center font-sans text-sm font-normal text-[#A9A9A9]"
                         >
                             Forgot your password?

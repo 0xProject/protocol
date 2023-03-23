@@ -52,3 +52,11 @@ export async function setResendEmailRetryIn(request: Request, storageKey: string
 
     return headers;
 }
+
+export async function createFlashMessage(request: Request, key: string, value: string) {
+    const session = await sessionStorage.getSession(request.headers.get('Cookie'));
+    const headers = new Headers();
+    session.flash(key, value);
+    headers.append('Set-Cookie', await sessionStorage.commitSession(session));
+    return headers;
+}
