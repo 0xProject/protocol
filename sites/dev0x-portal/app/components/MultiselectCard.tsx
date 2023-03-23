@@ -58,7 +58,7 @@ export const MultiSelectCard = forwardRef<HTMLDivElement, MultiSelectCardProps>(
                     id={id}
                     aria-describedby={`${id}-description`}
                     defaultChecked={selected}
-                    className="ml-3 after:absolute after:left-0 after:right-0 after:bottom-0 after:top-0 after:z-10" // to make the whole card clickable
+                    className="ml-3 flex-shrink-0 after:absolute after:left-0 after:right-0 after:bottom-0 after:top-0 after:z-10" // to make the whole card clickable
                 />
             </div>
         </div>
