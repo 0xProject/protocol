@@ -26,7 +26,8 @@ contract ZeroExTreasuryGovernorTest is ZeroExGovernorBaseTest {
         proposalThreshold = 250000e18;
 
         address governorAddress;
-        (token, wToken, votes, , timelock, , governorAddress) = setupGovernance();
+        token = mockZRXToken();
+        (wToken, votes, , timelock, , governorAddress) = setupGovernance(token);
         governor = IZeroExGovernor(governorAddress);
 
         initialiseAccounts();

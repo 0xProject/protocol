@@ -23,7 +23,7 @@ import "forge-std/Test.sol";
 import "forge-std/console.sol";
 import "@openzeppelin/token/ERC20/ERC20.sol";
 import "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
-import "./ZRXMock.sol";
+import "./mocks/ZRXMock.sol";
 import "../src/ZRXWrappedToken.sol";
 import "../src/ZeroExVotes.sol";
 import "../src/ZeroExTimelock.sol";
@@ -54,11 +54,10 @@ contract BaseTest is Test {
         vm.deal(securityCouncil, 1e20);
     }
 
-    function setupGovernance()
-        internal
-        returns (IERC20, ZRXWrappedToken, ZeroExVotes, ZeroExTimelock, ZeroExTimelock, address, address)
-    {
-        (IERC20 zrxToken, ZRXWrappedToken token, ZeroExVotes votes) = setupZRXWrappedToken();
+    function setupGovernance(
+        IERC20 zrxToken
+    ) internal returns (ZRXWrappedToken, ZeroExVotes, ZeroExTimelock, ZeroExTimelock, address, address) {
+        (ZRXWrappedToken token, ZeroExVotes votes) = setupZRXWrappedToken(zrxToken);
 
         vm.startPrank(account1);
         address[] memory proposers = new address[](0);
@@ -86,24 +85,11 @@ contract BaseTest is Test {
         treasuryTimelock.grantRole(treasuryTimelock.CANCELLER_ROLE(), address(treasuryGovernor));
         vm.stopPrank();
 
-        return (
-            zrxToken,
-            token,
-            votes,
-            protocolTimelock,
-            treasuryTimelock,
-            address(protocolGovernor),
-            address(treasuryGovernor)
-        );
+        return (token, votes, protocolTimelock, treasuryTimelock, address(protocolGovernor), address(treasuryGovernor));
     }
 
-    function setupZRXWrappedToken() internal returns (IERC20, ZRXWrappedToken, ZeroExVotes) {
+    function setupZRXWrappedToken(IERC20 zrxToken) internal returns (ZRXWrappedToken, ZeroExVotes) {
         vm.startPrank(account1);
-        bytes memory _bytecode = vm.getCode("./ZRXToken.json");
-        IERC20 zrxToken;
-        assembly {
-            zrxToken := create(0, add(_bytecode, 0x20), mload(_bytecode))
-        }
         address wTokenPrediction = predict(account1, vm.getNonce(account1) + 2);
         ZeroExVotes votesImpl = new ZeroExVotes(wTokenPrediction, quadraticThreshold);
         ERC1967Proxy votesProxy = new ERC1967Proxy(address(votesImpl), abi.encodeCall(votesImpl.initialize, ()));
@@ -111,6 +97,16 @@ contract BaseTest is Test {
         vm.stopPrank();
 
         assert(address(wToken) == wTokenPrediction);
-        return (zrxToken, wToken, ZeroExVotes(address(votesProxy)));
+
+        return (wToken, ZeroExVotes(address(votesProxy)));
+    }
+
+    function mockZRXToken() internal returns (IERC20 zrxToken) {
+        vm.startPrank(account1);
+        bytes memory _bytecode = vm.getCode("./ZRXToken.json");
+        assembly {
+            zrxToken := create(0, add(_bytecode, 0x20), mload(_bytecode))
+        }
+        vm.stopPrank();
     }
 }
