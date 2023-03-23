@@ -15,9 +15,9 @@ export const GoToExplorer = forwardRef<HTMLDivElement, ComponentPropsWithoutRef<
             {...other}
             ref={forwardedRef}
         >
-            <div className="text-1.5xl mb-2 font-sans font-normal">Wanna check your products on-chain data?</div>
-            <div className="text-grey-400 max-w-[340px] text-center font-sans text-base font-normal">
-                0x explorer is a tool where you can check and revise data as it comes through
+            <div className="mb-2 font-sans text-xl font-normal">Explore your transaction data</div>
+            <div className="text-grey-400 max-w-[340px] text-center font-sans text-base font-thin">
+                View on-chain data and transactions from your tagged apps on 0x explorer.
             </div>
             <AnchorButton
                 href="https://explorer.0x.org/"

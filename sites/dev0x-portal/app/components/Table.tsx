@@ -1,7 +1,7 @@
 import { forwardRef } from 'react';
+import { twMerge } from 'tailwind-merge';
 
 import type { ComponentPropsWithoutRef } from 'react';
-import { twMerge } from 'tailwind-merge';
 
 export const Th = forwardRef<HTMLTableCellElement, ComponentPropsWithoutRef<'th'>>(function Th(
     { className, ...other },
@@ -10,7 +10,7 @@ export const Th = forwardRef<HTMLTableCellElement, ComponentPropsWithoutRef<'th'
     return (
         <th
             {...other}
-            className={twMerge('text-grey-500 pb- px-5 pb-2 text-left font-sans text-sm font-normal', className)}
+            className={twMerge('text-grey-500 px-5 pb-4 text-left font-sans text-sm font-normal', className)}
             ref={forwardedRef}
         />
     );
@@ -22,13 +22,16 @@ export const Td = forwardRef<HTMLTableCellElement, ComponentPropsWithoutRef<'td'
     return (
         <td
             {...other}
-            className={twMerge('text-grey-800 p-5 font-sans text-base font-normal', className)}
+            className={twMerge('text-grey-800 p-6 font-sans text-base font-normal', className)} //[1.5625rem]
             ref={forwardedRef}
         />
     );
 });
-export const Tr = forwardRef<HTMLTableRowElement, ComponentPropsWithoutRef<'tr'>>(function Td(props, forwardRef) {
-    return <tr {...props} ref={forwardRef} />;
+export const Tr = forwardRef<HTMLTableRowElement, ComponentPropsWithoutRef<'tr'>>(function Td(
+    { className, ...other },
+    forwardRef,
+) {
+    return <tr className={twMerge(className)} {...other} ref={forwardRef} />;
 });
 export const Thead = forwardRef<HTMLTableSectionElement, ComponentPropsWithoutRef<'thead'>>(function Thead(
     props,
@@ -41,18 +44,28 @@ export const Tbody = forwardRef<HTMLTableSectionElement, ComponentPropsWithoutRe
     { className, ...other },
     forwardedRef,
 ) {
-    return (
-        <tbody
-            {...other}
-            className={twMerge('shadow-tbody divide-grey-200 divide-y rounded-xl', className)}
-            ref={forwardedRef}
-        />
-    );
+    return <tbody {...other} className={twMerge(' divide-grey-200 divide-y ', className)} ref={forwardedRef} />;
 });
 
 export const Table = forwardRef<HTMLTableElement, ComponentPropsWithoutRef<'table'>>(function Table(
     { className, ...other },
     forwardedRef,
 ) {
-    return <table {...other} className={twMerge('w-full', className)} ref={forwardedRef} />;
+    return <table {...other} className={twMerge('relative z-10 table w-full', className)} ref={forwardedRef} />;
+});
+
+export const Root = forwardRef<HTMLDivElement, ComponentPropsWithoutRef<'div'>>(function Root(
+    { className, ...other },
+    forwardedRef,
+) {
+    return (
+        <div
+            className={twMerge(
+                "after:border-grey-100 relative z-0 after:absolute after:top-[39px] after:left-0 after:bottom-0 after:right-0 after:rounded-xl after:border after:border-solid after:shadow-sm after:content-['']",
+                className,
+            )}
+            {...other}
+            ref={forwardedRef}
+        />
+    );
 });

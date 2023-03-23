@@ -21,7 +21,7 @@ const ExternalLinkDropdownItem = forwardRef<HTMLAnchorElement, ComponentPropsWit
                 ref={forwardedRef}
             >
                 <span>{children}</span>
-                <LinkExternal width={14} height={14} />
+                <LinkExternal strokeWidth={3} width={16} height={16} color="#18181B" /> {/* grey-900*/}
             </a>
         );
     },
@@ -36,7 +36,13 @@ export const Content = forwardRef<ElementRef<typeof DropdownMenu.Content>, Accou
     function Content({ user, ...other }, forwardedRef) {
         return (
             <DropdownMenu.Portal>
-                <DropdownMenu.Content sideOffset={5} collisionPadding={20} {...other} ref={forwardedRef}>
+                <DropdownMenu.Content
+                    sideOffset={5}
+                    collisionPadding={20}
+                    {...other}
+                    ref={forwardedRef}
+                    className="min-w-[250px]"
+                >
                     <DropdownMenu.Item asChild disabled>
                         <div className="flex flex-col justify-start">
                             <span className="text-grey-800 font-sans text-base">{user.email}</span>

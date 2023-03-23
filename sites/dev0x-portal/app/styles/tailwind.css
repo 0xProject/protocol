@@ -3,6 +3,9 @@
 @tailwind utilities;
 
 @layer base {
+    body {
+        font-variant-numeric: slashed-zero;
+    }
     @font-face {
         font-family: 'PolySans';
         font-style: normal;
@@ -58,5 +61,23 @@
         font-weight: 700;
         font-display: swap;
         src: url('/fonts/PolySans-BulkyItalic.woff2') format('woff2');
+    }
+}
+
+@layer components {
+    .table tbody > tr:hover > td {
+        @apply bg-grey-50;
+    }
+    .table tbody > tr:first-child > td:first-child {
+        @apply rounded-tl-xl;
+    }
+    .table tbody > tr:first-child > td:last-child {
+        @apply rounded-tr-xl;
+    }
+    .table tbody > tr:last-child > td:first-child {
+        @apply rounded-bl-xl;
+    }
+    .table tbody > tr:last-child > td:last-child {
+        @apply rounded-br-xl;
     }
 }

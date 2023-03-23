@@ -94,6 +94,7 @@ const config = {
             fontSize: {
                 base: ['1rem', '1.375rem'], //line-height 22px instead of 24
                 lg: ['1.125rem', '1.625rem'],
+                xl: ['1.375rem', '1.75rem'],
                 '1.5xl': ['1.5rem', '1.75rem'],
                 '2.5xl': ['1.625rem', '2rem'],
             },
@@ -110,6 +111,9 @@ const config = {
                 '3xl': '0px 32px 64px -12px rgba(16, 24, 40, 0.14)',
                 //border do not work well on tbody element, so we mimic that with box-shadow
                 tbody: ['0 0 0 1px #E4E4E7', '0px 2px 8px rgba(16, 24, 40, 0.1)', '0px 1px 2px rgba(16, 24, 40, 0.06)'],
+            },
+            gridTemplateColumns: {
+                24: 'repeat(24, minmax(0, 1fr))',
             },
         },
     },

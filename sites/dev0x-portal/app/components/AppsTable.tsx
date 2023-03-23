@@ -1,6 +1,6 @@
 import { twMerge } from 'tailwind-merge';
-import { Link } from '@remix-run/react';
-import { Table, Tbody, Td, Th, Thead, Tr } from './Table';
+import { Link, useNavigate } from '@remix-run/react';
+import * as Table from './Table';
 import { ArrowNarrowRight } from '../icons/ArrowNarrowRight';
 
 import type { LinkProps } from '@remix-run/react';
@@ -22,41 +22,63 @@ function ExploreLink({ className, ...other }: LinkProps) {
         </Link>
     );
 }
+function Tr({ pathname, ...other }: ComponentPropsWithoutRef<typeof Table.Tr> & { pathname: string }) {
+    const navigate = useNavigate();
 
-type AppsTableProps = ComponentPropsWithRef<typeof Table> & {
+    return (
+        <Table.Tr
+            role="button"
+            {...other}
+            onClick={(event) => {
+                if (event.metaKey || event.ctrlKey) {
+                    //open in new tab
+                    window.open(`/apps/${pathname}`, '_blank');
+                } else {
+                    navigate(`/apps/${pathname}`);
+                }
+            }}
+        />
+    );
+}
+
+type AppsTableProps = ComponentPropsWithRef<typeof Table.Table> & {
     data: App[];
 };
 //Once we have more advance scenarios use @tanstack/react-table here
 export function AppsTable({ data, ...other }: AppsTableProps) {
     return (
-        <Table {...other}>
-            <Thead>
-                <Tr>
-                    <Th className="text-grey-900 pl-0 text-left text-base">Projects</Th>
-                    <Th>On-chain tag</Th>
-                    <Th>Requests</Th>
-                    <Th />
-                </Tr>
-            </Thead>
-            <Tbody>
-                {data.map(({ metrics, encodedUrlPathname, name, brandColor }) => (
-                    <Tr key={encodedUrlPathname}>
-                        <Td className="flex">
-                            <AppColorBar
-                                style={{
-                                    backgroundColor: brandColor,
-                                }}
-                            />
-                            <span className="font-medium">{name}</span>
-                        </Td>
-                        <Td>-</Td>
-                        <Td>{metrics.requests}</Td>
-                        <Td className="text-right">
-                            <ExploreLink to={`/apps/${encodedUrlPathname}`} />
-                        </Td>
-                    </Tr>
-                ))}
-            </Tbody>
-        </Table>
+        <Table.Root>
+            <Table.Table {...other}>
+                <Table.Thead>
+                    <Table.Tr>
+                        <Table.Th className="text-grey-900 pl-0 text-left text-base font-medium">Apps</Table.Th>
+                        <Table.Th>On-chain tag</Table.Th>
+                        <Table.Th>Requests</Table.Th>
+                        <Table.Th />
+                    </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                    {data.map(({ metrics, encodedUrlPathname, name, brandColor }) => (
+                        <Tr key={encodedUrlPathname} pathname={encodedUrlPathname}>
+                            <Table.Td>
+                                <div className="flex">
+                                    <AppColorBar
+                                        style={{
+                                            backgroundColor: brandColor,
+                                        }}
+                                    />
+                                    <span className="font-medium">{name}</span>
+                                </div>
+                            </Table.Td>
+                            <Table.Td>-</Table.Td>
+                            <Table.Td>{metrics.requests}</Table.Td>
+                            <Table.Td className=" text-right">
+                                <ExploreLink to={`/apps/${encodedUrlPathname}`} />
+                            </Table.Td>
+                        </Tr>
+                    ))}
+                </Table.Tbody>
+            </Table.Table>
+        </Table.Root>
     );
 }
