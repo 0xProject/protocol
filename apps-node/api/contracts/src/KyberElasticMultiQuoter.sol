@@ -44,7 +44,7 @@ contract KyberElasticMultiQuoter is MultiQuoter {
         int24 currentTick; // the tick associated with the current price
         int24 nextTick; // the next initialized tick
         uint160 nextSqrtP; // the price of nextTick
-        bool zeroForOne; // true if swap is token0 for token 1
+        bool zeroForOne; // true if the inputs amounts are in terms of token0
         bool isExactInput; // true = input qty, false = output qty
         uint128 baseL; // the cached base pool liquidity without reinvestment liquidity
         uint128 reinvestL; // the cached reinvestment liquidity

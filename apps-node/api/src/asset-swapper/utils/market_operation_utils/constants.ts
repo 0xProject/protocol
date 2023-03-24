@@ -158,7 +158,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID: Record<ChainId, SourceFilters> = {
         ERC20BridgeSource.WOOFi,
         // ERC20BridgeSource.AaveV3,
         // ERC20BridgeSource.Dystopia, // Temporarily removed until further investigated.
-        // ERC20BridgeSource.KyberElastic,
+        ERC20BridgeSource.KyberElastic,
     ]),
     [ChainId.Avalanche]: new SourceFilters([
         ERC20BridgeSource.MultiHop,
@@ -314,7 +314,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID: Record<ChainId, SourceFilters> = {
         ERC20BridgeSource.WOOFi,
         // ERC20BridgeSource.AaveV3,
         // ERC20BridgeSource.Dystopia, // Temporarily removed until further investigated.
-        // ERC20BridgeSource.KyberElastic,
+        ERC20BridgeSource.KyberElastic,
     ]),
     [ChainId.Avalanche]: new SourceFilters([
         ERC20BridgeSource.MultiHop,

@@ -147,7 +147,7 @@ contract TestKyberElasticMultiQuoter is Test, KyberElasticCommon {
         tokenPath[0] = ETH;
         tokenPath[1] = KNC;
 
-        address[][] memory poolPaths = _getPoolPaths(multiQuoter, address(factory), tokenPath, 1 ether);
+        address[][] memory poolPaths = _getPoolPaths(address(factory), tokenPath, 1 ether);
         assert(poolPaths.length == 2);
         for (uint256 i; i < poolPaths.length; ++i) {
             for (uint256 j; j < poolPaths[i].length; ++j) {

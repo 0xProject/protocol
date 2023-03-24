@@ -59,3 +59,8 @@ interface IKyberElasticPool {
     /// @return reinvestLLast last cached value of reinvestL, used for calculating reinvestment token qty
     function getLiquidityState() external view returns (uint128 baseL, uint128 reinvestL, uint128 reinvestLLast);
 }
+
+interface IERC20 {
+    /// @notice Returns the amount of tokens owned by `account`.
+    function balanceOf(address account) external view returns (uint256);
+}

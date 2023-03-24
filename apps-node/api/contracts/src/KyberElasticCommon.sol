@@ -2,36 +2,31 @@ pragma solidity >=0.6;
 pragma experimental ABIEncoderV2;
 
 import "./interfaces/IKyberElastic.sol";
-import "./interfaces/IMultiQuoter.sol";
 import "./TickBasedAMMCommon.sol";
 
 contract KyberElasticCommon is TickBasedAMMCommon {
-    uint256 private constant POOL_FILTERING_QUOTE_GAS = 450e3;
-
     /// @dev Returns `poolPaths` to sample against. The caller is responsible for not using path involving zero address(es).
     function _getPoolPaths(
-        IMultiQuoter quoter,
         address factory,
         address[] memory path,
-        uint256 inputAmount
+        uint256 amount
     ) internal view returns (address[][] memory poolPaths) {
         if (path.length == 2) {
-            return _getPoolPathSingleHop(quoter, factory, path, inputAmount);
+            return _getPoolPathSingleHop(factory, path, amount);
         }
         if (path.length == 3) {
-            return _getPoolPathTwoHop(quoter, factory, path, inputAmount);
+            return _getPoolPathTwoHop(factory, path, amount);
         }
         revert("KyberElastic sampler: unsupported token path length");
     }
 
     function _getPoolPathSingleHop(
-        IMultiQuoter quoter,
         address factory,
         address[] memory path,
-        uint256 inputAmount
+        uint256 amount
     ) internal view returns (address[][] memory poolPaths) {
         poolPaths = new address[][](2);
-        (address[2] memory topPools, ) = _getTopTwoPools(quoter, factory, path[0], path[1], inputAmount);
+        address[2] memory topPools = _getTopTwoPools(factory, path[0], path[1], amount);
 
         uint256 pathCount = 0;
         for (uint256 i = 0; i < 2; i++) {
@@ -43,26 +38,13 @@ contract KyberElasticCommon is TickBasedAMMCommon {
     }
 
     function _getPoolPathTwoHop(
-        IMultiQuoter quoter,
         address factory,
         address[] memory path,
-        uint256 inputAmount
+        uint256 amount
     ) internal view returns (address[][] memory poolPaths) {
         poolPaths = new address[][](4);
-        (address[2] memory firstHopTopPools, uint256[2] memory firstHopAmounts) = _getTopTwoPools(
-            quoter,
-            factory,
-            path[0],
-            path[1],
-            inputAmount
-        );
-        (address[2] memory secondHopTopPools, ) = _getTopTwoPools(
-            quoter,
-            factory,
-            path[1],
-            path[2],
-            firstHopAmounts[0]
-        );
+        address[2] memory firstHopTopPools = _getTopTwoPools(factory, path[0], path[1], amount);
+        address[2] memory secondHopTopPools = _getTopTwoPools(factory, path[1], path[2], amount);
 
         uint256 pathCount = 0;
         for (uint256 i = 0; i < 2; i++) {
@@ -79,46 +61,46 @@ contract KyberElasticCommon is TickBasedAMMCommon {
     /// @dev Returns top 0-2 pools and corresponding output amounts based on swaping `inputAmount`.
     /// Addresses in `topPools` can be zero addresses when there are pool isn't available.
     function _getTopTwoPools(
-        IMultiQuoter multiQuoter,
         address factory,
         address inputToken,
         address outputToken,
-        uint256 inputAmount
-    ) internal view returns (address[2] memory topPools, uint256[2] memory topOutputAmounts) {
+        uint256 amount
+    ) internal view returns (address[2] memory topPools) {
         address[] memory tokenPath = new address[](2);
         tokenPath[0] = inputToken;
         tokenPath[1] = outputToken;
 
-        uint256[] memory inputAmounts = new uint256[](1);
-        inputAmounts[0] = inputAmount;
-
-        uint16[5] memory validPoolFees = [uint16(8), uint16(10), uint16(40), uint16(300), uint16(1000)]; // in bps
+        uint16[5] memory validPoolFees = [uint16(8), uint16(10), uint16(40), uint16(300), uint16(1000)]; //.8 bps, .1 bps, .4 bps, 30 bps, 100 bps
+        uint128[2] memory topLiquidityAmounts;
         for (uint256 i = 0; i < validPoolFees.length; ++i) {
             address pool = IKyberElasticFactory(factory).getPool(inputToken, outputToken, validPoolFees[i]);
+
             if (!_isValidPool(pool)) {
                 continue;
             }
 
-            address[] memory poolPath = new address[](1);
-            poolPath[0] = pool;
-            bytes memory dexPath = _toPath(tokenPath, poolPath);
-
-            try
-                multiQuoter.quoteExactMultiInput{gas: POOL_FILTERING_QUOTE_GAS}(factory, dexPath, inputAmounts)
-            {} catch (bytes memory reason) {
-                (bool success, uint256[] memory outputAmounts, ) = decodeMultiSwapRevert(reason);
-                if (success) {
-                    // Keeping track of the top 2 pools.
-                    if (outputAmounts[0] > topOutputAmounts[0]) {
-                        topOutputAmounts[1] = topOutputAmounts[0];
-                        topPools[1] = topPools[0];
-                        topOutputAmounts[0] = outputAmounts[0];
-                        topPools[0] = pool;
-                    } else if (outputAmounts[0] > topOutputAmounts[1]) {
-                        topOutputAmounts[1] = outputAmounts[0];
-                        topPools[1] = pool;
-                    }
-                }
+            // Make sure there is reasonable amount of input token inside the pool.
+            // This is a tradeoff between lowering latency/gas usage
+            // vs allowing pools to be sampled for liquidity.
+            IERC20 token;
+            token = inputToken < outputToken
+                ? IERC20(IKyberElasticPool(pool).token0())
+                : IERC20(IKyberElasticPool(pool).token1());
+            // This threshold was determined by running simbot and seeing where
+            // pricing starts to degrade vs not filtering.
+            if (token.balanceOf(pool) < amount / 2) {
+                continue;
+            }
+            (uint128 baseLiquidity, uint128 reinvestLiquidity, ) = IKyberElasticPool(pool).getLiquidityState();
+            uint128 currLiquidity = baseLiquidity + reinvestLiquidity;
+            if (currLiquidity > topLiquidityAmounts[0]) {
+                topLiquidityAmounts[1] = topLiquidityAmounts[0];
+                topPools[1] = topPools[0];
+                topLiquidityAmounts[0] = currLiquidity;
+                topPools[0] = pool;
+            } else if (currLiquidity > topLiquidityAmounts[1]) {
+                topLiquidityAmounts[1] = currLiquidity;
+                topPools[1] = pool;
             }
         }
     }

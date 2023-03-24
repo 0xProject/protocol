@@ -25,6 +25,8 @@ import "./interfaces/IKyberElastic.sol";
 import "./KyberElasticCommon.sol";
 
 contract KyberElasticSampler is KyberElasticCommon {
+    uint256 private constant SAMPLING_GAS_LIMIT = 1500e3;
+
     /// @dev Sample sell quotes from KyberElastic.
     /// @param factory KyberElastic factory contract.
     /// @param path Token route. Should be takerToken -> makerToken (at most two hops).
@@ -42,7 +44,7 @@ contract KyberElasticSampler is KyberElasticCommon {
         paths = new bytes[](inputAmounts.length);
         gasEstimates = new uint256[](inputAmounts.length);
 
-        address[][] memory poolPaths = _getPoolPaths(quoter, factory, path, inputAmounts[inputAmounts.length - 1]);
+        address[][] memory poolPaths = _getPoolPaths(factory, path, inputAmounts[inputAmounts.length - 1]);
         for (uint256 i = 0; i < poolPaths.length; ++i) {
             if (!_isValidPoolPath(poolPaths[i])) {
                 continue;
@@ -53,7 +55,9 @@ contract KyberElasticSampler is KyberElasticCommon {
             uint256[] memory amountsOut;
             uint256[] memory gasEstimatesTemp;
 
-            try quoter.quoteExactMultiInput(factory, dexPath, inputAmounts) {} catch (bytes memory reason) {
+            try quoter.quoteExactMultiInput{gas: SAMPLING_GAS_LIMIT}(factory, dexPath, inputAmounts) {} catch (
+                bytes memory reason
+            ) {
                 bool success;
                 (success, amountsOut, gasEstimatesTemp) = decodeMultiSwapRevert(reason);
 
@@ -97,12 +101,7 @@ contract KyberElasticSampler is KyberElasticCommon {
         gasEstimates = new uint256[](inputAmounts.length);
 
         address[] memory reversedPath = reverseAddressPath(path);
-        address[][] memory poolPaths = _getPoolPaths(
-            quoter,
-            factory,
-            reversedPath,
-            inputAmounts[inputAmounts.length - 1]
-        );
+        address[][] memory poolPaths = _getPoolPaths(factory, reversedPath, inputAmounts[inputAmounts.length - 1]);
 
         for (uint256 i = 0; i < poolPaths.length; ++i) {
             if (!_isValidPoolPath(poolPaths[i])) {
@@ -114,7 +113,9 @@ contract KyberElasticSampler is KyberElasticCommon {
             uint256[] memory amountsIn;
             uint256[] memory gasEstimatesTemp;
 
-            try quoter.quoteExactMultiOutput(factory, poolPath, inputAmounts) {} catch (bytes memory reason) {
+            try quoter.quoteExactMultiOutput{gas: SAMPLING_GAS_LIMIT}(factory, poolPath, inputAmounts) {} catch (
+                bytes memory reason
+            ) {
                 bool success;
                 (success, amountsIn, gasEstimatesTemp) = decodeMultiSwapRevert(reason);
 
