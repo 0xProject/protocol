@@ -16,8 +16,7 @@ const addressRegex = /^0x[a-fA-F0-9]{40}$/;
 const ethereumAddress = z.string().regex(addressRegex, { message: 'Must be an ethereum address' });
 
 const uniswapV3PoolShape = implement<UniswapV3Pool>().with({
-    token0: ethereumAddress,
-    token1: ethereumAddress,
+    poolAddress: ethereumAddress,
     fee: z.union([z.literal(100), z.literal(500), z.literal(3000), z.literal(10000)]),
     score: z.number().positive().lte(100),
 });

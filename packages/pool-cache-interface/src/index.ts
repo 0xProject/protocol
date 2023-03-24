@@ -4,10 +4,7 @@ import type { defineTrpcRouter } from 'trpc-toolbox';
 export type UniswapV3Fee = 100 | 500 | 3000 | 10000;
 
 export interface UniswapV3Pool {
-    // token0 address
-    token0: string;
-    // token1 address
-    token1: string;
+    poolAddress: string;
     // Pool fee
     fee: UniswapV3Fee;
     // Normalized liquidity score [0, 100]
@@ -23,7 +20,7 @@ export interface UniswapV3PoolCache {
 }
 
 export interface GetPoolCacheOfPairsOutput {
-    // The order corresponds to the order of `GetPoolCacheOfPairsInput.uniswapPairs`.
+    // The order corresponds to the order of `GetPoolCacheOfPairsInput.uniswapV3Pairs`.
     uniswapV3Cache: UniswapV3PoolCache[];
 }
 
