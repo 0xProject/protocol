@@ -224,7 +224,7 @@ export const zippoRouterDefinition = {
         },
         logout: {
             // Delete session token
-            input: z.string().cuid().describe('Session token ID'),
+            input: z.string().describe('Session token'),
             type: 'mutation',
         },
         getSession: {

@@ -375,7 +375,7 @@ async function createSessionToken(userId: string) {
  */
 async function deleteSessionToken(sessionToken: string) {
     return prisma.session.delete({
-        where: { sessionToken: sessionToken },
+        where: { sessionToken },
     });
 }
 
