@@ -25,7 +25,7 @@ export class EthCallPoolFetcher implements PoolFetcher {
         });
     }
 
-    async getPoolsOfPairs(input: GetPoolCacheOfPairsInput): Promise<GetPoolCacheOfPairsOutput> {
+    async get(input: GetPoolCacheOfPairsInput): Promise<GetPoolCacheOfPairsOutput> {
         const onChainPoolFetcher = this.chainIdToOnChainPoolFetcher.get(input.chainId);
 
         if (onChainPoolFetcher === undefined) {
