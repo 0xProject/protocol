@@ -257,9 +257,9 @@ export async function sendPasswordResetEmail(
     const verificationToken = await createVerificationToken(input.userId);
 
     const emailVars = {
-        verifyUrl: `${env.MAILGUN_DEPLOY_URL}/auth/password_reset?email=${encodeURIComponent(user.email)}&token=${
-            verificationToken.verificationToken
-        }`,
+        verifyUrl: `${env.MAILGUN_DEPLOY_URL}/reset-password/set-password?email=${encodeURIComponent(
+            user.email,
+        )}&token=${verificationToken.verificationToken}`,
     };
 
     return sendUserEmail(input.userId, 'password_reset_email', 'Reset your 0x.org password', emailVars);
@@ -290,9 +290,9 @@ export async function sendEmailVerifyEmail(
     const verificationToken = await createVerificationToken(input.userId);
 
     const emailVars = {
-        verifyUrl: `${env.MAILGUN_DEPLOY_URL}/auth/email_verify?email=${encodeURIComponent(user.email)}&token=${
-            verificationToken.verificationToken
-        }`,
+        verifyUrl: `${env.MAILGUN_DEPLOY_URL}/create-account/verify-email?email=${encodeURIComponent(
+            user.email,
+        )}&token=${verificationToken.verificationToken}`,
     };
 
     return sendUserEmail(input.userId, 'email_verification_at_signup', 'Verify your email with 0x.org', emailVars);
