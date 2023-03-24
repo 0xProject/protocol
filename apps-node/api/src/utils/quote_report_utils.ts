@@ -59,6 +59,13 @@ const bigNumberToStringOrUndefined = (bn: BigNumber | undefined) => {
     return bn ? bn.toString() : undefined;
 };
 
+const bigNumberToStringOrNullIfNaN = (bn: BigNumber) => {
+    if (bn.isNaN()) {
+        return null;
+    }
+    return bn.toString();
+};
+
 /**
  * Publishes a quote report to kafka. As of fall 2022, this eventually
  * makes its way to the Hashalytics database.
@@ -93,7 +100,7 @@ export function publishQuoteReport(
             sourcesConsidered: logOpts.quoteReportSources.sourcesConsidered.map(jsonifyFillData),
             sourcesDelivered: logOpts.quoteReportSources.sourcesDelivered?.map(jsonifyFillData),
             blockNumber: logOpts.blockNumber,
-            estimatedGas: logOpts.estimatedGas.toString(),
+            estimatedGas: bigNumberToStringOrNullIfNaN(logOpts.estimatedGas),
             estimatedGasForRouter: logOpts.estimatedGasForRouter?.toString(),
             enableSlippageProtection: logOpts.enableSlippageProtection,
             expectedSlippage: logOpts.expectedSlippage?.toString(),

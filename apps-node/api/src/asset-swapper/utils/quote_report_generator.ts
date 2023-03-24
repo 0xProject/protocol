@@ -45,7 +45,7 @@ export interface ExtendedQuoteReport {
     sourcesConsidered: ExtendedQuoteReportIndexedEntryOutbound[];
     sourcesDelivered: ExtendedQuoteReportIndexedEntryOutbound[] | undefined;
     blockNumber: number | undefined;
-    estimatedGas: string;
+    estimatedGas: string | null; // null instead of undefined as it's parsed as a JSON.
     estimatedGasForRouter: string | undefined;
     enableSlippageProtection?: boolean;
     expectedSlippage?: string;
