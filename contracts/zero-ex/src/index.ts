@@ -35,11 +35,7 @@ export * from './bloom_filter_utils';
 export { GREEDY_TOKENS } from './constants';
 export {
     AffiliateFeeTransformerContract,
-    AvalancheBridgeAdapterContract,
-    BSCBridgeAdapterContract,
-    CeloBridgeAdapterContract,
-    EthereumBridgeAdapterContract,
-    FantomBridgeAdapterContract,
+    BridgeAdapterContract,
     FillQuoteTransformerContract,
     IOwnableFeatureContract,
     IOwnableFeatureEvents,
@@ -49,9 +45,7 @@ export {
     IZeroExContract,
     LogMetadataTransformerContract,
     MultiplexFeatureContract,
-    OptimismBridgeAdapterContract,
     PayTakerTransformerContract,
-    PolygonBridgeAdapterContract,
     PositiveSlippageFeeTransformerContract,
     TransformERC20FeatureContract,
     WethTransformerContract,

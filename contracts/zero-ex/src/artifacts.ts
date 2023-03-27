@@ -6,13 +6,9 @@
 import { ContractArtifact } from 'ethereum-types';
 
 import * as AffiliateFeeTransformer from '../generated-artifacts/AffiliateFeeTransformer.json';
-import * as AvalancheBridgeAdapter from '../generated-artifacts/AvalancheBridgeAdapter.json';
 import * as BatchFillNativeOrdersFeature from '../generated-artifacts/BatchFillNativeOrdersFeature.json';
-import * as BSCBridgeAdapter from '../generated-artifacts/BSCBridgeAdapter.json';
-import * as CeloBridgeAdapter from '../generated-artifacts/CeloBridgeAdapter.json';
+import * as BridgeAdapter from '../generated-artifacts/BridgeAdapter.json';
 import * as CurveLiquidityProvider from '../generated-artifacts/CurveLiquidityProvider.json';
-import * as EthereumBridgeAdapter from '../generated-artifacts/EthereumBridgeAdapter.json';
-import * as FantomBridgeAdapter from '../generated-artifacts/FantomBridgeAdapter.json';
 import * as FeeCollector from '../generated-artifacts/FeeCollector.json';
 import * as FeeCollectorController from '../generated-artifacts/FeeCollectorController.json';
 import * as FillQuoteTransformer from '../generated-artifacts/FillQuoteTransformer.json';
@@ -34,11 +30,9 @@ import * as LogMetadataTransformer from '../generated-artifacts/LogMetadataTrans
 import * as MetaTransactionsFeature from '../generated-artifacts/MetaTransactionsFeature.json';
 import * as MultiplexFeature from '../generated-artifacts/MultiplexFeature.json';
 import * as NativeOrdersFeature from '../generated-artifacts/NativeOrdersFeature.json';
-import * as OptimismBridgeAdapter from '../generated-artifacts/OptimismBridgeAdapter.json';
 import * as OtcOrdersFeature from '../generated-artifacts/OtcOrdersFeature.json';
 import * as OwnableFeature from '../generated-artifacts/OwnableFeature.json';
 import * as PayTakerTransformer from '../generated-artifacts/PayTakerTransformer.json';
-import * as PolygonBridgeAdapter from '../generated-artifacts/PolygonBridgeAdapter.json';
 import * as PositiveSlippageFeeTransformer from '../generated-artifacts/PositiveSlippageFeeTransformer.json';
 import * as SimpleFunctionRegistryFeature from '../generated-artifacts/SimpleFunctionRegistryFeature.json';
 import * as TransformERC20Feature from '../generated-artifacts/TransformERC20Feature.json';
@@ -77,11 +71,5 @@ export const artifacts = {
     IMultiplexFeature: IMultiplexFeature as ContractArtifact,
     OtcOrdersFeature: OtcOrdersFeature as ContractArtifact,
     IOtcOrdersFeature: IOtcOrdersFeature as ContractArtifact,
-    AvalancheBridgeAdapter: AvalancheBridgeAdapter as ContractArtifact,
-    BSCBridgeAdapter: BSCBridgeAdapter as ContractArtifact,
-    CeloBridgeAdapter: CeloBridgeAdapter as ContractArtifact,
-    EthereumBridgeAdapter: EthereumBridgeAdapter as ContractArtifact,
-    FantomBridgeAdapter: FantomBridgeAdapter as ContractArtifact,
-    OptimismBridgeAdapter: OptimismBridgeAdapter as ContractArtifact,
-    PolygonBridgeAdapter: PolygonBridgeAdapter as ContractArtifact,
+    BridgeAdapter: BridgeAdapter as ContractArtifact,
 };

@@ -18,22 +18,6 @@ pragma experimental ABIEncoderV2;
 import "./IBridgeAdapter.sol";
 
 abstract contract AbstractBridgeAdapter is IBridgeAdapter {
-    constructor(uint256 expectedChainId, string memory expectedChainName) public {
-        uint256 chainId;
-        assembly {
-            chainId := chainid()
-        }
-        // Skip chain id validation on Ganache (1337), Anvil (31337), Goerli (5), Mumbai (80001), Base Goerli (84531)
-        bool skipValidation = (chainId == 1337 ||
-            chainId == 31337 ||
-            chainId == 5 ||
-            chainId == 80001 ||
-            chainId == 84531);
-
-        if (chainId != expectedChainId && !skipValidation) {
-            revert(string(abi.encodePacked(expectedChainName, "BridgeAdapter.constructor: wrong chain ID")));
-        }
-    }
 
     function isSupportedSource(bytes32 source) external override returns (bool isSupported) {
         BridgeOrder memory placeholderOrder;
