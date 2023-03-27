@@ -3,10 +3,10 @@ import { Queue, Worker } from 'bullmq';
 import Redis from 'ioredis';
 
 import backgroundJobNoOp from '../src/background-jobs/no_op';
-import { REDIS_BACKGROUND_JOB_URI } from '../src/config';
 import { ONE_SECOND_MS } from '../src/core/constants';
 import { ScheduledBackgroundJob, Scheduler } from '../src/scheduler';
 import { closeRedisConnectionsAsync, closeWorkersAsync } from '../src/utils/runner_utils';
+import { REDIS_PORT } from './constants';
 
 import { setupDependenciesAsync, TeardownDependenciesFunctionHandle } from './test_utils/deployment';
 
@@ -24,7 +24,7 @@ describe('Background jobs integration tests', () => {
     afterEach(async () => {
         // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const connection = new Redis(REDIS_BACKGROUND_JOB_URI!);
+        const connection = new Redis(REDIS_PORT);
         const keys = await connection.keys('bull:*');
         if (keys.length) {
             await connection.del(keys);
@@ -43,7 +43,7 @@ describe('Background jobs integration tests', () => {
         it('no-op job should be scheduled and processed', async () => {
             // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const connection = new Redis(REDIS_BACKGROUND_JOB_URI!, {
+            const connection = new Redis(REDIS_PORT, {
                 maxRetriesPerRequest: null,
                 enableReadyCheck: false,
             });

@@ -53,6 +53,7 @@ import {
     MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
     MOCK_EXECUTE_META_TRANSACTION_HASH,
     MOCK_PERMIT_APPROVAL,
+    REDIS_PORT,
     TEST_RFQ_ORDER_FILLED_EVENT_LOG,
 } from './constants';
 import { setupDependenciesAsync, TeardownDependenciesFunctionHandle } from './test_utils/deployment';
@@ -301,7 +302,7 @@ describe('RFQM Integration', () => {
         const quoteServerClient = new QuoteServerClient(axiosClient);
 
         // Create the CacheClient
-        const redis = new Redis();
+        const redis = new Redis(REDIS_PORT);
         cacheClient = new CacheClient(redis);
 
         // Create the maker balance cache service

@@ -21,6 +21,9 @@ import {
 } from '../src/core/types';
 
 export const CHAIN_ID = 1337;
+export const RPC_URL = 'http://localhost:12000';
+export const POSTGRES_PORT = 12001;
+export const REDIS_PORT = 12002;
 // tslint:disable-next-line:custom-no-magic-numbers
 export const MAX_INT = new BigNumber(2).pow(256).minus(1);
 export const MAX_MINT_AMOUNT = new BigNumber('10000000000000000000000');
@@ -48,6 +51,7 @@ const ganacheConfigs = {
     shouldUseInProcessGanache: false,
     shouldAllowUnlimitedContractSize: true,
     shouldUseFakeGasEstimate: false,
+    rpcUrl: RPC_URL,
 };
 
 export const getProvider = (): Web3ProviderEngine => {

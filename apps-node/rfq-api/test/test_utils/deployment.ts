@@ -5,8 +5,8 @@ import { ONE_MINUTE_MS } from '../../src/core/constants';
 
 import { initDbDataSourceAsync } from './initDbDataSourceAsync';
 
-// depends on a `docker-compose.yml` existing in the api root directory
-const dockerComposeFilename = 'docker-compose.yml';
+// Docker compose file name used for testing. Ports are picked to avoid collision with other workspaces
+const dockerComposeFilename = 'docker-compose-test.yml';
 
 /**
  * Returned by `setupDependenciesAsync`. Call to shutdown the

@@ -1,0 +1,29 @@
+version: '3'
+services:
+    ganache:
+        image: '0xorg/ganache-cli:6.5.10'
+        ports:
+            - '12000:8545'
+        environment:
+            VERSION: 8.0.1
+            CHAIN_ID: 1337
+            NETWORK_ID: 1337
+    postgres:
+        image: postgres:9.6
+        environment:
+            - POSTGRES_USER=api
+            - POSTGRES_PASSWORD=api
+            - POSTGRES_DB=api
+        ports:
+            - '12001:5432'
+    redis:
+        image: redis:6.2.7
+        ports:
+            - '12002:6379'
+    sqs:
+        image: mvisonneau/alpine-sqs:1.2.0
+        ports:
+            - '12003:9324'
+            - '12004:9325'
+        volumes:
+            - ./elasticmq.conf:/opt/config/elasticmq.conf

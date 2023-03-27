@@ -5,6 +5,7 @@ import Redis from 'ioredis';
 import { ONE_MINUTE_MS } from '../../src/core/constants';
 import { ERC20Owner } from '../../src/core/types';
 import { CacheClient } from '../../src/utils/cache_client';
+import { REDIS_PORT } from '../constants';
 import { setupDependenciesAsync, TeardownDependenciesFunctionHandle } from '../test_utils/deployment';
 
 jest.setTimeout(ONE_MINUTE_MS * 2);
@@ -29,7 +30,7 @@ describe('CacheClient', () => {
 
     beforeAll(async () => {
         teardownDependencies = await setupDependenciesAsync(['redis']);
-        redis = new Redis();
+        redis = new Redis(REDIS_PORT);
         cacheClient = new CacheClient(redis);
     });
 

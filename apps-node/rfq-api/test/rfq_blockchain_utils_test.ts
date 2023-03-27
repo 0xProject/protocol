@@ -22,6 +22,7 @@ import {
     MOCK_PERMIT_APPROVAL,
     MOCK_PERMIT_CALLDATA,
     MOCK_PERMIT_HASH,
+    RPC_URL,
     WORKER_TEST_PRIVATE_KEY,
 } from './constants';
 import { setupDependenciesAsync, TeardownDependenciesFunctionHandle } from './test_utils/deployment';
@@ -138,7 +139,7 @@ describe('RFQ Blockchain Utils', () => {
         await takerToken.mint(takerBalance).awaitTransactionSuccessAsync({ from: taker });
         await takerToken.approve(zeroEx.address, takerBalance.times(2)).awaitTransactionSuccessAsync({ from: taker });
 
-        const ethersProvider = new providers.JsonRpcProvider();
+        const ethersProvider = new providers.JsonRpcProvider(RPC_URL);
         const ethersWallet = new Wallet(WORKER_TEST_PRIVATE_KEY, ethersProvider);
 
         rfqBlockchainUtils = new RfqBlockchainUtils(
