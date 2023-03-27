@@ -31,6 +31,7 @@
         "./contracts/src/SamplerUtils.sol",
         "./contracts/src/ShellSampler.sol",
         "./contracts/src/SynthetixSampler.sol",
+        "./contracts/src/TraderJoeV2MultiQuoter.sol",
         "./contracts/src/TwoHopSampler.sol",
         "./contracts/src/UniswapSampler.sol",
         "./contracts/src/UniswapV2Sampler.sol",

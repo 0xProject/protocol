@@ -5665,6 +5665,10 @@
   resolved "https://registry.yarnpkg.com/@tootallnate/once/-/once-1.1.2.tgz#ccb91445360179a04e7fe6aff78c00ffc1eeaf82"
   integrity sha512-RbzJvlNzmRq5c3O09UipeuXno4tA1FE6ikOjxZK0tuxVv3412l64l5t1W5pj4+rJq9vpkm/kwiR07aZXnsKPxw==
 
+"@traderjoe-xyz/joe-v2@0xProject/joe-v2#68b109d84915fd0761d936106dbb04c14232d692":
+  version "0.0.0"
+  resolved "https://codeload.github.com/0xProject/joe-v2/tar.gz/68b109d84915fd0761d936106dbb04c14232d692"
+
 "@trpc/client@10.14.1", "@trpc/client@^10.9.0":
   version "10.14.1"
   resolved "https://registry.yarnpkg.com/@trpc/client/-/client-10.14.1.tgz#e30a5c1b7ef17c331f9b35e3401126d6a7b55699"
@@ -18306,6 +18310,11 @@ open@^8.4.0:
     define-lazy-prop "^2.0.0"
     is-docker "^2.1.1"
     is-wsl "^2.2.0"
+
+"openzeppelin@npm:@openzeppelin/contracts@4.8.2":
+  version "4.8.2"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.8.2.tgz#d815ade0027b50beb9bcca67143c6bcc3e3923d6"
+  integrity sha512-kEUOgPQszC0fSYWpbh2kT94ltOJwj1qfT2DWo+zVttmGmf97JZ99LspePNaeeaLhCImaHVeBbjaQFZQn7+Zc5g==
 
 optionator@^0.8.1, optionator@^0.8.2:
   version "0.8.3"

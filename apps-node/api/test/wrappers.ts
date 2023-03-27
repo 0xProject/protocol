@@ -45,6 +45,7 @@ export * from '../test/generated-wrappers/sampler_utils';
 export * from '../test/generated-wrappers/shell_sampler';
 export * from '../test/generated-wrappers/synthetix_sampler';
 export * from '../test/generated-wrappers/test_native_order_sampler';
+export * from '../test/generated-wrappers/trader_joe_v2_multi_quoter';
 export * from '../test/generated-wrappers/two_hop_sampler';
 export * from '../test/generated-wrappers/uniswap_sampler';
 export * from '../test/generated-wrappers/uniswap_v2_sampler';

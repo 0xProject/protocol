@@ -8,4 +8,5 @@ export * from '../generated-wrappers/balance_checker';
 export * from '../generated-wrappers/erc20_bridge_sampler';
 export * from '../generated-wrappers/fake_taker';
 export * from '../generated-wrappers/kyber_elastic_multi_quoter';
+export * from '../generated-wrappers/trader_joe_v2_multi_quoter';
 export * from '../generated-wrappers/uniswap_v3_multi_quoter';

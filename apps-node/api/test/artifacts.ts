@@ -47,6 +47,7 @@ import * as SamplerUtils from '../test/generated-artifacts/SamplerUtils.json';
 import * as ShellSampler from '../test/generated-artifacts/ShellSampler.json';
 import * as SynthetixSampler from '../test/generated-artifacts/SynthetixSampler.json';
 import * as TestNativeOrderSampler from '../test/generated-artifacts/TestNativeOrderSampler.json';
+import * as TraderJoeV2MultiQuoter from '../test/generated-artifacts/TraderJoeV2MultiQuoter.json';
 import * as TwoHopSampler from '../test/generated-artifacts/TwoHopSampler.json';
 import * as UniswapSampler from '../test/generated-artifacts/UniswapSampler.json';
 import * as UniswapV2Sampler from '../test/generated-artifacts/UniswapV2Sampler.json';
@@ -85,6 +86,7 @@ export const artifacts = {
     SamplerUtils: SamplerUtils as ContractArtifact,
     ShellSampler: ShellSampler as ContractArtifact,
     SynthetixSampler: SynthetixSampler as ContractArtifact,
+    TraderJoeV2MultiQuoter: TraderJoeV2MultiQuoter as ContractArtifact,
     TwoHopSampler: TwoHopSampler as ContractArtifact,
     UniswapSampler: UniswapSampler as ContractArtifact,
     UniswapV2Sampler: UniswapV2Sampler as ContractArtifact,

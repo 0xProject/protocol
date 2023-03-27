@@ -10,6 +10,7 @@ import * as BalanceChecker from '../generated-artifacts/BalanceChecker.json';
 import * as ERC20BridgeSampler from '../generated-artifacts/ERC20BridgeSampler.json';
 import * as FakeTaker from '../generated-artifacts/FakeTaker.json';
 import * as KyberElasticMultiQuoter from '../generated-artifacts/KyberElasticMultiQuoter.json';
+import * as TraderJoeV2MultiQuoter from '../generated-artifacts/TraderJoeV2MultiQuoter.json';
 import * as UniswapV3MultiQuoter from '../generated-artifacts/UniswapV3MultiQuoter.json';
 export const artifacts = {
     AlgebraMultiQuoter: AlgebraMultiQuoter as ContractArtifact,
@@ -17,5 +18,6 @@ export const artifacts = {
     BalanceChecker: BalanceChecker as ContractArtifact,
     FakeTaker: FakeTaker as ContractArtifact,
     KyberElasticMultiQuoter: KyberElasticMultiQuoter as ContractArtifact,
+    TraderJoeV2MultiQuoter: TraderJoeV2MultiQuoter as ContractArtifact,
     UniswapV3MultiQuoter: UniswapV3MultiQuoter as ContractArtifact,
 };

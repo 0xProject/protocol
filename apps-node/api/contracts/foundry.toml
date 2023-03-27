@@ -12,7 +12,9 @@ remappings = [
     '@uniswap/v3-periphery/=../../../node_modules/@uniswap/v3-periphery/',
     '@kybernetwork/=../../../node_modules/@kybernetwork/',
     '@cryptoalgebra/core/=../../../node_modules/@cryptoalgebra/core/',
-    '@cryptoalgebra/periphery/=../../../node_modules/@cryptoalgebra/periphery/'
+    '@cryptoalgebra/periphery/=../../../node_modules/@cryptoalgebra/periphery/',
+    '@traderjoe-xyz/joe-v2/=../../../node_modules/@traderjoe-xyz/joe-v2/',
+    'openzeppelin/=../../../node_modules/openzeppelin'
 ]
 allow_paths = ["../../../node_modules"]
 cache_path = 'foundry-cache'
