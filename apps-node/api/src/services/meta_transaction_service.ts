@@ -178,7 +178,7 @@ export class MetaTransactionService implements IMetaTransactionService {
     ): ExchangeProxyMetaTransaction {
         return {
             callData,
-            minGasPrice: new BigNumber(1),
+            minGasPrice: ZERO,
             maxGasPrice: new BigNumber(2).pow(48), // high value 0x1000000000000
             expirationTimeSeconds: createExpirationTime(),
             salt: generatePseudoRandomSalt(),
