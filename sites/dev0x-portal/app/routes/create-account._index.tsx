@@ -1,11 +1,12 @@
 import { Form, Link, useActionData, useLoaderData, useNavigation } from '@remix-run/react';
-import type { ActionArgs, LoaderArgs } from '@remix-run/server-runtime';
 import { json, redirect } from '@remix-run/server-runtime';
 import { getSignedInUser, sessionStorage } from '../auth.server';
 import { TextInput } from '../components/TextInput';
 import { validateFormData } from '../utils/utils';
 import { z } from 'zod';
 import { Button } from '../components/Button';
+
+import type { ActionArgs, LoaderArgs } from '@remix-run/server-runtime';
 
 const firstPageFormModel = z.object({
     firstName: z.string().min(1, 'First name is required'),

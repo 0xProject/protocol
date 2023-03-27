@@ -4,8 +4,16 @@ import { getSignedInUser } from '../auth.server';
 import { AppBar } from '../components/AppBar';
 import { getApps } from '../data/zippo.server';
 
-import type { LoaderArgs } from '@remix-run/node';
 import { NO_TEAM_MARKER } from '../data/zippo.server';
+
+import type { LoaderArgs, MetaFunction } from '@remix-run/node';
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+    return {
+        title: `${data.user.team} Dashboard | 0x`,
+        description: `${data.user.team} Dashboard`,
+    };
+};
 
 export const loader = async ({ request, params }: LoaderArgs) => {
     const [user, headers] = await getSignedInUser(request);

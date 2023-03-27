@@ -1,5 +1,4 @@
-import type { ActionArgs, LoaderArgs } from '@remix-run/server-runtime';
-import { json, redirect } from '@remix-run/server-runtime';
+import { json, redirect } from '@remix-run/node';
 import { getSignedInUser, sessionStorage } from '../auth.server';
 import { getUserByEmail, sendVerificationEmail, verifyEmailVerificationToken } from '../data/zippo.server';
 import { z } from 'zod';
@@ -7,6 +6,15 @@ import { Form, Link, useLoaderData } from '@remix-run/react';
 import { Button, LinkButton } from '../components/Button';
 import { useEffect, useState } from 'react';
 import { addSeconds, differenceInSeconds } from 'date-fns';
+
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node';
+
+export const meta: MetaFunction = () => {
+    return {
+        title: 'Verify Email | 0x',
+        description: 'Verify your email',
+    };
+};
 
 type VerifyEmailType = {
     retryAt: string;

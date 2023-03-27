@@ -9,8 +9,15 @@ import { GoToExplorer } from '../components/GoToExplorer';
 import { SwapCodeBlock } from '../components/SwapCodeBlock';
 import { getApp } from '../data/zippo.server';
 
-import type { LoaderArgs } from '@remix-run/node';
+import type { LoaderArgs, MetaFunction } from '@remix-run/node';
 import type { ComponentPropsWithoutRef } from 'react';
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+    return {
+        title: `${data.app.name} Dashboard | 0x`,
+        description: `${data.app.name} Dashboard`,
+    };
+};
 
 export const loader = async ({ params }: LoaderArgs) => {
     if (!params.appName) throw redirect('/apps');

@@ -1,5 +1,4 @@
 import { Form, useActionData, useNavigate, useNavigation } from '@remix-run/react';
-import type { ActionArgs, LoaderArgs } from '@remix-run/server-runtime';
 import { json, redirect } from '@remix-run/server-runtime';
 import { getPasswordStrength, getSignedInUser, sessionStorage } from '../auth.server';
 import { TextInput } from '../components/TextInput';
@@ -12,6 +11,15 @@ import React from 'react';
 import { Eye } from '../icons/Eye';
 import { EyeOff } from '../icons/EyeOff';
 import { Alert } from '../components/Alert';
+
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node';
+
+export const meta: MetaFunction = () => {
+    return {
+        title: 'Create Password | 0x',
+        description: 'Create your password',
+    };
+};
 
 const zodPasswordModel = z.object({
     password: z.string().min(1, 'Please enter a password'),

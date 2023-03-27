@@ -1,11 +1,12 @@
 import { useLoaderData, useNavigation } from '@remix-run/react';
-import type { ActionArgs, LoaderArgs } from '@remix-run/server-runtime';
-import { json, redirect } from '@remix-run/server-runtime';
 import { z } from 'zod';
+import { json, redirect } from '@remix-run/node';
 import { getSignedInUser, sessionStorage } from '../auth.server';
 import { ResendEmailButton } from '../components/ResendEmailButton';
 import { getResendEmailRetryIn, setResendEmailRetryIn } from '../utils/utils.server';
 import { getUserByEmail, sendVerificationEmail } from '../data/zippo.server';
+
+import type { ActionArgs } from '@remix-run/server-runtime';
 
 const zodResendEmailModel = z.object({
     email: z.string().email(),
@@ -48,6 +49,15 @@ export async function action({ request }: ActionArgs) {
 
     return json({ error: null }, { headers: setVerifyEmailHeaders });
 }
+
+import type { LoaderArgs, MetaFunction } from '@remix-run/node';
+
+export const meta: MetaFunction = () => {
+    return {
+        title: 'Email Verified | 0x',
+        description: 'Email Verified',
+    };
+};
 
 export async function loader({ request }: LoaderArgs) {
     const [user, headers] = await getSignedInUser(request);

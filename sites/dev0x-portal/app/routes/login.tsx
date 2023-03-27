@@ -1,12 +1,9 @@
-import type { ActionArgs, LoaderArgs } from '@remix-run/node';
-import { redirect } from '@remix-run/node';
+import { MetaFunction, redirect } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import { Form, Link, useActionData, useLoaderData, useNavigation } from '@remix-run/react';
 import React from 'react';
 import { AuthorizationError } from 'remix-auth';
 import { z } from 'zod';
-
-import type { User } from '../auth.server';
 import { auth, sessionStorage } from '../auth.server';
 import { Alert } from '../components/Alert';
 import { Button } from '../components/Button';
@@ -16,6 +13,16 @@ import { TextInput } from '../components/TextInput';
 import { Eye } from '../icons/Eye';
 import { EyeOff } from '../icons/EyeOff';
 import { validateFormData } from '../utils/utils';
+
+import type { ActionArgs, LoaderArgs } from '@remix-run/node';
+import type { User } from '../auth.server';
+
+export const meta: MetaFunction = () => {
+    return {
+        title: 'Log in | 0x',
+        description: 'Log in to your account',
+    };
+};
 
 const zodLoginModel = z.object({
     email: z.string().email('Please enter a valid email address'),

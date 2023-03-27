@@ -6,9 +6,9 @@ import { GoToExplorer } from '../components/GoToExplorer';
 import { HiddenText } from '../components/HiddenText';
 import { Badge } from '../components/Badge';
 import { SwapCodeBlock } from '../components/SwapCodeBlock';
+import { getApps } from '../data/zippo.server';
 
 import type { LoaderArgs } from '@remix-run/node';
-import { getApps } from '../data/zippo.server';
 
 export async function loader({ request }: LoaderArgs) {
     const apps = await getApps();

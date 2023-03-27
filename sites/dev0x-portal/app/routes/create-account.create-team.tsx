@@ -1,17 +1,25 @@
-import type { ActionArgs, LoaderArgs } from '@remix-run/server-runtime';
-import { json } from '@remix-run/server-runtime';
-import { redirect } from '@remix-run/server-runtime';
+import { json } from '@remix-run/node';
+import { redirect } from '@remix-run/node';
 import { auth, getSignedInUser, sessionStorage } from '../auth.server';
 import { z } from 'zod';
 import { useState } from 'react';
 import { Form, useActionData, useLoaderData, useNavigation } from '@remix-run/react';
 import { TextInput } from '../components/TextInput';
-import type { Option } from '../components/OptionSelect';
 import OptionSelect from '../components/OptionSelect';
 import { Button } from '../components/Button';
 import { validateFormData } from '../utils/utils';
 import { createTeam, NO_TEAM_MARKER } from '../data/zippo.server';
 import { Alert } from '../components/Alert';
+
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node';
+import type { Option } from '../components/OptionSelect';
+
+export const meta: MetaFunction = () => {
+    return {
+        title: 'Create Team | 0x',
+        description: 'Create a team on 0x',
+    };
+};
 
 const optionValues = z.enum(['cex', 'dex', 'self-custody-wallet', 'fintech', 'other']);
 
