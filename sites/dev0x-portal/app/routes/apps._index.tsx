@@ -45,8 +45,10 @@ export default function Apps() {
                         Make a sample request to any 0x product with the key below.
                     </p>
                     <div className="mt-11 flex items-center justify-between">
-                        <div className="text-grey-700 mr-2 font-sans text-base font-normal">Text API key</div>
-                        <HiddenText width={120}>{apiKey}</HiddenText>
+                        <div className="text-grey-700 mr-6 font-sans text-base font-normal">Text API key</div>
+                        <HiddenText width={120} revealTooltipText="Reveal test key">
+                            {apiKey}
+                        </HiddenText>
                     </div>
                 </div>
                 <div className="col-span-1" />

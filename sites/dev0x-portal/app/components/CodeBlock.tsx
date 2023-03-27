@@ -2,8 +2,10 @@ import { forwardRef } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/cjs/styles/prism';
-import { CopyIcon } from '@radix-ui/react-icons';
 import { IconButton } from './IconButton';
+import { useTemporaryState } from '../hooks/useTemporaryState';
+import { Check } from '../icons/Check';
+import { Copy2 } from '../icons/Copy2';
 
 import type { ComponentPropsWithoutRef, ElementRef } from 'react';
 import type { SyntaxHighlighterProps } from 'react-syntax-highlighter';
@@ -20,6 +22,7 @@ export const Header = forwardRef<HTMLDivElement, HeaderProps>(function Header(
     { children, className, copyText, ...other },
     forwardedRef,
 ) {
+    const [clicked, setClicked] = useTemporaryState(false, 2000);
     return (
         <div
             className={twMerge(
@@ -31,18 +34,25 @@ export const Header = forwardRef<HTMLDivElement, HeaderProps>(function Header(
         >
             <div>{children}</div>
 
-            <IconButton
-                aria-label="Copy code"
-                color="transparent"
-                size="xs"
-                className="translate-x-3"
-                onClick={() => {
-                    // const text = copyText.replace('\n', '');
-                    navigator.clipboard.writeText(copyText);
-                }}
-            >
-                <CopyIcon color="#A0A0AB" />
-            </IconButton>
+            {!clicked ? (
+                <IconButton
+                    aria-label="Copy code"
+                    color="transparent"
+                    size="xs"
+                    className="translate-x-3"
+                    onClick={() => {
+                        navigator.clipboard.writeText(copyText);
+                        setClicked(true);
+                    }}
+                >
+                    <Copy2 color="#A0A0AB" width={16} height={16} />
+                </IconButton>
+            ) : (
+                <div className="bg-grey-800 flex items-center rounded-xl py-1 px-2.5 text-base text-white antialiased shadow-md">
+                    <span className="mr-2">Copied</span>
+                    <Check width={16} height={16} className="relative -top-[1px]" />
+                </div>
+            )}
         </div>
     );
 });

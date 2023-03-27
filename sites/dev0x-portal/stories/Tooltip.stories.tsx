@@ -1,8 +1,9 @@
 import * as Tooltip from '../app/components/Tooltip';
+import { useRef } from 'react';
+import { Copy } from '../app/icons/Copy';
 
 import type { Meta, StoryObj } from '@storybook/react';
 import type { ComponentPropsWithoutRef } from 'react';
-import { Copy } from '../app/icons/Copy';
 
 export const TooltipExample = ({
     delayDuration,
@@ -11,6 +12,7 @@ export const TooltipExample = ({
     children,
     ...other
 }: ComponentPropsWithoutRef<typeof Tooltip.Content> & ComponentPropsWithoutRef<typeof Tooltip.Provider>) => {
+    const triggerRef = useRef(null);
     return (
         <Tooltip.Provider
             delayDuration={delayDuration}
@@ -18,7 +20,9 @@ export const TooltipExample = ({
             disableHoverableContent={disableHoverableContent}
         >
             <Tooltip.Root>
-                <Tooltip.Trigger>Hover</Tooltip.Trigger>
+                <Tooltip.Trigger ref={triggerRef} onClick={(event) => event.preventDefault()}>
+                    Hover
+                </Tooltip.Trigger>
                 <Tooltip.Content {...other}>{children}</Tooltip.Content>
             </Tooltip.Root>
         </Tooltip.Provider>

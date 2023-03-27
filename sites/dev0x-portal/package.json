@@ -46,6 +46,7 @@
         "remix-utils": "^6.0.0",
         "tailwind-merge": "^1.10.0",
         "tailwind-variants": "^0.0.30",
+        "ts-pattern": "^4.2.2",
         "zod": "^3.20.6"
     },
     "devDependencies": {
