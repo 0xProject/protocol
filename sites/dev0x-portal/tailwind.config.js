@@ -74,7 +74,7 @@ const config = {
                 800: '#0040C1',
                 900: '#00359E',
             },
-            'blue-base': '#3A65EB',
+            'blue-brand': '#3A65EB',
             'blue-dark': '#0E106D',
             'blue-light': '#C8D4FA',
             green: '#01A74D',
@@ -94,6 +94,7 @@ const config = {
             fontSize: {
                 base: ['1rem', '1.375rem'], //line-height 22px instead of 24
                 lg: ['1.125rem', '1.625rem'],
+                '1.5lg': ['1.25rem', '1.625rem'],
                 xl: ['1.375rem', '1.75rem'],
                 '1.5xl': ['1.5rem', '1.75rem'],
                 '2.5xl': ['1.625rem', '2rem'],
@@ -114,6 +115,12 @@ const config = {
             },
             gridTemplateColumns: {
                 24: 'repeat(24, minmax(0, 1fr))',
+            },
+            maxWidth: {
+                'page-size': '1520px',
+            },
+            borderRadius: {
+                '1.5xl': '1.5rem',
             },
         },
     },

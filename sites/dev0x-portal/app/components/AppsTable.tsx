@@ -53,12 +53,11 @@ export function AppsTable({ data, ...other }: AppsTableProps) {
                     <Table.Tr>
                         <Table.Th className="text-grey-900 pl-0 text-left text-base font-medium">Apps</Table.Th>
                         <Table.Th>On-chain tag</Table.Th>
-                        <Table.Th>Requests</Table.Th>
                         <Table.Th />
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
-                    {data.map(({ metrics, encodedUrlPathname, name, brandColor }) => (
+                    {data.map(({ encodedUrlPathname, name, brandColor }) => (
                         <Tr key={encodedUrlPathname} pathname={encodedUrlPathname}>
                             <Table.Td>
                                 <div className="flex">
@@ -71,7 +70,6 @@ export function AppsTable({ data, ...other }: AppsTableProps) {
                                 </div>
                             </Table.Td>
                             <Table.Td>-</Table.Td>
-                            <Table.Td>{metrics.requests}</Table.Td>
                             <Table.Td className=" text-right">
                                 <ExploreLink to={`/apps/${encodedUrlPathname}`} />
                             </Table.Td>

@@ -74,11 +74,11 @@ export default function VerificationSent() {
                     </p>
                     <p className="mb-6">
                         If you need help,{' '}
-                        <a href="#" className="text-blue-base">
+                        <a href="#" className="text-blue-brand">
                             visit support
                         </a>{' '}
                         or{' '}
-                        <a href="#" className="text-blue-base">
+                        <a href="#" className="text-blue-brand">
                             contact us
                         </a>
                     </p>

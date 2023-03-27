@@ -5,6 +5,13 @@ import { tv } from 'tailwind-variants';
 import type { ComponentPropsWithoutRef } from 'react';
 import type { VariantProps } from 'tailwind-variants';
 
+export const ALL_BADGE_COLORS = ['green', 'blue', 'brown', 'purple', 'yellow', 'grey'] as const;
+export type BadgeColor = (typeof ALL_BADGE_COLORS)[number];
+
+export function isBadgeColor(value: string): value is BadgeColor {
+    return ALL_BADGE_COLORS.includes(value as BadgeColor);
+}
+
 const badge = tv({
     base: 'font-sans text-base  inline-block',
     variants: {

@@ -2,15 +2,9 @@ import { json, redirect } from '@remix-run/node';
 import { Outlet, useLoaderData } from '@remix-run/react';
 import { getSignedInUser } from '../auth.server';
 import { AppBar } from '../components/AppBar';
+import { getApps } from '../data/zippo.server';
 
 import type { LoaderArgs } from '@remix-run/node';
-import type { App } from '../types';
-
-const allApps: App[] = [
-    { name: 'Coinbase Wallet', encodedUrlPathname: 'coinbase-wallet' },
-    { name: 'Second app', encodedUrlPathname: 'second-app' },
-    { name: 'One more', encodedUrlPathname: 'one-more' },
-];
 
 export const loader = async ({ request, params }: LoaderArgs) => {
     const [user, headers] = await getSignedInUser(request);
@@ -21,9 +15,11 @@ export const loader = async ({ request, params }: LoaderArgs) => {
     if (!user.team) {
         throw redirect('/create-account/create-team', { headers });
     }
+    const apps = await getApps();
+
     return json(
         {
-            apps: allApps,
+            apps,
             user: {
                 email: user.email,
                 team: user.team,
