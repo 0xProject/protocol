@@ -30,7 +30,7 @@ describe('GasPriceUtils', () => {
     describe('getGasPriceEstimationOrThrowAsync', () => {
         it('parses fast gas price response correctly', async () => {
             TypeMoq.GlobalScope.using(fetchMock).with(async () => {
-                const utils = GasPriceUtils.getInstance(420000, 'https://mock-0x-gas-api.org/median');
+                const utils = GasPriceUtils.getSingleton('https://mock-0x-gas-api.org/median');
                 const gasPrice = await utils.getGasPriceEstimationOrThrowAsync();
                 expect(gasPrice.fast).to.eq(18848500000);
             });

@@ -43,7 +43,7 @@ import { assert } from './utils/utils';
 import { calculateQuoteInfo } from './utils/quote_info';
 import { SignedLimitOrder } from '../asset-swapper';
 import { isNativeSymbolOrAddress, isNativeWrappedSymbolOrAddress } from '@0x/token-metadata';
-import { CHAIN_ID } from '../config';
+import { CHAIN_ID, ZERO_EX_GAS_API_URL } from '../config';
 
 export class SwapQuoter {
     public readonly provider: ZeroExProvider;
@@ -87,10 +87,7 @@ export class SwapQuoter {
         this._contractAddresses = options.contractAddresses || {
             ...getContractAddressesForChainOrThrow(chainId),
         };
-        this._gasPriceUtils = GasPriceUtils.getInstance(
-            constants.PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
-            options.zeroExGasApiUrl,
-        );
+        this._gasPriceUtils = GasPriceUtils.getSingleton(ZERO_EX_GAS_API_URL);
         const fastAbi = new FastABI(ERC20BridgeSamplerContract.ABI() as MethodAbi[], { BigNumber });
         const samplerAddress = (options.samplerOverrides && options.samplerOverrides.to) || SAMPLER_ADDRESS;
         const samplerContract = new ERC20BridgeSamplerContract(

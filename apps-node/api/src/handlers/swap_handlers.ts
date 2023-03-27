@@ -332,10 +332,7 @@ export class SwapHandlers {
 
             // Add additional L1 gas cost.
             if (CHAIN_ID === ChainId.Arbitrum) {
-                const gasUtils = GasPriceUtils.getInstance(
-                    constants.PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
-                    ZERO_EX_GAS_API_URL,
-                );
+                const gasUtils = GasPriceUtils.getSingleton(ZERO_EX_GAS_API_URL);
                 const gasPrices = await gasUtils.getGasPriceEstimationOrDefault({
                     fast: 100_000_000, // 0.1 gwei in wei
                 });

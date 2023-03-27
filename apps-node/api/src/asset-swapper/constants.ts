@@ -32,8 +32,6 @@ const DEFAULT_ORDER_PRUNER_OPTS: OrderPrunerOpts = {
     permittedOrderFeeTypes: new Set<OrderPrunerPermittedFeeTypes>([OrderPrunerPermittedFeeTypes.NoFees]), // Default asset-swapper for CFL oriented fee types
 };
 
-// 6 seconds polling interval
-const PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS = 6000;
 const PROTOCOL_FEE_MULTIPLIER = new BigNumber(0);
 
 // default 50% buffer for selecting native orders to be aggregated with other sources
@@ -45,7 +43,6 @@ const DEFAULT_SWAP_QUOTER_OPTS: SwapQuoterOpts = {
     orderRefreshIntervalMs: 10000, // 10 seconds
     ...DEFAULT_ORDER_PRUNER_OPTS,
     samplerGasLimit: 500e6,
-    zeroExGasApiUrl: ZERO_EX_GAS_API_URL,
     rfqt: {
         integratorsWhitelist: [],
     },
@@ -94,7 +91,6 @@ export const constants = {
     DEFAULT_PER_PAGE,
     DEFAULT_RFQT_REQUEST_OPTS,
     NULL_ERC20_ASSET_DATA,
-    PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
     MARKET_UTILS_AMOUNT_BUFFER_PERCENTAGE,
     BRIDGE_ASSET_DATA_PREFIX: '0xdc1600f3',
     EMPTY_BYTES32,

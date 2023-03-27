@@ -1,9 +1,12 @@
 import * as heartbeats from 'heartbeats';
 
-import { constants } from '../constants';
 import { SwapQuoterError } from '../types';
 
-const MAX_ERROR_COUNT = 5;
+const GAS_PRICE_POLLING_INTERVAL_MS = 6000;
+
+// TODO: in the future, it would be better to operate with a stale gas price (degraded vs outage).
+// When `MAX_ERROR_COUNT` is removed, a proper metric and altering should be added.
+const MAX_ERROR_COUNT = 50; // 50 * 6s -> 5 min tolerance
 
 interface GasPrices {
     // gas price in wei
@@ -22,14 +25,11 @@ export class GasPriceUtils {
     private _gasPriceEstimation: GasPrices | undefined;
     private _errorCount = 0;
 
-    public static getInstance(
-        gasPricePollingIntervalInMs: number,
-        zeroExGasApiUrl: string = constants.ZERO_EX_GAS_API_URL,
-    ): GasPriceUtils {
+    public static getSingleton(zeroExGasApiUrl: string): GasPriceUtils {
         if (!GasPriceUtils._instances.has(zeroExGasApiUrl)) {
             GasPriceUtils._instances.set(
                 zeroExGasApiUrl,
-                new GasPriceUtils(gasPricePollingIntervalInMs, zeroExGasApiUrl),
+                new GasPriceUtils(GAS_PRICE_POLLING_INTERVAL_MS, zeroExGasApiUrl),
             );
         }
 
