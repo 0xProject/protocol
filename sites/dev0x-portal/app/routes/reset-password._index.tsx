@@ -6,7 +6,7 @@ import { getSignedInUser } from '../auth.server';
 import BackButton from '../components/BackButton';
 import { Button } from '../components/Button';
 import { TextInput } from '../components/TextInput';
-import { sendResetPasswordEmail } from '../data/zippo.server';
+import { getUserByEmail, sendResetPasswordEmail } from '../data/zippo.server';
 import { validateFormData } from '../utils/utils';
 
 const zodEmailModel = z.object({
@@ -30,7 +30,12 @@ export async function action({ request }: ActionArgs) {
         return json({ errors, values: body });
     }
 
-    await sendResetPasswordEmail(body.email);
+    const userRes = await getUserByEmail({ email: body.email });
+
+    // we don't want to give away whether the email exists or not
+    if (userRes.result === 'SUCCESS') {
+        await sendResetPasswordEmail({ userId: userRes.data.id });
+    }
 
     throw redirect('/reset-password/email-sent?email=' + encodeURIComponent(body.email));
 }

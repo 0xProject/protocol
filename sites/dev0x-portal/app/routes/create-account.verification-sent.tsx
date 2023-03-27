@@ -1,11 +1,11 @@
-import { useLoaderData } from '@remix-run/react';
+import { useLoaderData, useNavigation } from '@remix-run/react';
 import type { ActionArgs, LoaderArgs } from '@remix-run/server-runtime';
 import { json, redirect } from '@remix-run/server-runtime';
 import { z } from 'zod';
 import { getSignedInUser, sessionStorage } from '../auth.server';
 import { ResendEmailButton } from '../components/ResendEmailButton';
-import { sendVerificationEmail } from '../data/zippo.server';
 import { getResendEmailRetryIn, setResendEmailRetryIn } from '../utils/utils.server';
+import { getUserByEmail, sendVerificationEmail } from '../data/zippo.server';
 
 const zodResendEmailModel = z.object({
     email: z.string().email(),
@@ -32,7 +32,18 @@ export async function action({ request }: ActionArgs) {
         return json({ error: 'Please wait before retrying' }, 400);
     }
 
-    await sendVerificationEmail(zodResult.data.email);
+    const userResult = await getUserByEmail({ email: zodResult.data.email });
+    if (userResult.result === 'ERROR') {
+        return json({ error: 'Error while verifying email' }, 400);
+    }
+    const retrievedUser = userResult.data;
+
+    const result = await sendVerificationEmail({ email: zodResult.data.email, userId: retrievedUser.id });
+
+    if (result.result === 'ERROR') {
+        return json({ error: 'Error while sending verification email' }, 400);
+    }
+
     const setVerifyEmailHeaders = await setResendEmailRetryIn(request, 'verifyEmail', 45);
 
     return json({ error: null }, { headers: setVerifyEmailHeaders });
@@ -64,6 +75,8 @@ export async function loader({ request }: LoaderArgs) {
 export default function VerificationSent() {
     const loaderData = useLoaderData<typeof loader>();
 
+    const navigation = useNavigation();
+
     return (
         <main className="min-w-screen flex h-full min-h-full w-full flex-col bg-white">
             <div className=" flex h-full w-full justify-center">
@@ -82,7 +95,11 @@ export default function VerificationSent() {
                             contact us
                         </a>
                     </p>
-                    <ResendEmailButton retryIn={loaderData.retryIn} email={loaderData.email} />
+                    <ResendEmailButton
+                        retryIn={loaderData.retryIn}
+                        email={loaderData.email}
+                        disabled={navigation.state !== 'idle'}
+                    />
                 </div>
             </div>
         </main>

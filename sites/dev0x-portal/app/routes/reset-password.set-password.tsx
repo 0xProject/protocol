@@ -54,9 +54,9 @@ export async function action({ request }: ActionArgs) {
         });
     }
 
-    const success = await resetPassword(body.email, body.password, body.token);
+    const success = await resetPassword({ password: body.password, verificationToken: body.token });
 
-    if (!success) {
+    if (success.result !== 'SUCCESS') {
         return json({
             errors: {
                 general: 'There was an issue resetting your password. Please try again.',

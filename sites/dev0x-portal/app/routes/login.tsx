@@ -1,7 +1,7 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node';
 import { redirect } from '@remix-run/node';
 import { json } from '@remix-run/node';
-import { Form, Link, useActionData, useLoaderData } from '@remix-run/react';
+import { Form, Link, useActionData, useLoaderData, useNavigation } from '@remix-run/react';
 import React from 'react';
 import { AuthorizationError } from 'remix-auth';
 import { z } from 'zod';
@@ -89,6 +89,8 @@ export default function Login() {
 
     const [showPassword, setShowPassword] = React.useState(false);
 
+    const navigation = useNavigation();
+
     return (
         <div>
             <OnboardingAppBar showNavSwitch={true} />
@@ -139,7 +141,12 @@ export default function Login() {
                                     </IconButton>
                                 }
                             />
-                            <Button type="submit" className="col-span-2 justify-center" size="md">
+                            <Button
+                                type="submit"
+                                className="col-span-2 justify-center"
+                                size="md"
+                                disabled={navigation.state !== 'idle'}
+                            >
                                 Continue →
                             </Button>
                         </Form>

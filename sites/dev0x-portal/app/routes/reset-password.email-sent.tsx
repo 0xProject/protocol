@@ -5,7 +5,7 @@ import { redirect } from '@remix-run/server-runtime';
 import { z } from 'zod';
 import { getSignedInUser } from '../auth.server';
 import { ResendEmailButton } from '../components/ResendEmailButton';
-import { sendResetPasswordEmail } from '../data/zippo.server';
+import { getUserByEmail, sendResetPasswordEmail } from '../data/zippo.server';
 import { CheckCircleBroken } from '../icons/CheckCircleBroken';
 import { getResendEmailRetryIn, setResendEmailRetryIn } from '../utils/utils.server';
 
@@ -33,7 +33,13 @@ export async function action({ request }: ActionArgs) {
         return json({ error: 'Please wait before retrying' }, 400);
     }
 
-    await sendResetPasswordEmail(zodResult.data.email);
+    const userRes = await getUserByEmail({ email: zodResult.data.email });
+
+    // we don't want to give away whether the email exists or not
+    if (userRes.result === 'SUCCESS') {
+        await sendResetPasswordEmail({ userId: userRes.data.id });
+    }
+
     const setVerifyEmailHeaders = await setResendEmailRetryIn(request, 'resetPassword', 45);
 
     return json({ error: null }, { headers: setVerifyEmailHeaders });

@@ -1,9 +1,9 @@
-import { Form, useActionData, useNavigate } from '@remix-run/react';
+import { Form, useActionData, useNavigate, useNavigation } from '@remix-run/react';
 import type { ActionArgs, LoaderArgs } from '@remix-run/server-runtime';
 import { json, redirect } from '@remix-run/server-runtime';
 import { getPasswordStrength, getSignedInUser, sessionStorage } from '../auth.server';
 import { TextInput } from '../components/TextInput';
-import { createUserWithEmailAndPassword } from '../data/zippo.server';
+import { createUserWithEmailAndPassword, sendVerificationEmail } from '../data/zippo.server';
 import { validateFormData } from '../utils/utils';
 import { z } from 'zod';
 import { Button } from '../components/Button';
@@ -11,12 +11,15 @@ import { IconButton } from '../components/IconButton';
 import React from 'react';
 import { Eye } from '../icons/Eye';
 import { EyeOff } from '../icons/EyeOff';
+import { Alert } from '../components/Alert';
 
 const zodPasswordModel = z.object({
     password: z.string().min(1, 'Please enter a password'),
 });
 
 type ActionInput = z.TypeOf<typeof zodPasswordModel>;
+
+type Errors = { general?: string } & Partial<ActionInput>;
 
 export async function loader({ request }: LoaderArgs) {
     const [user, headers] = await getSignedInUser(request);
@@ -55,7 +58,7 @@ export async function action({ request }: ActionArgs) {
     });
 
     if (errors) {
-        return json({ errors, values: body });
+        return json({ errors: errors as Errors, values: body });
     }
 
     const [pwStrength, feedback] = getPasswordStrength(body.password);
@@ -66,24 +69,24 @@ export async function action({ request }: ActionArgs) {
                 password: feedback.warning
                     ? feedback.warning
                     : feedback.suggestions?.[0] ?? 'Please enter a stronger password', // feedback.suggestions might be empty
-            },
+            } as Errors,
             values: body,
         });
     }
 
     // Password is good, we submit the user to the backend and show the email verification page
-    const userCreated = await createUserWithEmailAndPassword(
-        createAccountSession.firstName,
-        createAccountSession.lastName,
-        createAccountSession.email,
-        body.password,
-    );
+    const userCreated = await createUserWithEmailAndPassword({
+        firstName: createAccountSession.firstName,
+        lastName: createAccountSession.lastName,
+        email: createAccountSession.email,
+        password: body.password,
+    });
 
-    if (!userCreated) {
+    if (userCreated.result === 'ERROR') {
         return json({
             errors: {
                 password: 'There was an error creating your account. Please try again later',
-            },
+            } as Errors,
             values: body,
         });
     }
@@ -94,6 +97,17 @@ export async function action({ request }: ActionArgs) {
     multiformSession.set('verifyEmail', {
         email: createAccountSession.email,
     });
+
+    const result = await sendVerificationEmail({ email: createAccountSession.email, userId: userCreated.data });
+
+    if (result.result === 'ERROR') {
+        return json({
+            errors: {
+                general: 'There was an error sending the verification email. Please try again later',
+            } as Errors,
+            values: body,
+        });
+    }
 
     // we unset the createAccount session so we can't use it again
     multiformSession.unset('createAccount');
@@ -109,12 +123,19 @@ export default function SetPasswordPage() {
     const actionData = useActionData<typeof action>();
     const navigator = useNavigate();
 
+    const navigation = useNavigation();
+
     const [showPassword, setShowPassword] = React.useState(false);
 
     return (
         <main className="min-w-screen flex h-full min-h-full w-full flex-col bg-white">
             <div className=" flex h-full w-full justify-center">
                 <div className="mt-40 w-full max-w-[456px]">
+                    {actionData?.errors?.general && (
+                        <Alert variant="error" className="mb-4">
+                            {actionData?.errors?.general}
+                        </Alert>
+                    )}
                     <button
                         className="bg-grey-100 mb-6 h-11 w-11 rounded-xl"
                         onClick={() => navigator(-1)}
@@ -148,7 +169,12 @@ export default function SetPasswordPage() {
                                 </IconButton>
                             }
                         />
-                        <Button type="submit" className="col-span- justify-center" size="md">
+                        <Button
+                            type="submit"
+                            className="col-span- justify-center"
+                            size="md"
+                            disabled={navigation.state !== 'idle'}
+                        >
                             Continue →
                         </Button>
                     </Form>

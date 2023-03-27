@@ -1,7 +1,7 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/server-runtime';
 import { json, redirect } from '@remix-run/server-runtime';
 import { getSignedInUser, sessionStorage } from '../auth.server';
-import { sendVerificationEmail, verifyEmailVerificationToken } from '../data/zippo.server';
+import { getUserByEmail, sendVerificationEmail, verifyEmailVerificationToken } from '../data/zippo.server';
 import { z } from 'zod';
 import { Form, Link, useLoaderData } from '@remix-run/react';
 import { Button, LinkButton } from '../components/Button';
@@ -42,13 +42,23 @@ export async function action({ request }: ActionArgs) {
     if (!verifyEmail) {
         return json({ error: 'Error while verifying retry session' }, 400);
     }
+    const userResult = await getUserByEmail({ email: zodResult.data.email });
+    if (userResult.result === 'ERROR') {
+        return json({ error: 'Error while verifying email' }, 400);
+    }
+    const retrievedUser = userResult.data;
     const now = new Date();
     const retryIn = new Date(verifyEmail.retryAt) > now ? differenceInSeconds(new Date(verifyEmail.retryAt), now) : 0;
     if (retryIn > 0) {
         return json({ error: 'Please wait before retrying' }, 400);
     }
 
-    await sendVerificationEmail(zodResult.data.email);
+    const result = await sendVerificationEmail({ email: zodResult.data.email, userId: retrievedUser.id });
+
+    if (result.result === 'ERROR') {
+        return json({ error: 'Error while sending verification email' }, 400);
+    }
+
     verifyEmail.retryAt = addSeconds(new Date(), 45).toISOString();
     session.set('verifyEmail', verifyEmail);
     headers.append('Set-Cookie', await sessionStorage.commitSession(session));
@@ -95,7 +105,7 @@ export async function loader({ request }: LoaderArgs) {
             ? differenceInSeconds(new Date(verifyEmailRetryIn), now)
             : 0;
 
-    const isValid = await verifyEmailVerificationToken(zodResult.data.email, zodResult.data.token);
+    const isValid = await verifyEmailVerificationToken({ email: zodResult.data.email, token: zodResult.data.token });
 
     if (isValid) {
         return json({ error: null, values: { email, retryIn } }, { headers });

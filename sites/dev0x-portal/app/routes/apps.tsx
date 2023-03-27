@@ -5,6 +5,7 @@ import { AppBar } from '../components/AppBar';
 import { getApps } from '../data/zippo.server';
 
 import type { LoaderArgs } from '@remix-run/node';
+import { NO_TEAM_MARKER } from '../data/zippo.server';
 
 export const loader = async ({ request, params }: LoaderArgs) => {
     const [user, headers] = await getSignedInUser(request);
@@ -12,7 +13,7 @@ export const loader = async ({ request, params }: LoaderArgs) => {
         throw redirect('/create-account', { headers });
     }
 
-    if (!user.team) {
+    if (user.team === NO_TEAM_MARKER) {
         throw redirect('/create-account/create-team', { headers });
     }
     const apps = await getApps();

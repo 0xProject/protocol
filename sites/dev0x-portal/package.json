@@ -30,6 +30,8 @@
         "@remix-run/server-runtime": "^1.13.0",
         "@remix-run/vercel": "^1.13.0",
         "@tanstack/react-table": "^8.7.9",
+        "@trpc/client": "^10.17.0",
+        "@trpc/server": "^10.17.0",
         "@vercel/node": "^2.6.2",
         "@zxcvbn-ts/core": "^2.2.1",
         "@zxcvbn-ts/language-common": "^2.0.1",
@@ -47,6 +49,7 @@
         "tailwind-merge": "^1.10.0",
         "tailwind-variants": "^0.0.30",
         "ts-pattern": "^4.2.2",
+        "zippo-interface": "*",
         "zod": "^3.20.6"
     },
     "devDependencies": {

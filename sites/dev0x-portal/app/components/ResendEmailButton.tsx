@@ -6,9 +6,15 @@ type ResendEmailButtonProps = {
     retryIn: number;
     email: string;
     title?: string;
+    disabled?: boolean;
 };
 
-export function ResendEmailButton({ retryIn, email, title = 'Resend verification email' }: ResendEmailButtonProps) {
+export function ResendEmailButton({
+    retryIn,
+    email,
+    title = 'Resend verification email',
+    disabled,
+}: ResendEmailButtonProps) {
     const [retryCountdown, setRetryCountdown] = useState(retryIn);
 
     useEffect(() => {
@@ -35,7 +41,7 @@ export function ResendEmailButton({ retryIn, email, title = 'Resend verification
                     roundness="default"
                     color="grey"
                     className="flex w-full items-center justify-center text-lg "
-                    disabled={retryCountdown > 0}
+                    disabled={disabled || retryCountdown > 0}
                 >
                     {title}
                 </Button>

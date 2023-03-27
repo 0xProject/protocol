@@ -3,12 +3,13 @@ import { addMinutes } from 'date-fns';
 import { Authenticator, AuthorizationError } from 'remix-auth';
 import { FormStrategy } from 'remix-auth-form';
 import { GoogleStrategy } from 'remix-auth-socials';
-import { doesSessionExist } from './data/zippo.server';
+import { doesSessionExist, loginWithEmailAndPassword } from './data/zippo.server';
 import { env } from './env';
 import { UserDoesNotExistException } from './exceptions/authExeptions';
 import { zxcvbn, zxcvbnOptions } from '@zxcvbn-ts/core';
 import zxcvbnCommonPackage from '@zxcvbn-ts/language-common';
 import zxcvbnEnPackage from '@zxcvbn-ts/language-en';
+import { z } from 'zod';
 
 const ZXCVBN_OPTIONS = {
     translations: zxcvbnEnPackage.translations,
@@ -43,6 +44,11 @@ export type User = {
 
 export const PASSWORD_MAX_STRENGTH = 4 as const;
 
+const zodEmailPasswordModel = z.object({
+    email: z.string().email(),
+    password: z.string().min(8),
+});
+
 export const auth = new Authenticator<User>(sessionStorage);
 auth.use(
     new FormStrategy(async ({ form }) => {
@@ -51,28 +57,21 @@ auth.use(
 
         // replace the code below with your own authentication logic
         if (!password) throw new AuthorizationError('Password is required');
-        if (password !== 'test') {
-            throw new AuthorizationError('Invalid credentials');
-        }
         if (!email) throw new AuthorizationError('Email is required');
 
-        if (email === 'freshmeat@0xproject.com') {
-            return {
-                id: '1337',
-                email: email as string,
-                team: null,
-                sessionToken: '123',
-                expiresAt: addMinutes(new Date(), 15).toISOString(),
-            };
+        const parsed = zodEmailPasswordModel.safeParse({ email, password });
+
+        if (!parsed.success) {
+            throw new AuthorizationError('Invalid credentials');
         }
 
-        return {
-            id: '1337',
-            email: email as string,
-            team: 'dev0x',
-            sessionToken: '123',
-            expiresAt: addMinutes(new Date(), 15).toISOString(),
-        };
+        const user = await loginWithEmailAndPassword({ email: parsed.data.email, password: parsed.data.password });
+
+        if (user.result === 'ERROR') {
+            throw new AuthorizationError('Invalid credentials');
+        }
+
+        return user.data;
     }),
     'email-pw',
 );
@@ -108,7 +107,7 @@ auth.use(
 async function verifySession(user: User) {
     // currently stubbed, but this is where we would check with the backend to see if the session is still valid
 
-    return doesSessionExist(user.id, user.sessionToken);
+    return doesSessionExist({ userId: user.id, sessionToken: user.sessionToken });
 }
 
 export async function getSignedInUser(request: Request) {

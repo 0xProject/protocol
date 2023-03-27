@@ -4,13 +4,14 @@ import { redirect } from '@remix-run/server-runtime';
 import { auth, getSignedInUser, sessionStorage } from '../auth.server';
 import { z } from 'zod';
 import { useState } from 'react';
-import { Form, useActionData, useLoaderData } from '@remix-run/react';
+import { Form, useActionData, useLoaderData, useNavigation } from '@remix-run/react';
 import { TextInput } from '../components/TextInput';
 import type { Option } from '../components/OptionSelect';
 import OptionSelect from '../components/OptionSelect';
 import { Button } from '../components/Button';
 import { validateFormData } from '../utils/utils';
-import { createTeam } from '../data/zippo.server';
+import { createTeam, NO_TEAM_MARKER } from '../data/zippo.server';
+import { Alert } from '../components/Alert';
 
 const optionValues = z.enum(['cex', 'dex', 'self-custody-wallet', 'fintech', 'other']);
 
@@ -23,12 +24,17 @@ const options: Option[] = [
 ];
 
 const zodTeamVerifyModel = z.object({
-    teamName: z.string().min(1, 'Please enter a valid team name'),
+    teamName: z
+        .string()
+        .min(1, 'Please enter a valid team name')
+        .regex(/^[a-zA-Z0-9].*/, 'Team name must start with a letter or number'),
     teamCategory: optionValues,
     teamCategoryOthers: z.string().optional(),
 });
 
 type ActionInput = z.TypeOf<typeof zodTeamVerifyModel>;
+
+type Errors = Partial<{ general: string } & Record<keyof ActionInput, string>>;
 
 export async function loader({ request }: LoaderArgs) {
     const [user, headers] = await getSignedInUser(request);
@@ -38,7 +44,7 @@ export async function loader({ request }: LoaderArgs) {
         throw redirect('/create-account', { headers });
     }
     // if the user has a team, we don't want them to be able to create a new team
-    if (user.team) {
+    if (user.team !== NO_TEAM_MARKER) {
         throw redirect('/apps', { headers });
     }
 
@@ -53,7 +59,7 @@ export async function action({ request }: ActionArgs) {
         throw redirect('/create-account', { headers });
     }
     // if the user has a team, we don't want them to be able to create a new team
-    if (user.team) {
+    if (user.team !== NO_TEAM_MARKER) {
         throw redirect('/apps', { headers });
     }
 
@@ -73,7 +79,7 @@ export async function action({ request }: ActionArgs) {
                         body.teamCategory === 'other' && !body.teamCategoryOthers
                             ? 'Please enter a valid team category'
                             : undefined,
-                },
+                } as Errors,
                 values: body,
             },
             { headers },
@@ -81,15 +87,26 @@ export async function action({ request }: ActionArgs) {
     }
 
     const session = await sessionStorage.getSession(request.headers.get('Cookie'));
-    await createTeam(
-        user.id,
-        body.teamName,
-        body.teamCategory === 'other' ? (body.teamCategoryOthers as string) : body.teamCategory,
-    );
+    const result = await createTeam({
+        userId: user.id,
+        teamName: body.teamName,
+        productType: body.teamCategory === 'other' ? (body.teamCategoryOthers as string) : body.teamCategory,
+    });
+
+    if (result.result === 'ERROR') {
+        return json(
+            {
+                errors: {
+                    general: result.error.message,
+                } as Errors,
+            },
+            { headers },
+        );
+    }
 
     const authSession = session.get(auth.sessionKey);
 
-    authSession.team = body.teamName;
+    authSession.team = result.data;
 
     session.set(auth.sessionKey, authSession);
 
@@ -123,10 +140,17 @@ export default function CreateTeam() {
     const [teamName, setTeamName] = useState('');
     const [teamType, setTeamType] = useState('');
 
+    const navigation = useNavigation();
+
     return (
         <main className="min-w-screen flex h-full min-h-full w-full flex-col bg-white">
             <div className=" flex h-full w-full justify-center">
                 <div className="relative mt-40 inline-block w-full max-w-[456px]">
+                    {actionData?.errors?.general && (
+                        <Alert variant="error" className="mb-4">
+                            {actionData?.errors?.general}
+                        </Alert>
+                    )}
                     <h1 className="text-2.5xl mb-4 text-black">Create a team</h1>
                     {teamName ? <TeamNameInputCopy name={teamName} /> : <StandardCopy />}
                     <Form method="post" className="relative mt-8 flex flex-col gap-[15px]">
@@ -159,7 +183,12 @@ export default function CreateTeam() {
                             />
                         )}
 
-                        <Button type="submit" className="col-span-2 justify-center text-center" size="md">
+                        <Button
+                            type="submit"
+                            className="col-span-2 justify-center text-center"
+                            size="md"
+                            disabled={navigation.state !== 'idle'}
+                        >
                             Finish Setup →
                         </Button>
                     </Form>

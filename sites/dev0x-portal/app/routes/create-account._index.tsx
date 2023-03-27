@@ -1,4 +1,4 @@
-import { Form, Link, useActionData, useLoaderData } from '@remix-run/react';
+import { Form, Link, useActionData, useLoaderData, useNavigation } from '@remix-run/react';
 import type { ActionArgs, LoaderArgs } from '@remix-run/server-runtime';
 import { json, redirect } from '@remix-run/server-runtime';
 import { getSignedInUser, sessionStorage } from '../auth.server';
@@ -79,6 +79,8 @@ export default function CreateAccount() {
     const actionData = useActionData<typeof action>();
     const maybeSessionInfo = useLoaderData<typeof loader>();
 
+    const navigation = useNavigation();
+
     return (
         <main className="min-w-screen flex h-full min-h-full w-full flex-col bg-white">
             <div className="flex h-full w-full justify-center">
@@ -117,7 +119,12 @@ export default function CreateAccount() {
                             error={actionData?.errors.email}
                             initialValue={actionData?.values?.email || maybeSessionInfo?.email}
                         />
-                        <Button type="submit" className="col-span-2 justify-center" size="md">
+                        <Button
+                            type="submit"
+                            className="col-span-2 justify-center"
+                            size="md"
+                            disabled={navigation.state !== 'idle'}
+                        >
                             Continue →
                         </Button>
                     </Form>
