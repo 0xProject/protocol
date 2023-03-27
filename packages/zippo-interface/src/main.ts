@@ -21,7 +21,8 @@ export interface TZippoRateLimit {
  * API representation the `User` model in integrator-db prisma schema
  */
 const user = z.object({
-    name: z.string(),
+    firstName: z.string(),
+    lastName: z.string(),
     email: z.string().nullable(),
     image: z.string().nullable(),
     id: z.string().cuid(),
@@ -120,7 +121,8 @@ export const zippoRouterDefinition = {
             // Create a new user
             input: z
                 .object({
-                    name: z.string().min(1, { message: 'Name is required' }),
+                    firstName: z.string().min(1, { message: 'First name is required' }),
+                    lastName: z.string().min(1, { message: 'Last name is required' }),
                     email: z.string().email().optional(),
                     image: z.string().url().optional(),
                     password: z.string().min(1, { message: 'Password is required' }),
@@ -141,7 +143,8 @@ export const zippoRouterDefinition = {
             // Update an existing team
             input: z
                 .object({
-                    name: z.string().min(1, { message: 'Name is required' }),
+                    firstName: z.string().min(1, { message: 'First name is required' }),
+                    lastName: z.string().min(1, { message: 'Last name is required' }),
                     email: z.string().email().optional(),
                     image: z.string().url().optional(),
                     password: z.string().min(1, { message: 'Password is required' }),

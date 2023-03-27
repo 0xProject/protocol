@@ -9,27 +9,26 @@ const zippo = createTRPCProxyClient<TZippoRouter>({
 async function main() {
     const randomId = randomUUID();
     const newUser = await zippo.user.create.mutate({
-        name: `Mike ${randomId}`,
+        firstName: 'Mike',
+        lastName: `M ${randomId}`,
         email: `mike+${randomId}@example.com`,
         password: 'zfv2ymw3ydv.PND0mpe',
     });
     console.log('Created user: ', newUser);
 
-    const app = await zippo.app.create.mutate({
-        integratorTeamId: newUser.integratorTeamId,
-        name: `App 1`,
-    });
-    console.log('Created app: ', app);
-    if (!app) {
-        console.log('Failed to create app');
-        return;
-    }
+    // const app = await zippo.app.create.mutate({
+    //     integratorTeamId: newUser.integratorTeamId,
+    //     name: `App 1`,
+    // });
+    // console.log('Created app: ', app);
+    // if (!app) {
+    //     console.log('Failed to create app');
+    //     return;
+    // }
 
-    // const msg1 = await zippo.user.sendEmail.mutate({
+    // const msg1 = await zippo.user.sendPasswordResetEmail.mutate({
     //     userId: newUser.id,
-    //     subject: 'test email',
-    //     template: 'test_email',
-    //     emailVars: { title: 'the new title', var1: 'some value' },
+    //     verifyUrl: 'http://127.0.0.1:3000?email=bob@example.com',
     // });
     // console.log('Msg: ', msg1);
 

@@ -10,7 +10,8 @@ import { env } from '../env';
 
 const defaultUserSelect = Prisma.validator<Prisma.UserSelect>()({
     id: true,
-    name: true,
+    firstName: true,
+    lastName: true,
     email: true,
     emailVerifiedAt: true,
     image: true,
@@ -65,7 +66,8 @@ export async function getByEmail(
  * Create a new user.
  *
  * @param input user parameters
- * @param input.name The name for the new user
+ * @param input.firstName The first name for the new user
+ * @param input.lastName The last name for the new user
  * @param input.password The password for the new user
  * @param [input.email] The email for the new user
  * @param [input.image] The image URL for the new user

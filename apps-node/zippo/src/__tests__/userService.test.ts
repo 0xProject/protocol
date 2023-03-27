@@ -21,7 +21,8 @@ describe('userService tests', () => {
         const user = {
             id: 'cldn7h4vj000008jufh6zbmwi',
             integratorTeamId: 'cldn84ifb000108ml7dw5g7ip',
-            name: 'bob',
+            firstName: 'bob',
+            lastName: 'barker',
             email: 'bob@example.com',
             emailVerifiedAt: new Date(),
             image: '',
@@ -52,7 +53,8 @@ describe('userService tests', () => {
         const user = {
             id: 'cldn7h4vj000008jufh6zbmwi',
             integratorTeamId: 'cldn84ifb000108ml7dw5g7ip',
-            name: 'bob',
+            firstName: 'bob',
+            lastName: 'barker',
             email: 'bob@hello.com',
             emailVerifiedAt: new Date(),
             image: '',
@@ -92,7 +94,8 @@ describe('userService tests', () => {
         const user = {
             id: 'cldn88yix000308ml6pnh1lv83',
             integratorTeamId: 'cldn88o0x000208mlcyshgoma',
-            name: 'bob',
+            firstName: 'bob',
+            lastName: 'barker',
             email: 'bob@example.com',
             emailVerifiedAt: new Date(),
             image: '',
@@ -111,7 +114,8 @@ describe('userService tests', () => {
             // perform create and ensure we get back the mocked user
             await expect(
                 create({
-                    name: user.name,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
                     email: user.email,
                     password: 'sljnbd%&$%&sewefw242345',
                 }),
@@ -121,7 +125,8 @@ describe('userService tests', () => {
         test('should confirm calls to prisma as expected', () => {
             // confirm calls to prisma happened as expected
             expect(prismaMock.integratorTeam.create.mock.calls[0][0].data.name).toEqual(integratorTeam.name);
-            expect(prismaMock.user.create.mock.calls[0][0].data.name).toEqual(user.name);
+            expect(prismaMock.user.create.mock.calls[0][0].data.firstName).toEqual(user.firstName);
+            expect(prismaMock.user.create.mock.calls[0][0].data.lastName).toEqual(user.lastName);
             expect(prismaMock.user.create.mock.calls[0][0].data.email).toEqual(user.email);
             expect(prismaMock.user.create.mock.calls[0][0].data.integratorTeamId).toEqual(integratorTeam.id);
         });
@@ -142,7 +147,8 @@ describe('userService tests', () => {
         const user = {
             id: 'cldn88yix000308ml6pnh1lv83',
             integratorTeamId: 'cldn88o0x123408mlcyshgoma',
-            name: 'bob',
+            firstName: 'bob',
+            lastName: 'barker',
             email: 'bob@example.com',
             emailVerifiedAt: new Date(),
             image: '',
@@ -161,7 +167,8 @@ describe('userService tests', () => {
             // perform create and ensure we get back the mocked user
             await expect(
                 create({
-                    name: user.name,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
                     email: user.email,
                     password: 'sljnbd%&$%&sewefw242345',
                     integratorTeam: {
@@ -175,7 +182,8 @@ describe('userService tests', () => {
         test('should confirm calls to prisma as expected', () => {
             // confirm calls to prisma happened as expected
             expect(prismaMock.integratorTeam.create.mock.calls[0][0].data.name).toEqual(integratorTeam.name);
-            expect(prismaMock.user.create.mock.calls[0][0].data.name).toEqual(user.name);
+            expect(prismaMock.user.create.mock.calls[0][0].data.firstName).toEqual(user.firstName);
+            expect(prismaMock.user.create.mock.calls[0][0].data.lastName).toEqual(user.lastName);
             expect(prismaMock.user.create.mock.calls[0][0].data.email).toEqual(user.email);
             expect(prismaMock.user.create.mock.calls[0][0].data.integratorTeamId).toEqual(integratorTeam.id);
         });
@@ -196,7 +204,8 @@ describe('userService tests', () => {
         const user = {
             id: 'cldn88yix000308ml6pnh1lv83',
             integratorTeamId: 'cldn88o0x123408mlcyshgoma',
-            name: 'bob',
+            firstName: 'bob',
+            lastName: 'barker',
             email: 'bob@example.com',
             emailVerifiedAt: new Date(),
             image: '',
@@ -215,7 +224,8 @@ describe('userService tests', () => {
             // perform create and ensure we get back the mocked user
             await expect(
                 create({
-                    name: user.name,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
                     email: user.email,
                     password: 'sljnbd%&$%&sewefw242345',
                     integratorTeamId: integratorTeam.id,
@@ -226,7 +236,8 @@ describe('userService tests', () => {
         test('should confirm calls to prisma as expected', () => {
             // confirm calls to prisma happened as expected
             expect(prismaMock.integratorTeam.findUnique.mock.calls[0][0].where.id).toEqual(integratorTeam.id);
-            expect(prismaMock.user.create.mock.calls[0][0].data.name).toEqual(user.name);
+            expect(prismaMock.user.create.mock.calls[0][0].data.firstName).toEqual(user.firstName);
+            expect(prismaMock.user.create.mock.calls[0][0].data.lastName).toEqual(user.lastName);
             expect(prismaMock.user.create.mock.calls[0][0].data.email).toEqual(user.email);
             expect(prismaMock.user.create.mock.calls[0][0].data.integratorTeamId).toEqual(integratorTeam.id);
         });
@@ -238,7 +249,8 @@ describe('userService tests', () => {
         const user = {
             id: 'cldn88yix000308ml6pnh1lv83',
             integratorTeamId: 'cldn88o0x123408mlcyshgoma',
-            name: 'bob',
+            firstName: 'bob',
+            lastName: 'barker',
             email: 'bob@example.com',
             emailVerifiedAt: new Date(),
             image: '',
@@ -299,7 +311,8 @@ describe('userService tests', () => {
         const user = {
             id: 'cldn88yix000308ml6pnh1lv83',
             integratorTeamId: 'cldn88o0x000208mlcyshgoma',
-            name: 'bob',
+            firstName: 'bob',
+            lastName: 'barker',
             email: 'bob@example.com',
             emailVerifiedAt: new Date(),
             image: '',
@@ -327,7 +340,8 @@ describe('userService tests', () => {
         const user = {
             id: 'cldn88yix000308ml6pnh1lv83',
             integratorTeamId: 'cldn88o0x000208mlcyshgoma',
-            name: 'bob',
+            firstName: 'bob',
+            lastName: 'barker',
             email: 'bob@example.com',
             emailVerifiedAt: null,
             image: '',
@@ -369,7 +383,8 @@ describe('userService tests', () => {
         const user = {
             id: 'cldn88yix000308ml6pnh1lv83',
             integratorTeamId: 'cldn88o0x000208mlcyshgoma',
-            name: 'bob',
+            firstName: 'bob',
+            lastName: 'barker',
             email: 'bob@hello.com',
             emailVerifiedAt: new Date(),
             image: '',
@@ -415,7 +430,8 @@ describe('userService tests', () => {
         const user = {
             id: 'cldn7h4vj000008jufh6zbmwi',
             integratorTeamId: 'cldn84ifb000108ml7dw5g7ip',
-            name: 'bob',
+            firstName: 'bob',
+            lastName: 'barker',
             email: 'bob@example.com',
             emailVerifiedAt: new Date(),
             image: '',

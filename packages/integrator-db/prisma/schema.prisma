@@ -34,7 +34,8 @@ model IntegratorTeam {
 model User {
   id               String    @id @default(cuid()) @map("id")
   integratorTeamId String    @map("integrator_team_id")
-  name             String    @map("name")
+  firstName        String    @default("") @map("first_name")
+  lastName         String    @default("") @map("last_name")
   email            String?   @unique @map("email")
   emailVerifiedAt  DateTime? @map("email_verified_at")
   image            String?   @map("image")
