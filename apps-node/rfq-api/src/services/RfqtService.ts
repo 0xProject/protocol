@@ -518,11 +518,12 @@ export class RfqtService {
     ): Promise<RfqtV2Price[]> {
         const { integrator, makerToken, takerToken } = quoteContext;
 
-        // HACK: Only proceed on Matcha if not selling the Native Token
+        // HACK: Only proceed on Matcha if not selling the Native Token for Indicative Quotes
         // TODO: This is a temporary experiment. Remove when experiment is done
+        const isIndicative = !quoteContext.isFirm;
         const isTakerSellingNativeToken =
             this._nativeTokenAddress === takerToken || this._nativeWrappedTokenAddress === takerToken;
-        if (integrator.label === 'Matcha' && !isTakerSellingNativeToken) {
+        if (isIndicative && integrator.label === 'Matcha' && !isTakerSellingNativeToken) {
             return [];
         }
 
