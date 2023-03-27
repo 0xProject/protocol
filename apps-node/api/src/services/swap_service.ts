@@ -423,17 +423,19 @@ export class SwapService implements ISwapService {
             },
         ];
 
-        // By default, add a positive slippage fee for allowed pairs.
+        // By default, add a positive slippage fee for allowed pairs on sells
         // Integrators may turn this off by setting positiveSlippagePercent to 0
+        // NOTE: we cannot apply positive slippage to buys since we "induce" positive slippage by increasing the buy amount by the slippage amount
         // NOTE that we do not yet allow for a specified percent of the positive slippage to be taken, it's all or nothing.
         // TODO: customize the positive slippage by the percent
+        const isSell = marketSide === MarketOperation.Sell;
         const isPairAllowed =
             ZERO_EX_FEE_TOKENS.has(buyToken.toLowerCase()) && ZERO_EX_FEE_TOKENS.has(sellToken.toLowerCase());
         const isDefaultPositiveSlippageFee = integrator?.positiveSlippagePercent === undefined;
         const isPostiveSlippageEnabled =
             integrator?.positiveSlippagePercent !== undefined && integrator.positiveSlippagePercent > 0; // 0 is falsy, must check undefined explicitly
         const positiveSlippageFee =
-            isPairAllowed && (isDefaultPositiveSlippageFee || isPostiveSlippageEnabled)
+            isSell && isPairAllowed && (isDefaultPositiveSlippageFee || isPostiveSlippageEnabled)
                 ? {
                       recipient: integrator?.feeRecipient || ZERO_EX_FEE_RECIPIENT_ADDRESS,
                       feeType: AffiliateFeeType.PositiveSlippageFee,
