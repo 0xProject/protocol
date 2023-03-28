@@ -19,7 +19,7 @@ match_path = "test/integration/*.sol"
 [rpc_endpoints]
 goerli = "${GOERLI_RPC_URL}"
 mainnet = "${MAINNET_RPC_URL}"
-gas_price = 100_000_000_000
+gas_price = 31_000_000_000
 
 [etherscan]
 goerli = { key = "${ETHERSCAN_API_KEY}" }
