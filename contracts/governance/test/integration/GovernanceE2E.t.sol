@@ -19,8 +19,10 @@
 
 pragma solidity ^0.8.19;
 
-import "@openzeppelin/token/ERC20/ERC20.sol";
+import "@openzeppelin/token/ERC20/IERC20.sol";
 import "../mocks/IZeroExMock.sol";
+import "../mocks/IZrxTreasuryMock.sol";
+import "../mocks/IStakingMock.sol";
 import "../BaseTest.t.sol";
 import "../../src/ZRXWrappedToken.sol";
 import "../../src/ZeroExVotes.sol";
@@ -33,11 +35,26 @@ contract GovernanceE2ETest is BaseTest {
     string internal MAINNET_RPC_URL = vm.envString("MAINNET_RPC_URL");
 
     address internal constant ZRX_TOKEN = 0xE41d2489571d322189246DaFA5ebDe1F4699F498;
-    address internal constant EXCHANGE_PROXY = (0xDef1C0ded9bec7F1a1670819833240f027b25EfF);
+    address internal constant MATIC_TOKEN = 0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0;
+
+    address internal constant EXCHANGE_PROXY = 0xDef1C0ded9bec7F1a1670819833240f027b25EfF;
     address internal constant EXCHANGE_GOVERNOR = 0x618F9C67CE7Bf1a50afa1E7e0238422601b0ff6e;
+    address internal constant TREASURY = 0x0bB1810061C2f5b2088054eE184E6C79e1591101;
+    address internal constant STAKING = 0xa26e80e7Dea86279c6d778D702Cc413E6CFfA777;
+    address internal staker = 0x5265Bde27F57E738bE6c1F6AB3544e82cdc92a8f;
+    bytes32 internal stakerPool = 0x0000000000000000000000000000000000000000000000000000000000000032;
+    bytes32[] internal staker_operated_poolIds = [stakerPool];
+
+    // voting power 1500000e18
+    address internal voter1 = 0x292c6DAE7417B3D31d8B6e1d2EeA0258d14C4C4b;
+    bytes32 internal voter1Pool = 0x0000000000000000000000000000000000000000000000000000000000000030;
+    bytes32[] internal voter1_operated_poolIds = [voter1Pool];
 
     IERC20 internal token;
+    IERC20 internal maticToken;
     IZeroExMock internal exchange;
+    IZrxTreasuryMock internal treasury;
+    IStakingMock internal staking;
 
     ZRXWrappedToken internal wToken;
     ZeroExVotes internal votes;
@@ -51,7 +68,10 @@ contract GovernanceE2ETest is BaseTest {
         vm.selectFork(mainnetFork);
 
         token = IERC20(ZRX_TOKEN);
+        maticToken = IERC20(MATIC_TOKEN);
         exchange = IZeroExMock(payable(EXCHANGE_PROXY));
+        treasury = IZrxTreasuryMock(TREASURY);
+        staking = IStakingMock(STAKING);
 
         address protocolGovernorAddress;
         address treasuryGovernorAddress;
@@ -68,7 +88,6 @@ contract GovernanceE2ETest is BaseTest {
         treasuryGovernor = ZeroExTreasuryGovernor(payable(treasuryGovernorAddress));
     }
 
-    // Test switching owner of protocol from multisig to new protocol governor
     function testProtocolGovernanceMigration() public {
         // initially the zrx exchange is owned by the legacy exchange governor
         assertEq(exchange.owner(), EXCHANGE_GOVERNOR);
@@ -77,5 +96,56 @@ contract GovernanceE2ETest is BaseTest {
         vm.prank(EXCHANGE_GOVERNOR);
         exchange.transferOwnership(address(protocolGovernor));
         assertEq(exchange.owner(), address(protocolGovernor));
+    }
+
+    function testTreasuryGovernanceMigration() public {
+        // Create a proposal to migrate to new governor
+
+        uint256 currentEpoch = staking.currentEpoch();
+        uint256 executionEpoch = currentEpoch + 2;
+
+        vm.startPrank(staker);
+
+        IZrxTreasuryMock.ProposedAction[] memory actions = new IZrxTreasuryMock.ProposedAction[](1);
+
+        // Transfer MATIC
+        uint256 maticBalance = maticToken.balanceOf(address(treasury));
+        actions[0] = IZrxTreasuryMock.ProposedAction({
+            target: 0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0,
+            data: abi.encodeCall(maticToken.transfer, (address(treasuryGovernor), maticBalance)),
+            value: 0
+        });
+        // Transfer ZRX
+        // Transfer wCELO
+        // Transfer WYV
+
+        uint256 proposalId = treasury.propose(
+            actions,
+            executionEpoch,
+            "Z-5 Migrate to new treasury governor",
+            staker_operated_poolIds
+        );
+
+        // Once a proposal is created, it becomes open for voting at the epoch after next (currentEpoch + 2)
+        // and is open for the voting period (currently set to 3 days).
+        uint256 epochDurationInSeconds = staking.epochDurationInSeconds(); // Currently set to 604800 seconds = 7 days
+        uint256 currentEpochEndTime = staking.currentEpochStartTimeInSeconds() + epochDurationInSeconds;
+
+        vm.warp(currentEpochEndTime + 1);
+        staking.endEpoch();
+        vm.warp(block.timestamp + epochDurationInSeconds + 1);
+        staking.endEpoch();
+
+        vm.stopPrank();
+        // quorum is 10,000,000e18 so reach that via the following votes
+        vm.prank(voter1);
+        treasury.castVote(proposalId, true, voter1_operated_poolIds);
+        vm.stopPrank();
+
+        vm.warp(block.timestamp + 3 days);
+
+        // Execute proposal
+        // Assert value of treasury has correctly transferred
+        // Test wrapping ZRX and voting on a funding proposal e.g. purple pay
     }
 }
