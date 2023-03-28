@@ -10,6 +10,7 @@ import { Summary } from 'prom-client';
 import * as uuid from 'uuid';
 
 import {
+    getIntegratorByIdOrThrow,
     Integrator,
     RFQ_PRICE_ENDPOINT_TIMEOUT_MS,
     RFQ_SIGN_ENDPOINT_TIMEOUT_MS,
@@ -24,14 +25,14 @@ import { MarketOperation } from '@0x/types';
 const MARKET_MAKER_SIGN_LATENCY = new Summary({
     name: 'market_maker_sign_latency',
     help: 'Latency for sign request to Market Makers',
-    labelNames: ['makerUri', 'statusCode'],
+    labelNames: ['makerUri', 'statusCode', 'integratorLabel', 'chainId', 'market', 'workflow'],
 });
 
 const RFQ_MARKET_MAKER_PRICE_REQUEST_DURATION_SECONDS = new Summary({
     name: 'rfq_market_maker_price_request_duration_seconds',
     help: 'Provides stats around market maker network interactions',
     percentiles: [0.5, 0.9, 0.95, 0.99, 0.999], // tslint:disable-line: custom-no-magic-numbers
-    labelNames: ['type', 'integratorLabel', 'makerUri', 'chainId', 'statusCode', 'market'],
+    labelNames: ['type', 'integratorLabel', 'makerUri', 'chainId', 'statusCode', 'market', 'workflow'],
     maxAgeSeconds: 60,
     ageBuckets: 5,
 });
@@ -222,7 +223,17 @@ export class QuoteServerClient {
             headers,
             params: tempParams,
         });
-        logger.info({ makerUri, body: response.data, status: response.status }, 'v2/price response from MM');
+        logger.info(
+            {
+                makerUri,
+                integratorLabel: integrator.label,
+                chainId: parameters.chainId,
+                body: response.data,
+                status: response.status,
+                workflow,
+            },
+            'v2/price response from MM',
+        );
 
         timerStopFn({
             type: makerUriToUrl(''), // HACK - used to distinguish between RFQm and RFQt
@@ -231,6 +242,7 @@ export class QuoteServerClient {
             chainId: parameters.chainId,
             statusCode: response.status,
             market: getMarketLabel(parameters.sellTokenAddress, parameters.buyTokenAddress),
+            workflow,
         });
 
         // Empty response from MM (not 200, no data, or empty object)
@@ -313,6 +325,13 @@ export class QuoteServerClient {
     ): Promise<Signature | undefined> {
         const timerStopFn = MARKET_MAKER_SIGN_LATENCY.startTimer();
         const requestUuid = uuid.v4();
+
+        let integrator: Integrator | undefined;
+        try {
+            integrator = getIntegratorByIdOrThrow(integratorId);
+        } catch (err) {
+            // do nothing, only getting the integrator for more human readable logging
+        }
         const headers = {
             '0x-api-key': integratorId,
             '0x-integrator-id': integratorId,
@@ -355,14 +374,21 @@ export class QuoteServerClient {
             {
                 makerUri,
                 requestUuid,
+                integratorLabel: integrator?.label ?? 'unknown',
+                chainId: payload.order.chainId,
                 status: rawResponse.status,
                 body: rawResponse.data,
+                workflow: postBody.workflow,
             },
             'v2/sign response from MM',
         );
         timerStopFn({
             makerUri,
             statusCode: rawResponse.status,
+            integratorLabel: integrator?.label ?? 'unknown',
+            chainId: payload.order.chainId,
+            market: getMarketLabel(payload.order.takerToken, payload.order.makerToken),
+            workflow: postBody.workflow,
         });
 
         // TODO (rhinodavid): Filter out non-successful statuses from validation step
