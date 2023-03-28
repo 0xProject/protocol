@@ -272,7 +272,7 @@ export const zippoRouterDefinition = {
         list: {
             // Get a list of apps for a given team
             input: z.string().cuid().describe('The team ID'),
-            output: z.array(app.strip().nullable().describe('The list of apps')),
+            output: z.array(app.strip().describe('The list of apps')),
             type: 'query',
         },
         getById: {
