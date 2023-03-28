@@ -23,14 +23,7 @@ import "src/transformers/FillQuoteTransformer.sol";
 import "@0x/contracts-erc20/src/IEtherToken.sol";
 import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "src/transformers/bridges/BridgeProtocols.sol";
-import "src/transformers/bridges/EthereumBridgeAdapter.sol";
-import "src/transformers/bridges/PolygonBridgeAdapter.sol";
-import "src/transformers/bridges/BSCBridgeAdapter.sol";
-import "src/transformers/bridges/ArbitrumBridgeAdapter.sol";
-import "src/transformers/bridges/OptimismBridgeAdapter.sol";
-import "src/transformers/bridges/AvalancheBridgeAdapter.sol";
-import "src/transformers/bridges/FantomBridgeAdapter.sol";
-import "src/transformers/bridges/CeloBridgeAdapter.sol";
+import "src/transformers/bridges/BridgeAdapter.sol";
 import "src/IZeroEx.sol";
 
 //contract-addresses/addresses.json interfaces
@@ -272,29 +265,7 @@ contract ForkUtils is Test {
 
     //creates the appropriate bridge adapter based on what chain the tests are currently executing on.
     function createBridgeAdapter(IEtherToken weth) public returns (IBridgeAdapter bridgeAdapter) {
-        uint chainId;
-
-        assembly {
-            chainId := chainid()
-        }
-        if (chainId == 1) {
-            return IBridgeAdapter(new EthereumBridgeAdapter(weth));
-        } else if (chainId == 56) {
-            return IBridgeAdapter(new BSCBridgeAdapter(weth));
-        } else if (chainId == 137) {
-            return IBridgeAdapter(new PolygonBridgeAdapter(weth));
-        } else if (chainId == 43114) {
-            return IBridgeAdapter(new AvalancheBridgeAdapter(weth));
-        } else if (chainId == 250) {
-            return IBridgeAdapter(new FantomBridgeAdapter(weth));
-        } else if (chainId == 10) {
-            return IBridgeAdapter(new OptimismBridgeAdapter(weth));
-        } else if (chainId == 42161) {
-            return IBridgeAdapter(new ArbitrumBridgeAdapter(weth));
-        } else {
-            //ERROR: chainId not mapped
-            revert("ChainId not supported");
-        }
+	return IBridgeAdapter(new BridgeAdapter(weth));
     }
 
     //label the addresses that are read from the various .json files

@@ -24,7 +24,7 @@
      IBridgeAdapter private immutable adapter1;
      IBridgeAdapter private immutable adapter2;
      uint256 private constant ADAPTER_1_LAST_PROTOCOL_ID = 26;
-     uint256 private constant ADAPTER_2_LAST_PROTOCOL_ID = 32;
+     uint256 private constant ADAPTER_2_LAST_PROTOCOL_ID = 33;
 
      constructor(IEtherToken weth) public {
          adapter1 = new BridgeAdapterGroup1(weth); 

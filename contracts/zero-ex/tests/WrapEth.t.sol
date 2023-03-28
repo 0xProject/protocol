@@ -26,7 +26,7 @@ import "src/external/TransformerDeployer.sol";
 import "src/transformers/WethTransformer.sol";
 import "src/transformers/FillQuoteTransformer.sol";
 import "src/transformers/bridges/BridgeProtocols.sol";
-import "src/transformers/bridges/EthereumBridgeAdapter.sol";
+import "src/transformers/bridges/BridgeAdapter.sol";
 import "src/IZeroEx.sol";
 
 contract WrapEth is Test, ForkUtils, TestUtils {

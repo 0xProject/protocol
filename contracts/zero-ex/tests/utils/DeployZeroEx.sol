@@ -42,7 +42,7 @@ import "src/transformers/PayTakerTransformer.sol";
 import "src/transformers/AffiliateFeeTransformer.sol";
 import "src/transformers/PositiveSlippageFeeTransformer.sol";
 import "src/transformers/bridges/IBridgeAdapter.sol";
-import "src/transformers/bridges/EthereumBridgeAdapter.sol";
+import "src/transformers/bridges/BridgeAdapter.sol";
 
 import "@0x/contracts-erc20/src/IEtherToken.sol";
 import "@0x/contracts-erc20/src/v06/WETH9V06.sol";

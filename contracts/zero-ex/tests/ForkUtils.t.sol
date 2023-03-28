@@ -25,13 +25,7 @@ import "src/external/TransformerDeployer.sol";
 import "src/transformers/WethTransformer.sol";
 import "src/transformers/FillQuoteTransformer.sol";
 import "src/transformers/bridges/BridgeProtocols.sol";
-import "src/transformers/bridges/EthereumBridgeAdapter.sol";
-import "src/transformers/bridges/PolygonBridgeAdapter.sol";
-import "src/transformers/bridges/ArbitrumBridgeAdapter.sol";
-import "src/transformers/bridges/OptimismBridgeAdapter.sol";
-import "src/transformers/bridges/AvalancheBridgeAdapter.sol";
-import "src/transformers/bridges/FantomBridgeAdapter.sol";
-import "src/transformers/bridges/CeloBridgeAdapter.sol";
+import "src/transformers/bridges/BridgeAdapter.sol";
 import "src/features/OtcOrdersFeature.sol";
 
 contract ForkUtilsTest is Test, ForkUtils, TestUtils {

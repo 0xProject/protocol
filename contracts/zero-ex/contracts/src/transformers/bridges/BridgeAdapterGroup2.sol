@@ -86,7 +86,6 @@ contract BridgeAdapterGroup2 is
                 return (0, true);
             }
             boughtAmount = _tradeKyberElastic(sellToken, sellAmount, order.bridgeData);
-
         }
 
         emit BridgeFill(order.source, sellToken, buyToken, sellAmount, boughtAmount);
