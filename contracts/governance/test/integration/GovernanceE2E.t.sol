@@ -20,6 +20,7 @@
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/token/ERC20/ERC20.sol";
+import "../mocks/IZeroExMock.sol";
 import "../BaseTest.t.sol";
 import "../../src/ZRXWrappedToken.sol";
 import "../../src/ZeroExVotes.sol";
@@ -31,12 +32,17 @@ contract GovernanceE2ETest is BaseTest {
     uint256 internal mainnetFork;
     string internal MAINNET_RPC_URL = vm.envString("MAINNET_RPC_URL");
 
+    address internal constant ZRX_TOKEN = 0xE41d2489571d322189246DaFA5ebDe1F4699F498;
+    address internal constant EXCHANGE_PROXY = (0xDef1C0ded9bec7F1a1670819833240f027b25EfF);
+    address internal constant EXCHANGE_GOVERNOR = 0x618F9C67CE7Bf1a50afa1E7e0238422601b0ff6e;
+
     IERC20 internal token;
+    IZeroExMock internal exchange;
+
     ZRXWrappedToken internal wToken;
     ZeroExVotes internal votes;
     ZeroExTimelock internal protocolTimelock;
     ZeroExTimelock internal treasuryTimelock;
-    //IZeroExGovernor internal governor;
     ZeroExProtocolGovernor internal protocolGovernor;
     ZeroExTreasuryGovernor internal treasuryGovernor;
 
@@ -44,9 +50,32 @@ contract GovernanceE2ETest is BaseTest {
         mainnetFork = vm.createFork(MAINNET_RPC_URL);
         vm.selectFork(mainnetFork);
 
-        //vm.rollFork(1_337_000);
-        //assertEq(block.number, 1_337_000);
+        token = IERC20(ZRX_TOKEN);
+        exchange = IZeroExMock(payable(EXCHANGE_PROXY));
+
+        address protocolGovernorAddress;
+        address treasuryGovernorAddress;
+        (
+            wToken,
+            votes,
+            protocolTimelock,
+            treasuryTimelock,
+            protocolGovernorAddress,
+            treasuryGovernorAddress
+        ) = setupGovernance(token);
+
+        protocolGovernor = ZeroExProtocolGovernor(payable(protocolGovernorAddress));
+        treasuryGovernor = ZeroExTreasuryGovernor(payable(treasuryGovernorAddress));
     }
 
-    function testCanMigrateProtocolGovernance() public {}
+    // Test switching owner of protocol from multisig to new protocol governor
+    function testProtocolGovernanceMigration() public {
+        // initially the zrx exchange is owned by the legacy exchange governor
+        assertEq(exchange.owner(), EXCHANGE_GOVERNOR);
+
+        // transfer ownership to new protocol governor
+        vm.prank(EXCHANGE_GOVERNOR);
+        exchange.transferOwnership(address(protocolGovernor));
+        assertEq(exchange.owner(), address(protocolGovernor));
+    }
 }
