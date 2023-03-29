@@ -1,13 +1,24 @@
-import type { App, Rename } from '../types';
 import { addMinutes } from 'date-fns';
+import { client } from './trpc.server';
 import type { User } from '../auth.server';
 import type { Result } from '../types';
 import type { RouterInputs, RouterOutputs } from './trpc.server';
-import { client } from './trpc.server';
+import type { ClientApp, Rename } from '../types';
 
 export const NO_TEAM_MARKER = '__not_init' as const;
 
-type ZippoApp = RouterOutputs['app']['getById'];
+export type ZippoApp = NonNullable<RouterOutputs['app']['getById']>;
+
+const zippoAppToClientApp = (zippoApp: ZippoApp): ClientApp => {
+    return {
+        id: zippoApp.id,
+        name: zippoApp.name,
+        description: zippoApp.description,
+        apiKeys: zippoApp.apiKeys,
+        teamId: zippoApp.integratorTeamId,
+        onChainTag: [],
+    }
+}
 
 export async function doesSessionExist({
     userId,
@@ -206,50 +217,6 @@ export async function resetPassword({
         };
     }
 }
-const APPS = [
-    {
-        id: '1337-1',
-        name: 'Demo app',
-        brandColor: '#01A74D',
-        encodedUrlPathname: 'demo-app',
-        onChainTag: [
-            {
-                name: 'Swap API',
-                color: 'green',
-            },
-            {
-                name: 'Orderbook',
-                color: 'blue',
-            },
-        ],
-    },
-    {
-        id: '1337-2',
-        name: 'Coinbase wallet',
-        brandColor: '#3A65EB',
-        encodedUrlPathname: 'coinbase-wallet',
-        onChainTag: [
-            {
-                name: 'Token Registry',
-                color: 'brown',
-            },
-            {
-                name: 'Tx History',
-                color: 'purple',
-            },
-            {
-                name: 'Tx Relay',
-                color: 'yellow',
-            },
-        ],
-    },
-];
-export async function getApps(): Promise<App[]> {
-    return APPS;
-}
-export async function getApp(appPathName: string): Promise<App | undefined> {
-    return APPS.find((app) => app.encodedUrlPathname === appPathName);
-}
 
 export async function getUserByEmail({ email }: { email: string }): Promise<Result<User>> {
     try {
@@ -265,7 +232,7 @@ export async function getUserByEmail({ email }: { email: string }): Promise<Resu
             data: {
                 id: user.id,
                 email: user.email!, // we only allow signup via email
-                team: user.integratorTeamId,
+                teamId: user.integratorTeamId,
                 sessionToken: user.integratorTeamId,
                 expiresAt: addMinutes(new Date(), 15).toISOString(),
             },
@@ -311,9 +278,10 @@ export async function loginWithEmailAndPassword({
             data: {
                 id: user.id,
                 email: user.email!, // we only allow signup via email
-                team: team?.name ?? null,
+                teamName: team?.name,
                 sessionToken: session.sessionToken,
                 expiresAt: addMinutes(new Date(), 15).toISOString(),
+                teamId: user.integratorTeamId,
             },
         };
     } catch (error) {
@@ -371,7 +339,7 @@ export async function createApp({
     appName,
     teamId,
     ...rest
-}: Rename<RouterInputs['app']['create'], { integratorTeamId: 'teamId'; name: 'appName' }>): Promise<Result<App>> {
+}: Rename<RouterInputs['app']['create'], { integratorTeamId: 'teamId'; name: 'appName' }>): Promise<Result<ClientApp>> {
     try {
         const app = await client.app.create.mutate({ integratorTeamId: teamId, name: appName, ...rest });
 
@@ -384,12 +352,7 @@ export async function createApp({
 
         return {
             result: 'SUCCESS',
-            data: {
-                id: app.id,
-                name: app.name,
-                brandColor: 'purple', // hard coded for now
-                encodedUrlPathname: encodeURIComponent(app.name),
-            },
+            data: zippoAppToClientApp(app)
         };
     } catch (e) {
         console.warn(e);
@@ -404,7 +367,7 @@ export async function addProvisionAccess({
     appId,
     rateLimits,
     routeTags,
-}: Rename<RouterInputs['app']['provisionAccess'], { id: 'appId' }>): Promise<Result<ZippoApp>> {
+}: Rename<RouterInputs['app']['provisionAccess'], { id: 'appId' }>): Promise<Result<ClientApp>> {
     try {
         const res = await client.app.provisionAccess.mutate({ id: appId, rateLimits, routeTags });
         if (!res) {
@@ -415,7 +378,7 @@ export async function addProvisionAccess({
         }
         return {
             result: 'SUCCESS',
-            data: res,
+            data: zippoAppToClientApp(res),
         };
     } catch (e) {
         console.warn(e);
@@ -456,5 +419,49 @@ export async function generateAPIKey({
             result: 'ERROR',
             error: new Error('Unknown error'),
         };
+    }
+}
+
+export async function appsList(integratorTeamId: RouterInputs['app']['list']): Promise<Result<ClientApp[]>> {
+    try {
+        const apps = await client.app.list.query(integratorTeamId);
+        if (!apps || !apps.length) {
+            return {
+                result: 'SUCCESS',
+                data: []
+            }
+        }
+        return {
+            result: 'SUCCESS',
+            data: apps.map(zippoAppToClientApp)
+        }
+
+    } catch (error) {
+        console.warn(error)
+        return {
+            result: 'ERROR',
+            error: new Error('Failed to fetch apps'),
+        }
+    }
+}
+export async function getAppById(id: RouterInputs['app']['getById']): Promise<Result<ClientApp>> {
+    try {
+        const app = await client.app.getById.query(id);
+        if (!app) {
+            return {
+                result: 'ERROR',
+                error: new Error('App not found'),
+            }
+        }
+        return {
+            result: 'SUCCESS',
+            data: zippoAppToClientApp(app),
+        }
+    } catch (error) {
+        console.warn(error)
+        return {
+            result: 'ERROR',
+            error: new Error('Failed to fetch app'),
+        }
     }
 }

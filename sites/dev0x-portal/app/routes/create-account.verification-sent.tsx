@@ -7,6 +7,7 @@ import { getResendEmailRetryIn, setResendEmailRetryIn } from '../utils/utils.ser
 import { getUserByEmail, sendVerificationEmail } from '../data/zippo.server';
 
 import type { ActionArgs } from '@remix-run/server-runtime';
+import type { LoaderArgs, MetaFunction } from '@remix-run/node';
 
 const zodResendEmailModel = z.object({
     email: z.string().email(),
@@ -49,8 +50,6 @@ export async function action({ request }: ActionArgs) {
 
     return json({ error: null }, { headers: setVerifyEmailHeaders });
 }
-
-import type { LoaderArgs, MetaFunction } from '@remix-run/node';
 
 export const meta: MetaFunction = () => {
     return {

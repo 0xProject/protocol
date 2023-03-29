@@ -52,7 +52,7 @@ export async function loader({ request }: LoaderArgs) {
         throw redirect('/create-account', { headers });
     }
     // if the user has a team, we don't want them to be able to create a new team
-    if (user.team !== NO_TEAM_MARKER) {
+    if (user.teamName !== NO_TEAM_MARKER) {
         throw redirect('/apps', { headers });
     }
 
@@ -67,7 +67,7 @@ export async function action({ request }: ActionArgs) {
         throw redirect('/create-account', { headers });
     }
     // if the user has a team, we don't want them to be able to create a new team
-    if (user.team !== NO_TEAM_MARKER) {
+    if (user.teamName !== NO_TEAM_MARKER) {
         throw redirect('/apps', { headers });
     }
 

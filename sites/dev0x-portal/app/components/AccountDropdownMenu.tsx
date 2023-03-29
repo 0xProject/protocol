@@ -29,11 +29,12 @@ const ExternalLinkDropdownItem = forwardRef<HTMLAnchorElement, ComponentPropsWit
 
 type AccountDropdownContentProps = ComponentPropsWithRef<typeof DropdownMenu.Content> & {
     children?: never;
-    user: ClientUser;
+    userEmail: string;
+    userTeam?: string;
 };
 
 export const Content = forwardRef<ElementRef<typeof DropdownMenu.Content>, AccountDropdownContentProps>(
-    function Content({ user, ...other }, forwardedRef) {
+    function Content({ userEmail, userTeam, ...other }, forwardedRef) {
         return (
             <DropdownMenu.Portal>
                 <DropdownMenu.Content
@@ -45,8 +46,8 @@ export const Content = forwardRef<ElementRef<typeof DropdownMenu.Content>, Accou
                 >
                     <DropdownMenu.Item asChild disabled>
                         <div className="flex flex-col justify-start">
-                            <span className="text-grey-800 font-sans text-base">{user.email}</span>
-                            {user.team && <span className="text-grey-500 font-sans text-sm">{user.team}</span>}
+                            <span className="text-grey-800 font-sans text-base">{userEmail}</span>
+                            {userTeam && <span className="text-grey-500 font-sans text-sm">{userTeam}</span>}
                         </div>
                     </DropdownMenu.Item>
                     <DropdownMenu.Separator />

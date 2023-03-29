@@ -37,9 +37,10 @@ export const sessionStorage = createCookieSessionStorage({
 export type User = {
     id: string;
     email: string;
-    team: string | null;
     sessionToken: string;
     expiresAt: string;
+    teamId: string;
+    teamName?: string;
 };
 
 export const PASSWORD_MAX_STRENGTH = 4 as const;
@@ -92,9 +93,10 @@ auth.use(
                 return {
                     id: '1337',
                     email: profile.emails[0].value,
-                    team: 'dev0x',
+                    teamName: 'dev0x',
                     sessionToken: '123',
                     expiresAt: addMinutes(new Date(), 15).toISOString(),
+                    teamId: '123',
                 };
             }
             // If the user doesn't exist, notify the app

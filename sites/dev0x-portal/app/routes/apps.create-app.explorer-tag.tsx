@@ -97,13 +97,13 @@ export async function action({ request }: ActionArgs) {
     //     return json({ errors: { general: 'Error adding provision access' } as Errors, values: body });
     // }
 
-    const apiKeyRes = await generateAPIKey({ appId: res.data.id, teamId: teamRes.data.id });
+    // const apiKeyRes = await generateAPIKey({ appId: res.data.id, teamId: teamRes.data.id });
 
-    if (apiKeyRes.result === 'ERROR') {
-        return json({ errors: { general: 'Error creating api key' } as Errors, values: body });
-    }
+    // if (apiKeyRes.result === 'ERROR') {
+    //     return json({ errors: { general: 'Error creating api key' } as Errors, values: body });
+    // }
 
-    sessionHandler.setPage(2, { apiKey: apiKeyRes.data });
+    sessionHandler.setPage(2, { apiKey: res.data.apiKeys[0].apiKey });
 
     const header = await sessionStorage.commitSession(session);
 

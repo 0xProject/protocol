@@ -1,5 +1,5 @@
 import { json, redirect } from '@remix-run/node';
-import { Outlet, useLoaderData, useParams } from '@remix-run/react';
+import { Outlet, useLoaderData } from '@remix-run/react';
 import { twMerge } from 'tailwind-merge';
 import { Badge, isBadgeColor } from '../components/Badge';
 import { LinkButton } from '../components/Button';
@@ -7,7 +7,7 @@ import { Key2 } from '../icons/Key2';
 import { Settings4 } from '../icons/Settings4';
 import { GoToExplorer } from '../components/GoToExplorer';
 import { SwapCodeBlock } from '../components/SwapCodeBlock';
-import { getApp } from '../data/zippo.server';
+import { getAppById } from '../data/zippo.server';
 
 import type { LoaderArgs, MetaFunction } from '@remix-run/node';
 import type { ComponentPropsWithoutRef } from 'react';
@@ -20,14 +20,16 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 };
 
 export const loader = async ({ params }: LoaderArgs) => {
-    if (!params.appName) throw redirect('/apps');
+    if (!params.appId) throw redirect('/apps');
 
-    const app = await getApp(params.appName);
+    const app = await getAppById(params.appId);
 
-    if (!app) throw redirect('/apps');
+    if (app.result === 'ERROR') {
+        throw app.error;
+    }
 
     return json({
-        app,
+        app: app.data,
     });
 };
 
@@ -47,7 +49,6 @@ function ViewDocsLink({ className, ...other }: ComponentPropsWithoutRef<'a'>) {
 
 export default function AppDashboard() {
     const { app } = useLoaderData<typeof loader>();
-    const params = useParams();
     return (
         <>
             <div className="border-grey-200 border-b border-solid pt-8 pb-9">
@@ -55,7 +56,7 @@ export default function AppDashboard() {
                     <div>
                         <h1 className="text-5xl font-normal">{app.name}</h1>
                         <div className="mt-2 grid auto-cols-max grid-flow-col gap-4">
-                            {app.onChainTag.map(({ name, color }) => {
+                            {(app.onChainTag || []).map(({ name, color }) => {
                                 const badgeColor = isBadgeColor(color) ? color : undefined;
                                 if (badgeColor) {
                                     console.warn('Invalid color for Badge', color);
@@ -74,7 +75,7 @@ export default function AppDashboard() {
                             color="transparent"
                             endIcon={<Key2 className="relative -top-[1px]" />}
                             className="mr-4"
-                            to={`/apps/${params.appName}/api-key`}
+                            to={`/apps/${app.id}/api-key`}
                         >
                             API Key
                         </LinkButton>
@@ -82,7 +83,7 @@ export default function AppDashboard() {
                             size="sm"
                             color="transparent"
                             endIcon={<Settings4 className="relative -top-[1px]" />}
-                            to={`/apps/${params.appName}/settings`}
+                            to={`/apps/${app.id}/settings`}
                         >
                             Settings
                         </LinkButton>

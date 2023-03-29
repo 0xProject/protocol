@@ -9,13 +9,14 @@ import { ChevronDown } from '../icons/ChevronDown';
 import { useCurrentApp } from '../hooks/userCurrentApp';
 import { HelpCircle } from '../icons/HelpCircle';
 
-import type { App, ClientUser } from '../types';
+import type { ClientApp } from '../types';
 
 type AppBarProps = {
-    apps: App[];
-    user: ClientUser;
+    apps: ClientApp[];
+    userEmail: string;
+    userTeam?: string;
 };
-export const AppBar = ({ apps, user }: AppBarProps) => {
+export const AppBar = ({ apps, userEmail, userTeam }: AppBarProps) => {
     const currentApp = useCurrentApp(apps);
 
     return (
@@ -53,7 +54,7 @@ export const AppBar = ({ apps, user }: AppBarProps) => {
                             </IconButton>
                         </AccountDropdownMenu.Trigger>
                     </Toolbar.Button>
-                    <AccountDropdownMenu.Content user={user} align="end" />
+                    <AccountDropdownMenu.Content userEmail={userEmail} userTeam={userTeam} align="end" />
                 </AccountDropdownMenu.Root>
             </div>
         </Toolbar.Root>

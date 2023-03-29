@@ -1,9 +1,9 @@
 import { useParams } from "@remix-run/react";
 
-import type { App } from "../types";
+import type { ClientApp } from "../types";
 
-export function useCurrentApp(apps: App[]) {
-    const { appName } = useParams();
-    const [currentApp] = apps.filter(({ encodedUrlPathname }) => encodedUrlPathname === appName);
+export function useCurrentApp(apps: ClientApp[]) {
+    const { appId } = useParams();
+    const [currentApp] = apps.filter(({ id }) => id === appId);
     return currentApp;
 }

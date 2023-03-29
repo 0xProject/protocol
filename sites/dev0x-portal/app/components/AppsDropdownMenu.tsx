@@ -4,7 +4,7 @@ import { twMerge } from 'tailwind-merge';
 import * as DropdownMenu from './DropdownMenu';
 import { Check } from '../icons/Check';
 
-import type { App } from '../types';
+import type { ClientApp } from '../types';
 import type { ElementRef, ComponentPropsWithRef, SVGAttributes } from 'react';
 
 export const Root = DropdownMenu.Root;
@@ -33,7 +33,7 @@ function PlusCirce(props: SVGAttributes<SVGElement>) {
 }
 
 type AppsDropdownMenuProps = ComponentPropsWithRef<typeof DropdownMenu.Content> & {
-    apps: App[];
+    apps: ClientApp[];
     children?: never;
 };
 
@@ -42,6 +42,7 @@ export const Content = forwardRef<ElementRef<typeof DropdownMenu.Content>, AppsD
     forwardedRef,
 ) {
     const { pathname } = useLocation();
+
     return (
         <DropdownMenu.Portal>
             <DropdownMenu.Content
@@ -57,14 +58,17 @@ export const Content = forwardRef<ElementRef<typeof DropdownMenu.Content>, AppsD
                     </Link>
                 </DropdownMenu.Item>
                 <DropdownMenu.Item asChild>
-                    <Link to={'/apps'}>All apps</Link>
+                    <Link to={'/apps'} className="flex items-center justify-between">
+                        <span>All apps</span>
+                        {pathname === '/apps' && <Check width={16} height={16} className="relative -top-[1px] ml-2" />}
+                    </Link>
                 </DropdownMenu.Item>
-                {apps.map(({ name, encodedUrlPathname }) => {
+                {apps.map(({ name, id }) => {
                     return (
-                        <DropdownMenu.Item asChild key={encodedUrlPathname}>
-                            <Link to={`/apps/${encodedUrlPathname}`} className="flex items-center justify-between">
+                        <DropdownMenu.Item asChild key={id}>
+                            <Link to={`/apps/${id}`} className="flex items-center justify-between">
                                 <span>{name}</span>
-                                {pathname.includes(encodedUrlPathname) && (
+                                {pathname.includes(id) && (
                                     <Check width={16} height={16} className="relative -top-[1px] ml-2" />
                                 )}
                             </Link>

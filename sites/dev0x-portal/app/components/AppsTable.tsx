@@ -5,7 +5,7 @@ import { ArrowNarrowRight } from '../icons/ArrowNarrowRight';
 
 import type { LinkProps } from '@remix-run/react';
 import type { ComponentPropsWithoutRef, ComponentPropsWithRef } from 'react';
-import type { App } from '../types';
+import type { ClientApp } from '../types';
 
 type AppColorBarProps = ComponentPropsWithoutRef<'div'>;
 function AppColorBar({ className, ...other }: AppColorBarProps) {
@@ -42,7 +42,7 @@ function Tr({ pathname, ...other }: ComponentPropsWithoutRef<typeof Table.Tr> & 
 }
 
 type AppsTableProps = ComponentPropsWithRef<typeof Table.Table> & {
-    data: App[];
+    data: ClientApp[];
 };
 //Once we have more advance scenarios use @tanstack/react-table here
 export function AppsTable({ data, ...other }: AppsTableProps) {
@@ -57,8 +57,8 @@ export function AppsTable({ data, ...other }: AppsTableProps) {
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
-                    {data.map(({ encodedUrlPathname, name, brandColor }) => (
-                        <Tr key={encodedUrlPathname} pathname={encodedUrlPathname}>
+                    {data.map(({ id, name, brandColor }) => (
+                        <Tr key={id} pathname={id}>
                             <Table.Td>
                                 <div className="flex">
                                     <AppColorBar
@@ -71,7 +71,7 @@ export function AppsTable({ data, ...other }: AppsTableProps) {
                             </Table.Td>
                             <Table.Td>-</Table.Td>
                             <Table.Td className=" text-right">
-                                <ExploreLink to={`/apps/${encodedUrlPathname}`} />
+                                <ExploreLink to={`/apps/${id}`} />
                             </Table.Td>
                         </Tr>
                     ))}
