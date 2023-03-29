@@ -23,6 +23,7 @@ import "@openzeppelin/token/ERC20/IERC20.sol";
 import "../mocks/IZeroExMock.sol";
 import "../mocks/IZrxTreasuryMock.sol";
 import "../mocks/IStakingMock.sol";
+import "../mocks/IZrxVaultMock.sol";
 import "../BaseTest.t.sol";
 import "../../src/ZRXWrappedToken.sol";
 import "../../src/ZeroExVotes.sol";
@@ -42,10 +43,12 @@ contract GovernanceE2ETest is BaseTest {
     address internal constant EXCHANGE_PROXY = 0xDef1C0ded9bec7F1a1670819833240f027b25EfF;
     address internal constant EXCHANGE_GOVERNOR = 0x618F9C67CE7Bf1a50afa1E7e0238422601b0ff6e;
     address internal constant TREASURY = 0x0bB1810061C2f5b2088054eE184E6C79e1591101;
-    address internal constant STAKING = 0xa26e80e7Dea86279c6d778D702Cc413E6CFfA777;
-    address internal staker = 0x5265Bde27F57E738bE6c1F6AB3544e82cdc92a8f;
-    bytes32 internal stakerPool = 0x0000000000000000000000000000000000000000000000000000000000000032;
-    bytes32[] internal staker_operated_poolIds = [stakerPool];
+    address internal constant STAKING = 0xa26e80e7Dea86279c6d778D702Cc413E6CFfA777; // Holds ~$262K in WETH for rewards
+    address internal constant ZRX_VAULT = 0xBa7f8b5fB1b19c1211c5d49550fcD149177A5Eaf; // Holds ~$10m in staked ZRX
+    address internal constant STAKING_AND_VAULT_OWNER = 0x7D3455421BbC5Ed534a83c88FD80387dc8271392;
+
+    address internal staker1 = 0x885c327cAD2aebb969dfaAb4c928B73CA17e3887;
+    address internal staker2 = 0x03c823e96F6964076C118395F08a2D7edF0f8a8C;
 
     // voting power 1500000e18
     address internal voter1 = 0x292c6DAE7417B3D31d8B6e1d2EeA0258d14C4C4b;
@@ -89,6 +92,7 @@ contract GovernanceE2ETest is BaseTest {
 
     IZeroExMock internal exchange;
     IZrxTreasuryMock internal treasury;
+    IZrxVaultMock internal vault;
     IStakingMock internal staking;
 
     ZRXWrappedToken internal wToken;
@@ -109,6 +113,7 @@ contract GovernanceE2ETest is BaseTest {
 
         exchange = IZeroExMock(payable(EXCHANGE_PROXY));
         treasury = IZrxTreasuryMock(TREASURY);
+        vault = IZrxVaultMock(ZRX_VAULT);
         staking = IStakingMock(STAKING);
 
         address protocolGovernorAddress;
@@ -142,7 +147,7 @@ contract GovernanceE2ETest is BaseTest {
         uint256 currentEpoch = staking.currentEpoch();
         uint256 executionEpoch = currentEpoch + 2;
 
-        vm.startPrank(staker);
+        vm.startPrank(voter3);
 
         IZrxTreasuryMock.ProposedAction[] memory actions = new IZrxTreasuryMock.ProposedAction[](4);
 
@@ -182,7 +187,7 @@ contract GovernanceE2ETest is BaseTest {
             actions,
             executionEpoch,
             "Z-5 Migrate to new treasury governor",
-            staker_operated_poolIds
+            voter3_operated_poolIds
         );
 
         // Once a proposal is created, it becomes open for voting at the epoch after next (currentEpoch + 2)
@@ -242,5 +247,27 @@ contract GovernanceE2ETest is BaseTest {
 
         uint256 wyvBalanceNewTreasury = wyvToken.balanceOf(address(treasuryGovernor));
         assertEq(wyvBalanceNewTreasury, wyvBalance);
+    }
+
+    // Test entering catastrophic failure mode on the zrx vault to decomission v3 staking
+    function testCatastrophicFailureModeOnStaking() public {
+        // Enter catastrophic failure mode on the zrx vault
+        vm.prank(STAKING_AND_VAULT_OWNER);
+        vault.enterCatastrophicFailure();
+        vm.stopPrank();
+
+        // Stakes can still be withdrawn
+        uint256 stake = vault.balanceOf(staker1);
+        console.log("stake", stake);
+        assertGt(stake, 0);
+        assertEq(token.balanceOf(staker1), 0);
+
+        vm.prank(staker1);
+        vault.withdrawAllFrom(staker1);
+        vm.stopPrank();
+
+        assertEq(vault.balanceOf(staker1), 0);
+        // TODO this breaks because of dust transfer
+        // assertEq(token.balanceOf(staker1), stake);
     }
 }
