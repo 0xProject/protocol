@@ -141,12 +141,19 @@ contract GovernanceE2ETest is BaseTest {
         // Transfer MATIC
         uint256 maticBalance = maticToken.balanceOf(address(treasury));
         actions[0] = IZrxTreasuryMock.ProposedAction({
-            target: 0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0,
+            target: MATIC_TOKEN,
             data: abi.encodeCall(maticToken.transfer, (address(treasuryGovernor), maticBalance)),
             value: 0
         });
 
         // Transfer ZRX
+        uint256 zrxBalance = token.balanceOf(address(treasury));
+        actions[1] = IZrxTreasuryMock.ProposedAction({
+            target: ZRX_TOKEN,
+            data: abi.encodeCall(token.transfer, (address(treasuryGovernor), zrxBalance)),
+            value: 0
+        });
+
         // Transfer wCELO
         // Transfer WYV
 
@@ -205,5 +212,8 @@ contract GovernanceE2ETest is BaseTest {
         // Assert value of treasury has correctly transferred
         uint256 maticBalanceNewTreasury = maticToken.balanceOf(address(treasuryGovernor));
         assertEq(maticBalanceNewTreasury, maticBalance);
+
+        uint256 zrxBalanceNewTreasury = token.balanceOf(address(treasuryGovernor));
+        assertEq(zrxBalanceNewTreasury, zrxBalance);
     }
 }
