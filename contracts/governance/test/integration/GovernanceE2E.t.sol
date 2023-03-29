@@ -50,6 +50,36 @@ contract GovernanceE2ETest is BaseTest {
     bytes32 internal voter1Pool = 0x0000000000000000000000000000000000000000000000000000000000000030;
     bytes32[] internal voter1_operated_poolIds = [voter1Pool];
 
+    // voting power 1500000.5e18
+    address internal voter2 = 0x4990cE223209FCEc4ec4c1ff6E0E81eebD8Cca08;
+    bytes32 internal voter2Pool = 0x0000000000000000000000000000000000000000000000000000000000000031;
+    bytes32[] internal voter2_operated_poolIds = [voter2Pool];
+
+    // voting power 1500000e18
+    address internal voter3 = 0x5265Bde27F57E738bE6c1F6AB3544e82cdc92a8f;
+    bytes32 internal voter3Pool = 0x0000000000000000000000000000000000000000000000000000000000000032;
+    bytes32[] internal voter3_operated_poolIds = [voter3Pool];
+
+    // voting power 1500000e18
+    address internal voter4 = 0xcA9F5049c1Ea8FC78574f94B7Cf5bE5fEE354C31;
+    bytes32 internal voter4Pool = 0x0000000000000000000000000000000000000000000000000000000000000034;
+    bytes32[] internal voter4_operated_poolIds = [voter4Pool];
+
+    // voting power 1500000e18
+    address internal voter5 = 0xDBB5664a9DBCB98F6365804880e5b277B3155422;
+    bytes32 internal voter5Pool = 0x0000000000000000000000000000000000000000000000000000000000000035;
+    bytes32[] internal voter5_operated_poolIds = [voter5Pool];
+
+    // voting power 2291490.952353335e18
+    address internal voter6 = 0x9a4Eb1101C0c053505Bd71d2fFa27Ed902DEaD85;
+    bytes32 internal voter6Pool = 0x0000000000000000000000000000000000000000000000000000000000000029;
+    bytes32[] internal voter6_operated_poolIds = [voter6Pool];
+
+    // voting power 4575984.325e18
+    address internal voter7 = 0x9564177EC8052C92752a488a71769F710aA0A41D;
+    bytes32 internal voter7Pool = 0x0000000000000000000000000000000000000000000000000000000000000025;
+    bytes32[] internal voter7_operated_poolIds = [voter7Pool];
+
     IERC20 internal token;
     IERC20 internal maticToken;
     IZeroExMock internal exchange;
@@ -106,7 +136,7 @@ contract GovernanceE2ETest is BaseTest {
 
         vm.startPrank(staker);
 
-        IZrxTreasuryMock.ProposedAction[] memory actions = new IZrxTreasuryMock.ProposedAction[](1);
+        IZrxTreasuryMock.ProposedAction[] memory actions = new IZrxTreasuryMock.ProposedAction[](2);
 
         // Transfer MATIC
         uint256 maticBalance = maticToken.balanceOf(address(treasury));
@@ -115,6 +145,7 @@ contract GovernanceE2ETest is BaseTest {
             data: abi.encodeCall(maticToken.transfer, (address(treasuryGovernor), maticBalance)),
             value: 0
         });
+
         // Transfer ZRX
         // Transfer wCELO
         // Transfer WYV
@@ -142,10 +173,37 @@ contract GovernanceE2ETest is BaseTest {
         treasury.castVote(proposalId, true, voter1_operated_poolIds);
         vm.stopPrank();
 
-        vm.warp(block.timestamp + 3 days);
+        vm.prank(voter2);
+        treasury.castVote(proposalId, true, voter2_operated_poolIds);
+        vm.stopPrank();
+
+        vm.prank(voter3);
+        treasury.castVote(proposalId, true, voter3_operated_poolIds);
+        vm.stopPrank();
+
+        vm.prank(voter4);
+        treasury.castVote(proposalId, true, voter4_operated_poolIds);
+        vm.stopPrank();
+
+        vm.prank(voter5);
+        treasury.castVote(proposalId, true, voter5_operated_poolIds);
+        vm.stopPrank();
+
+        vm.prank(voter6);
+        treasury.castVote(proposalId, true, voter6_operated_poolIds);
+        vm.stopPrank();
+
+        vm.prank(voter7);
+        treasury.castVote(proposalId, true, voter7_operated_poolIds);
+        vm.stopPrank();
+
+        vm.warp(block.timestamp + 3 days + 1);
 
         // Execute proposal
+        treasury.execute(proposalId, actions);
+
         // Assert value of treasury has correctly transferred
-        // Test wrapping ZRX and voting on a funding proposal e.g. purple pay
+        uint256 maticBalanceNewTreasury = maticToken.balanceOf(address(treasuryGovernor));
+        assertEq(maticBalanceNewTreasury, maticBalance);
     }
 }
