@@ -81,3 +81,10 @@
         @apply rounded-br-xl;
     }
 }
+
+@layer utilities {
+    .text-blurred {
+        color: transparent;
+        text-shadow: 0 0 7px rgba(0, 0, 0, 0.5);
+    }
+}
