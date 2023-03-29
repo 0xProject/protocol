@@ -247,7 +247,7 @@ export async function sendPasswordResetEmail(
 ) {
     const user = await prisma.user.findUnique({
         where: { id: input.userId },
-        select: { email: true, name: true },
+        select: { email: true, firstName: true, lastName: true },
     });
     if (!user) {
         throw new Error('Unable to find user');
@@ -262,7 +262,8 @@ export async function sendPasswordResetEmail(
     verifyUrl.searchParams.set('token', verificationToken.verificationToken);
     const emailVars = {
         verifyUrl: verifyUrl.toString(),
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
     };
 
@@ -282,7 +283,7 @@ export async function sendEmailVerifyEmail(
 ) {
     const user = await prisma.user.findUnique({
         where: { id: input.userId },
-        select: { email: true, name: true },
+        select: { email: true, firstName: true, lastName: true },
     });
     if (!user) {
         throw new Error('Unable to find user');
@@ -297,7 +298,8 @@ export async function sendEmailVerifyEmail(
     verifyUrl.searchParams.set('token', verificationToken.verificationToken);
     const emailVars = {
         verifyUrl: verifyUrl.toString(),
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
     };
 
