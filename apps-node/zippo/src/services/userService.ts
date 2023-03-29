@@ -247,7 +247,7 @@ export async function sendPasswordResetEmail(
 ) {
     const user = await prisma.user.findUnique({
         where: { id: input.userId },
-        select: { email: true },
+        select: { email: true, name: true },
     });
     if (!user) {
         throw new Error('Unable to find user');
@@ -258,13 +258,15 @@ export async function sendPasswordResetEmail(
 
     const verificationToken = await createVerificationToken(input.userId);
 
+    const verifyUrl = new URL(input.verifyUrl);
+    verifyUrl.searchParams.set('token', verificationToken.verificationToken);
     const emailVars = {
-        verifyUrl: `${env.MAILGUN_DEPLOY_URL}/reset-password/set-password?email=${encodeURIComponent(
-            user.email,
-        )}&token=${verificationToken.verificationToken}`,
+        verifyUrl: verifyUrl.toString(),
+        name: user.name,
+        email: user.email,
     };
 
-    return sendUserEmail(input.userId, 'password_reset_email', 'Reset your 0x.org password', emailVars);
+    return sendUserEmail(input.userId, 'password_reset_email', 'Reset your 0x password', emailVars);
 }
 
 /**
@@ -280,7 +282,7 @@ export async function sendEmailVerifyEmail(
 ) {
     const user = await prisma.user.findUnique({
         where: { id: input.userId },
-        select: { email: true },
+        select: { email: true, name: true },
     });
     if (!user) {
         throw new Error('Unable to find user');
@@ -291,13 +293,15 @@ export async function sendEmailVerifyEmail(
 
     const verificationToken = await createVerificationToken(input.userId);
 
+    const verifyUrl = new URL(input.verifyUrl);
+    verifyUrl.searchParams.set('token', verificationToken.verificationToken);
     const emailVars = {
-        verifyUrl: `${env.MAILGUN_DEPLOY_URL}/create-account/verify-email?email=${encodeURIComponent(
-            user.email,
-        )}&token=${verificationToken.verificationToken}`,
+        verifyUrl: verifyUrl.toString(),
+        name: user.name,
+        email: user.email,
     };
 
-    return sendUserEmail(input.userId, 'email_verification_at_signup', 'Verify your email with 0x.org', emailVars);
+    return sendUserEmail(input.userId, 'email_verification_at_signup', 'Verify your email on 0x', emailVars);
 }
 
 /**
@@ -407,7 +411,7 @@ async function sendUserEmail(
     }
 
     let emailData = {
-        from: '0x Developer Platform <no-reply@0x.org>',
+        from: '0x <no-reply@0x.org>',
         to: user.email,
         subject: subject,
         template: template,

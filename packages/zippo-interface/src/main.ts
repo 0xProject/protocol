@@ -181,6 +181,7 @@ export const zippoRouterDefinition = {
             input: z
                 .object({
                     userId: z.string().cuid().describe('The user ID'),
+                    verifyUrl: z.string().url().describe('The password reset URL to put in the email'),
                 })
                 .describe('The information needed to send a password reset email'),
             output: messageSendResult.strip().nullable().describe('The message resolution.'),
@@ -194,6 +195,7 @@ export const zippoRouterDefinition = {
                     newEmail: z
                         .string({ required_error: 'Email address is required' })
                         .email({ message: 'Invalid email' }),
+                    verifyUrl: z.string().url().describe('The email verify URL to put in the email'),
                 })
                 .describe('The information needed to send an email address verification email'),
             output: messageSendResult.strip().nullable().describe('The message resolution.'),
