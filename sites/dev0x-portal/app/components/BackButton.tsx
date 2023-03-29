@@ -8,7 +8,7 @@ type BackButtonProps = {
     className?: string;
 } & ComponentProps<typeof IconButton>;
 
-export default function BackButton({ className, ...props }: BackButtonProps) {
+export function BackButton({ className, ...props }: BackButtonProps) {
     const navigator = useNavigate();
 
     return (
@@ -17,6 +17,7 @@ export default function BackButton({ className, ...props }: BackButtonProps) {
             onClick={() => navigator(-1)}
             color="grey"
             title="Go Back"
+            aria-label="Go Back"
             {...props}
         >
             <ArrowLeft height={24} width={24} />

@@ -3,7 +3,7 @@ import type { ActionArgs, LoaderArgs } from '@remix-run/server-runtime';
 import { json, redirect } from '@remix-run/server-runtime';
 import { z } from 'zod';
 import { getSignedInUser } from '../auth.server';
-import BackButton from '../components/BackButton';
+import { BackButton } from '../components/BackButton';
 import { Button } from '../components/Button';
 import { TextInput } from '../components/TextInput';
 import { getUserByEmail, sendResetPasswordEmail } from '../data/zippo.server';

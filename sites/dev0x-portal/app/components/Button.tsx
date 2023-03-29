@@ -22,7 +22,7 @@ const button = tv({
             transparent: 'bg-transparent border font-thin border-solid border-grey-200 text-grey-900',
         },
         disabled: {
-            true: 'opacity-50 pointer-events-none',
+            true: 'bg-grey-100 text-grey-800/40 pointer-events-none shadow-none',
         },
         roundness: {
             default: 'rounded-[0.875rem]',

@@ -11,10 +11,11 @@ type MultiSelectCardProps = {
     selected?: boolean;
     onChange?: (selected: boolean) => void;
     name?: string;
+    value?: string;
 } & React.HTMLAttributes<HTMLDivElement>;
 
 export const MultiSelectCard = forwardRef<HTMLDivElement, MultiSelectCardProps>(function MultiSelectCard(
-    { title, description, icon, selected, onChange, className, id, name, labelDecorator, ...props },
+    { value, title, description, icon, selected, onChange, className, id, name, labelDecorator, ...props },
     forwardedRef,
 ) {
     if (!id) {
@@ -24,7 +25,7 @@ export const MultiSelectCard = forwardRef<HTMLDivElement, MultiSelectCardProps>(
     }
 
     return (
-        <div aria-label="select card" className="relative h-fit w-fit">
+        <div aria-label="select card" className="relative w-fit">
             <div
                 {...props}
                 ref={forwardedRef}
@@ -44,7 +45,7 @@ export const MultiSelectCard = forwardRef<HTMLDivElement, MultiSelectCardProps>(
                         <Label
                             label={title}
                             htmlFor={id}
-                            className="text-grey-900 mr-2 text-base font-semibold antialiased"
+                            className="text-grey-900 mr-2 text-base font-semibold tracking-[0.01em] antialiased"
                         />
                         {labelDecorator}
                     </div>
@@ -58,6 +59,7 @@ export const MultiSelectCard = forwardRef<HTMLDivElement, MultiSelectCardProps>(
                     id={id}
                     aria-describedby={`${id}-description`}
                     defaultChecked={selected}
+                    value={value}
                     className="ml-3 flex-shrink-0 after:absolute after:left-0 after:right-0 after:bottom-0 after:top-0 after:z-10" // to make the whole card clickable
                 />
             </div>
