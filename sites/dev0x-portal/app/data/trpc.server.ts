@@ -1,5 +1,6 @@
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
-import type { TZippoRouter } from 'zippo-interface';
+import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
+import type { TZippoRouter, TZippoRouteTag } from 'zippo-interface';
 import { env } from '../env';
 
 const makeClient = () =>
@@ -30,3 +31,7 @@ if (env.NODE_ENV === 'development') {
 }
 
 export const client = trpcClient as ReturnType<typeof makeClient>;
+
+export type RouterInputs = inferRouterInputs<TZippoRouter>;
+
+export type RouterOutputs = inferRouterOutputs<TZippoRouter>;

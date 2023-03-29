@@ -85,6 +85,7 @@
         "prop-types": "^15.8.1",
         "storybook": "^7.0.0-rc.3",
         "tailwindcss": "^3.2.6",
+        "type-fest": "^3.7.1",
         "typescript": "^4.8.4",
         "vite": "^4.1.1",
         "vitest": "^0.28.4"

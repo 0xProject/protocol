@@ -12,7 +12,18 @@ export function validateFormData<ActionInput>({
     formData: FormData;
     schema: ZodSchema<ActionInput>;
 }) {
-    const body = Object.fromEntries(formData) as ActionInput;
+    let payload: Record<string, any> = {};
+    for (const [key, value] of formData) {
+        if (payload[key] !== undefined) {
+            if (!Array.isArray(payload[key])) {
+                payload[key] = [payload[key]];
+            }
+            payload[key].push(value);
+        } else {
+            payload[key] = value;
+        }
+    }
+    const body = payload as ActionInput;
 
     const result = schema.safeParse(body);
     if (!result.success) {

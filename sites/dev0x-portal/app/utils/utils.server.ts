@@ -1,5 +1,14 @@
+import type { Session } from '@remix-run/server-runtime';
 import { addSeconds, differenceInSeconds } from 'date-fns';
 import { sessionStorage } from '../auth.server';
+
+type MultiStepFormSessionHandler<T extends [...any]> = {
+    getPage: <N extends keyof T>(page: N) => T[N] | undefined;
+    setPage: <N extends keyof T>(page: N, value: T[N]) => void;
+    getPages: () => Partial<T>;
+    deletePage: (page: number) => void;
+    deleteAll: () => void;
+};
 
 type VerifyEmailType = {
     retryAt: string;
@@ -59,4 +68,30 @@ export async function createFlashMessage(request: Request, key: string, value: s
     session.flash(key, value);
     headers.append('Set-Cookie', await sessionStorage.commitSession(session));
     return headers;
+}
+
+export function makeMultipageHandler<T extends [...any]>({
+    session,
+    namespace,
+}: {
+    session: Session;
+    namespace: string;
+}): MultiStepFormSessionHandler<T> {
+    const nameSpace = (session.get(namespace) || []) as Partial<T>;
+
+    return {
+        getPage: <N extends keyof T>(page: N) => nameSpace[page],
+        setPage: <N extends keyof T>(page: N, value: T[N]) => {
+            nameSpace[page] = value;
+            session.set(namespace, nameSpace);
+        },
+        getPages: () => nameSpace,
+        deletePage: (page: number) => {
+            delete nameSpace[page];
+            session.set(namespace, nameSpace);
+        },
+        deleteAll: () => {
+            session.unset(namespace);
+        },
+    };
 }

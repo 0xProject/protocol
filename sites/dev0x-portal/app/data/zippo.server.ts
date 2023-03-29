@@ -1,10 +1,13 @@
-import type { App } from '../types';
+import type { App, Rename } from '../types';
 import { addMinutes } from 'date-fns';
 import type { User } from '../auth.server';
 import type { Result } from '../types';
+import type { RouterInputs, RouterOutputs } from './trpc.server';
 import { client } from './trpc.server';
 
 export const NO_TEAM_MARKER = '__not_init' as const;
+
+type ZippoApp = RouterOutputs['app']['getById'];
 
 export async function doesSessionExist({
     userId,
@@ -205,6 +208,7 @@ export async function resetPassword({
 }
 const APPS = [
     {
+        id: '1337-1',
         name: 'Demo app',
         brandColor: '#01A74D',
         encodedUrlPathname: 'demo-app',
@@ -220,6 +224,7 @@ const APPS = [
         ],
     },
     {
+        id: '1337-2',
         name: 'Coinbase wallet',
         brandColor: '#3A65EB',
         encodedUrlPathname: 'coinbase-wallet',
@@ -325,5 +330,131 @@ export async function invalidateZippoSession({ sessionToken }: { sessionToken: s
         await client.session.logout.mutate(sessionToken);
     } catch (e) {
         console.warn(e);
+    }
+}
+
+export async function getTeam({
+    userId,
+}: {
+    userId: string;
+    // i hate this but i want to tie it to the return type of the query
+}): Promise<Result<Exclude<RouterOutputs['team']['getById'], null>>> {
+    try {
+        const user = await client.user.getById.query(userId);
+        if (!user) {
+            return {
+                result: 'ERROR',
+                error: new Error('User not found'),
+            };
+        }
+        const team = await client.team.getById.query(user.integratorTeamId);
+        if (!team) {
+            return {
+                result: 'ERROR',
+                error: new Error('Team not found'),
+            };
+        }
+        return {
+            result: 'SUCCESS',
+            data: team,
+        };
+    } catch (e) {
+        console.warn(e);
+        return {
+            result: 'ERROR',
+            error: new Error('Unknown error'),
+        };
+    }
+}
+
+export async function createApp({
+    appName,
+    teamId,
+    ...rest
+}: Rename<RouterInputs['app']['create'], { integratorTeamId: 'teamId'; name: 'appName' }>): Promise<Result<App>> {
+    try {
+        const app = await client.app.create.mutate({ integratorTeamId: teamId, name: appName, ...rest });
+
+        if (!app) {
+            return {
+                result: 'ERROR',
+                error: new Error('Failed to create app'),
+            };
+        }
+
+        return {
+            result: 'SUCCESS',
+            data: {
+                id: app.id,
+                name: app.name,
+                brandColor: 'purple', // hard coded for now
+                encodedUrlPathname: encodeURIComponent(app.name),
+            },
+        };
+    } catch (e) {
+        console.warn(e);
+        return {
+            result: 'ERROR',
+            error: new Error('Unknown error'),
+        };
+    }
+}
+
+export async function addProvisionAccess({
+    appId,
+    rateLimits,
+    routeTags,
+}: Rename<RouterInputs['app']['provisionAccess'], { id: 'appId' }>): Promise<Result<ZippoApp>> {
+    try {
+        const res = await client.app.provisionAccess.mutate({ id: appId, rateLimits, routeTags });
+        if (!res) {
+            return {
+                result: 'ERROR',
+                error: new Error('Failed to provision access'),
+            };
+        }
+        return {
+            result: 'SUCCESS',
+            data: res,
+        };
+    } catch (e) {
+        console.warn(e);
+        return {
+            result: 'ERROR',
+            error: new Error('Unknown error'),
+        };
+    }
+}
+
+export async function generateAPIKey({
+    appId,
+    teamId,
+    description,
+}: Rename<RouterInputs['app']['key']['create'], { integratorAppId: 'appId'; integratorTeamId: 'teamId' }>): Promise<
+    Result<string>
+> {
+    try {
+        const res = await client.app.key.create.mutate({
+            integratorAppId: appId,
+            integratorTeamId: teamId,
+            description,
+        });
+        if (!res || !res.apiKeys || !res.apiKeys.length) {
+            return {
+                result: 'ERROR',
+                error: new Error('Failed to create API key'),
+            };
+        }
+        const newestKey = res.apiKeys[res.apiKeys.length - 1];
+        return {
+            result: 'SUCCESS',
+            data: newestKey.apiKey,
+        };
+    } catch (e) {
+        console.warn(e);
+        return {
+            result: 'ERROR',
+            error: new Error('Unknown error'),
+        };
     }
 }
