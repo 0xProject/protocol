@@ -35,6 +35,7 @@ import { extractEIP712DomainType } from './Eip712Utils';
 import { isWorkerReadyAndAbleAsync } from './rfqm_worker_balance_utils';
 import { serviceUtils } from './service_utils';
 import { SubproviderAdapter } from './subprovider_adapter';
+import * as _ from 'lodash';
 
 function toBigNumber(ethersBigNumber: EthersBigNumber): BigNumber {
     return new BigNumber(ethersBigNumber.toString());
@@ -631,10 +632,9 @@ export class RfqBlockchainUtils {
         /**
          * Ethers (v5.4.5) TypedDataEncoder computes the domain separately from other types.
          * EIP712Domain will be seen as an alternate possible root unrelated to them.
-         * https://github.com/ethers-io/ethers.js/blob/86146650d83865d83b10867e9592923eada5d7cc/packages/hash/src.ts/typed-data.ts#L392
+         * https://github.com/ethers-io/ethers.js/blob/86146650d83865d83b10867e9592923eada5d7cc/packages/hash/src.ts/typed-data.ts#L392.
          */
-        if (types.EIP712Domain) delete types.EIP712Domain;
-        return utils._TypedDataEncoder.hash(domain, types, value);
+        return utils._TypedDataEncoder.hash(domain, _.omit(types, 'EIP712Domain'), value);
     }
 }
 

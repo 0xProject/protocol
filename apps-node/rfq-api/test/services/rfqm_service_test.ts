@@ -58,14 +58,18 @@ import { HealthCheckStatus } from '../../src/utils/rfqm_health_check';
 import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
 import { RfqMakerManager } from '../../src/utils/rfq_maker_manager';
 import { TokenMetadataManager } from '../../src/utils/TokenMetadataManager';
-import { MOCK_EXECUTE_META_TRANSACTION_APPROVAL, MOCK_EXECUTE_META_TRANSACTION_HASH } from '../constants';
+import {
+    MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
+    MOCK_EXECUTE_META_TRANSACTION_HASH,
+    WORKER_TEST_ADDRESS,
+} from '../constants';
 import * as SignatureUtils from '../../src/utils/signature_utils';
 
 // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
 // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
 const NEVER_EXPIRES = new BigNumber(9999999999999999);
 const MOCK_WORKER_REGISTRY_ADDRESS = '0x1023331a469c6391730ff1E2749422CE8873EC38';
-const MOCK_TOKEN = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+const MOCK_TOKEN = '0xc2132d05d31c914a87c6611c10748aeb04b58e8f';
 const MOCK_GAS_PRICE = new BigNumber(100000000000);
 const MOCK_MM_URI = 'https://mm-address';
 const WORKER_FULL_BALANCE_WEI = new BigNumber(1).shiftedBy(ETH_DECIMALS);
@@ -80,6 +84,7 @@ const MOCK_INTEGRATOR: Integrator = {
     gaslessRfqtVip: true,
 };
 
+jest.setTimeout(ONE_MINUTE_MS);
 const buildRfqmServiceForUnitTest = (
     overrides: {
         chainId?: number;
@@ -141,20 +146,23 @@ const buildRfqmServiceForUnitTest = (
     });
     const feeServiceInstance = instance(feeServiceMock);
 
-    const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
-    when(rfqBlockchainUtilsMock.getAccountBalanceAsync(MOCK_WORKER_REGISTRY_ADDRESS)).thenResolve(
-        WORKER_FULL_BALANCE_WEI,
+    const rfqBlockchainUtilsMock = new RfqBlockchainUtils(
+        instance(mock()),
+        '0xdef1c0ded9bec7f1a1670819833240f027b25eff',
+        instance(mock()),
+        instance(mock()),
+        instance(mock()),
     );
-    when(rfqBlockchainUtilsMock.getAllowanceAsync(anything(), anything(), anything())).thenResolve(
+    const spiedRfqBlockchainUtilsMock = spy(rfqBlockchainUtilsMock);
+    when(spiedRfqBlockchainUtilsMock.getAccountBalanceAsync(anything())).thenResolve(WORKER_FULL_BALANCE_WEI);
+    when(spiedRfqBlockchainUtilsMock.getAllowanceAsync(anything(), anything(), anything())).thenResolve(
         new BigNumber(constants.MaxUint256.toString()),
         new BigNumber(0),
         new BigNumber(0),
     );
-    when(rfqBlockchainUtilsMock.getGaslessApprovalAsync(anything(), anything(), anything())).thenResolve(
-        null,
-        MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
+    when(spiedRfqBlockchainUtilsMock.getMetaTransactionNonceAsync(anything(), anything())).thenResolve(
+        new BigNumber(1),
     );
-    when(rfqBlockchainUtilsMock.computeEip712Hash(anything())).thenReturn(MOCK_EXECUTE_META_TRANSACTION_HASH);
     const dbUtilsMock = mock(RfqmDbUtils);
     const sqsMock = mock(Producer);
     when(sqsMock.queueSize()).thenResolve(0);
@@ -175,7 +183,7 @@ const buildRfqmServiceForUnitTest = (
         overrides.feeModelVersion || 0,
         contractAddresses,
         MOCK_WORKER_REGISTRY_ADDRESS,
-        overrides.rfqBlockchainUtils || instance(rfqBlockchainUtilsMock),
+        overrides.rfqBlockchainUtils || rfqBlockchainUtilsMock,
         overrides.dbUtils || dbUtilsMock,
         overrides.producer || sqsMock,
         overrides.quoteServerClient || quoteServerClientMock,
@@ -2018,24 +2026,24 @@ describe('RfqmService HTTP Logic', () => {
 
     describe('getGaslessApprovalResponseAsync', () => {
         it('returns correct approval field', async () => {
-            const service = buildRfqmServiceForUnitTest();
+            const service = buildRfqmServiceForUnitTest({ chainId: 137 });
 
             let approval = await service.getGaslessApprovalResponseAsync(
-                MOCK_WORKER_REGISTRY_ADDRESS,
+                WORKER_TEST_ADDRESS,
                 MOCK_TOKEN,
                 new BigNumber(100),
             );
             expect(approval).to.eql({ isRequired: false });
 
             approval = await service.getGaslessApprovalResponseAsync(
-                MOCK_WORKER_REGISTRY_ADDRESS,
-                MOCK_TOKEN,
+                WORKER_TEST_ADDRESS,
+                '0x123456',
                 new BigNumber(100),
             );
             expect(approval).to.eql({ isRequired: true, isGaslessAvailable: false });
 
             approval = await service.getGaslessApprovalResponseAsync(
-                MOCK_WORKER_REGISTRY_ADDRESS,
+                WORKER_TEST_ADDRESS,
                 MOCK_TOKEN,
                 new BigNumber(100),
             );
