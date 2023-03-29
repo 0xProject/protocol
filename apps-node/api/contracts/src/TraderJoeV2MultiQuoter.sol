@@ -56,6 +56,8 @@ contract TraderJoeV2MultiQuoter is MultiQuoter {
         uint256 pairReserveX;
         // the total amount of tokenY in the pair reserves (only used for exact output swaps as a safety check)
         uint256 pairReserveY;
+        // the current aggregate gas estimate for multiswap, only updated upon tick crossing
+        uint256 gasAggregate;
     }
 
     // the top level parameters used for the multiswap logic
@@ -64,8 +66,6 @@ contract TraderJoeV2MultiQuoter is MultiQuoter {
         bool exactInput;
         // whether this swap is from token0 --> token1
         bool zeroForOne;
-        // the gas we had left before we started the swap process
-        uint256 gasBefore;
         // the pool we are swapping on
         address pool;
     }
@@ -196,12 +196,7 @@ contract TraderJoeV2MultiQuoter is MultiQuoter {
 
         ILBPair pair = ILBPair(p);
 
-        SwapParams memory params = SwapParams({
-            exactInput: amounts[0] > 0,
-            gasBefore: gasleft(),
-            zeroForOne: zeroForOne,
-            pool: p
-        });
+        SwapParams memory params = SwapParams({exactInput: amounts[0] > 0, zeroForOne: zeroForOne, pool: p});
 
         SwapState memory state = SwapState({
             amountSpecifiedRemaining: abs(amounts[0]),
@@ -211,7 +206,8 @@ contract TraderJoeV2MultiQuoter is MultiQuoter {
             activeId: 0,
             fp: FeeHelper.FeeParameters(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
             pairReserveX: 0,
-            pairReserveY: 0
+            pairReserveY: 0,
+            gasAggregate: 0
         });
 
         // get the active ID and initialize the fee parameters
@@ -229,7 +225,9 @@ contract TraderJoeV2MultiQuoter is MultiQuoter {
         uint256 amountInToBin;
         uint256 amountOutOfBin;
         FeeHelper.FeesDistribution memory fees;
+        uint256 gasBefore;
         while (true) {
+            gasBefore = gasleft();
             // exit early if there isn't enough liquidity to satisfy an exact output swap
             if (
                 !params.exactInput &&
@@ -261,6 +259,7 @@ contract TraderJoeV2MultiQuoter is MultiQuoter {
             }
 
             if (state.amountSpecifiedRemaining != 0) {
+                state.gasAggregate += gasBefore - gasleft();
                 try pair.findFirstNonEmptyBinId(uint24(state.activeId), params.zeroForOne) returns (uint24 id) {
                     state.activeId = id;
                 } catch {
@@ -281,7 +280,7 @@ contract TraderJoeV2MultiQuoter is MultiQuoter {
                     result.amounts0[state.amountsIndex] *= -1;
                 }
 
-                result.gasEstimates[state.amountsIndex] = params.gasBefore - gasleft();
+                result.gasEstimates[state.amountsIndex] = state.gasAggregate + (gasBefore - gasleft());
 
                 if (state.amountsIndex == amounts.length - 1) {
                     return result;
