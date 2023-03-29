@@ -36,6 +36,7 @@ contract GovernanceE2ETest is BaseTest {
 
     address internal constant ZRX_TOKEN = 0xE41d2489571d322189246DaFA5ebDe1F4699F498;
     address internal constant MATIC_TOKEN = 0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0;
+    address internal constant WCELO_TOKEN = 0xE452E6Ea2dDeB012e20dB73bf5d3863A3Ac8d77a;
 
     address internal constant EXCHANGE_PROXY = 0xDef1C0ded9bec7F1a1670819833240f027b25EfF;
     address internal constant EXCHANGE_GOVERNOR = 0x618F9C67CE7Bf1a50afa1E7e0238422601b0ff6e;
@@ -82,6 +83,7 @@ contract GovernanceE2ETest is BaseTest {
 
     IERC20 internal token;
     IERC20 internal maticToken;
+    IERC20 internal wceloToken;
     IZeroExMock internal exchange;
     IZrxTreasuryMock internal treasury;
     IStakingMock internal staking;
@@ -99,6 +101,7 @@ contract GovernanceE2ETest is BaseTest {
 
         token = IERC20(ZRX_TOKEN);
         maticToken = IERC20(MATIC_TOKEN);
+        wceloToken = IERC20(WCELO_TOKEN);
         exchange = IZeroExMock(payable(EXCHANGE_PROXY));
         treasury = IZrxTreasuryMock(TREASURY);
         staking = IStakingMock(STAKING);
@@ -136,7 +139,7 @@ contract GovernanceE2ETest is BaseTest {
 
         vm.startPrank(staker);
 
-        IZrxTreasuryMock.ProposedAction[] memory actions = new IZrxTreasuryMock.ProposedAction[](2);
+        IZrxTreasuryMock.ProposedAction[] memory actions = new IZrxTreasuryMock.ProposedAction[](3);
 
         // Transfer MATIC
         uint256 maticBalance = maticToken.balanceOf(address(treasury));
@@ -155,6 +158,13 @@ contract GovernanceE2ETest is BaseTest {
         });
 
         // Transfer wCELO
+        uint256 wceloBalance = wceloToken.balanceOf(address(treasury));
+        actions[2] = IZrxTreasuryMock.ProposedAction({
+            target: WCELO_TOKEN,
+            data: abi.encodeCall(wceloToken.transfer, (address(treasuryGovernor), wceloBalance)),
+            value: 0
+        });
+
         // Transfer WYV
 
         uint256 proposalId = treasury.propose(
@@ -215,5 +225,8 @@ contract GovernanceE2ETest is BaseTest {
 
         uint256 zrxBalanceNewTreasury = token.balanceOf(address(treasuryGovernor));
         assertEq(zrxBalanceNewTreasury, zrxBalance);
+
+        uint256 wceloBalanceNewTreasury = wceloToken.balanceOf(address(treasuryGovernor));
+        assertEq(wceloBalanceNewTreasury, wceloBalance);
     }
 }
