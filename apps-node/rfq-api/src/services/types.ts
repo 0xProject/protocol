@@ -14,6 +14,7 @@ import {
     PermitEip712Context,
 } from '../core/types';
 import { TruncatedFees } from '../core/types/meta_transaction_fees';
+import type { SetRequired } from 'type-fest';
 
 /**
  * RFQm Indicative Quote (`/price`) and Firm Quote (`/quote`) endpoints.
@@ -282,3 +283,4 @@ export interface FirmQuoteContext extends QuoteContextBase {
 }
 
 export type QuoteContext = IndicativeQuoteContext | FirmQuoteContext;
+export type QuoteContextVolumeRequired = SetRequired<QuoteContext, 'volumeUSD'>;

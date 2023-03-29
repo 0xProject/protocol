@@ -14,8 +14,8 @@ import { QuoteRequestor } from '../../src/quoteRequestor/QuoteRequestor';
 import { FeeService } from '../../src/services/fee_service';
 import { RfqtService } from '../../src/services/RfqtService';
 import { RfqMakerBalanceCacheService } from '../../src/services/rfq_maker_balance_cache_service';
-import { FirmQuoteContext, QuoteContext } from '../../src/services/types';
-import { IndicativeQuote } from '../../src/core/types';
+import { FirmQuoteContext, QuoteContext, QuoteContextVolumeRequired } from '../../src/services/types';
+import { FeeWithDetails, IndicativeQuote, RfqtV2Price } from '../../src/core/types';
 import { CacheClient } from '../../src/utils/cache_client';
 import { ConfigManager } from '../../src/utils/config_manager';
 import { GasStationAttendant } from '../../src/utils/GasStationAttendant';
@@ -1226,6 +1226,339 @@ describe('Rfqt Service', () => {
                                       "verifyingContract": "0x5315e44798395d4a952530d131249fe00f554565",
                                     }
                               `);
+            });
+
+            describe('test_big_order_sampling', () => {
+                // public async _getV2SampledPricesInternalAsync(
+                // TESTED static V2AssignFee(prices: RfqtV2Price[], fee: FeeWithDetails): RfqtV2Price[] {
+                // ******* static composeBigSizePrices(fullSizePrices: RfqtV2Price[], smallSizePrices: RfqtV2Price[]): RfqtV2Price[] {
+                // TESTED ******** add more cases static generateModifiedSizeOrderQuoteContext(
+                // static removeFeeFromPrices(pricesWithFee: RfqtV2Price[]): RfqtV2Price[] {
+
+                it('tests QuoteContext build', async () => {
+                    const quoteContext: FirmQuoteContext = {
+                        isFirm: true,
+                        trader: '0x000000',
+                        takerToken: '0x000000',
+                        makerToken: '0x000000',
+
+                        txOrigin: '0x000000',
+                        chainId: 1337,
+
+                        takerAddress: '',
+                        workflow: 'rfqt',
+                        originalMakerToken: '',
+                        takerTokenDecimals: 0,
+                        makerTokenDecimals: 0,
+                        integrator: {
+                            apiKeys: [],
+                            allowedChainIds: [],
+                            integratorId: 'uuid-integrator',
+                            plp: false,
+                            rfqm: false,
+                            rfqt: true,
+                            label: 'Scam Integrator 1',
+                        },
+                        isUnwrap: false,
+                        isSelling: false,
+                        feeModelVersion: 0,
+                        takerAmount: new BigNumber(2000),
+                        makerAmount: new BigNumber(3000), // TODO one of these two must be undefined
+                        volumeUSD: new BigNumber(5000),
+                        assetFillAmount: new BigNumber(4000),
+                    };
+
+                    quoteContext.makerAmount = undefined;
+                    quoteContext.takerAmount = new BigNumber(3000);
+
+                    const modifiedQuoteContext = RfqtService.generateModifiedSizeOrderQuoteContext(
+                        quoteContext as QuoteContextVolumeRequired,
+                        new BigNumber(1000),
+                    );
+
+                    expect(modifiedQuoteContext.takerAmount).toEqual(new BigNumber(3000 / (5000 / 1000)));
+                    expect(modifiedQuoteContext.makerAmount).toEqual(undefined);
+                    expect(modifiedQuoteContext.assetFillAmount).toEqual(new BigNumber(4000 / (5000 / 1000)));
+                    expect(modifiedQuoteContext.volumeUSD).toEqual(new BigNumber(5000 / (5000 / 1000)));
+                });
+
+                it('tests_assign_fee_remove_fee', async () => {
+                    const feeWithDetails: FeeWithDetails = {
+                        details: {
+                            kind: 'default',
+                            tradeSizeBps: 0,
+                            zeroExFeeAmount: new BigNumber(0),
+                            feeTokenBaseUnitPriceUsd: new BigNumber(0),
+                            takerTokenBaseUnitPriceUsd: new BigNumber(0),
+                            makerTokenBaseUnitPriceUsd: new BigNumber(0),
+                            feeModelVersion: 0,
+                            gasFeeAmount: new BigNumber(0),
+                            gasPrice: new BigNumber(0),
+                        },
+                        breakdown: {},
+                        conversionRates: {
+                            nativeTokenBaseUnitPriceUsd: null,
+                            feeTokenBaseUnitPriceUsd: null,
+                            takerTokenBaseUnitPriceUsd: null,
+                            makerTokenBaseUnitPriceUsd: null,
+                        },
+                        token: '',
+                        amount: new BigNumber(123),
+                        type: 'fixed',
+                    };
+
+                    const prices: RfqtV2Price[] = [
+                        {
+                            expiry: new BigNumber(0),
+                            makerAddress: '',
+                            makerAmount: new BigNumber(0),
+                            makerId: '',
+                            makerToken: '',
+                            makerUri: '',
+                            takerAmount: new BigNumber(0),
+                            takerToken: '',
+                            fee: undefined,
+                        },
+                    ];
+                    RfqtService.V2AssignFee(prices, feeWithDetails);
+
+                    expect(prices[0].fee).toEqual(feeWithDetails);
+
+                    RfqtService.removeFeeFromPrices(prices);
+
+                    expect(prices[0].fee).toEqual(undefined);
+                });
+
+                it('gets prices for bigger than threshold size', async () => {
+                    const quoteContext: QuoteContext = {
+                        isFirm: false,
+                        workflow: 'rfqt',
+                        isUnwrap: false,
+                        originalMakerToken: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+                        takerTokenDecimals: 18,
+                        makerTokenDecimals: 18,
+                        feeModelVersion: 1,
+                        assetFillAmount: new BigNumber(253),
+                        chainId: 1337,
+                        integrator,
+                        makerToken: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+                        isSelling: false,
+                        takerAddress: '0x0',
+                        takerToken: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+                        txOrigin: '0xtakeraddress',
+                        volumeUSD: new BigNumber(500000),
+                        makerAmount: new BigNumber(253), // forcing not integer result to see rounding works
+                    };
+
+                    const fullSizePrice: IndicativeQuote = {
+                        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                        // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
+                        expiry: new BigNumber(9999999999999999),
+                        maker: '0xmakeraddress',
+                        makerAmount: new BigNumber(253),
+                        makerToken: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+                        makerUri: 'maker.uri',
+                        takerAmount: new BigNumber(500000),
+                        takerToken: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+                    };
+
+                    const smallSizePrice: IndicativeQuote = {
+                        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                        // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
+                        expiry: new BigNumber(9999999999999999),
+                        maker: '0xmakeraddress',
+                        makerAmount: new BigNumber(50),
+                        makerToken: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+                        makerUri: 'maker.uri',
+                        takerAmount: new BigNumber(100000),
+                        takerToken: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+                    };
+
+                    mockQuoteServerClient.batchGetPriceV2Async.mockClear();
+                    mockRfqMakerManager.getRfqtV2MakersForPair = jest.fn().mockReturnValue([maker]);
+
+                    mockQuoteServerClient.batchGetPriceV2Async = jest
+                        .fn()
+                        .mockResolvedValueOnce([fullSizePrice])
+                        .mockResolvedValueOnce([smallSizePrice]);
+
+                    mockFeeService.calculateFeeAsync = jest
+                        .fn()
+                        .mockResolvedValueOnce({
+                            feeWithDetails: {
+                                token: '0x0b1ba0af832d7c05fd64161e0db78e85978e8082',
+                                amount: new BigNumber(5),
+                                type: 'fixed',
+                            },
+                        })
+                        .mockResolvedValueOnce({
+                            feeWithDetails: {
+                                token: '0x0b1ba0af832d7c05fd64161e0db78e85978e8082',
+                                amount: new BigNumber(1),
+                                type: 'fixed',
+                            },
+                        })
+                        .mockResolvedValueOnce({
+                            feeWithDetails: {
+                                token: '0x0b1ba0af832d7c05fd64161e0db78e85978e8082',
+                                amount: new BigNumber(4),
+                                type: 'fixed',
+                            },
+                        });
+
+                    const rfqtService = new RfqtService(
+                        1337, // tslint:disable-line: custom-no-magic-numbers
+                        mockRfqMakerManager,
+                        mockQuoteRequestor,
+                        mockQuoteServerClient,
+                        DEFAULT_MIN_EXPIRY_DURATION_MS,
+                        mockRfqBlockchainUtils,
+                        mockTokenMetadataManager,
+                        mockContractAddresses,
+                        mockFeeService,
+                        1,
+                        mockRfqMakerBalanceCacheService,
+                        mockCacheClient,
+                        mockTokenPriceOracle,
+                        mockRfqDynamicBlacklist,
+                    );
+
+                    const result = await rfqtService.getV2PricesAsync(quoteContext);
+                    expect(result.length).toEqual(2);
+
+                    console.log(`result[0]`, result[0]);
+                    console.log(`result[1]`, result[1]);
+                    expect(result[0].makerId).toEqual('maker-id');
+                    expect(result[0]).toMatchInlineSnapshot(`
+                        {
+                          "expiry": "10000000000000000",
+                          "makerAddress": "0xmakeraddress",
+                          "makerAmount": "50",
+                          "makerId": "maker-id",
+                          "makerToken": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+                          "makerUri": "maker.uri",
+                          "takerAmount": "100000",
+                          "takerToken": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                        }
+                    `);
+                    expect(result[1]).toMatchInlineSnapshot(`
+                        {
+                          "expiry": "10000000000000000",
+                          "makerAddress": "0xmakeraddress",
+                          "makerAmount": "203",
+                          "makerId": "maker-id",
+                          "makerToken": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+                          "makerUri": "maker.uri",
+                          "takerAmount": "400000",
+                          "takerToken": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                        }
+                    `);
+                    expect(mockQuoteServerClient.batchGetPriceV2Async.mock.calls.length).toEqual(2);
+                    expect(mockQuoteServerClient.batchGetPriceV2Async.mock.calls[0][2]).toMatchInlineSnapshot(`
+                        {
+                          "buyAmountBaseUnits": "253",
+                          "buyTokenAddress": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+                          "chainId": "1337",
+                          "feeAmount": "5",
+                          "feeToken": "0x0b1ba0af832d7c05fd64161e0db78e85978e8082",
+                          "integratorId": "integrator-id",
+                          "protocolVersion": "4",
+                          "sellTokenAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                          "takerAddress": "0x0",
+                          "txOrigin": "0xtakeraddress",
+                          "workflow": "rfqt",
+                        }
+                    `);
+                    expect(mockQuoteServerClient.batchGetPriceV2Async.mock.calls[1][2]).toMatchInlineSnapshot(`
+                        {
+                          "buyAmountBaseUnits": "50",
+                          "buyTokenAddress": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+                          "chainId": "1337",
+                          "feeAmount": "1",
+                          "feeToken": "0x0b1ba0af832d7c05fd64161e0db78e85978e8082",
+                          "integratorId": "integrator-id",
+                          "protocolVersion": "4",
+                          "sellTokenAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                          "takerAddress": "0x0",
+                          "txOrigin": "0xtakeraddress",
+                          "workflow": "rfqt",
+                        }
+                    `);
+                });
+                it('gets prices', async () => {
+                    const quoteContext: QuoteContext = {
+                        isFirm: false,
+                        workflow: 'rfqt',
+                        isUnwrap: false,
+                        originalMakerToken: '0x1',
+                        takerTokenDecimals: 18,
+                        makerTokenDecimals: 18,
+                        feeModelVersion: 1,
+                        assetFillAmount: new BigNumber(1000),
+                        chainId: 1337,
+                        integrator,
+                        makerToken: '0x1',
+                        isSelling: true,
+                        takerAddress: '0x0',
+                        takerToken: '0x2',
+                        txOrigin: '0xtakeraddress',
+                    };
+
+                    const price: IndicativeQuote = {
+                        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                        // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
+                        expiry: new BigNumber(9999999999999999),
+                        maker: '0xmakeraddress',
+                        makerAmount: new BigNumber(1000),
+                        makerToken: '0x1',
+                        makerUri: 'maker.uri',
+                        takerAmount: new BigNumber(1001),
+                        takerToken: '0x2',
+                    };
+
+                    mockRfqMakerManager.getRfqtV2MakersForPair = jest.fn().mockReturnValue([maker]);
+                    mockQuoteServerClient.batchGetPriceV2Async = jest.fn().mockResolvedValue([price]);
+                    mockFeeService.calculateFeeAsync = jest.fn().mockResolvedValue({
+                        feeWithDetails: {
+                            token: '0x0b1ba0af832d7c05fd64161e0db78e85978e8082',
+                            amount: new BigNumber(100),
+                            type: 'fixed',
+                        },
+                    });
+
+                    const rfqtService = new RfqtService(
+                        1337, // tslint:disable-line: custom-no-magic-numbers
+                        mockRfqMakerManager,
+                        mockQuoteRequestor,
+                        mockQuoteServerClient,
+                        DEFAULT_MIN_EXPIRY_DURATION_MS,
+                        mockRfqBlockchainUtils,
+                        mockTokenMetadataManager,
+                        mockContractAddresses,
+                        mockFeeService,
+                        1,
+                        mockRfqMakerBalanceCacheService,
+                        mockCacheClient,
+                        mockTokenPriceOracle,
+                        mockRfqDynamicBlacklist,
+                    );
+
+                    const result = await rfqtService.getV2PricesAsync(quoteContext);
+                    expect(result.length).toEqual(1);
+                    expect(result[0].makerId).toEqual('maker-id');
+                    expect(result[0]).toMatchInlineSnapshot(`
+                        {
+                          "expiry": "10000000000000000",
+                          "makerAddress": "0xmakeraddress",
+                          "makerAmount": "1000",
+                          "makerId": "maker-id",
+                          "makerToken": "0x1",
+                          "makerUri": "maker.uri",
+                          "takerAmount": "1001",
+                          "takerToken": "0x2",
+                        }
+                    `);
+                });
             });
         });
     });

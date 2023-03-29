@@ -1,6 +1,7 @@
 import { MetaTransactionV2Fee, OtcOrder, Signature } from '@0x/protocol-utils';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
+import { FeeWithDetails } from './fees';
 
 export type RequireOnlyOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
     {
@@ -209,6 +210,7 @@ export type RfqtV2Price = {
     makerUri: string;
     takerAmount: BigNumber;
     takerToken: string;
+    fee?: FeeWithDetails;
 };
 
 /**

@@ -11,12 +11,18 @@ import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { Producer as KafkaProducer } from 'kafkajs';
 
-import { Integrator } from '../config';
+import {
+    Integrator,
+    RFQT_V2_FULL_SIZE_VOLUME_THRESHOLD_USD,
+    RFQT_V2_SAMPLING_STRATEGY,
+    RFQT_V2_SMALL_ORDER_VOLUME_USD,
+} from '../config';
 import { GASLESS_OTC_ORDER_NUM_BUCKETS, NULL_ADDRESS, ONE_SECOND_MS } from '../core/constants';
 import { feeToStoredFee } from '../core/fee_utils';
 import {
     Fee,
     FeeModelVersion,
+    FeeWithDetails,
     QuoteServerPriceParams,
     RequireOnlyOne,
     RfqtV2Price,
@@ -40,7 +46,7 @@ import { TokenPriceOracle } from '../utils/TokenPriceOracle';
 
 import { FeeService } from './fee_service';
 import { RfqMakerBalanceCacheService } from './rfq_maker_balance_cache_service';
-import { FirmQuoteContext, QuoteContext } from './types';
+import { FirmQuoteContext, QuoteContext, QuoteContextVolumeRequired } from './types';
 
 const getTokenAddressFromSymbol = (symbol: string, chainId: number): string => {
     return (getTokenMetadataIfExists(symbol, chainId) as TokenMetadata).tokenAddress;
@@ -273,7 +279,8 @@ export class RfqtService {
      */
     public async getV2PricesAsync(quoteContext: QuoteContext, now: Date = new Date()): Promise<RfqtV2Price[]> {
         const { feeWithDetails: fee } = await this._feeService.calculateFeeAsync(quoteContext);
-        return this._getV2PricesInternalAsync(quoteContext, fee, now);
+        const pricesWithFee = await this._getV2SampledPricesInternalAsync(quoteContext, fee, now);
+        return RfqtService.removeFeeFromPrices(pricesWithFee);
     }
 
     /**
@@ -291,7 +298,7 @@ export class RfqtService {
         const storedFee: StoredFee = feeToStoredFee(fee);
 
         // TODO (rhinodavid): put a meter on this response time
-        const prices = await this._getV2PricesInternalAsync(quoteContext, fee, now);
+        const prices = await this._getV2SampledPricesInternalAsync(quoteContext, fee, now);
 
         // Handle nonce
         let pricesAndOrders: { price: RfqtV2Price; order: OtcOrder }[] = [];
@@ -329,7 +336,6 @@ export class RfqtService {
                 price,
             }));
         }
-
         const pricesAndOrdersAndSignatures = await Promise.all(
             pricesAndOrders.map(async ({ price, order }) => {
                 let signature: Signature | undefined;
@@ -342,7 +348,7 @@ export class RfqtService {
                             order,
                             orderHash,
                             expiry: price.expiry,
-                            fee,
+                            fee: price.fee ? price.fee : fee,
                             trader: quoteContext.trader,
                             workflow: quoteContext.workflow,
                         },
@@ -441,6 +447,7 @@ export class RfqtService {
         if (this._kafkaProducer) {
             try {
                 await quoteReportUtils.publishRfqtV2FeeEvent(
+                    // does this needs to be tuned somehow? or reported differently?
                     {
                         requestedBuyAmount: quoteContext.makerAmount ?? null,
                         requestedSellAmount: quoteContext.takerAmount ?? null,
@@ -506,6 +513,157 @@ export class RfqtService {
         }
 
         return price.times(amount);
+    }
+
+    static removeFeeFromPrices(pricesWithFee: RfqtV2Price[]): RfqtV2Price[] {
+        const prices: RfqtV2Price[] = [];
+        pricesWithFee.forEach((priceWithFee) => {
+            delete priceWithFee['fee'];
+            prices.push(priceWithFee);
+        });
+        return prices;
+    }
+
+    static generateModifiedSizeOrderQuoteContext(
+        quoteContext: QuoteContextVolumeRequired,
+        newOrderVolumeUSD: BigNumber,
+    ): QuoteContext {
+        const newOrderVolumeRelative = quoteContext.volumeUSD.div(newOrderVolumeUSD);
+
+        const newOrderQuoteContext = {
+            ...quoteContext,
+            makerAmount: quoteContext.makerAmount?.dividedToIntegerBy(newOrderVolumeRelative),
+            takerAmount: quoteContext.takerAmount?.dividedToIntegerBy(newOrderVolumeRelative),
+            volumeUSD: quoteContext.volumeUSD?.dividedToIntegerBy(newOrderVolumeRelative),
+            assetFillAmount: quoteContext.assetFillAmount?.dividedToIntegerBy(newOrderVolumeRelative),
+        };
+
+        return newOrderQuoteContext;
+    }
+
+    static composeBigSizePrices(fullSizePrices: RfqtV2Price[], smallSizePrices: RfqtV2Price[]): RfqtV2Price[] {
+        const newPrices: RfqtV2Price[] = [];
+
+        smallSizePrices.forEach((smallPrice) => {
+            const bigPrice = fullSizePrices.find((fullPrice) => fullPrice.makerAddress === smallPrice.makerAddress);
+            if (bigPrice) {
+                const newPrice = {
+                    expiry: smallPrice.expiry,
+                    makerAddress: smallPrice.makerAddress,
+                    makerAmount: bigPrice.makerAmount.minus(smallPrice.makerAmount),
+                    makerId: smallPrice.makerId,
+                    makerToken: smallPrice.makerToken,
+                    makerUri: smallPrice.makerUri,
+                    takerAmount: bigPrice.takerAmount.minus(smallPrice.takerAmount),
+                    takerToken: smallPrice.takerToken,
+                };
+                newPrices.push(newPrice);
+            } else {
+                logger.warn({ smallPrice }, 'Full size price matching small size price not found');
+            }
+        });
+        return newPrices;
+    }
+
+    static V2AssignFee(prices: RfqtV2Price[], fee: FeeWithDetails): RfqtV2Price[] {
+        prices.forEach((price) => {
+            price.fee = fee;
+        });
+        return prices;
+    }
+
+    public async _getSlippageAwareSampledPricesAsync(
+        quoteContext: QuoteContext,
+        fee: Fee,
+        now: Date = new Date(),
+    ): Promise<RfqtV2Price[]> {
+        // https://linear.app/0xproject/issue/RFQ-856/rfqt-large-order-sampling-mvp
+
+        const fullSizePrices = await this._getV2PricesInternalAsync(quoteContext, fee, now);
+        if (quoteContext.volumeUSD && quoteContext.volumeUSD.gte(RFQT_V2_FULL_SIZE_VOLUME_THRESHOLD_USD)) {
+            const smallOrderVolumeUSD = new BigNumber(RFQT_V2_SMALL_ORDER_VOLUME_USD);
+
+            const smallOrderQuoteContext = RfqtService.generateModifiedSizeOrderQuoteContext(
+                quoteContext as QuoteContextVolumeRequired,
+                smallOrderVolumeUSD,
+            );
+            const bigOrderQuoteContext = RfqtService.generateModifiedSizeOrderQuoteContext(
+                quoteContext as QuoteContextVolumeRequired,
+                quoteContext.volumeUSD.minus(smallOrderVolumeUSD),
+            );
+
+            const { feeWithDetails: smallOrderFee } = await this._feeService.calculateFeeAsync(smallOrderQuoteContext);
+            const { feeWithDetails: bigOrderFee } = await this._feeService.calculateFeeAsync(bigOrderQuoteContext);
+
+            let smallSizePrices = await this._getV2PricesInternalAsync(smallOrderQuoteContext, smallOrderFee, now);
+
+            let bigSizePrices = RfqtService.composeBigSizePrices(fullSizePrices, smallSizePrices);
+
+            smallSizePrices = RfqtService.V2AssignFee(smallSizePrices, smallOrderFee);
+            bigSizePrices = RfqtService.V2AssignFee(bigSizePrices, bigOrderFee);
+            return [...smallSizePrices, ...bigSizePrices];
+        } else {
+            return fullSizePrices;
+        }
+    }
+
+    public async _getSlippageIgnoreSampledPricesAsync(
+        quoteContext: QuoteContext,
+        fee: Fee,
+        now: Date = new Date(),
+    ): Promise<RfqtV2Price[]> {
+        // https://linear.app/0xproject/issue/RFQ-856/rfqt-large-order-sampling-mvp
+
+        if (quoteContext.volumeUSD && quoteContext.volumeUSD.gte(RFQT_V2_FULL_SIZE_VOLUME_THRESHOLD_USD)) {
+            const smallOrderVolumeUSD = new BigNumber(RFQT_V2_SMALL_ORDER_VOLUME_USD);
+
+            const smallOrderQuoteContext = RfqtService.generateModifiedSizeOrderQuoteContext(
+                quoteContext as QuoteContextVolumeRequired,
+                smallOrderVolumeUSD,
+            );
+            const bigOrderQuoteContext = RfqtService.generateModifiedSizeOrderQuoteContext(
+                quoteContext as QuoteContextVolumeRequired,
+                quoteContext.volumeUSD.minus(smallOrderVolumeUSD),
+            );
+
+            const { feeWithDetails: smallOrderFee } = await this._feeService.calculateFeeAsync(smallOrderQuoteContext);
+            const { feeWithDetails: bigOrderFee } = await this._feeService.calculateFeeAsync(bigOrderQuoteContext);
+
+            let smallSizePrices = await this._getV2PricesInternalAsync(smallOrderQuoteContext, smallOrderFee, now);
+            let bigSizePrices = await this._getV2PricesInternalAsync(bigOrderQuoteContext, bigOrderFee, now);
+
+            smallSizePrices = RfqtService.V2AssignFee(smallSizePrices, smallOrderFee);
+            bigSizePrices = RfqtService.V2AssignFee(bigSizePrices, bigOrderFee);
+            return [...smallSizePrices, ...bigSizePrices];
+        } else {
+            return await this._getV2PricesInternalAsync(quoteContext, fee, now);
+        }
+    }
+
+    public async _getV2SampledPricesInternalAsync(
+        quoteContext: QuoteContext,
+        fee: Fee,
+        now: Date = new Date(),
+    ): Promise<RfqtV2Price[]> {
+        // https://linear.app/0xproject/issue/RFQ-856/rfqt-large-order-sampling-mvp
+        logger.info({ strategy: RFQT_V2_SAMPLING_STRATEGY }, 'Getting prices from RFQ-T V2');
+        switch (RFQT_V2_SAMPLING_STRATEGY) {
+            case 'SLIPPAGE_AWARE': {
+                return this._getSlippageAwareSampledPricesAsync(quoteContext, fee, now);
+            }
+            case 'SLIPPAGE_IGNORE': {
+                return this._getSlippageIgnoreSampledPricesAsync(quoteContext, fee, now);
+            }
+            case 'NO_STRATEGY': {
+                return await this._getV2PricesInternalAsync(quoteContext, fee, now);
+            }
+            default: {
+                logger.warn(
+                    `${RFQT_V2_SAMPLING_STRATEGY} is not a valid RFQ-T V2 sampling strategy. Defaulting to NO_STRATEGY`,
+                );
+                return await this._getV2PricesInternalAsync(quoteContext, fee, now);
+            }
+        }
     }
 
     /**

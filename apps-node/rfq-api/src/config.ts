@@ -741,6 +741,50 @@ export const LLR_COOLDOWN_DURATION_SECONDS: number = _.isEmpty(process.env.LLR_C
     ? 60
     : assertEnvVarType('LLR_COOLDOWN_DURATION_SECONDS', process.env.LLR_COOLDOWN_DURATION_SECONDS, EnvVarType.Integer);
 
+// This is the split threshold, for any volume smaller than this on, split strategy are just not doing anything
+export const RFQT_V2_FULL_SIZE_VOLUME_THRESHOLD_USD: number = _.isEmpty(
+    process.env.RFQT_V2_FULL_SIZE_VOLUME_THRESHOLD_USD,
+)
+    ? 400000
+    : assertEnvVarType(
+          'RFQT_V2_FULL_SIZE_VOLUME_THRESHOLD_USD',
+          process.env.RFQT_V2_FULL_SIZE_VOLUME_THRESHOLD_USD,
+          EnvVarType.Integer,
+      );
+
+// For volumes bigger than the threshold, big order is split into 2 smaller orders, one order size is this size, and the other is "the rest".
+export const RFQT_V2_SMALL_ORDER_VOLUME_USD: number = _.isEmpty(process.env.RFQT_V2_SMALL_ORDER_VOLUME_USD)
+    ? 100000
+    : assertEnvVarType(
+          'RFQT_V2_SMALL_ORDER_VOLUME_USD',
+          process.env.RFQT_V2_SMALL_ORDER_VOLUME_USD,
+          EnvVarType.Integer,
+      );
+/*
+Supported strategies:
+For details: https://linear.app/0xproject/issue/RFQ-856/rfqt-large-order-sampling-mvp
+
+SLIPPAGE_AWARE, SLIPPAGE_IGNORE, NO_STRATEGY
+
+SLIPPAGE_AWARE:
+Instead of requesting 1 order for large trades, request 2 or more.
+The exact details of this split will need to be  tweaked over time, but we can start with:
+Only consider splitting for trades over $300k (split threshold)
+For these large trades, make one request (a) for $150k, and another request (b) for the entire size
+Then /sign two orders:
+order (1) is generated from the result of (a)
+order (2) is generated from the difference """(b - a)""" to get an order for the "difference"
+
+SLIPPAGE_IGNORE:
+Do not worry about protecting MM of their own slippage, just send 2 quotes to MMs instead of the big quote.
+
+NO_STRATEGY:
+Do not split large orders
+*/
+export const RFQT_V2_SAMPLING_STRATEGY = _.isEmpty(process.env.RFQT_V2_SAMPLING_STRATEGY)
+    ? 'SLIPPAGE_AWARE'
+    : assertEnvVarType('RFQT_V2_SAMPLING_STRATEGY', process.env.RFQT_V2_SAMPLING_STRATEGY, EnvVarType.NonEmptyString);
+
 export const defaultHttpServiceConfig: HttpServiceConfig = {
     httpPort: HTTP_PORT,
     healthcheckHttpPort: HEALTHCHECK_HTTP_PORT,
