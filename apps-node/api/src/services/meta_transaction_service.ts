@@ -1,5 +1,5 @@
 import { generatePseudoRandomSalt, getExchangeProxyMetaTransactionHash } from '@0x/order-utils';
-import { MetaTransaction, MetaTransactionV2 } from '@0x/protocol-utils';
+import { MetaTransaction } from '@0x/protocol-utils';
 import { ExchangeProxyMetaTransaction } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { Kafka, Producer } from 'kafkajs';
@@ -7,7 +7,7 @@ import _ = require('lodash');
 
 import { ContractAddresses, AffiliateFeeType, NATIVE_FEE_TOKEN_BY_CHAIN_ID } from '../asset-swapper';
 import { CHAIN_ID, FEE_RECIPIENT_ADDRESS, KAFKA_BROKERS, META_TX_EXPIRATION_BUFFER_MS } from '../config';
-import { AFFILIATE_DATA_SELECTOR, NULL_ADDRESS, ONE_GWEI, ONE_SECOND_MS, TRANSFER_FROM_GAS, ZERO } from '../constants';
+import { AFFILIATE_DATA_SELECTOR, NULL_ADDRESS, ONE_GWEI, ONE_SECOND_MS, ZERO } from '../constants';
 import {
     MetaTransactionV1QuoteParams,
     GetSwapQuoteResponse,
@@ -19,9 +19,7 @@ import {
     MetaTransactionV2QuoteResponse,
     MetaTransactionV2QuoteResult,
     GetSwapQuoteParams,
-    Fees,
 } from '../types';
-import { calculateTotalOnChainFees } from '../utils/fee_calculator';
 import { publishQuoteReport } from '../utils/quote_report_utils';
 import { SwapService } from './swap_service';
 
@@ -100,22 +98,7 @@ export class MetaTransactionService implements IMetaTransactionService {
                     },
                 };
             }
-            case 'v2': {
-                const metaTransaction = this._generateMetaTransactionV2(
-                    quote.callData,
-                    quote.taker,
-                    commonQuoteFields.sellTokenAddress,
-                    commonQuoteFields.fees ?? {},
-                );
-                return {
-                    ...commonQuoteFields,
-                    trade: {
-                        kind: 'metatransaction_v2',
-                        hash: metaTransaction.getHash(),
-                        metaTransaction,
-                    },
-                };
-            }
+            case 'v2':
             default:
                 throw new Error(`metaTransactionVersion ${params.metaTransactionVersion} is not supported`);
         }
@@ -228,30 +211,30 @@ export class MetaTransactionService implements IMetaTransactionService {
      * @param fees Calculated fees object.
      * @returns Corresponding meta-transaction v2 object.
      */
-    private _generateMetaTransactionV2(
-        callData: string,
-        takerAddress: string,
-        feeToken: string,
-        fees: Fees,
-    ): MetaTransactionV2 {
-        return new MetaTransactionV2({
-            callData,
-            expirationTimeSeconds: createExpirationTime(),
-            salt: generatePseudoRandomSalt(),
-            signer: takerAddress,
-            sender: NULL_ADDRESS,
-            feeToken,
-            chainId: CHAIN_ID,
-            verifyingContract: this._exchangeProxyAddress,
-            // format on-chain fee to fit into `MetaTransactionV2.fees` format
-            fees: calculateTotalOnChainFees(fees, TRANSFER_FROM_GAS).onChainTransfers.map((onchainTransfer) => {
-                return {
-                    recipient: onchainTransfer.feeRecipient,
-                    amount: onchainTransfer.feeAmount,
-                };
-            }),
-        });
-    }
+    // private _generateMetaTransactionV2(
+    //     callData: string,
+    //     takerAddress: string,
+    //     feeToken: string,
+    //     fees: Fees,
+    // ): MetaTransactionV2 {
+    //     return new MetaTransactionV2({
+    //         callData,
+    //         expirationTimeSeconds: createExpirationTime(),
+    //         salt: generatePseudoRandomSalt(),
+    //         signer: takerAddress,
+    //         sender: NULL_ADDRESS,
+    //         feeToken,
+    //         chainId: CHAIN_ID,
+    //         verifyingContract: this._exchangeProxyAddress,
+    //         // format on-chain fee to fit into `MetaTransactionV2.fees` format
+    //         fees: calculateTotalOnChainFees(fees, TRANSFER_FROM_GAS).onChainTransfers.map((onchainTransfer) => {
+    //             return {
+    //                 recipient: onchainTransfer.feeRecipient,
+    //                 amount: onchainTransfer.feeAmount,
+    //             };
+    //         }),
+    //     });
+    // }
 
     /**
      * Internal function to get meta-transaction v2 quote. The function is currently a copy of (with minor modifications) `_getMetaTransactionQuoteAsync` for scaffolding.

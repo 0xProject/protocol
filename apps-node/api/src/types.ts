@@ -2,7 +2,7 @@ import { HttpServiceConfig as BaseHttpConfig } from '@0x/api-utils';
 import { ExchangeProxyMetaTransaction } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { ContractAddresses, ChainId } from '@0x/contract-addresses';
-import { MetaTransaction, MetaTransactionV2, OtcOrder } from '@0x/protocol-utils';
+import { MetaTransaction, OtcOrder } from '@0x/protocol-utils';
 import { Connection } from 'typeorm';
 import { Kafka } from 'kafkajs';
 
@@ -264,7 +264,7 @@ export interface MetaTransactionV2QuoteResponse extends BasePriceResponse {
     fees?: Fees;
 }
 
-type TradeResponse = MetaTransactionV1TradeResponse | MetaTransactionV2TradeResponse;
+type TradeResponse = MetaTransactionV1TradeResponse /*| MetaTransactionV2TradeResponse*/;
 
 interface MetaTransactionV1TradeResponse {
     kind: 'metatransaction';
@@ -272,11 +272,11 @@ interface MetaTransactionV1TradeResponse {
     metaTransaction: MetaTransaction;
 }
 
-interface MetaTransactionV2TradeResponse {
-    kind: 'metatransaction_v2';
-    hash: string;
-    metaTransaction: MetaTransactionV2;
-}
+// interface MetaTransactionV2TradeResponse {
+//     kind: 'metatransaction_v2';
+//     hash: string;
+//     metaTransaction: MetaTransactionV2;
+// }
 
 /**
  * Response type for the /meta_transaction/v1/price endpoint

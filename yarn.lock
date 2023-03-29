@@ -387,7 +387,7 @@
     ethers "~4.0.4"
     lodash "^4.17.11"
 
-"@0x/protocol-utils@^11.18.1":
+"@0x/protocol-utils@^11.18.0", "@0x/protocol-utils@^11.18.1":
   version "11.18.1"
   resolved "https://registry.yarnpkg.com/@0x/protocol-utils/-/protocol-utils-11.18.1.tgz#184dd61cbdba64c2c92fef848c01ed06cdd5281e"
   integrity sha512-+hFwDsB6hOwNZ7mg/FqXRhDt54PjXikiEH36+IeSBl6d7e8xcLaswMr/nV9NHqTV2pmUPTIK3LEttZXMiAlv4A==
