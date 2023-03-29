@@ -81,7 +81,6 @@ import { MarketOperation } from '@0x/types';
 import { ContractAddresses } from '@0x/contract-addresses';
 import { isHashSmallEnough } from '../utils/HashUtils';
 import { Signature } from '@0x/protocol-utils';
-import { SignRequest } from '../quote-server/types';
 import { transformRfqtV2PricesParameters } from './RfqtService';
 
 const RFQM_QUOTE_INSERTED = new Counter({
@@ -407,6 +406,8 @@ export class RfqmService {
             workflow,
         } = quoteContext;
 
+        const takerSpecifiedSide = isSelling ? 'takerToken' : 'makerToken';
+
         // narrow workflow type
         if (workflow !== 'rfqm' && workflow !== 'gasless-rfqt') {
             throw new Error('Quote workflow is not RFQm or Gaslesss RFQt VIP');
@@ -423,7 +424,7 @@ export class RfqmService {
         const otherFeesAmount = feeWithDetails.amount.minus(feeWithDetails.details.gasFeeAmount);
 
         // If `quotesWithGasFee` have been obtained and there are no other fees, reuse the quotes. Otherwise call MMs with full fee to get new quotes.
-        const finalQuotes =
+        let finalQuotes: FirmOtcQuote[] =
             quotesWithGasFee && otherFeesAmount.eq(ZERO)
                 ? await this._convertToFirmQuotesAsync(quotesWithGasFee, quoteContext)
                 : await this._fetchFirmQuotesAsync(quoteContext, feeWithDetails);
@@ -451,6 +452,92 @@ export class RfqmService {
             );
         }
 
+        // [Gasless RFQt VIP] fetch and verify MM signatures
+        if (workflow === 'gasless-rfqt') {
+            finalQuotes = await Promise.all(
+                finalQuotes.map(async (quote) => {
+                    const { order, makerUri } = quote;
+                    const orderHash = order.getHash();
+                    let makerSignature: Signature | undefined;
+                    try {
+                        makerSignature = await this._quoteServerClient.signV2Async(
+                            makerUri,
+                            integrator?.integratorId ?? '',
+                            {
+                                expiry: order.expiry,
+                                fee: feeWithDetails,
+                                order,
+                                orderHash,
+                                workflow,
+                                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                                trader: takerAddress!,
+                                ...(TAKER_SPECIFIED_SIDE_ENABLED && { takerSpecifiedSide }),
+                            },
+                            (u: string) => `${u}/rfqt/v2/sign`,
+                            /* requireProceedWithFill */ false,
+                        );
+
+                        if (makerSignature) {
+                            // Certain market makers are returning signature components which are missing
+                            // leading bytes. Add them if they don't exist.
+                            const paddedSignature = padSignature(makerSignature);
+                            if (paddedSignature.r !== makerSignature.r || paddedSignature.s !== makerSignature.s) {
+                                logger.warn(
+                                    { orderHash, r: paddedSignature.r, s: paddedSignature.s },
+                                    'Got market maker signature with missing bytes',
+                                );
+                                makerSignature = paddedSignature;
+                            }
+
+                            // Some market makers may use smart contract wallets. In such a case, check if the
+                            // wallet can sign for the maker.
+                            const signerAddress = getSignerFromHash(orderHash, makerSignature).toLowerCase();
+                            const makerAddress = order.maker.toLowerCase();
+
+                            if (signerAddress !== makerAddress) {
+                                logger.info(
+                                    { signerAddress, makerAddress, orderHash, makerUri },
+                                    'Possible use of smart contract wallet',
+                                );
+                                const isValidSigner = await this._blockchainUtils.isValidOrderSignerAsync(
+                                    makerAddress,
+                                    signerAddress,
+                                );
+                                if (!isValidSigner) {
+                                    GASLESS_RFQT_VIP_MM_SIGNATURE_FAILED.labels(
+                                        integrator.integratorId,
+                                        makerUri,
+                                        this._chainId.toString(),
+                                    ).inc();
+                                    logger.warn(
+                                        { signerAddress, makerAddress, orderHash, makerUri },
+                                        'Invalid order signer address',
+                                    );
+
+                                    // Quotes with `undefined` signature will be filtered out later
+                                    makerSignature = undefined;
+                                }
+                            }
+
+                            quote.makerSignature = makerSignature;
+                        }
+                    } catch (e) {
+                        GASLESS_RFQT_VIP_MM_SIGNATURE_FAILED.labels(
+                            integrator.integratorId,
+                            makerUri,
+                            this._chainId.toString(),
+                        ).inc();
+                        logger.warn(
+                            { orderHash, makerUri, error: e.message },
+                            'Failed trying to get gasless rfqt signature from market maker',
+                        );
+                    }
+
+                    return quote;
+                }),
+            );
+        }
+
         // Get the best quote
         const bestQuote = getBestQuote(
             finalQuotes,
@@ -460,6 +547,7 @@ export class RfqmService {
             assetFillAmount,
             this._minExpiryDurationMs,
             quotedMakerBalances,
+            /* requireSignature */ workflow === 'gasless-rfqt',
         );
 
         const isLiquidityAvailable = bestQuote !== null;
@@ -497,7 +585,7 @@ export class RfqmService {
         }
 
         // Parse fields from best quote
-        const { order, makerUri } = bestQuote;
+        const { order, makerSignature, makerUri } = bestQuote;
         const orderHash = order.getHash();
         const makerAddress = order.maker.toLowerCase();
 
@@ -538,103 +626,6 @@ export class RfqmService {
             : // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               makerAmount!;
-
-        const takerSpecifiedSide = isSelling ? 'takerToken' : 'makerToken';
-
-        // [Gasless RFQt VIP] fetch and verify MM signature
-        // Also verifies if the order is fillable by market maker.
-        let makerSignature: Signature | null | undefined;
-        if (workflow === 'gasless-rfqt') {
-            const signRequest: SignRequest = {
-                expiry: bestQuote.order.expiry,
-                fee: feeWithDetails,
-                order,
-                orderHash,
-                workflow,
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                trader: takerAddress!,
-                ...(TAKER_SPECIFIED_SIDE_ENABLED && { takerSpecifiedSide }),
-            };
-            try {
-                makerSignature = await retry(
-                    async () =>
-                        this._quoteServerClient
-                            .signV2Async(
-                                makerUri,
-                                integrator?.integratorId ?? '',
-                                signRequest,
-                                (u: string) => `${u}/rfqt/v2/sign`,
-                                /* requireProceedWithFill */ false,
-                            )
-                            .then((s) => s ?? null),
-                    {
-                        delay: ONE_SECOND_MS,
-                        factor: 2,
-                        maxAttempts: 3,
-                        handleError: (error, context, _options) => {
-                            const { attemptNum: attemptNumber, attemptsRemaining } = context;
-                            logger.warn(
-                                { orderHash, makerUri, attemptNumber, attemptsRemaining, error: error.message },
-                                'Error encountered while attempting to get market maker signature',
-                            );
-                        },
-                    },
-                );
-
-                logger.info(
-                    { makerUri, signed: !!makerSignature, orderHash },
-                    'Got signature response from market maker',
-                );
-
-                if (makerSignature) {
-                    // Some market makers may use smart contract wallets. In such a case, check if the
-                    // wallet can sign for the maker.
-                    const signerAddress = getSignerFromHash(orderHash, makerSignature).toLowerCase();
-                    if (signerAddress !== makerAddress) {
-                        logger.info(
-                            { signerAddress, makerAddress: makerAddress, orderHash, makerUri },
-                            'Possible use of smart contract wallet',
-                        );
-                        const isValidSigner = await this._blockchainUtils.isValidOrderSignerAsync(
-                            makerAddress,
-                            signerAddress,
-                        );
-                        if (!isValidSigner) {
-                            logger.warn(
-                                { signerAddress, makerAddress, orderHash, makerUri },
-                                'Invalid order signer address',
-                            );
-                            throw new Error('Invalid order signer address');
-                        }
-                    }
-
-                    // Certain market makers are returning signature components which are missing
-                    // leading bytes. Add them if they don't exist.
-                    const paddedSignature = padSignature(makerSignature);
-                    if (paddedSignature.r !== makerSignature.r || paddedSignature.s !== makerSignature.s) {
-                        logger.warn(
-                            { orderHash, r: paddedSignature.r, s: paddedSignature.s },
-                            'Got market maker signature with missing bytes',
-                        );
-                        makerSignature = paddedSignature;
-                    }
-                } else {
-                    // MM returned an empty signature
-                    throw new Error('Maker signature does not exist');
-                }
-            } catch (error) {
-                GASLESS_RFQT_VIP_MM_SIGNATURE_FAILED.labels(
-                    integrator.integratorId,
-                    makerUri,
-                    this._chainId.toString(),
-                ).inc();
-                logger.error(
-                    { orderHash, makerUri, error: error.message },
-                    'Failed to return Gasless RFQt VIP quote due to market maker sign failure',
-                );
-                throw new Error('Failed to return Gasless RFQt VIP quote due to market maker sign failure');
-            }
-        }
 
         await this._dbUtils.writeV2QuoteAsync({
             orderHash,

@@ -34,6 +34,7 @@ export function getBestQuote<T extends IndicativeQuote | FirmOtcQuote>(
     assetFillAmount: BigNumber,
     validityWindowMs: number,
     quotedMakerBalances?: BigNumber[],
+    requireSignature?: boolean,
 ): T | null {
     // If maker balances are provided, quotes in which maker addresses cannot provide sufficient
     // balances to fully fill the order are filtered out
@@ -63,9 +64,15 @@ export function getBestQuote<T extends IndicativeQuote | FirmOtcQuote>(
         };
     }
 
+    // [Gasless RFQt VIP] filter out quotes without MM signatures
+    const hasMakerSignaturePredicate = requireSignature
+        ? (q: T) => isFirmQuote(q) && q.makerSignature
+        : (_q: T) => true;
+
     const validityWindowSeconds = validityWindowMs / ONE_SECOND_MS;
     const sortedQuotes = quotes
         .filter(isMakerFillablePredicate)
+        .filter(hasMakerSignaturePredicate)
         .filter((q) => getTakerToken(q) === takerToken && getMakerToken(q) === makerToken)
         .filter((q) => {
             const requestedAmount = isSelling ? getTakerAmount(q) : getMakerAmount(q);
