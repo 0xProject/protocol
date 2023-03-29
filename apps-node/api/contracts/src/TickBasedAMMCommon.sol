@@ -30,6 +30,15 @@ contract TickBasedAMMCommon {
         }
     }
 
+    function isValidPoolPath(address[] memory poolPath) internal pure returns (bool) {
+        for (uint256 i = 0; i < poolPath.length; i++) {
+            if (poolPath[i] == address(0)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /// @dev decode a MultiSwap revert reason into individual constituents of the MultiSwap result.
     /// @param revertReason the encoded revert reason caught from MultiSwap call
     /// @return success whether or not the revertReason was able to be successfully decoded

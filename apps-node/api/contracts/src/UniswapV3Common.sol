@@ -172,13 +172,4 @@ contract UniswapV3Common is TickBasedAMMCommon {
 
         return true;
     }
-
-    function isValidPoolPath(address[] memory poolPath) internal pure returns (bool) {
-        for (uint256 i = 0; i < poolPath.length; i++) {
-            if (poolPath[i] == address(0)) {
-                return false;
-            }
-        }
-        return true;
-    }
 }

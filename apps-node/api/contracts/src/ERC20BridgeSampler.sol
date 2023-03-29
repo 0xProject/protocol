@@ -40,6 +40,7 @@ import "./NativeOrderSampler.sol";
 import "./PlatypusSampler.sol";
 import "./ShellSampler.sol";
 import "./SynthetixSampler.sol";
+import "./TraderJoeV2Sampler.sol";
 import "./TwoHopSampler.sol";
 import "./UniswapSampler.sol";
 import "./UniswapV2Sampler.sol";
@@ -70,6 +71,7 @@ contract ERC20BridgeSampler is
     PlatypusSampler,
     ShellSampler,
     SynthetixSampler,
+    TraderJoeV2Sampler,
     TwoHopSampler,
     UniswapSampler,
     UniswapV2Sampler,

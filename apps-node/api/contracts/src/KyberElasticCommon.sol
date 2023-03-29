@@ -114,15 +114,6 @@ contract KyberElasticCommon is TickBasedAMMCommon {
         return codeSize != 0;
     }
 
-    function _isValidPoolPath(address[] memory poolPaths) internal pure returns (bool) {
-        for (uint256 i = 0; i < poolPaths.length; i++) {
-            if (poolPaths[i] == address(0)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     function _toPath(address[] memory tokenPath, address[] memory poolPath) internal view returns (bytes memory path) {
         require(tokenPath.length >= 2 && tokenPath.length == poolPath.length + 1, "invalid path lengths");
         // paths are tightly packed as:
