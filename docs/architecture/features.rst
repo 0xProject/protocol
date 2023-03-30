@@ -592,6 +592,9 @@ To take advantage of this gas optimization, makers should reuse the
 upper 248 bits of their nonce across up to 256 different orders, varying
 the value of the lower 8 bits between them.
 
+.. image:: docs/_static/img/gas_optimized_nonces.png
+  :width: 400
+
 ERC721 Sell Orders
 ~~~~~~~~~~~~~~~~~~
 
@@ -1069,6 +1072,9 @@ This allows for much cheaper cancellation for up to 256 simultaneous
 orders. To take advantage of this gas optimization, makers should reuse
 the upper 248 bits of their nonce across up to 256 different orders,
 varying the value of the lower 8 bits between them.
+
+.. image:: docs/_static/img/gas_optimized_nonces.png
+  :width: 400
 
 ERC1155 Sell Orders
 -------------------
