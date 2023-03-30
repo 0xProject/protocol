@@ -257,17 +257,28 @@ contract GovernanceE2ETest is BaseTest {
         vm.stopPrank();
 
         // Stakes can still be withdrawn
-        uint256 stake = vault.balanceOf(staker1);
-        console.log("stake", stake);
-        assertGt(stake, 0);
-        assertEq(token.balanceOf(staker1), 0);
+        // staker1 withdraws
+        uint256 stake1 = vault.balanceOf(staker1);
+        uint256 balance1 = token.balanceOf(staker1);
+        assertGt(stake1, 0);
 
         vm.prank(staker1);
         vault.withdrawAllFrom(staker1);
         vm.stopPrank();
 
         assertEq(vault.balanceOf(staker1), 0);
-        // TODO this breaks because of dust transfer
-        // assertEq(token.balanceOf(staker1), stake);
+        assertEq(token.balanceOf(staker1), stake1 + balance1);
+
+        // staker2 withdraws
+        uint256 stake2 = vault.balanceOf(staker2);
+        uint256 balance2 = token.balanceOf(staker2);
+        assertGt(stake2, 0);
+
+        vm.prank(staker2);
+        vault.withdrawAllFrom(staker2);
+        vm.stopPrank();
+
+        assertEq(vault.balanceOf(staker2), 0);
+        assertEq(token.balanceOf(staker2), stake2 + balance2);
     }
 }
