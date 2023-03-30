@@ -1,15 +1,40 @@
 import { twMerge } from 'tailwind-merge';
 import { Link, useNavigate } from '@remix-run/react';
+import { tv } from 'tailwind-variants';
 import * as Table from './Table';
 import { ArrowNarrowRight } from '../icons/ArrowNarrowRight';
 
 import type { LinkProps } from '@remix-run/react';
 import type { ComponentPropsWithoutRef, ComponentPropsWithRef } from 'react';
 import type { ClientApp } from '../types';
+import type { VariantProps } from 'tailwind-variants';
 
-type AppColorBarProps = ComponentPropsWithoutRef<'div'>;
-function AppColorBar({ className, ...other }: AppColorBarProps) {
-    return <div className={twMerge('mr-3 w-1 rounded', className)} {...other} />;
+const appBar = tv({
+    variants: {
+        color: {
+            1: 'bg-grey-300',
+            2: 'bg-green',
+            3: 'bg-blue-brand',
+            4: 'bg-brown',
+            5: 'bg-purple',
+            6: 'bg-red',
+            7: 'bg-green-dark',
+            8: 'bg-blue-dark',
+            9: 'bg-brown-dark',
+            10: 'bg-purple-dark',
+            11: 'bg-red-dark',
+            12: 'bg-green-light',
+            13: 'bg-blue-light',
+            14: 'bg-brown-light',
+            15: 'bg-purple-light',
+            16: 'bg-red-light',
+        },
+    },
+});
+type AppColorBarProps = ComponentPropsWithoutRef<'div'> & VariantProps<typeof appBar>;
+
+function AppColorBar({ className, color, ...other }: AppColorBarProps) {
+    return <div className={twMerge(appBar({ color }), 'mr-3 w-1 rounded', className)} {...other} />;
 }
 
 function ExploreLink({ className, ...other }: LinkProps) {
@@ -57,15 +82,13 @@ export function AppsTable({ data, ...other }: AppsTableProps) {
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
-                    {data.map(({ id, name, brandColor, onChainTag }) => (
+                    {data.map(({ id, name, brandColor, onChainTag }, index) => (
                         <Tr key={id} pathname={id}>
                             <Table.Td>
                                 <div className="flex">
-                                    <AppColorBar
-                                        style={{
-                                            backgroundColor: brandColor,
-                                        }}
-                                    />
+                                    {/* I don't know why TS complains here */}
+                                    {/* @ts-ignore-next-line */}
+                                    <AppColorBar color={(index % 16) + 1} />
                                     <span className="font-medium">{name}</span>
                                 </div>
                             </Table.Td>
