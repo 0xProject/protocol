@@ -9,12 +9,13 @@ import { Settings4 } from '../icons/Settings4';
 import { GoToExplorer } from '../components/GoToExplorer';
 import { SwapCodeBlock } from '../components/SwapCodeBlock';
 import { getAppById } from '../data/zippo.server';
-
-import type { LoaderArgs, MetaFunction } from '@remix-run/node';
-import type { ComponentPropsWithoutRef } from 'react';
 import { sessionStorage } from '../auth.server';
 import { enhanceAppWithMockedData } from '../utils/utils.server';
 import { TZippoRouteTag } from 'zippo-interface';
+
+import type { LoaderArgs, MetaFunction } from '@remix-run/node';
+import type { ComponentPropsWithoutRef } from 'react';
+import type { ClientApp } from '../types';
 
 const ZIPPO_ROUTE_TAG_TO_PRODUCT: Partial<Record<TZippoRouteTag, { name: string; color: BadgeColor }>> = {
     [TZippoRouteTag.SwapV1]: {
@@ -63,7 +64,9 @@ function ViewDocsLink({ className, ...other }: ComponentPropsWithoutRef<'a'>) {
         </a>
     );
 }
-
+export type AppOutletContext = {
+    app: ClientApp;
+};
 export default function AppDashboard() {
     const { app } = useLoaderData<typeof loader>();
     return (
@@ -148,7 +151,7 @@ export default function AppDashboard() {
                 className="max-w-page-size mx-auto mb-44 p-9"
                 buttonClassName="mt-6"
             />
-            <Outlet />
+            <Outlet context={{ app }} />
         </>
     );
 }

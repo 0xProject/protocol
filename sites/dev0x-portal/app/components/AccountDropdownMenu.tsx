@@ -4,7 +4,6 @@ import { twMerge } from 'tailwind-merge';
 import { LinkExternal } from '../icons/LinkExternal';
 import * as DropdownMenu from './DropdownMenu';
 
-import type { ClientUser } from '../types';
 import type { ElementRef, ComponentPropsWithRef, ComponentPropsWithoutRef } from 'react';
 
 export const Root = DropdownMenu.Root;

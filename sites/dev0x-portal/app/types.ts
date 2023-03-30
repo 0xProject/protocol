@@ -1,6 +1,5 @@
 import type { Simplify } from 'type-fest';
 import type { TZippoRouteTag } from 'zippo-interface';
-import type { User } from './auth.server';
 import type { ZippoApp } from './data/zippo.server';
 
 export type ClientApp = Rename<
@@ -11,8 +10,6 @@ export type ClientApp = Rename<
     productAccess?: TZippoRouteTag[];
     brandColor?: string;
 };
-
-export type ClientUser = Pick<User, 'email' | 'team'>;
 
 type SuccessResult<T> = {
     result: 'SUCCESS';
@@ -30,10 +27,10 @@ export type CreateAppFlowType = [
     { appName: string; products: string[] },
     (
         | {
-              skipped: false;
-              tagName: string;
-              //@TODO add logo
-          }
+            skipped: false;
+            tagName: string;
+            //@TODO add logo
+        }
         | { skipped: true }
     ),
     {
@@ -64,5 +61,5 @@ type Remap<T extends Record<string, any>, PM extends keyof T, M extends Record<P
  */
 export type Rename<T extends Record<string, any>, M extends RenameRecord<T>> = Simplify<
     Omit<T, keyof M extends string ? keyof M : never> &
-        Remap<T, keyof M extends string ? keyof M : never, M extends Record<string, string> ? M : never>
+    Remap<T, keyof M extends string ? keyof M : never, M extends Record<string, string> ? M : never>
 >;

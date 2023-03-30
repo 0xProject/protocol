@@ -6,7 +6,7 @@ import { IconButton } from './IconButton';
 import * as AccountDropdownMenu from './AccountDropdownMenu';
 import { UserCircle } from '../icons/UserCircle';
 import { ChevronDown } from '../icons/ChevronDown';
-import { useCurrentApp } from '../hooks/userCurrentApp';
+import { useCurrentApp } from '../hooks/useCurrentApp';
 import { HelpCircle } from '../icons/HelpCircle';
 
 import type { ClientApp } from '../types';

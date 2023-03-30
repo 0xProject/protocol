@@ -46,13 +46,15 @@ const StyledContent = forwardRef<ElementRef<typeof Dialog.Content>, Dialog.Dialo
     );
 });
 
-type ContentProps = ComponentProps<typeof Dialog.Content>;
+type ContentProps = ComponentProps<typeof Dialog.Content> & {
+    portalProps?: ComponentProps<typeof Portal>;
+};
 export const Content = forwardRef<ElementRef<typeof StyledContent>, ContentProps>(function Content(
-    { children, ...other },
+    { children, portalProps = {}, ...other },
     forwardedRef,
 ) {
     return (
-        <Portal>
+        <Portal {...portalProps}>
             <Overlay />
             <StyledContent {...other} ref={forwardedRef}>
                 {children}

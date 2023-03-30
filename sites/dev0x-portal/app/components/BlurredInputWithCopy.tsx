@@ -8,7 +8,7 @@ import { TextInput } from './TextInput';
 
 type BlurredInputWithCopyProps = {
     value: string;
-    label: string;
+    label?: string;
     name?: string;
     hiddenLabel?: boolean;
     className?: string;

@@ -465,3 +465,52 @@ export async function getAppById(id: RouterInputs['app']['getById']): Promise<Re
         }
     }
 }
+
+export async function deleteAppKey(id: RouterInputs['app']['key']['delete']): Promise<Result<ClientApp>> {
+    try {
+        const app = await client.app.key.delete.mutate(id);
+        if (!app) {
+            return {
+                result: 'ERROR',
+                error: new Error('Key not found'),
+            }
+        }
+        return {
+            result: 'SUCCESS',
+            data: zippoAppToClientApp(app),
+        }
+    } catch (error) {
+        console.warn(error)
+        return {
+            result: 'ERROR',
+            error: new Error('Failed to delete key'),
+        }
+    }
+}
+
+export async function createAppKey({ appId, teamId, description }: Rename<RouterInputs['app']['key']['create'], { integratorTeamId: 'teamId', integratorAppId: 'appId' }>): Promise<Result<ClientApp>> {
+    try {
+        const app = await client.app.key.create.mutate({
+            integratorAppId: appId,
+            integratorTeamId: teamId,
+            description
+
+        })
+        if (!app) {
+            return {
+                result: 'ERROR',
+                error: new Error('Failed to create key'),
+            }
+        }
+        return {
+            result: 'SUCCESS',
+            data: zippoAppToClientApp(app),
+        }
+    } catch (error) {
+        console.warn(error)
+        return {
+            result: 'ERROR',
+            error: new Error('Failed to create key'),
+        }
+    }
+}

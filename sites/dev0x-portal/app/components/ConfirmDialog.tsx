@@ -18,19 +18,33 @@ type ConfirmDialogFooterProps = ComponentPropsWithoutRef<'div'> & {
     confirmButtonText: string;
     cancelButtonText: string;
     variant: VariantType;
+    confirmButtonProps?: ComponentPropsWithoutRef<typeof Button>;
+    cancelButtonProps?: ComponentPropsWithoutRef<typeof Button>;
 };
 export const ConfirmDialogFooter = forwardRef<HTMLDivElement, ConfirmDialogFooterProps>(function ConfirmDialogFooter(
-    { className, cancelButtonText, confirmButtonText, variant, ...other },
+    {
+        className,
+        cancelButtonText,
+        confirmButtonText,
+        variant,
+        confirmButtonProps = {},
+        cancelButtonProps = {},
+        ...other
+    },
     forwardedRef,
 ) {
     return (
         <div {...other} className={twMerge('flex', className)} ref={forwardedRef}>
             <Dialog.Close asChild>
-                <Button color="grey" className="mr-4 w-fit self-start">
+                <Button color="grey" className="mr-4 w-fit self-start" {...cancelButtonProps}>
                     {cancelButtonText}
                 </Button>
             </Dialog.Close>
-            <Button className="w-full justify-center" color={variant === 'alert' ? 'red' : 'default'}>
+            <Button
+                className="w-full justify-center"
+                color={variant === 'alert' ? 'red' : 'default'}
+                {...confirmButtonProps}
+            >
                 {confirmButtonText}
             </Button>
         </div>
@@ -61,6 +75,8 @@ type ContentProps = ComponentPropsWithRef<typeof Dialog.Content> & {
     confirmButtonText?: string;
     cancelButtonText?: string;
     variant?: VariantType;
+    confirmButtonProps?: ComponentPropsWithoutRef<typeof Button>;
+    cancelButtonProps?: ComponentPropsWithoutRef<typeof Button>;
 };
 export const Content = forwardRef<ElementRef<typeof Dialog.Content>, ContentProps>(function Content(
     {

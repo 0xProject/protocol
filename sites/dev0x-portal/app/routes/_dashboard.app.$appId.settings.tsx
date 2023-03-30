@@ -8,7 +8,7 @@ export default function AppSettings() {
             open={true}
             onOpenChange={(open) => {
                 if (!open) {
-                    navigate('../');
+                    navigate(-1);
                 }
             }}
         >
