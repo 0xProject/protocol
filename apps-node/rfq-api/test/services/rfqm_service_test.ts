@@ -1479,6 +1479,12 @@ describe('RfqmService HTTP Logic', () => {
                 expect(res?.sellAmount).to.equal(sellAmount);
                 expect(res?.price.toNumber()).to.equal(1.01);
                 expect(res?.orderHash).to.match(/^0x[0-9a-fA-F]+/);
+                expect(Object.keys(res?.approval?.eip712?.domain ?? {})).to.eql([
+                    'name',
+                    'version',
+                    'verifyingContract',
+                    'salt',
+                ]);
                 expect(res?.approval).to.eql(approval);
             });
 
@@ -1806,6 +1812,12 @@ describe('RfqmService HTTP Logic', () => {
                     expect(res?.sellAmount).to.equal(sellAmount);
                     expect(res?.price.toNumber()).to.equal(1.01);
                     expect(res?.orderHash).to.match(/^0x[0-9a-fA-F]+/);
+                    expect(Object.keys(res?.approval?.eip712?.domain ?? {})).to.eql([
+                        'name',
+                        'version',
+                        'verifyingContract',
+                        'salt',
+                    ]);
                     expect(res?.approval).to.eql(approval);
 
                     // verify that the workflow is `rfqm`

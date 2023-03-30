@@ -46,8 +46,7 @@ import {
     FetchQuoteParamsBase,
     TradeResponse,
 } from './types';
-import { getZeroExEip712Domain } from '../eip712registry';
-import { extractEIP712DomainType } from '../utils/Eip712Utils';
+import { extractEIP712DomainType, getZeroExEip712Domain } from '../utils/Eip712Utils';
 
 import { RfqmService } from './rfqm_service';
 import { quoteReportUtils } from '../utils/quote_report_utils';

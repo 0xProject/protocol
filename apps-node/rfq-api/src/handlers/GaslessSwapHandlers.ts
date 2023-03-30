@@ -40,7 +40,7 @@ import {
 import { schemaUtils } from '../core/schema_utils';
 import { TX_RELAY_V1_PATH, ZERO_G_PATH, ZERO_G_ALIAS_PATH } from '../core/constants';
 import { logger } from '../logger';
-import { getZeroExEip712Domain } from '../eip712registry';
+import { getZeroExEip712Domain } from '../utils/Eip712Utils';
 
 // Minimum slippage allowed. This value should be kept consistent with the value set in 0x-api
 const MIN_ALLOWED_SLIPPAGE = 0.001; // 0.1%

@@ -36,7 +36,7 @@ import { GaslessSwapServiceTypes, GaslessTypes } from '../../src/core/types';
 import { Fees } from '../../src/core/types/meta_transaction_fees';
 import { ContractAddresses } from '@0x/contract-addresses';
 import { SupportedProvider } from 'ethereum-types';
-import { MOCK_META_TRANSACTION_TRADE } from '../constants';
+import { MOCK_EXECUTE_META_TRANSACTION_APPROVAL, MOCK_META_TRANSACTION_TRADE } from '../constants';
 
 jest.mock('../../src/services/rfqm_service', () => {
     return {
@@ -992,9 +992,13 @@ describe('GaslessSwapService', () => {
             });
 
             it('gets the approval object', async () => {
-                const approvalResponse: ApprovalResponse = {
+                const approval: ApprovalResponse = {
                     isRequired: true,
+                    isGaslessAvailable: true,
+                    type: MOCK_EXECUTE_META_TRANSACTION_APPROVAL.kind,
+                    eip712: MOCK_EXECUTE_META_TRANSACTION_APPROVAL.eip712,
                 };
+
                 getMetaTransactionV1QuoteAsyncMock.mockResolvedValueOnce({
                     trade: {
                         kind: GaslessTypes.MetaTransaction,
@@ -1004,7 +1008,7 @@ describe('GaslessSwapService', () => {
                     price: metaTransactionV1EndpointPrice,
                 });
                 mockRfqmService.fetchFirmQuoteAsync.mockResolvedValueOnce({ quote: null, quoteReportId: null });
-                mockRfqmService.getGaslessApprovalResponseAsync.mockResolvedValueOnce(approvalResponse);
+                mockRfqmService.getGaslessApprovalResponseAsync.mockResolvedValueOnce(approval);
 
                 const result = await gaslessSwapService.fetchQuoteAsync(
                     {
@@ -1020,8 +1024,13 @@ describe('GaslessSwapService', () => {
                     },
                     GaslessSwapServiceTypes.ZeroG,
                 );
-
-                expect(result?.approval).not.toBeUndefined();
+                expect(Object.keys(result?.approval?.eip712?.domain ?? {})).toEqual([
+                    'name',
+                    'version',
+                    'verifyingContract',
+                    'salt',
+                ]);
+                expect(result?.approval).toEqual(approval);
             });
         });
 
@@ -1063,6 +1072,14 @@ describe('GaslessSwapService', () => {
                 expect(result).not.toBeNull();
                 expect(result?.trade.type).toEqual(GaslessTypes.MetaTransaction);
                 expect(result?.trade.hash).toEqual(metaTransactionV1.getHash());
+                // Make sure the domaim has the correct field order.
+                // `toMatchInlineSnapshot` would sort fields in object in alphabetical order.
+                expect(Object.keys(result?.trade.eip712.domain)).toEqual([
+                    'name',
+                    'version',
+                    'chainId',
+                    'verifyingContract',
+                ]);
                 expect(result).toMatchInlineSnapshot(`
                     {
                       "allowanceTarget": "0x12345",
@@ -1128,20 +1145,20 @@ describe('GaslessSwapService', () => {
                           "types": {
                             "EIP712Domain": [
                               {
-                                "name": "chainId",
-                                "type": "uint256",
-                              },
-                              {
-                                "name": "verifyingContract",
-                                "type": "address",
-                              },
-                              {
                                 "name": "name",
                                 "type": "string",
                               },
                               {
                                 "name": "version",
                                 "type": "string",
+                              },
+                              {
+                                "name": "chainId",
+                                "type": "uint256",
+                              },
+                              {
+                                "name": "verifyingContract",
+                                "type": "address",
                               },
                             ],
                             "MetaTransactionData": [
@@ -1232,6 +1249,14 @@ describe('GaslessSwapService', () => {
                 expect(result).not.toBeNull();
                 expect(result?.trade.type).toEqual(GaslessTypes.MetaTransactionV2);
                 expect(result?.trade.hash).toEqual(metaTransactionV2.getHash());
+                // Make sure the domaim has the correct field order.
+                // `toMatchInlineSnapshot` would sort fields in object in alphabetical order.
+                expect(Object.keys(result?.trade.eip712.domain)).toEqual([
+                    'name',
+                    'version',
+                    'chainId',
+                    'verifyingContract',
+                ]);
                 expect(result).toMatchInlineSnapshot(`
                     {
                       "allowanceTarget": "0x12345",
@@ -1303,20 +1328,20 @@ describe('GaslessSwapService', () => {
                           "types": {
                             "EIP712Domain": [
                               {
-                                "name": "chainId",
-                                "type": "uint256",
-                              },
-                              {
-                                "name": "verifyingContract",
-                                "type": "address",
-                              },
-                              {
                                 "name": "name",
                                 "type": "string",
                               },
                               {
                                 "name": "version",
                                 "type": "string",
+                              },
+                              {
+                                "name": "chainId",
+                                "type": "uint256",
+                              },
+                              {
+                                "name": "verifyingContract",
+                                "type": "address",
                               },
                             ],
                             "MetaTransactionDataV2": [
@@ -1575,8 +1600,11 @@ describe('GaslessSwapService', () => {
                 mockBlockchainUtils.computeEip712Hash.mockReturnValueOnce(
                     '0xde5a11983edd012047dd3107532f007a73ae488bfb354f35b8a40580e2a775a1',
                 );
-                const approvalResponse: ApprovalResponse = {
+                const approval: ApprovalResponse = {
                     isRequired: true,
+                    isGaslessAvailable: true,
+                    type: MOCK_EXECUTE_META_TRANSACTION_APPROVAL.kind,
+                    eip712: MOCK_EXECUTE_META_TRANSACTION_APPROVAL.eip712,
                 };
                 getMetaTransactionV2QuoteAsyncMock.mockResolvedValueOnce({
                     trade: {
@@ -1588,7 +1616,7 @@ describe('GaslessSwapService', () => {
                     sources,
                     fees,
                 });
-                mockRfqmService.getGaslessApprovalResponseAsync.mockResolvedValueOnce(approvalResponse);
+                mockRfqmService.getGaslessApprovalResponseAsync.mockResolvedValueOnce(approval);
 
                 const result = await gaslessSwapService.fetchQuoteAsync(
                     {
@@ -1609,7 +1637,13 @@ describe('GaslessSwapService', () => {
                 );
 
                 expect(getMetaTransactionV2QuoteAsyncMock.mock.calls[0][2].metaTransactionVersion).toEqual('v2');
-                expect(result?.approval).not.toBeUndefined();
+                expect(Object.keys(result?.approval?.eip712?.domain ?? {})).toEqual([
+                    'name',
+                    'version',
+                    'verifyingContract',
+                    'salt',
+                ]);
+                expect(result?.approval).toEqual(approval);
             });
         });
     });

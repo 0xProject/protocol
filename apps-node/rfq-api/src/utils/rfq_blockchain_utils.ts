@@ -31,7 +31,7 @@ import {
 
 import { splitAddresses } from './address_utils';
 import { BalanceChecker } from './balance_checker';
-import { extractEIP712DomainType } from './Eip712Utils';
+import { extractEIP712DomainType, getSortedEip712Domain } from './Eip712Utils';
 import { isWorkerReadyAndAbleAsync } from './rfqm_worker_balance_utils';
 import { serviceUtils } from './service_utils';
 import { SubproviderAdapter } from './subprovider_adapter';
@@ -469,7 +469,8 @@ export class RfqBlockchainUtils {
         }
 
         const tokenEIP712 = EIP_712_REGISTRY[chainId][token];
-        const eip712DomainType = extractEIP712DomainType(tokenEIP712.domain);
+        const eip712Domain = getSortedEip712Domain(tokenEIP712.domain);
+        const eip712DomainType = extractEIP712DomainType(eip712Domain);
         switch (tokenEIP712.kind) {
             case GaslessApprovalTypes.ExecuteMetaTransaction: {
                 const nonce = await this.getMetaTransactionNonceAsync(token, takerAddress);
@@ -488,7 +489,7 @@ export class RfqBlockchainUtils {
                             ...EXECUTE_META_TRANSACTION_EIP_712_TYPES,
                         },
                         primaryType: 'MetaTransaction',
-                        domain: tokenEIP712.domain,
+                        domain: eip712Domain,
                         message: {
                             nonce: nonce.toNumber(),
                             from: takerAddress,
@@ -512,7 +513,7 @@ export class RfqBlockchainUtils {
                             ...PERMIT_EIP_712_TYPES,
                         },
                         primaryType: 'Permit',
-                        domain: tokenEIP712.domain,
+                        domain: eip712Domain,
                         message: {
                             owner: takerAddress,
                             spender: this._exchangeProxyAddress,
