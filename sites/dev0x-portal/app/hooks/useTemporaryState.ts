@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 type SetTemporaryValue<T> = (newValue: T) => void;
 
@@ -15,7 +15,7 @@ export function useTemporaryState<T>(initialValue: T, durationMs: number) {
         };
     }, []);
 
-    const setTemporaryValue: SetTemporaryValue<T> = (newValue) => {
+    const setTemporaryValue: SetTemporaryValue<T> = useCallback((newValue) => {
         setValue(newValue);
         if (timeoutRef.current !== null) {
             clearTimeout(timeoutRef.current);
@@ -23,7 +23,7 @@ export function useTemporaryState<T>(initialValue: T, durationMs: number) {
         timeoutRef.current = window.setTimeout(() => {
             setValue(initialRef.current);
         }, durationMs);
-    };
+    }, [durationMs]);
 
     return [value, setTemporaryValue] as const;
 }

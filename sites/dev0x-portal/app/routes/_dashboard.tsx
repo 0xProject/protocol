@@ -2,7 +2,7 @@ import { json, redirect } from '@remix-run/node';
 import { Outlet, useLoaderData } from '@remix-run/react';
 import { getSignedInUser, sessionStorage } from '../auth.server';
 import { AppBar } from '../components/AppBar';
-import { appsList, NO_TEAM_MARKER } from '../data/zippo.server';
+import { appsList, createApp, NO_TEAM_MARKER } from '../data/zippo.server';
 
 import type { LoaderArgs, MetaFunction } from '@remix-run/node';
 import type { ClientApp } from '../types';
@@ -24,7 +24,6 @@ export const loader = async ({ request, params }: LoaderArgs) => {
     if (!user) throw redirect('/login'); // shouldn't happen
     const session = await sessionStorage.getSession(request.headers.get('Cookie'));
 
-
     if (user.teamName === NO_TEAM_MARKER) {
         throw redirect('/create-account/create-team', { headers });
     }
@@ -33,8 +32,20 @@ export const loader = async ({ request, params }: LoaderArgs) => {
     if (list.result === 'ERROR') {
         throw list.error;
     }
+    let demoApp = null;
+    // Let's create demo app if it no present, no error handling we will show button on the next page to retry this action
+    if (list.data.filter((app) => app.description === '__test_key').length === 0) {
+        const result = await createApp({
+            appName: 'Demo App',
+            description: '__test_key',
+            teamId: user.teamId,
+        });
+        if (result.result === 'SUCCESS') {
+            demoApp = result.data;
+        }
+    }
 
-    const apps = list.data.map((app) => enhanceAppWithMockedData(app, session));
+    const apps = (demoApp ? [...list.data, demoApp] : list.data).map((app) => enhanceAppWithMockedData(app, session));
 
     return json(
         {

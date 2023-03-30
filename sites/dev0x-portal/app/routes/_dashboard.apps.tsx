@@ -1,24 +1,52 @@
-import { json } from '@remix-run/node';
-import { Outlet, useLoaderData, useOutletContext } from '@remix-run/react';
+import { Outlet, Form, useActionData, useNavigation, useOutletContext } from '@remix-run/react';
+import { twMerge } from 'tailwind-merge';
+import { json, redirect } from '@remix-run/node';
 import { Badge } from '../components/Badge';
-import { HiddenText } from '../components/HiddenText';
 import { SwapCodeBlock } from '../components/SwapCodeBlock';
 import { AppsTable } from '../components/AppsTable';
 import { GoToExplorer } from '../components/GoToExplorer';
-import { LinkButton } from '../components/Button';
+import { Button, LinkButton } from '../components/Button';
+import { useDemoApp } from '../hooks/useDemoApp';
+import { getSignedInUser } from '../auth.server';
+import { HiddenText } from '../components/HiddenText';
+import { appsList, createApp } from '../data/zippo.server';
 
-import type { LoaderArgs } from '@remix-run/node';
+import type { ActionArgs } from '@remix-run/node';
 import type { AppsOutletContext } from './_dashboard';
 
-export const loader = async ({ request, params }: LoaderArgs) => {
-    return json({
-        apiKey: 'ar2fsadfq2f4fsda2egsdfas',
+export async function action({ request }: ActionArgs) {
+    const [user, headers] = await getSignedInUser(request);
+
+    if (!user) {
+        throw redirect('/login', { headers });
+    }
+    const list = await appsList(user.teamId);
+    if (list.result === 'ERROR') {
+        throw list.error;
+    }
+    const demoApp = list.data.filter((app) => app.description === '__test_key')[0];
+    if (demoApp) {
+        return json({ error: null, app: demoApp }, { headers });
+    }
+    const result = await createApp({
+        appName: 'Demo App',
+        description: '__test_key',
+        teamId: user.teamId,
     });
-};
+    if (result.result === 'ERROR') {
+        return json({ error: 'Fail to create test key. Try again later.' }, { headers });
+    }
+    return json({ error: null, app: result.data }, { headers });
+}
 
 export default function Apps() {
-    const { apiKey } = useLoaderData<typeof loader>();
     const { apps } = useOutletContext<AppsOutletContext>();
+    const demoApp = useDemoApp(apps);
+    const actionData = useActionData<typeof action>();
+    const navigation = useNavigation();
+
+    const hasFormError = Boolean(actionData?.error);
+
     return (
         <div className="max-w-page-size mx-auto box-content px-24 pb-12">
             <div className="my-8 flex items-start">
@@ -40,15 +68,34 @@ export default function Apps() {
                 <div className="col-span-4" />
                 <div className="col-span-4 pt-[1.125rem]">
                     <h2 className="text-grey-900 mb-2 font-sans text-xl font-medium leading-none">Test API key</h2>
-                    <p className="text-grey-400 mb-14 max-w-[266px] font-sans text-base font-thin">
+                    <p className="text-grey-400  max-w-[266px] font-sans text-base font-thin">
                         Make a sample request to any 0x product with the key below.
                     </p>
-                    <div className="mt-11 flex items-center justify-between">
-                        <div className="text-grey-700 mr-6 font-sans text-base font-normal">Text API key</div>
-                        <HiddenText width={120} revealTooltipText="Reveal test key">
-                            {apiKey}
-                        </HiddenText>
-                    </div>
+
+                    {demoApp ? (
+                        <div className={'mt-14 flex items-center justify-between'}>
+                            <div className="text-grey-700 mr-6 font-sans text-base font-normal">API key</div>
+                            <HiddenText width={120} revealTooltipText="Reveal test key">
+                                {demoApp.apiKeys[0].apiKey}
+                            </HiddenText>
+                        </div>
+                    ) : (
+                        <div
+                            className={twMerge(
+                                'mt-10 flex flex-col',
+                                hasFormError && navigation.state === 'idle' && ['mt-6'],
+                            )}
+                        >
+                            {hasFormError && navigation.state === 'idle' && (
+                                <div className="text-error-500 font-sans text-xs">{actionData?.error}</div>
+                            )}
+                            <Form method="post">
+                                <Button size="md" type="submit" disabled={navigation.state === 'submitting'}>
+                                    Create Test Key
+                                </Button>
+                            </Form>
+                        </div>
+                    )}
                 </div>
                 <div className="col-span-1" />
                 <div className="col-span-10 pl-9 pr-6">
@@ -57,7 +104,7 @@ export default function Apps() {
             </div>
             <AppsTable data={apps} className="mt-16 mb-24" />
             <GoToExplorer />
-            <Outlet  />
+            <Outlet />
         </div>
     );
 }
