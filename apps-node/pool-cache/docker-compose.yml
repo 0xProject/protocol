@@ -6,3 +6,8 @@ services:
     entrypoint: 'anvil --host 0.0.0.0'
     ports:
       - '0100:8545'
+
+  redis:
+    image: redis:7.0.10
+    ports:
+      - '0101:6379'

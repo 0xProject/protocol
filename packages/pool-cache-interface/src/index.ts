@@ -14,7 +14,7 @@ export interface UniswapV3Pool {
 export interface UniswapV3PoolCache {
     // Unix timestamp when pool data was fetched (in seconds).
     //`timestamp` is undefined when there was no cache.
-    timestamp?: number;
+    timestamp: number | null;
     // Pools sorted by the liquidity score (descending).
     pools: UniswapV3Pool[];
 }

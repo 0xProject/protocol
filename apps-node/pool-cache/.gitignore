@@ -1,5 +1,5 @@
 # Compiler files
-cache/
+cache/*.json
 out/
 
 # Ignores development broadcast logs

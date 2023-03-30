@@ -8,6 +8,7 @@ const dockerComposeFilename = 'docker-compose.yml';
 
 // IP and port must reflect the ones specified in docker-compose.yml
 export const DOCKER_ANVIL_URL = 'http://0.0.0.0:0100';
+export const DOCKER_REDIS_URL = '//0.0.0.0:0101';
 
 /**
  * Call to shutdown the dependencies spun up by `setupDependencies`.
@@ -15,7 +16,7 @@ export const DOCKER_ANVIL_URL = 'http://0.0.0.0:0100';
  */
 export type TeardownDependenciesFn = () => boolean;
 
-type Service = 'anvil';
+type Service = 'anvil' | 'redis';
 
 export async function setupDependencies(services: Service[]): Promise<TeardownDependenciesFn> {
     if (services.length === 0) {
@@ -43,9 +44,11 @@ async function waitForDependencyStartup(logStream: ChildProcessWithoutNullStream
         }, startupTimeout);
 
         const startupRegexAnvil = /.*anvil.*Listening on/;
+        const startupRegexRedis = /.*redis.*Ready to accept connections/;
 
         const isServiceStarted: Record<Service, boolean> = {
             anvil: !services.includes('anvil'),
+            redis: !services.includes('redis'),
         };
 
         logStream.on('error', (error) => {
@@ -56,6 +59,9 @@ async function waitForDependencyStartup(logStream: ChildProcessWithoutNullStream
             const log = data.toString();
             if (startupRegexAnvil.test(log)) {
                 isServiceStarted.anvil = true;
+            }
+            if (startupRegexRedis.test(log)) {
+                isServiceStarted.redis = true;
             }
 
             // Once all the services are started, resolve the promise

@@ -22,7 +22,7 @@ const uniswapV3PoolShape = implement<UniswapV3Pool>().with({
 });
 
 const uniswapV3PoolCacheShape = implement<UniswapV3PoolCache>().with({
-    timestamp: z.number().positive().optional(),
+    timestamp: z.number().positive().nullable(),
     pools: uniswapV3PoolShape.array(),
 });
 

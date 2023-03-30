@@ -8,7 +8,7 @@ const NUM_UNISWAP_V3_FEE_TIERS = 4;
 
 export function toUniswapV3PoolCache(
     uniswapPoolStructs: Pick<UniswapV3PoolStructOutput, 'fee' | 'poolAddress' | 'totalValueInToken1'>[],
-): UniswapV3PoolCache[] {
+): Omit<UniswapV3PoolCache, 'timestamp'>[] {
     if (uniswapPoolStructs.length % NUM_UNISWAP_V3_FEE_TIERS !== 0) {
         throw new Error(`Invalid input: uniswapPoolStructs must be multiple of ${NUM_UNISWAP_V3_FEE_TIERS}`);
     }
