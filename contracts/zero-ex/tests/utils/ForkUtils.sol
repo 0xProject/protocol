@@ -88,16 +88,50 @@ struct TokenAddresses {
     IEtherToken WrappedNativeToken;
 }
 
+// keep the names of the struct members in alphabetical order for correct json unparsing
 struct LiquiditySources {
     address KyberElasticPool;
     address KyberElasticQuoter;
     address KyberElasticRouter;
+    address TraderJoeV2Pool;
+    address TraderJoeV2Router;
     address UniswapV2Router;
     address UniswapV3Router;
 }
 
 interface IFQT {
     function bridgeAdapter() external returns (address);
+}
+
+interface ITraderJoeV2Pool {
+    struct FeeParameters {
+        // 144 lowest bits in slot
+        uint16 binStep;
+        uint16 baseFactor;
+        uint16 filterPeriod;
+        uint16 decayPeriod;
+        uint16 reductionFactor;
+        uint24 variableFeeControl;
+        uint16 protocolShare;
+        uint24 maxVolatilityAccumulated;
+        // 112 highest bits in slot
+        uint24 volatilityAccumulated;
+        uint24 volatilityReference;
+        uint24 indexRef;
+        uint40 time;
+    }
+
+    function feeParameters() external view returns (FeeParameters memory);
+
+    function tokenY() external view returns (address);
+}
+
+interface ITraderJoeV2Router {
+    function getSwapOut(
+        address pool,
+        uint256 amountIn,
+        bool swapForY
+    ) external view returns (uint256 amountOut, uint256 feesIn);
 }
 
 interface IKyberElasticQuoter {

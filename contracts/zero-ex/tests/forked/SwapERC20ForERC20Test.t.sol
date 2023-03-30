@@ -36,7 +36,7 @@ contract SwapERC20ForERC20Test is Test, ForkUtils, TestUtils {
         }
     }
 
-    function test_swapERC20ForERC20OnKyberElastic() public {
+    function test_swapERC20ForERC20OnKyberElastic() public onlyForked {
         for (uint256 i = 0; i < chains.length; i++) {
             // kyberelastic mixin not added to fantom yet
             if (i == 4) {
@@ -54,11 +54,80 @@ contract SwapERC20ForERC20Test is Test, ForkUtils, TestUtils {
         }
     }
 
+    function test_swapERC20ForERC20OnTraderJoeV2() public onlyForked {
+        for (uint256 i = 0; i < chains.length; i++) {
+            // TraderJoeV2 mixin only enabled on Avalanche
+            if (i != 3) {
+                continue;
+            }
+            vm.selectFork(forkIds[chains[i]]);
+            labelAddresses(
+                chains[i],
+                indexChainsByChain[chains[i]],
+                getTokens(i),
+                getContractAddresses(i),
+                getLiquiditySourceAddresses(i)
+            );
+            swapOnTraderJoeV2(getTokens(i), getContractAddresses(i), getLiquiditySourceAddresses(i));
+        }
+    }
+
+    function swapOnTraderJoeV2(
+        TokenAddresses memory tokens,
+        ContractAddresses memory addresses,
+        LiquiditySources memory sources
+    ) private {
+        if (sources.TraderJoeV2Router == address(0)) {
+            emit log_string("TraderJoeV2Router not available on this chain");
+            return;
+        }
+        if (sources.TraderJoeV2Pool == address(0)) {
+            emit log_string("TraderJoeV2Pool not available on this chain");
+            return;
+        }
+
+        FillQuoteTransformer.TransformData memory fqtData;
+        fqtData.side = FillQuoteTransformer.Side.Sell;
+        fqtData.sellToken = IERC20Token(address(tokens.USDC));
+        fqtData.buyToken = IERC20Token(address(tokens.USDT));
+        fqtData.fillSequence = new FillQuoteTransformer.OrderType[](1);
+        fqtData.fillSequence[0] = FillQuoteTransformer.OrderType.Bridge;
+        fqtData.fillAmount = 1e6;
+
+        (uint256 amountOut, uint256 binStep) = sampleTraderJoeV2(
+            fqtData.fillAmount,
+            address(fqtData.sellToken),
+            address(fqtData.buyToken),
+            sources.TraderJoeV2Router,
+            sources.TraderJoeV2Pool
+        );
+        log_named_uint("amountOut", amountOut);
+
+        IBridgeAdapter.BridgeOrder memory order;
+        {
+            address[] memory tokenPath = new address[](2);
+            tokenPath[0] = address(fqtData.sellToken);
+            tokenPath[1] = address(fqtData.buyToken);
+            uint256[] memory binSteps = new uint256[](1);
+            binSteps[0] = binStep;
+            order.bridgeData = abi.encode(address(sources.TraderJoeV2Router), tokenPath, binSteps);
+        }
+
+        order.source = bytes32(uint256(BridgeProtocols.TRADERJOEV2) << 128);
+        order.takerTokenAmount = fqtData.fillAmount;
+        order.makerTokenAmount = amountOut;
+
+        fqtData.bridgeOrders = new IBridgeAdapter.BridgeOrder[](1);
+        fqtData.bridgeOrders[0] = order;
+
+        settleAndLogBalances(fqtData, tokens, addresses);
+    }
+
     function swapOnKyberElastic(
         TokenAddresses memory tokens,
         ContractAddresses memory addresses,
         LiquiditySources memory sources
-    ) public onlyForked {
+    ) private {
         if (sources.KyberElasticQuoter == address(0)) {
             emit log_string("KyberElasticQuoter not available on this chain");
             return;
@@ -71,20 +140,6 @@ contract SwapERC20ForERC20Test is Test, ForkUtils, TestUtils {
             emit log_string("KyberElasticPool not available on this chain");
             return;
         }
-        ITransformERC20Feature.Transformation[] memory transformations = new ITransformERC20Feature.Transformation[](2);
-
-        transformations[0].deploymentNonce = _findTransformerNonce(
-            address(addresses.transformers.wethTransformer),
-            address(addresses.exchangeProxyTransformerDeployer)
-        );
-        emit log_named_uint("WethTransformer nonce", transformations[0].deploymentNonce);
-        createNewFQT(tokens.WrappedNativeToken, addresses.exchangeProxy, addresses.exchangeProxyTransformerDeployer);
-        transformations[0].data = abi.encode(LibERC20Transformer.ETH_TOKEN_ADDRESS, 1e18);
-        transformations[1].deploymentNonce = _findTransformerNonce(
-            address(fillQuoteTransformer),
-            address(addresses.exchangeProxyTransformerDeployer)
-        );
-        emit log_named_uint("FillQuoteTransformer nonce", transformations[1].deploymentNonce);
 
         FillQuoteTransformer.TransformData memory fqtData;
         fqtData.side = FillQuoteTransformer.Side.Sell;
@@ -111,37 +166,8 @@ contract SwapERC20ForERC20Test is Test, ForkUtils, TestUtils {
         order.makerTokenAmount = amountOut;
         order.bridgeData = abi.encode(address(sources.KyberElasticRouter), path);
         fqtData.bridgeOrders[0] = order;
-        transformations[1].data = abi.encode(fqtData);
 
-        vm.deal(address(this), 1e18);
-        uint256 balanceETHBefore = address(this).balance;
-        uint256 balanceERC20Before = IERC20Token(tokens.USDT).balanceOf(address(this));
-
-        writeTokenBalance(address(this), address(tokens.USDC), 1e16);
-        uint256 balanceUSDCbefore = IERC20Token(tokens.USDC).balanceOf(address(this));
-
-        IERC20Token(address(tokens.USDC)).approve(addresses.exchangeProxy, 1e16);
-
-        IZeroEx(payable(addresses.exchangeProxy)).transformERC20{value: 1e18}(
-            // input token
-            IERC20Token(address(tokens.USDC)),
-            // output token
-            IERC20Token(address(tokens.USDT)),
-            // input token amount
-            1e6,
-            // min output token amount
-            order.makerTokenAmount,
-            // list of transform
-            transformations
-        );
-
-        log_named_uint("NativeAsset balance before", balanceETHBefore);
-        log_named_uint("ERC-20 balance before", balanceERC20Before);
-        log_named_uint("NativeAsset balance after", balanceETHBefore - address(this).balance);
-        log_named_uint("ERC-20 balance after", IERC20Token(tokens.USDT).balanceOf(address(this)) - balanceERC20Before);
-        log_named_uint("USDC balance before", balanceUSDCbefore);
-        log_named_uint("USDC balance after", IERC20Token(tokens.USDT).balanceOf(address(tokens.USDC)));
-        assert(IERC20Token(tokens.USDT).balanceOf(address(this)) > 0);
+        settleAndLogBalances(fqtData, tokens, addresses);
     }
 
     function sampleKyberElastic(
@@ -150,7 +176,7 @@ contract SwapERC20ForERC20Test is Test, ForkUtils, TestUtils {
         address makerToken,
         address quoter,
         address pool
-    ) public returns (uint256 makerTokenAmount, bytes memory path) {
+    ) private returns (uint256 makerTokenAmount, bytes memory path) {
         log_string("       Sampling KyberElastic for tokens");
         log_named_address("        ", takerToken);
         log_string("           -> ");
@@ -166,5 +192,65 @@ contract SwapERC20ForERC20Test is Test, ForkUtils, TestUtils {
         path = _toKyberElasticPath(tokenPath, poolPath);
         (uint256 amountOut, , , ) = kyberQuoter.quoteExactInput(path, amount);
         return (amountOut, path);
+    }
+
+    function sampleTraderJoeV2(
+        uint256 amount,
+        address takerToken,
+        address makerToken,
+        address router,
+        address pool
+    ) private returns (uint256 makerTokenAmount, uint256 binStep) {
+        log_string("Sampling TraderJoeV2");
+        log_named_address("takerToken", takerToken);
+        log_named_address("makerToken", makerToken);
+        log_named_address("router", router);
+        log_named_address("pool", pool);
+
+        bool swapForY = ITraderJoeV2Pool(pool).tokenY() == makerToken;
+
+        (makerTokenAmount, ) = ITraderJoeV2Router(router).getSwapOut(pool, amount, swapForY);
+
+        binStep = ITraderJoeV2Pool(pool).feeParameters().binStep;
+    }
+
+    function deployFQTAndGetDeploymentNonce(
+        TokenAddresses memory tokens,
+        ContractAddresses memory addresses
+    ) private returns (uint32) {
+        createNewFQT(tokens.WrappedNativeToken, addresses.exchangeProxy, addresses.exchangeProxyTransformerDeployer);
+        return
+            _findTransformerNonce(address(fillQuoteTransformer), address(addresses.exchangeProxyTransformerDeployer));
+    }
+
+    function settleAndLogBalances(
+        FillQuoteTransformer.TransformData memory fqtData,
+        TokenAddresses memory tokens,
+        ContractAddresses memory addresses
+    ) private {
+        ITransformERC20Feature.Transformation[] memory transformations = new ITransformERC20Feature.Transformation[](1);
+        transformations[0].deploymentNonce = deployFQTAndGetDeploymentNonce(tokens, addresses);
+        transformations[0].data = abi.encode(fqtData);
+
+        address sellToken = address(fqtData.sellToken);
+        address buyToken = address(fqtData.buyToken);
+
+        writeTokenBalance(address(this), sellToken, 1e16);
+        uint256 sellTokenBalanceBefore = IERC20Token(sellToken).balanceOf(address(this));
+        uint256 buyTokenBalanceBefore = IERC20Token(buyToken).balanceOf(address(this));
+
+        IERC20Token(sellToken).approve(addresses.exchangeProxy, 1e16);
+        IZeroEx(payable(addresses.exchangeProxy)).transformERC20(
+            IERC20Token(sellToken),
+            IERC20Token(buyToken),
+            fqtData.fillAmount,
+            fqtData.bridgeOrders[0].makerTokenAmount,
+            transformations
+        );
+
+        log_named_uint("sellToken balance before", sellTokenBalanceBefore);
+        log_named_uint("sellToken balance after", IERC20Token(sellToken).balanceOf(address(this)));
+        log_named_uint("buyToken balance before", buyTokenBalanceBefore);
+        log_named_uint("buyToken balance after", IERC20Token(buyToken).balanceOf(address(this)));
     }
 }
