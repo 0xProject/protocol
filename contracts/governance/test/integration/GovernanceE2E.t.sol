@@ -50,6 +50,19 @@ contract GovernanceE2ETest is BaseTest {
     address internal staker1 = 0x885c327cAD2aebb969dfaAb4c928B73CA17e3887;
     address internal staker2 = 0x03c823e96F6964076C118395F08a2D7edF0f8a8C;
 
+    address[] internal topStakers = [
+        0x5775afA796818ADA27b09FaF5c90d101f04eF600,
+        0xE1bdcd3B70e077D2d66ADcbe78be3941F0BF380B,
+        0xcCa71809E8870AFEB72c4720d0fe50d5C3230e05,
+        0x828FD91d3e3a9FFa6305e78B9aE2Cfbc5B5D9f6B,
+        0x4A36C3DA5d367B148d17265e7d7feafcf8fb4a21,
+        0xEeff6fd32DeaFe1a9d3258A51c7F952F9FF0B2Ce,
+        0x1D0738b927dFCBFBD59A9F0944BbD1860d3B9248,
+        0x0C073E7248C1b548a08b27dD3af5D0f39c774280,
+        0xA178FF321335BB777A7E21A56376592F69556b9c,
+        0xD06CfBb59d2e8918F84D99d981039d7706DCA288
+    ];
+
     // voting power 1500000e18
     address internal voter1 = 0x292c6DAE7417B3D31d8B6e1d2EeA0258d14C4C4b;
     bytes32 internal voter1Pool = 0x0000000000000000000000000000000000000000000000000000000000000030;
@@ -282,6 +295,21 @@ contract GovernanceE2ETest is BaseTest {
 
         assertEq(vault.balanceOf(staker2), 0);
         assertEq(token.balanceOf(staker2), stake2 + balance2);
+
+        // Test top stakers can withdraw
+        for (uint256 i = 0; i < topStakers.length; i++) {
+            address staker = topStakers[i];
+            uint256 stake = vault.balanceOf(staker);
+            uint256 balance = token.balanceOf(staker);
+            assertGt(stake, 0);
+
+            vm.prank(staker);
+            vault.withdrawAllFrom(staker);
+            vm.stopPrank();
+
+            assertEq(vault.balanceOf(staker), 0);
+            assertEq(token.balanceOf(staker), stake + balance);
+        }
 
         // Delegator can withdraw rewards
         address delegator1 = 0x0ee1F33A2EB0da738FdF035C48d62d75e996a3bd;
