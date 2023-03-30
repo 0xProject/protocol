@@ -57,7 +57,7 @@ export function AppsTable({ data, ...other }: AppsTableProps) {
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
-                    {data.map(({ id, name, brandColor }) => (
+                    {data.map(({ id, name, brandColor, onChainTag }) => (
                         <Tr key={id} pathname={id}>
                             <Table.Td>
                                 <div className="flex">
@@ -69,7 +69,7 @@ export function AppsTable({ data, ...other }: AppsTableProps) {
                                     <span className="font-medium">{name}</span>
                                 </div>
                             </Table.Td>
-                            <Table.Td>-</Table.Td>
+                            <Table.Td>{onChainTag?.name ? onChainTag.name : '-'}</Table.Td>
                             <Table.Td className=" text-right">
                                 <ExploreLink to={`/app/${id}`} />
                             </Table.Td>

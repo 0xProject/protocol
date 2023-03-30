@@ -1,12 +1,12 @@
-import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
+import { createTRPCProxyClient, httpLink } from '@trpc/client';
 import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
-import type { TZippoRouter, TZippoRouteTag } from 'zippo-interface';
+import type { TZippoRouter } from 'zippo-interface';
 import { env } from '../env';
 
 const makeClient = () =>
     createTRPCProxyClient<TZippoRouter>({
         links: [
-            httpBatchLink({
+            httpLink({
                 url: env.ZIPPO_URL,
                 headers() {
                     return { apiKey: env.ZIPPO_API_KEY };

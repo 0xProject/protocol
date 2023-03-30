@@ -1,6 +1,7 @@
 import { json, redirect } from '@remix-run/node';
 import { Outlet, useLoaderData } from '@remix-run/react';
 import { twMerge } from 'tailwind-merge';
+import type { BadgeColor } from '../components/Badge';
 import { Badge, isBadgeColor } from '../components/Badge';
 import { LinkButton } from '../components/Button';
 import { Key2 } from '../icons/Key2';
@@ -11,6 +12,20 @@ import { getAppById } from '../data/zippo.server';
 
 import type { LoaderArgs, MetaFunction } from '@remix-run/node';
 import type { ComponentPropsWithoutRef } from 'react';
+import { sessionStorage } from '../auth.server';
+import { enhanceAppWithMockedData } from '../utils/utils.server';
+import { TZippoRouteTag } from 'zippo-interface';
+
+const ZIPPO_ROUTE_TAG_TO_PRODUCT: Partial<Record<TZippoRouteTag, { name: string; color: BadgeColor }>> = {
+    [TZippoRouteTag.SwapV1]: {
+        name: 'Swap API',
+        color: 'green',
+    },
+    [TZippoRouteTag.OrderbookV1]: {
+        name: 'Orderbook',
+        color: 'blue',
+    },
+} as const;
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return {
@@ -19,8 +34,10 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
     };
 };
 
-export const loader = async ({ params }: LoaderArgs) => {
+export const loader = async ({ params, request }: LoaderArgs) => {
     if (!params.appId) throw redirect('/apps');
+
+    const session = await sessionStorage.getSession(request.headers.get('Cookie'));
 
     const app = await getAppById(params.appId);
 
@@ -29,7 +46,7 @@ export const loader = async ({ params }: LoaderArgs) => {
     }
 
     return json({
-        app: app.data,
+        app: enhanceAppWithMockedData(app.data, session),
     });
 };
 
@@ -54,9 +71,23 @@ export default function AppDashboard() {
             <div className="border-grey-200 border-b border-solid pt-8 pb-9">
                 <div className="max-w-page-size mx-auto flex items-start justify-between">
                     <div>
-                        <h1 className="text-5xl font-normal">{app.name}</h1>
+                        <div className="flex items-center">
+                            <h1 className="inline-block text-5xl font-normal">{app.name}</h1>
+                            {app.onChainTag?.name && (
+                                <span className="items text-grey-800 bg-grey-100 ml-4 rounded-full px-4 py-2 text-lg antialiased">
+                                    {app.onChainTag.name}
+                                </span>
+                            )}
+                        </div>
                         <div className="mt-2 grid auto-cols-max grid-flow-col gap-4">
-                            {(app.onChainTag || []).map(({ name, color }) => {
+                            {(app.productAccess || []).map((product) => {
+                                const { name, color } = ZIPPO_ROUTE_TAG_TO_PRODUCT[product] || {};
+
+                                if (!name || !color) {
+                                    console.warn('Invalid product', product);
+                                    return null;
+                                }
+
                                 const badgeColor = isBadgeColor(color) ? color : undefined;
                                 if (badgeColor) {
                                     console.warn('Invalid color for Badge', color);

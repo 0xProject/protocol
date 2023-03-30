@@ -1,4 +1,4 @@
-import { Form, useActionData, useLoaderData } from '@remix-run/react';
+import { Form, useActionData, useLoaderData, useNavigation } from '@remix-run/react';
 import type { ActionArgs, LoaderArgs } from '@remix-run/server-runtime';
 import { json, redirect } from '@remix-run/server-runtime';
 import { useState } from 'react';
@@ -64,6 +64,8 @@ export async function loader({ request }: LoaderArgs) {
 export default function AppDetails() {
     const { data } = useLoaderData<typeof loader>();
     const actionData = useActionData<typeof action>();
+
+    const navigation = useNavigation();
 
     const [appName, setAppName] = useState(actionData?.values.name || data?.appName || '');
     const [selectedProducts, setSelectedProducts] = useState(
@@ -131,7 +133,7 @@ export default function AppDetails() {
                         size="md"
                         className="w-full justify-center"
                         type="submit"
-                        disabled={appName === '' || selectedProducts.size === 0}
+                        disabled={navigation.state !== 'idle' || appName === '' || selectedProducts.size === 0}
                     >
                         Continue
                         <ArrowNarrowRight height={24} width={24} className="ml-2" />

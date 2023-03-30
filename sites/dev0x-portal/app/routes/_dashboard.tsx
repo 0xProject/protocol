@@ -1,11 +1,12 @@
 import { json, redirect } from '@remix-run/node';
 import { Outlet, useLoaderData } from '@remix-run/react';
-import { getSignedInUser } from '../auth.server';
+import { getSignedInUser, sessionStorage } from '../auth.server';
 import { AppBar } from '../components/AppBar';
 import { appsList, NO_TEAM_MARKER } from '../data/zippo.server';
 
 import type { LoaderArgs, MetaFunction } from '@remix-run/node';
 import type { ClientApp } from '../types';
+import { enhanceAppWithMockedData } from '../utils/utils.server';
 
 export type AppsOutletContext = {
     apps: ClientApp[];
@@ -21,6 +22,8 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 export const loader = async ({ request, params }: LoaderArgs) => {
     const [user, headers] = await getSignedInUser(request);
     if (!user) throw redirect('/login'); // shouldn't happen
+    const session = await sessionStorage.getSession(request.headers.get('Cookie'));
+
 
     if (user.teamName === NO_TEAM_MARKER) {
         throw redirect('/create-account/create-team', { headers });
@@ -31,9 +34,11 @@ export const loader = async ({ request, params }: LoaderArgs) => {
         throw list.error;
     }
 
+    const apps = list.data.map((app) => enhanceAppWithMockedData(app, session));
+
     return json(
         {
-            apps: list.data,
+            apps,
             user: {
                 email: user.email,
                 team: user.teamName,

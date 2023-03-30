@@ -1,17 +1,22 @@
 import type { Simplify } from 'type-fest';
+import type { TZippoRouteTag } from 'zippo-interface';
 import type { User } from './auth.server';
 import type { ZippoApp } from './data/zippo.server';
 
-export type ClientApp = Rename<Pick<ZippoApp, 'id' | 'description' | 'integratorTeamId' | 'name' | 'apiKeys'>, { integratorTeamId: 'teamId' }> & {
-    onChainTag?: { name: string; color: string }[];
+export type ClientApp = Rename<
+    Pick<ZippoApp, 'id' | 'description' | 'integratorTeamId' | 'name' | 'apiKeys'>,
+    { integratorTeamId: 'teamId' }
+> & {
+    onChainTag?: { name: string; color: string };
+    productAccess?: TZippoRouteTag[];
     brandColor?: string;
-}
+};
 
 export type ClientUser = Pick<User, 'email' | 'team'>;
 
 type SuccessResult<T> = {
     result: 'SUCCESS';
-data: T;
+    data: T;
 };
 
 type ErrorResult = {
@@ -25,14 +30,15 @@ export type CreateAppFlowType = [
     { appName: string; products: string[] },
     (
         | {
-            skipped: false;
-            tagName: string;
-            //@TODO add logo
-        }
+              skipped: false;
+              tagName: string;
+              //@TODO add logo
+          }
         | { skipped: true }
     ),
     {
         apiKey: string;
+        appId: string;
     },
 ];
 
@@ -58,5 +64,5 @@ type Remap<T extends Record<string, any>, PM extends keyof T, M extends Record<P
  */
 export type Rename<T extends Record<string, any>, M extends RenameRecord<T>> = Simplify<
     Omit<T, keyof M extends string ? keyof M : never> &
-    Remap<T, keyof M extends string ? keyof M : never, M extends Record<string, string> ? M : never>
+        Remap<T, keyof M extends string ? keyof M : never, M extends Record<string, string> ? M : never>
 >;

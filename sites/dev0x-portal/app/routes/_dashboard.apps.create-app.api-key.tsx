@@ -1,6 +1,6 @@
 import { Cross1Icon } from '@radix-ui/react-icons';
-import { useLoaderData } from '@remix-run/react';
-import type { LoaderArgs } from '@remix-run/server-runtime';
+import { Form, useLoaderData } from '@remix-run/react';
+import type { ActionArgs, LoaderArgs } from '@remix-run/server-runtime';
 import { json, redirect } from '@remix-run/server-runtime';
 import { useContext } from 'react';
 import { getSignedInUser, sessionStorage } from '../auth.server';
@@ -9,8 +9,29 @@ import { Button } from '../components/Button';
 import { IconButton } from '../components/IconButton';
 import { ArrowNarrowRight } from '../icons/ArrowNarrowRight';
 import type { CreateAppFlowType } from '../types';
-import { makeMultipageHandler } from '../utils/utils.server';
+import { makeMultipageHandler, storeMockForApp } from '../utils/utils.server';
+import { productToZippoTag } from './_dashboard.apps.create-app.explorer-tag';
 import { CloseContext } from './_dashboard.apps.create-app';
+
+export async function action({ request }: ActionArgs) {
+    const session = await sessionStorage.getSession(request.headers.get('Cookie'));
+
+    const sessionHandler = makeMultipageHandler<CreateAppFlowType>({ session, namespace: 'create-app' });
+    const currentData = sessionHandler.getPage(2);
+    if (!currentData) {
+        throw redirect('/apps/create-app/explorer-tag');
+    }
+
+    const id = currentData.appId;
+
+    const redirectUrl = `/app/${id}` as const;
+
+    sessionHandler.deleteAll();
+
+    const newHeader = await sessionStorage.commitSession(session);
+
+    throw redirect(redirectUrl, { headers: { 'Set-Cookie': newHeader } });
+}
 
 export async function loader({ request }: LoaderArgs) {
     const [user] = await getSignedInUser(request);
@@ -29,9 +50,25 @@ export async function loader({ request }: LoaderArgs) {
         throw redirect('/apps/create-app/explorer-tag');
     }
 
-    return json({
-        apiKey: pageThreeData.apiKey,
-    });
+    storeMockForApp(
+        {
+            tagName: pageTwoData.skipped ? undefined : pageTwoData.tagName,
+            id: pageThreeData.appId,
+            enabledProducts: pageOneData.products.map((product) => productToZippoTag[product]),
+        },
+        session,
+    );
+
+    return json(
+        {
+            apiKey: pageThreeData.apiKey,
+        },
+        {
+            headers: {
+                'Set-Cookie': await sessionStorage.commitSession(session),
+            },
+        },
+    );
 }
 
 export default function ExplorerTag() {
@@ -64,10 +101,12 @@ export default function ExplorerTag() {
             <BlurredInputWithCopy value={apiKey} label="Your API key" hiddenLabel className="px-10" />
             <div className="flex-grow" />
             <div className="p-6">
-                <Button size="md" className="w-full items-center justify-center" type="submit" onClick={close}>
-                    Go to project
-                    <ArrowNarrowRight height={24} width={24} className="ml-2" />
-                </Button>
+                <Form method="post">
+                    <Button size="md" className="w-full items-center justify-center" type="submit">
+                        Go to project
+                        <ArrowNarrowRight height={24} width={24} className="ml-2" />
+                    </Button>
+                </Form>
             </div>
         </div>
     );

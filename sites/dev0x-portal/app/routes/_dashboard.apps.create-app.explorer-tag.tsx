@@ -103,7 +103,7 @@ export async function action({ request }: ActionArgs) {
     //     return json({ errors: { general: 'Error creating api key' } as Errors, values: body });
     // }
 
-    sessionHandler.setPage(2, { apiKey: res.data.apiKeys[0].apiKey });
+    sessionHandler.setPage(2, { apiKey: res.data.apiKeys[0].apiKey, appId: res.data.id });
 
     const header = await sessionStorage.commitSession(session);
 
