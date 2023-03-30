@@ -63,8 +63,8 @@ Note: Some addresses have changed across various networks
     Optimism, `0xdef1abe32c034e558cdd535791643c58a13acc10 <https://optimistic.etherscan.io/address/0xdef1abe32c034e558cdd535791643c58a13acc10>`__
     Binance Smart Chain, `0xdef1c0ded9bec7f1a1670819833240f027b25eff <https://bscscan.com/address/0xdef1c0ded9bec7f1a1670819833240f027b25eff>`__
     Polygon, `0xdef1c0ded9bec7f1a1670819833240f027b25eff <https://polygonscan.com/address/0xdef1c0ded9bec7f1a1670819833240f027b25eff>`__
-    Polygon (Mumbai), _`0xf471d32cb40837bf24529fcf17418fc1a4807626 <https://mumbai.polygonscan.com/address/0xf471d32cb40837bf24529fcf17418fc1a4807626>`__
+    Polygon (Mumbai), `0xf471d32cb40837bf24529fcf17418fc1a4807626 <https://mumbai.polygonscan.com/address/0xf471d32cb40837bf24529fcf17418fc1a4807626>`__
     Avalanche, `0xdef1c0ded9bec7f1a1670819833240f027b25eff <https://snowtrace.io/address/0xdef1c0ded9bec7f1a1670819833240f027b25eff>`__
-    Arbitrum, _`0xdef1c0ded9bec7f1a1670819833240f027b25eff <https://arbiscan.io/address/0xdef1c0ded9bec7f1a1670819833240f027b25eff>`__    
+    Arbitrum, `0xdef1c0ded9bec7f1a1670819833240f027b25eff <https://arbiscan.io/address/0xdef1c0ded9bec7f1a1670819833240f027b25eff>`__    
     Fantom, `0xdef189deaef76e379df891899eb5a00a94cbc250 <https://ftmscan.com/address/0xdef189deaef76e379df891899eb5a00a94cbc250>`__
     Celo, `0xdef1c0ded9bec7f1a1670819833240f027b25eff <https://explorer.celo.org/address/0xdef1c0ded9bec7f1a1670819833240f027b25eff>`__
