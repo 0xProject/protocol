@@ -1,5 +1,5 @@
 import { json } from '@remix-run/node';
-import { useLoaderData, useOutletContext } from '@remix-run/react';
+import { Outlet, useLoaderData, useOutletContext } from '@remix-run/react';
 import { Badge } from '../components/Badge';
 import { HiddenText } from '../components/HiddenText';
 import { SwapCodeBlock } from '../components/SwapCodeBlock';
@@ -8,7 +8,7 @@ import { GoToExplorer } from '../components/GoToExplorer';
 import { LinkButton } from '../components/Button';
 
 import type { LoaderArgs } from '@remix-run/node';
-import type { AppsOutletContext } from './apps';
+import type { AppsOutletContext } from './_dashboard';
 
 export const loader = async ({ request, params }: LoaderArgs) => {
     return json({
@@ -57,6 +57,7 @@ export default function Apps() {
             </div>
             <AppsTable data={apps} className="mt-16 mb-24" />
             <GoToExplorer />
+            <Outlet  />
         </div>
     );
 }

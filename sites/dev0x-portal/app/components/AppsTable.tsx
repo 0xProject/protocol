@@ -32,9 +32,9 @@ function Tr({ pathname, ...other }: ComponentPropsWithoutRef<typeof Table.Tr> & 
             onClick={(event) => {
                 if (event.metaKey || event.ctrlKey) {
                     //open in new tab
-                    window.open(`/apps/${pathname}`, '_blank');
+                    window.open(`/app/${pathname}`, '_blank');
                 } else {
-                    navigate(`/apps/${pathname}`);
+                    navigate(`/app/${pathname}`);
                 }
             }}
         />
@@ -71,7 +71,7 @@ export function AppsTable({ data, ...other }: AppsTableProps) {
                             </Table.Td>
                             <Table.Td>-</Table.Td>
                             <Table.Td className=" text-right">
-                                <ExploreLink to={`/apps/${id}`} />
+                                <ExploreLink to={`/app/${id}`} />
                             </Table.Td>
                         </Tr>
                     ))}

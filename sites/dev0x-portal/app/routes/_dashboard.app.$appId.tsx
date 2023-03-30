@@ -75,7 +75,7 @@ export default function AppDashboard() {
                             color="transparent"
                             endIcon={<Key2 className="relative -top-[1px]" />}
                             className="mr-4"
-                            to={`/apps/${app.id}/api-key`}
+                            to={`/app/${app.id}/api-key`}
                         >
                             API Key
                         </LinkButton>
@@ -83,7 +83,7 @@ export default function AppDashboard() {
                             size="sm"
                             color="transparent"
                             endIcon={<Settings4 className="relative -top-[1px]" />}
-                            to={`/apps/${app.id}/settings`}
+                            to={`/app/${app.id}/settings`}
                         >
                             Settings
                         </LinkButton>

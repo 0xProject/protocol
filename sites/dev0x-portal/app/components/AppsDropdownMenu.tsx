@@ -66,7 +66,7 @@ export const Content = forwardRef<ElementRef<typeof DropdownMenu.Content>, AppsD
                 {apps.map(({ name, id }) => {
                     return (
                         <DropdownMenu.Item asChild key={id}>
-                            <Link to={`/apps/${id}`} className="flex items-center justify-between">
+                            <Link to={`/app/${id}`} className="flex items-center justify-between">
                                 <span>{name}</span>
                                 {pathname.includes(id) && (
                                     <Check width={16} height={16} className="relative -top-[1px] ml-2" />

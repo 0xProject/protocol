@@ -10,7 +10,7 @@ import { IconButton } from '../components/IconButton';
 import { ArrowNarrowRight } from '../icons/ArrowNarrowRight';
 import type { CreateAppFlowType } from '../types';
 import { makeMultipageHandler } from '../utils/utils.server';
-import { CloseContext } from './apps.create-app';
+import { CloseContext } from './_dashboard.apps.create-app';
 
 export async function loader({ request }: LoaderArgs) {
     const [user] = await getSignedInUser(request);
