@@ -17,36 +17,16 @@
 
 */
 
+import "./IZrxVaultMock.sol";
+import "./IStructs.sol";
+import "./IStorageMock.sol";
+
 pragma solidity ^0.8.19;
 
-interface IStakingMock {
-    /// @dev Statuses that stake can exist in.
-    ///      Any stake can be (re)delegated effective at the next epoch
-    ///      Undelegated stake can be withdrawn if it is available in both the current and next epoch
-    enum StakeStatus {
-        UNDELEGATED,
-        DELEGATED
-    }
-
-    /// @dev Encapsulates a balance for the current and next epochs.
-    /// Note that these balances may be stale if the current epoch
-    /// is greater than `currentEpoch`.
-    /// @param currentEpoch The current epoch
-    /// @param currentEpochBalance Balance in the current epoch.
-    /// @param nextEpochBalance Balance in `currentEpoch+1`.
-    struct StoredBalance {
-        uint64 currentEpoch;
-        uint96 currentEpochBalance;
-        uint96 nextEpochBalance;
-    }
-
-    /// @dev Holds the metadata for a staking pool.
-    /// @param operator Operator of the pool.
-    /// @param operatorShare Fraction of the total balance owned by the operator, in ppm.
-    struct Pool {
-        address operator;
-        uint32 operatorShare;
-    }
+interface IStakingMock is IStorageMock {
+    /// @dev Adds a new exchange address
+    /// @param addr Address of exchange contract to add
+    function addExchangeAddress(address addr) external;
 
     /// @dev Create a new staking pool. The sender will be the operator of this pool.
     /// Note that an operator must be payable.
@@ -55,26 +35,105 @@ interface IStakingMock {
     /// @return poolId The unique pool id generated for this pool.
     function createStakingPool(uint32 operatorShare, bool addOperatorAsMaker) external returns (bytes32 poolId);
 
-    /// @dev Returns the current staking epoch number.
-    /// @return epoch The current epoch.
-    function currentEpoch() external view returns (uint256 epoch);
+    /// @dev Decreases the operator share for the given pool (i.e. increases pool rewards for members).
+    /// @param poolId Unique Id of pool.
+    /// @param newOperatorShare The newly decreased percentage of any rewards owned by the operator.
+    function decreaseStakingPoolOperatorShare(bytes32 poolId, uint32 newOperatorShare) external;
 
-    /// @dev Returns the time (in seconds) at which the current staking epoch started.
-    /// @return startTime The start time of the current epoch, in seconds.
-    function currentEpochStartTimeInSeconds() external view returns (uint256 startTime);
+    /// @dev Begins a new epoch, preparing the prior one for finalization.
+    ///      Throws if not enough time has passed between epochs or if the
+    ///      previous epoch was not fully finalized.
+    /// @return numPoolsToFinalize The number of unfinalized pools.
+    function endEpoch() external returns (uint256);
 
-    /// @dev Returns the duration of an epoch in seconds. This value can be updated.
-    /// @return duration The duration of an epoch, in seconds.
-    function epochDurationInSeconds() external view returns (uint256 duration);
+    /// @dev Instantly finalizes a single pool that earned rewards in the previous
+    ///      epoch, crediting it rewards for members and withdrawing operator's
+    ///      rewards as WETH. This can be called by internal functions that need
+    ///      to finalize a pool immediately. Does nothing if the pool is already
+    ///      finalized or did not earn rewards in the previous epoch.
+    /// @param poolId The pool ID to finalize.
+    function finalizePool(bytes32 poolId) external;
 
-    /// @dev Returns a staking pool
+    /// @dev Initialize storage owned by this contract.
+    ///      This function should not be called directly.
+    ///      The StakingProxy contract will call it in `attachStakingContract()`.
+    function init() external;
+
+    /// @dev Allows caller to join a staking pool as a maker.
     /// @param poolId Unique id of pool.
-    function getStakingPool(bytes32 poolId) external view returns (Pool memory);
+    function joinStakingPoolAsMaker(bytes32 poolId) external;
+
+    /// @dev Moves stake between statuses: 'undelegated' or 'delegated'.
+    ///      Delegated stake can also be moved between pools.
+    ///      This change comes into effect next epoch.
+    /// @param from status to move stake out of.
+    /// @param to status to move stake into.
+    /// @param amount of stake to move.
+    function moveStake(IStructs.StakeInfo calldata from, IStructs.StakeInfo calldata to, uint256 amount) external;
+
+    /// @dev Pays a protocol fee in ETH.
+    /// @param makerAddress The address of the order's maker.
+    /// @param payerAddress The address that is responsible for paying the protocol fee.
+    /// @param protocolFee The amount of protocol fees that should be paid.
+    function payProtocolFee(address makerAddress, address payerAddress, uint256 protocolFee) external payable;
+
+    /// @dev Removes an existing exchange address
+    /// @param addr Address of exchange contract to remove
+    function removeExchangeAddress(address addr) external;
+
+    /// @dev Set all configurable parameters at once.
+    /// @param _epochDurationInSeconds Minimum seconds between epochs.
+    /// @param _rewardDelegatedStakeWeight How much delegated stake is weighted vs operator stake, in ppm.
+    /// @param _minimumPoolStake Minimum amount of stake required in a pool to collect rewards.
+    /// @param _cobbDouglasAlphaNumerator Numerator for cobb douglas alpha factor.
+    /// @param _cobbDouglasAlphaDenominator Denominator for cobb douglas alpha factor.
+    function setParams(
+        uint256 _epochDurationInSeconds,
+        uint32 _rewardDelegatedStakeWeight,
+        uint256 _minimumPoolStake,
+        uint32 _cobbDouglasAlphaNumerator,
+        uint32 _cobbDouglasAlphaDenominator
+    ) external;
+
+    /// @dev Stake ZRX tokens. Tokens are deposited into the ZRX Vault.
+    ///      Unstake to retrieve the ZRX. Stake is in the 'Active' status.
+    /// @param amount of ZRX to stake.
+    function stake(uint256 amount) external;
+
+    /// @dev Unstake. Tokens are withdrawn from the ZRX Vault and returned to
+    ///      the staker. Stake must be in the 'undelegated' status in both the
+    ///      current and next epoch in order to be unstaked.
+    /// @param amount of ZRX to unstake.
+    function unstake(uint256 amount) external;
+
+    /// @dev Withdraws the caller's WETH rewards that have accumulated
+    ///      until the last epoch.
+    /// @param poolId Unique id of pool.
+    function withdrawDelegatorRewards(bytes32 poolId) external;
+
+    /// @dev Computes the reward balance in ETH of a specific member of a pool.
+    /// @param poolId Unique id of pool.
+    /// @param member The member of the pool.
+    /// @return reward Balance in ETH.
+    function computeRewardBalanceOfDelegator(bytes32 poolId, address member) external view returns (uint256 reward);
+
+    /// @dev Computes the reward balance in ETH of the operator of a pool.
+    /// @param poolId Unique id of pool.
+    /// @return reward Balance in ETH.
+    function computeRewardBalanceOfOperator(bytes32 poolId) external view returns (uint256 reward);
+
+    /// @dev Returns the earliest end time in seconds of this epoch.
+    ///      The next epoch can begin once this time is reached.
+    ///      Epoch period = [startTimeInSeconds..endTimeInSeconds)
+    /// @return Time in seconds.
+    function getCurrentEpochEarliestEndTimeInSeconds() external view returns (uint256);
 
     /// @dev Gets global stake for a given status.
     /// @param stakeStatus UNDELEGATED or DELEGATED
     /// @return balance Global stake for given status.
-    function getGlobalStakeByStatus(StakeStatus stakeStatus) external view returns (StoredBalance memory balance);
+    function getGlobalStakeByStatus(
+        IStructs.StakeStatus stakeStatus
+    ) external view returns (IStructs.StoredBalance memory balance);
 
     /// @dev Gets an owner's stake balances by status.
     /// @param staker Owner of stake.
@@ -82,25 +141,56 @@ interface IStakingMock {
     /// @return balance Owner's stake balances for given status.
     function getOwnerStakeByStatus(
         address staker,
-        StakeStatus stakeStatus
-    ) external view returns (StoredBalance memory balance);
+        IStructs.StakeStatus stakeStatus
+    ) external view returns (IStructs.StoredBalance memory balance);
 
-    /// @dev Returns the total stake delegated to a specific staking pool,
-    ///      across all members.
-    /// @param poolId Unique Id of pool.
-    /// @return balance Total stake delegated to pool.
-    function getTotalStakeDelegatedToPool(bytes32 poolId) external view returns (StoredBalance memory balance);
+    /// @dev Retrieves all configurable parameter values.
+    /// @return _epochDurationInSeconds Minimum seconds between epochs.
+    /// @return _rewardDelegatedStakeWeight How much delegated stake is weighted vs operator stake, in ppm.
+    /// @return _minimumPoolStake Minimum amount of stake required in a pool to collect rewards.
+    /// @return _cobbDouglasAlphaNumerator Numerator for cobb douglas alpha factor.
+    /// @return _cobbDouglasAlphaDenominator Denominator for cobb douglas alpha factor.
+    function getParams()
+        external
+        view
+        returns (
+            uint256 _epochDurationInSeconds,
+            uint32 _rewardDelegatedStakeWeight,
+            uint256 _minimumPoolStake,
+            uint32 _cobbDouglasAlphaNumerator,
+            uint32 _cobbDouglasAlphaDenominator
+        );
 
-    /// @dev Returns the stake delegated to a specific staking pool, by a given staker.
     /// @param staker of stake.
     /// @param poolId Unique Id of pool.
     /// @return balance Stake delegated to pool by staker.
     function getStakeDelegatedToPoolByOwner(
         address staker,
         bytes32 poolId
-    ) external view returns (StoredBalance memory balance);
+    ) external view returns (IStructs.StoredBalance memory balance);
 
-    function endEpoch() external returns (uint256);
+    /// @dev Returns a staking pool
+    /// @param poolId Unique id of pool.
+    function getStakingPool(bytes32 poolId) external view returns (IStructs.Pool memory);
 
-    function finalizePool(bytes32 poolId) external;
+    /// @dev Get stats on a staking pool in this epoch.
+    /// @param poolId Pool Id to query.
+    /// @return PoolStats struct for pool id.
+    function getStakingPoolStatsThisEpoch(bytes32 poolId) external view returns (IStructs.PoolStats memory);
+
+    /// @dev Returns the total stake delegated to a specific staking pool,
+    ///      across all members.
+    /// @param poolId Unique Id of pool.
+    /// @return balance Total stake delegated to pool.
+    function getTotalStakeDelegatedToPool(bytes32 poolId) external view returns (IStructs.StoredBalance memory balance);
+
+    /// @dev An overridable way to access the deployed WETH contract.
+    ///      Must be view to allow overrides to access state.
+    /// @return wethContract The WETH contract instance.
+    function getWethContract() external view returns (address wethContract);
+
+    /// @dev An overridable way to access the deployed zrxVault.
+    ///      Must be view to allow overrides to access state.
+    /// @return zrxVault The zrxVault contract.
+    function getZrxVault() external view returns (IZrxVaultMock zrxVault);
 }

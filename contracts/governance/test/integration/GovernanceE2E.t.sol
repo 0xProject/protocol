@@ -94,6 +94,7 @@ contract GovernanceE2ETest is BaseTest {
     IZrxTreasuryMock internal treasury;
     IZrxVaultMock internal vault;
     IStakingMock internal staking;
+    IERC20 internal weth;
 
     ZRXWrappedToken internal wToken;
     ZeroExVotes internal votes;
@@ -115,6 +116,7 @@ contract GovernanceE2ETest is BaseTest {
         treasury = IZrxTreasuryMock(TREASURY);
         vault = IZrxVaultMock(ZRX_VAULT);
         staking = IStakingMock(STAKING);
+        weth = IERC20(staking.getWethContract());
 
         address protocolGovernorAddress;
         address treasuryGovernorAddress;
@@ -280,5 +282,18 @@ contract GovernanceE2ETest is BaseTest {
 
         assertEq(vault.balanceOf(staker2), 0);
         assertEq(token.balanceOf(staker2), stake2 + balance2);
+
+        // Delegator can withdraw rewards
+        address delegator1 = 0x0ee1F33A2EB0da738FdF035C48d62d75e996a3bd;
+        bytes32 pool1 = 0x0000000000000000000000000000000000000000000000000000000000000016;
+        uint256 reward = staking.computeRewardBalanceOfDelegator(pool1, delegator1);
+        assertGt(reward, 0);
+        uint256 balanceBeforeReward = weth.balanceOf(delegator1);
+
+        vm.prank(delegator1);
+        staking.withdrawDelegatorRewards(pool1);
+        vm.stopPrank();
+
+        assertEq(weth.balanceOf(delegator1), balanceBeforeReward + reward);
     }
 }
