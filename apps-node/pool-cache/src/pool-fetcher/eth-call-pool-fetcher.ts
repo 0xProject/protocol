@@ -5,6 +5,7 @@ import { toUniswapV3PoolCache } from './normalizer';
 import { Map } from 'immutable';
 import { deployedBytecode } from '../artifacts';
 import { StateOverrideJsonRpcProvider } from '../ethers/provider';
+import { getTimestampInSeconds } from '../utils/time';
 
 const POOL_FETCHER_CONTRACT_ADDRESS = '0x0000000000000000000000000000000000000042';
 
@@ -32,7 +33,7 @@ export class EthCallPoolFetcher implements PoolFetcher {
             throw new Error(`Unsupported chain ${input.chainId}`);
         }
 
-        const timestamp = Date.now();
+        const timestamp = getTimestampInSeconds();
         const uniswapPoolStructs = await onChainPoolFetcher.batchFetch(input.uniswapV3Pairs);
         return {
             uniswapV3Cache: toUniswapV3PoolCache(uniswapPoolStructs).map((cache) => ({ ...cache, timestamp })),

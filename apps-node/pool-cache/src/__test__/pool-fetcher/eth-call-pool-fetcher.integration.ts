@@ -1,6 +1,7 @@
 import { EthCallPoolFetcher } from '../../pool-fetcher/eth-call-pool-fetcher';
 import * as _ from 'lodash';
 import { Map } from 'immutable';
+import { getTimestampInSeconds } from '../../utils/time';
 
 const ETHEREUM = {
     APE: '0x4d224452801aced8b2f0aebe155379bb5d594381',
@@ -54,7 +55,8 @@ describe('EthCallPoolFetcher Integration Test', () => {
             expect(cache.uniswapV3Cache).toHaveLength(1);
 
             const usdcWethCache = cache.uniswapV3Cache[0];
-            expect(usdcWethCache.timestamp).toBeLessThan(Date.now() + 60_000);
+            expect(usdcWethCache.timestamp).toBeGreaterThan(1680000000);
+            expect(usdcWethCache.timestamp).toBeLessThan(getTimestampInSeconds() + 60);
 
             // All pools of 4 fee tiers are already created.
             expect(usdcWethCache.pools).toHaveLength(4);
@@ -79,7 +81,7 @@ describe('EthCallPoolFetcher Integration Test', () => {
             expect(cache.uniswapV3Cache).toHaveLength(1);
 
             const usdcUsdtCache = cache.uniswapV3Cache[0];
-            expect(usdcUsdtCache.timestamp).toBeLessThan(Date.now() + 60_000);
+            expect(usdcUsdtCache.timestamp).toBeLessThan(getTimestampInSeconds() + 60);
 
             const topTwoPools = _.take(usdcUsdtCache.pools, 2);
 
@@ -118,7 +120,7 @@ describe('EthCallPoolFetcher Integration Test', () => {
             expect(cache.uniswapV3Cache).toHaveLength(1);
 
             const wethMaticCache = cache.uniswapV3Cache[0];
-            expect(wethMaticCache.timestamp).toBeLessThan(Date.now() + 60_000);
+            expect(wethMaticCache.timestamp).toBeLessThan(getTimestampInSeconds() + 60);
 
             const topTwoPools = _.take(wethMaticCache.pools, 2);
 
@@ -141,7 +143,7 @@ describe('EthCallPoolFetcher Integration Test', () => {
             expect(cache.uniswapV3Cache).toHaveLength(1);
 
             const wethGmxCache = cache.uniswapV3Cache[0];
-            expect(wethGmxCache.timestamp).toBeLessThan(Date.now() + 60_000);
+            expect(wethGmxCache.timestamp).toBeLessThan(getTimestampInSeconds() + 60);
 
             const topTwoPools = _.take(wethGmxCache.pools, 2);
 
