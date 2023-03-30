@@ -39,12 +39,27 @@ Chat with our team privately on `Discord <https://discord.com/invite/d3FTX3M>`_ 
    architecture/overview.rst
    architecture/proxy.rst
    architecture/features.rst
+   architecture/signatures.rst
    architecture/transformers.rst
    architecture/flash_wallet.rst
    architecture/governor.rst
    architecture/transformer_deployer.rst
    architecture/fee_collectors.rst
    architecture/plp_sandbox.rst
+
+.. toctree::
+   :maxdepth: 2
+   :caption: NFT Support
+
+   nft_support/introduction.rst
+   nft_support/creating-orders.rst
+   nft_support/royalties-and-fees.rst
+   nft_support/collection-offers.rst
+   nft_support/signing-offers.rst
+   nft_support/on-chain-orders.rst
+   nft_support/filling-orders.rst
+   nft_support/cancelling-orders.rst
+   nft_support/fetching-nft-order-data.rst
    
 
 .. toctree::
