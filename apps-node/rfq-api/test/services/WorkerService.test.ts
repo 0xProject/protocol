@@ -867,15 +867,7 @@ describe('WorkerService', () => {
                 new BigNumber(1000000000),
             ]);
             when(mockBlockchainUtils.getTokenBalancesAsync(anything())).thenResolve([new BigNumber(1000000000)]);
-            when(
-                mockBlockchainUtils.estimateGasForFillTakerSignedOtcOrderAsync(
-                    anything(),
-                    anything(),
-                    anything(),
-                    anything(),
-                    anything(),
-                ),
-            ).thenResolve(0);
+            when(mockBlockchainUtils.estimateGasForAsync(anything())).thenResolve(0);
             when(
                 mockBlockchainUtils.generateTakerSignedOtcOrderCallData(
                     anything(),
@@ -1751,15 +1743,7 @@ describe('WorkerService', () => {
                     anything(),
                 ),
             ).thenReturn('0xcalldata');
-            when(
-                mockBlockchainUtils.estimateGasForFillTakerSignedOtcOrderAsync(
-                    anything(),
-                    anything(),
-                    anything(),
-                    anything(),
-                    anything(),
-                ),
-            ).thenResolve(0);
+            when(mockBlockchainUtils.estimateGasForAsync(anything())).thenResolve(0);
             when(mockBlockchainUtils.getNonceAsync('0xworkeraddress')).thenResolve(mockNonce);
             when(mockBlockchainUtils.estimateGasForAsync(anything())).thenResolve(100);
             when(
@@ -2740,12 +2724,18 @@ describe('WorkerService', () => {
             });
 
             try {
-                await rfqmService.prepareApprovalAsync(job, '0xtoken', MOCK_EXECUTE_META_TRANSACTION_APPROVAL, {
-                    signatureType: SignatureType.EthSign,
-                    v: 27,
-                    r: '0x01',
-                    s: '0x02',
-                });
+                await rfqmService.prepareApprovalAsync(
+                    job,
+                    '0xworkeraddress',
+                    '0xtoken',
+                    MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
+                    {
+                        signatureType: SignatureType.EthSign,
+                        v: 27,
+                        r: '0x01',
+                        s: '0x02',
+                    },
+                );
                 expect.fail();
             } catch (e) {
                 expect(e.message).to.contain('Encountered a job with submissions but no maker signature');
@@ -2834,6 +2824,7 @@ describe('WorkerService', () => {
 
             const calldata = await rfqmService.prepareApprovalAsync(
                 job,
+                '0xworkeraddress',
                 '0xtoken',
                 MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
                 {
@@ -2916,12 +2907,18 @@ describe('WorkerService', () => {
             });
 
             try {
-                await rfqmService.prepareApprovalAsync(job, '0xtoken', MOCK_EXECUTE_META_TRANSACTION_APPROVAL, {
-                    signatureType: SignatureType.EthSign,
-                    v: 27,
-                    r: '0x01',
-                    s: '0x02',
-                });
+                await rfqmService.prepareApprovalAsync(
+                    job,
+                    '0xworkeraddress',
+                    '0xtoken',
+                    MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
+                    {
+                        signatureType: SignatureType.EthSign,
+                        v: 27,
+                        r: '0x01',
+                        s: '0x02',
+                    },
+                );
                 expect.fail();
             } catch (e) {
                 expect(e.message).to.contain('Eth call approval validation failed');
@@ -3000,6 +2997,7 @@ describe('WorkerService', () => {
 
             const calldata = await rfqmService.prepareApprovalAsync(
                 job,
+                '0xworkeraddress',
                 '0xtoken',
                 MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
                 {
@@ -3075,6 +3073,7 @@ describe('WorkerService', () => {
 
             const calldata = await rfqmService.prepareApprovalAsync(
                 job,
+                '0xworkeraddress',
                 '0xtoken',
                 MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
                 {
@@ -3136,12 +3135,18 @@ describe('WorkerService', () => {
             });
 
             try {
-                await rfqmService.prepareApprovalAsync(job, '0xtoken', MOCK_EXECUTE_META_TRANSACTION_APPROVAL, {
-                    signatureType: SignatureType.EthSign,
-                    v: 27,
-                    r: '0x01',
-                    s: '0x02',
-                });
+                await rfqmService.prepareApprovalAsync(
+                    job,
+                    '0xworkeraddress',
+                    '0xtoken',
+                    MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
+                    {
+                        signatureType: SignatureType.EthSign,
+                        v: 27,
+                        r: '0x01',
+                        s: '0x02',
+                    },
+                );
                 expect.fail();
             } catch (e) {
                 expect(e.message).to.contain('Eth call approval validation failed');
@@ -3198,6 +3203,7 @@ describe('WorkerService', () => {
 
             const calldata = await rfqmService.prepareApprovalAsync(
                 job,
+                '0xworkeraddress',
                 '0xtoken',
                 MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
                 {
@@ -3270,6 +3276,7 @@ describe('WorkerService', () => {
 
             const calldata = await rfqmService.prepareApprovalAsync(
                 job,
+                '0xworkeraddress',
                 '0xtoken',
                 MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
                 {
@@ -3328,12 +3335,18 @@ describe('WorkerService', () => {
             });
 
             try {
-                await rfqmService.prepareApprovalAsync(job, '0xtoken', MOCK_EXECUTE_META_TRANSACTION_APPROVAL, {
-                    signatureType: SignatureType.EthSign,
-                    v: 27,
-                    r: '0x01',
-                    s: '0x02',
-                });
+                await rfqmService.prepareApprovalAsync(
+                    job,
+                    '0xworkeraddress',
+                    '0xtoken',
+                    MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
+                    {
+                        signatureType: SignatureType.EthSign,
+                        v: 27,
+                        r: '0x01',
+                        s: '0x02',
+                    },
+                );
                 expect.fail();
             } catch (e) {
                 expect(e.message).to.contain('Eth call approval validation failed');
@@ -3387,6 +3400,7 @@ describe('WorkerService', () => {
 
             const calldata = await rfqmService.prepareApprovalAsync(
                 job,
+                '0xworkeraddress',
                 '0xtoken',
                 MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
                 {
@@ -3853,15 +3867,7 @@ describe('WorkerService', () => {
             when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
                 new BigNumber(1000000000),
             ]);
-            when(
-                mockBlockchainUtils.estimateGasForFillTakerSignedOtcOrderAsync(
-                    anything(),
-                    anything(),
-                    anything(),
-                    anything(),
-                    anything(),
-                ),
-            ).thenReject(new Error('fake eth call failure'));
+            when(mockBlockchainUtils.estimateGasForAsync(anything())).thenReject(new Error('fake eth call failure'));
             const mockRfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
             when(mockRfqMakerBalanceCacheService.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
                 new BigNumber(1000000000),
@@ -3945,15 +3951,7 @@ describe('WorkerService', () => {
             when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
                 new BigNumber(1000000000),
             ]);
-            when(
-                mockBlockchainUtils.estimateGasForFillTakerSignedOtcOrderAsync(
-                    anything(),
-                    anything(),
-                    anything(),
-                    anything(),
-                    anything(),
-                ),
-            ).thenResolve(0);
+            when(mockBlockchainUtils.estimateGasForAsync(anything())).thenResolve(0);
             when(
                 mockBlockchainUtils.generateTakerSignedOtcOrderCallData(
                     anything(),
@@ -4088,15 +4086,7 @@ describe('WorkerService', () => {
                 status: RfqmJobStatus.PendingLastLookAccepted,
             });
             expect(calldata).to.equal('0xvalidcalldata');
-            verify(
-                mockBlockchainUtils.estimateGasForFillTakerSignedOtcOrderAsync(
-                    anything(),
-                    anything(),
-                    anything(),
-                    anything(),
-                    anything(),
-                ),
-            ).never();
+            verify(mockBlockchainUtils.estimateGasForAsync(anything())).never();
         });
 
         it('lets expired jobs with existing submissions fall through', async () => {
@@ -4247,15 +4237,7 @@ describe('WorkerService', () => {
             when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
                 new BigNumber(1000000000),
             ]);
-            when(
-                mockBlockchainUtils.estimateGasForFillTakerSignedOtcOrderAsync(
-                    anything(),
-                    anything(),
-                    anything(),
-                    anything(),
-                    anything(),
-                ),
-            ).thenResolve(0);
+            when(mockBlockchainUtils.estimateGasForAsync(anything())).thenResolve(0);
             when(
                 mockBlockchainUtils.generateTakerSignedOtcOrderCallData(
                     anything(),
@@ -4356,15 +4338,7 @@ describe('WorkerService', () => {
             when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
                 new BigNumber(1000000000),
             ]);
-            when(
-                mockBlockchainUtils.estimateGasForFillTakerSignedOtcOrderAsync(
-                    anything(),
-                    anything(),
-                    anything(),
-                    anything(),
-                    anything(),
-                ),
-            ).thenResolve(0);
+            when(mockBlockchainUtils.estimateGasForAsync(anything())).thenResolve(0);
             when(
                 mockBlockchainUtils.generateTakerSignedOtcOrderCallData(
                     anything(),
@@ -5620,15 +5594,7 @@ describe('WorkerService', () => {
             when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
                 new BigNumber(1000000000),
             ]);
-            when(
-                mockBlockchainUtils.estimateGasForFillTakerSignedOtcOrderAsync(
-                    anything(),
-                    anything(),
-                    anything(),
-                    anything(),
-                    anything(),
-                ),
-            ).thenResolve(0);
+            when(mockBlockchainUtils.estimateGasForAsync(anything())).thenResolve(0);
             when(
                 mockBlockchainUtils.generateTakerSignedOtcOrderCallData(
                     anything(),

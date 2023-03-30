@@ -153,7 +153,6 @@ const MAX_FEE_PER_GAS_MULTIPLIER = 1.1; // Increase multiplier in max fee per ga
 // During recovery, we may not be able to successfully execute
 // `estimateGasForAsync`. In this case we use this value.
 const MAX_GAS_ESTIMATE = 500_000;
-const SIMULATION_MAX_GAS_MULTIPLIER = 2; // Multiplier of configured max fee when performing transaction simulation
 
 // How often the worker should publish a heartbeat
 const WORKER_HEARTBEAT_FREQUENCY_MS = ONE_SECOND_MS * 30; // tslint:disable-line: custom-no-magic-numbers
@@ -461,7 +460,13 @@ export class WorkerService {
                 })(kind);
         }
 
-        const approvalCalldata = await this.prepareApprovalAsync(job, tokenToApprove, approval, approvalSignature);
+        const approvalCalldata = await this.prepareApprovalAsync(
+            job,
+            workerAddress,
+            tokenToApprove,
+            approval,
+            approvalSignature,
+        );
         const approvalStatus = await this.submitToChainAsync({
             kind: job.kind,
             to: tokenToApprove,
@@ -620,6 +625,7 @@ export class WorkerService {
      */
     public async prepareApprovalAsync(
         job: RfqmV2JobEntity | MetaTransactionJobEntity | MetaTransactionV2JobEntity,
+        workerAddress: string,
         tokenToApprove: string,
         approval: Approval,
         siganature: Signature,
@@ -683,7 +689,11 @@ export class WorkerService {
                     // Use `estimateGasForAsync` to simulate the transaction. In ethers.js, provider.call and
                     // provider.send('eth_call', ...) might not throw exception and the behavior might be dependent
                     // on providers. Revisit this later
-                    return this._blockchainUtils.estimateGasForAsync({ to: tokenToApprove, data: calldata });
+                    return this._blockchainUtils.estimateGasForAsync({
+                        from: workerAddress,
+                        to: tokenToApprove,
+                        data: calldata,
+                    });
                 },
                 {
                     delay: ONE_SECOND_MS,
@@ -809,7 +819,7 @@ export class WorkerService {
         );
 
         // With the Market Maker signature, execute a full eth_call to validate the
-        // transaction via `estimateGasForFillTakerSignedOtcOrderAsync`
+        // transaction via `estimateGasForAsync`
         try {
             await retry(
                 async () => {
@@ -822,13 +832,11 @@ export class WorkerService {
                         throw new Error('Taker signature does not exist');
                     }
 
-                    return this._blockchainUtils.estimateGasForFillTakerSignedOtcOrderAsync(
-                        otcOrder,
-                        job.makerSignature,
-                        job.takerSignature,
-                        workerAddress,
-                        job.isUnwrap,
-                    );
+                    return this._blockchainUtils.estimateGasForAsync({
+                        from: workerAddress,
+                        to: this._blockchainUtils.getExchangeProxyAddress(),
+                        data: calldata,
+                    });
                 },
                 {
                     delay: ONE_SECOND_MS,
@@ -971,30 +979,10 @@ export class WorkerService {
         try {
             await retry(
                 async () => {
-                    // The following gas fee operations are added because `executeMetaTransaction` in 0x Exchange Proxy
-                    // would check whether the gas price of the transaction is within a window. If left empty, it will
-                    // fail the simulation. The gas fee estimation below is the same as the first gas fee estimation
-                    // used in `submitToChain`.
-                    const gasPriceEstimate = await this._gasStationAttendant.getExpectedTransactionGasRateAsync();
-                    const initialMaxPriorityFeePerGas = new BigNumber(this._initialMaxPriorityFeePerGasGwei).times(
-                        Math.pow(10, GWEI_DECIMALS),
-                    );
-                    const gasFees: GasFees = {
-                        maxFeePerGas: BigNumber.min(
-                            gasPriceEstimate.multipliedBy(2).plus(initialMaxPriorityFeePerGas),
-                            // If the max fee is less than the base fee, simulations will fail (unlike submissions, which may sit in the mempool).
-                            // An extra multiplier mitigates, but does not solve, the issue.
-                            this._maxFeePerGasCapWei.multipliedBy(SIMULATION_MAX_GAS_MULTIPLIER),
-                        ),
-                        maxPriorityFeePerGas: initialMaxPriorityFeePerGas,
-                    };
-
                     return this._blockchainUtils.estimateGasForAsync({
                         from: workerAddress,
                         to: this._blockchainUtils.getExchangeProxyAddress(),
                         data: calldata,
-                        maxFeePerGas: gasFees.maxFeePerGas.toString(),
-                        maxPriorityFeePerGas: gasFees.maxPriorityFeePerGas.toString(),
                     });
                 },
                 {
@@ -1503,11 +1491,6 @@ export class WorkerService {
                 to,
                 from,
                 data: calldata,
-                // The following gas fee properties are added because `executeMetaTransaction` in 0x Exchange Proxy
-                // would check whether the gas price of the transaction is within a window. If left empty, it will
-                // fail the simulation.
-                maxFeePerGas: gasFees.maxFeePerGas.toString(),
-                maxPriorityFeePerGas: gasFees.maxPriorityFeePerGas.toString(),
             });
             // Add buffer to gas estimate returned by `eth_estimateGas` as the RPC method
             // tends to under estimate gas usage

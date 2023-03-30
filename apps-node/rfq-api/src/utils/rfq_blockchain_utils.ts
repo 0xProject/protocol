@@ -19,7 +19,6 @@ import {
     ZEROG_METATX_GAS_ESTIMATE,
 } from '../core/constants';
 import { EIP_712_REGISTRY } from '../eip712registry';
-import { logger } from '../logger';
 import {
     Approval,
     Eip712Context,
@@ -110,45 +109,6 @@ export class RfqBlockchainUtils {
      */
     public async getTokenBalancesAsync(erc20Owners: ERC20Owner | ERC20Owner[]): Promise<BigNumber[]> {
         return this.balanceCheckUtils.getTokenBalancesAsync(erc20Owners);
-    }
-
-    /**
-     * Estimate the gas for fillTakerSignedOtcOrder and fillTakerSignedOtcOrderForEth
-     * NOTE: can also be used for validation
-     *
-     * @returns a Promise of the gas estimate
-     * @throws an error if transaction will revert
-     */
-    public async estimateGasForFillTakerSignedOtcOrderAsync(
-        order: OtcOrder,
-        makerSignature: Signature,
-        takerSignature: Signature,
-        sender: string,
-        isUnwrap: boolean,
-    ): Promise<number> {
-        try {
-            if (isUnwrap) {
-                return await this._exchangeProxy
-                    .fillTakerSignedOtcOrderForEth(order, makerSignature, takerSignature)
-                    .estimateGasAsync({ from: sender });
-            } else {
-                return await this._exchangeProxy
-                    .fillTakerSignedOtcOrder(order, makerSignature, takerSignature)
-                    .estimateGasAsync({ from: sender });
-            }
-        } catch (err) {
-            logger.error(
-                {
-                    orderHash: order.getHash(),
-                    maker: order.maker,
-                    taker: order.taker,
-                    isUnwrap,
-                    errorMessage: err?.message,
-                },
-                'validation failed for taker signed OtcOrder',
-            );
-            throw err;
-        }
     }
 
     /**
