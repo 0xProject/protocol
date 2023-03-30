@@ -114,7 +114,7 @@ export async function action({ request }: ActionArgs) {
 
     const authSession = session.get(auth.sessionKey);
 
-    authSession.team = result.data;
+    authSession.teamName = result.data;
 
     session.set(auth.sessionKey, authSession);
 
