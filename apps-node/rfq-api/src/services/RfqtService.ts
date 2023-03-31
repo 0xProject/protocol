@@ -430,7 +430,7 @@ export class RfqtService {
         const quotes = tuples
             .filter(({ signature }) => signature !== null)
             .map(({ price, order, signature, fillableAmount }) => {
-                const { makerUri, makerId } = price;
+                const { makerUri, makerId, fee } = price;
                 return {
                     ...fillableAmount,
                     fillableTakerFeeAmount: new BigNumber(0),
@@ -440,6 +440,7 @@ export class RfqtService {
                     // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
                     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                     signature: signature!, // `null` signatures already filtered out
+                    fee,
                 };
             });
 
@@ -456,7 +457,7 @@ export class RfqtService {
                         sellTokenAddress: quoteContext.takerToken,
                         integratorId: quoteContext.integrator.integratorId,
                         quotes,
-                        fee: storedFee,
+                        fee: storedFee, // This is the fee for the entire quote request, not per quote
                     },
                     this._kafkaProducer,
                     this._feeEventTopic,

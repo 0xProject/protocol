@@ -11,6 +11,7 @@ import {
     FillQuoteTransformerRfqOrderInfo,
     RfqOrderFields,
 } from '@0x/protocol-utils';
+import { feeToStoredFee } from '../core/fee_utils';
 
 /** Migrated from @0x/asset-swapper */
 
@@ -377,7 +378,7 @@ export const quoteReportUtils = {
                     fillableSellAmount: quote.fillableTakerAmount,
                     buyTokenAddress: logOpts.buyTokenAddress,
                     sellTokenAddress: logOpts.sellTokenAddress,
-                    fee: logOpts.fee,
+                    fee: (quote.fee && feeToStoredFee(quote.fee)) || logOpts.fee, // use the fee if it's on the quote
                     integratorId: logOpts.integratorId,
                     makerId: quote.makerId,
                     makerUri: quote.makerUri,

@@ -225,6 +225,7 @@ export type RfqtV2Quote = {
     makerUri: string;
     order: OtcOrder;
     signature: Signature;
+    fee?: FeeWithDetails;
 };
 
 export type QuoteServerPriceParams = RequireOnlyOne<
