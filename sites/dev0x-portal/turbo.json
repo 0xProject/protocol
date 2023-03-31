@@ -1,0 +1,9 @@
+{
+    "extends": ["//"],
+    "pipeline": {
+        "build": {
+            "dependsOn": ["^build"],
+            "outputs": ["build/**", "public/build/**", ".cache"]
+        }
+    }
+}

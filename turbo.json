@@ -3,7 +3,7 @@
     "pipeline": {
         "build": {
             "dependsOn": ["^build"],
-            "outputs": ["__build__/**", "dist/**", "out/**", "public/build/**"]
+            "outputs": ["__build__/**", "dist/**", "out/**"]
         },
         "build:no-diff": {
             "dependsOn": ["^build:no-diff"]
