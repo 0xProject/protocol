@@ -315,10 +315,6 @@ export interface Integrator {
     whitelistIntegratorUrls?: string[];
 }
 
-export interface SwapQuoterRfqOpts {
-    integratorsWhitelist: Integrator[];
-}
-
 export type AssetSwapperContractAddresses = ContractAddresses;
 
 // `FillData` for native fills. Represents a single native order
@@ -341,7 +337,6 @@ export interface SwapQuoterOpts extends OrderPrunerOpts {
     ethereumRpcUrl?: string;
     contractAddresses?: AssetSwapperContractAddresses;
     samplerGasLimit?: number;
-    rfqt?: SwapQuoterRfqOpts;
     samplerOverrides?: SamplerOverrides;
     tokenAdjacencyGraph?: TokenAdjacencyGraph;
 }

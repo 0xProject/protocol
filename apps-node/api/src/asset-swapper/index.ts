@@ -27,7 +27,6 @@ export {
     SwapQuoteRequestOpts,
     SwapQuoterError,
     SwapQuoterOpts,
-    SwapQuoterRfqOpts,
     Orderbook,
 } from './types';
 export {

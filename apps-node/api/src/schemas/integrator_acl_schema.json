@@ -22,9 +22,6 @@
         "rfqm": {
             "type": "boolean"
         },
-        "rfqt": {
-            "type": "boolean"
-        },
         "slippageModel": {
             "type": "boolean"
         },

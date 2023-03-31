@@ -20,9 +20,6 @@ import {
     KAFKA_BROKERS,
     MATCHA_INTEGRATOR_ID,
     PROMETHEUS_REQUEST_BUCKETS,
-    RFQT_API_KEY_WHITELIST,
-    RFQT_INTEGRATOR_IDS,
-    RFQT_REGISTRY_PASSWORDS,
     ZERO_EX_GAS_API_URL,
 } from '../config';
 import {
@@ -61,14 +58,6 @@ if (KAFKA_BROKERS !== undefined) {
     kafkaProducer.connect();
 }
 
-const BEARER_REGEX = /^Bearer\s(.{36})$/;
-const REGISTRY_SET: Set<string> = new Set(RFQT_REGISTRY_PASSWORDS);
-const REGISTRY_ENDPOINT_FETCHED = new Counter({
-    name: 'swap_handler_registry_endpoint_fetched',
-    help: 'Requests to the swap handler',
-    labelNames: ['identifier'],
-});
-
 const HTTP_SWAP_RESPONSE_TIME = new Histogram({
     name: 'http_swap_response_time',
     help: 'The response time of a HTTP Swap request',
@@ -104,26 +93,6 @@ export class SwapHandlers {
             .map((s) => (s === ERC20BridgeSource.Native ? '0x' : s))
             .sort((a, b) => a.localeCompare(b));
         res.status(StatusCodes.OK).send({ records: sources });
-    }
-
-    public static getRfqRegistry(req: express.Request, res: express.Response): void {
-        const auth = req.header('Authorization');
-        REGISTRY_ENDPOINT_FETCHED.labels(auth || 'N/A').inc();
-        if (auth === undefined) {
-            res.status(StatusCodes.UNAUTHORIZED).end();
-            return;
-        }
-        const authTokenRegex = auth.match(BEARER_REGEX);
-        if (!authTokenRegex) {
-            res.status(StatusCodes.UNAUTHORIZED).end();
-            return;
-        }
-        const authToken = authTokenRegex[1];
-        if (!REGISTRY_SET.has(authToken)) {
-            res.status(StatusCodes.UNAUTHORIZED).end();
-            return;
-        }
-        res.status(StatusCodes.OK).send(RFQT_INTEGRATOR_IDS).end();
     }
 
     constructor(swapService: ISwapService) {
@@ -508,7 +477,6 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
             takerAddress: takerAddress as string,
             apiKey,
         },
-        RFQT_API_KEY_WHITELIST,
         endpoint,
     );
 

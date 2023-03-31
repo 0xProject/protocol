@@ -1,12 +1,7 @@
 import { expect } from '@0x/contracts-test-utils';
 import 'mocha';
 
-import {
-    getApiKeyWhitelistFromIntegratorsAcl,
-    getIntegratorByIdOrThrow,
-    getIntegratorIdForApiKey,
-    RFQT_INTEGRATOR_IDS,
-} from '../src/config';
+import { getIntegratorByIdOrThrow, getIntegratorIdForApiKey } from '../src/config';
 
 /**
  * Configuration tests which run against the config in `test_env` file.
@@ -37,20 +32,6 @@ describe('Config', () => {
             const id = getIntegratorIdForApiKey('test-api-key-does-not-exist');
 
             expect(id).to.be.undefined;
-        });
-    });
-
-    describe('getApiKeyWhitelistFromIntegratorsAcl', () => {
-        it('gets keys for allowed liquidity sources', () => {
-            const rfqmKeys = getApiKeyWhitelistFromIntegratorsAcl('rfqm');
-            expect(rfqmKeys).to.deep.eq(['test-api-key-1', 'test-api-key-2', 'test-api-key-3']);
-        });
-        it("doesn't add disallowed liquidity sources to allowed API keys", () => {
-            const rfqtKeys = getApiKeyWhitelistFromIntegratorsAcl('rfqt');
-            expect(rfqtKeys).to.deep.eq(['test-api-key-1', 'test-api-key-2']);
-        });
-        it('creates the RFQt Integrator ID list (used in swap/rfq/registry)', () => {
-            expect(RFQT_INTEGRATOR_IDS).to.deep.eq(['test-integrator-id-1']);
         });
     });
 });

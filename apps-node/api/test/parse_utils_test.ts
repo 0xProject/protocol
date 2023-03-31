@@ -18,21 +18,6 @@ describe(SUITE_NAME, () => {
                 {
                     includedSources: 'RFQT',
                 },
-                [],
-                'price',
-            );
-        }).throws();
-    });
-
-    it('raises a ValidationError if API keys are not present or valid', async () => {
-        expect(() => {
-            parseUtils.parseRequestForExcludedSources(
-                {
-                    includedSources: 'RFQT',
-                    takerAddress: NULL_ADDRESS,
-                    apiKey: 'foo',
-                },
-                ['lorem', 'ipsum'],
                 'price',
             );
         }).throws();
@@ -43,7 +28,6 @@ describe(SUITE_NAME, () => {
             {
                 excludedSources: 'Uniswap,Curve',
             },
-            [],
             'price',
         );
         expect(excludedSources[0]).to.eql(ERC20BridgeSource.Uniswap);
@@ -52,7 +36,7 @@ describe(SUITE_NAME, () => {
     });
 
     it('returns empty array if no includedSources and excludedSources are present', async () => {
-        const { excludedSources, nativeExclusivelyRFQT } = parseUtils.parseRequestForExcludedSources({}, [], 'price');
+        const { excludedSources, nativeExclusivelyRFQT } = parseUtils.parseRequestForExcludedSources({}, 'price');
         expect(excludedSources.length).to.eql(0);
         expect(nativeExclusivelyRFQT).to.eql(false);
     });
@@ -64,7 +48,6 @@ describe(SUITE_NAME, () => {
                 takerAddress: NULL_ADDRESS,
                 apiKey: 'ipsum',
             },
-            ['lorem', 'ipsum'],
             'price',
         );
         expect(nativeExclusivelyRFQT).to.eql(true);
@@ -79,7 +62,6 @@ describe(SUITE_NAME, () => {
                 takerAddress: NULL_ADDRESS,
                 apiKey: 'ipsum',
             },
-            ['lorem', 'ipsum'],
             'price',
         );
         expect(nativeExclusivelyRFQT).to.eql(false);
@@ -94,7 +76,6 @@ describe(SUITE_NAME, () => {
                     excludedSources: 'Native',
                     includedSources: 'RFQT',
                 },
-                [],
                 'price',
             );
         }).throws();
@@ -108,7 +89,6 @@ describe(SUITE_NAME, () => {
                     takerAddress: NULL_ADDRESS,
                     apiKey: 'ipsum',
                 },
-                ['lorem', 'ipsum'],
                 'quote',
             );
         }).throws();

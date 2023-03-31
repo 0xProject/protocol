@@ -21,7 +21,6 @@ import {
     SwapQuoteAndOnChainOptimalQuote,
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
-    SwapQuoterRfqOpts,
 } from './types';
 import { MarketOperationUtils, OptimizerResultWithReport } from './utils/market_operation_utils';
 import { BancorService } from './utils/market_operation_utils/bancor_service';
@@ -54,8 +53,6 @@ export class SwapQuoter {
     private readonly _contractAddresses: AssetSwapperContractAddresses;
     private readonly _gasPriceUtils: GasPriceUtils;
     private readonly _marketOperationUtils: MarketOperationUtils;
-    private readonly _rfqtOptions?: SwapQuoterRfqOpts;
-    private readonly _integratorIdsSet: Set<string>;
     // TODO: source filters can be removed once orderbook is moved to `MarketOperationUtils`.
     private readonly _sellSources: SourceFilters;
     private readonly _buySources: SourceFilters;
@@ -69,7 +66,7 @@ export class SwapQuoter {
      * @return  An instance of SwapQuoter
      */
     constructor(supportedProvider: SupportedProvider, orderbook: Orderbook, options: Partial<SwapQuoterOpts> = {}) {
-        const { chainId, expiryBufferMs, permittedOrderFeeTypes, samplerGasLimit, rfqt, tokenAdjacencyGraph } = {
+        const { chainId, expiryBufferMs, permittedOrderFeeTypes, samplerGasLimit, tokenAdjacencyGraph } = {
             ...constants.DEFAULT_SWAP_QUOTER_OPTS,
             ...options,
         };
@@ -83,7 +80,6 @@ export class SwapQuoter {
         this.expiryBufferMs = expiryBufferMs;
         this.permittedOrderFeeTypes = permittedOrderFeeTypes;
 
-        this._rfqtOptions = rfqt;
         this._contractAddresses = options.contractAddresses || {
             ...getContractAddressesForChainOrThrow(chainId),
         };
@@ -119,9 +115,6 @@ export class SwapQuoter {
             this._contractAddresses,
         );
 
-        const integratorIds =
-            this._rfqtOptions?.integratorsWhitelist.map((integrator) => integrator.integratorId) || [];
-        this._integratorIdsSet = new Set(integratorIds);
         this._buySources = BUY_SOURCE_FILTER_BY_CHAIN_ID[chainId];
         this._sellSources = SELL_SOURCE_FILTER_BY_CHAIN_ID[chainId];
     }
@@ -338,7 +331,8 @@ export class SwapQuoter {
         if (!integratorId) {
             return false;
         }
-        return this._integratorIdsSet.has(integratorId);
+        // Anyone using an API key has access to RFQ liquidity as of March 2023
+        return true;
     }
 
     private _validateRfqtOpts(

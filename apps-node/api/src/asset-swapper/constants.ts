@@ -43,9 +43,6 @@ const DEFAULT_SWAP_QUOTER_OPTS: SwapQuoterOpts = {
     orderRefreshIntervalMs: 10000, // 10 seconds
     ...DEFAULT_ORDER_PRUNER_OPTS,
     samplerGasLimit: 500e6,
-    rfqt: {
-        integratorsWhitelist: [],
-    },
     tokenAdjacencyGraph: DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID[ChainId.Mainnet],
 };
 

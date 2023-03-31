@@ -22,7 +22,6 @@ interface ParseRequestForExcludedSourcesResult {
 export const parseUtils = {
     parseRequestForExcludedSources(
         request: ParseRequestForExcludedSourcesParams,
-        validApiKeys: string[],
         endpoint: 'price' | 'quote',
     ): ParseRequestForExcludedSourcesResult {
         const excludedIds = request.excludedSources ? request.excludedSources.split(',') : [];
@@ -75,15 +74,6 @@ export const parseUtils = {
                     {
                         field: '0x-api-key',
                         code: ValidationErrorCodes.RequiredField,
-                        reason: ValidationErrorReasons.InvalidApiKey,
-                    },
-                ]);
-            }
-            if (!validApiKeys.includes(request.apiKey)) {
-                throw new ValidationError([
-                    {
-                        field: '0x-api-key',
-                        code: ValidationErrorCodes.FieldInvalid,
                         reason: ValidationErrorReasons.InvalidApiKey,
                     },
                 ]);

@@ -9,9 +9,8 @@ import {
     SOURCE_FLAGS,
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
-    SwapQuoterRfqOpts,
 } from './asset-swapper';
-import { CHAIN_ID, RFQT_INTEGRATORS, SAMPLE_DISTRIBUTION_BASE } from './config';
+import { CHAIN_ID, SAMPLE_DISTRIBUTION_BASE } from './config';
 import { DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE, QUOTE_ORDER_EXPIRATION_BUFFER_MS, TX_BASE_GAS } from './constants';
 
 const FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD = new BigNumber(150e3);
@@ -97,14 +96,9 @@ const SAMPLER_OVERRIDES: SamplerOverrides | undefined = (() => {
     }
 })();
 
-const SWAP_QUOTER_RFQT_OPTS: SwapQuoterRfqOpts = {
-    integratorsWhitelist: RFQT_INTEGRATORS,
-};
-
 export const SWAP_QUOTER_OPTS: Partial<SwapQuoterOpts> = {
     chainId: CHAIN_ID,
     expiryBufferMs: QUOTE_ORDER_EXPIRATION_BUFFER_MS,
-    rfqt: SWAP_QUOTER_RFQT_OPTS,
     permittedOrderFeeTypes: new Set([OrderPrunerPermittedFeeTypes.NoFees]),
     samplerOverrides: SAMPLER_OVERRIDES,
     tokenAdjacencyGraph: DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID[CHAIN_ID],

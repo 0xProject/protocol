@@ -67,15 +67,6 @@ const INTEGRATORS_ACL: IntegratorsAcl = (() => {
 })();
 
 /**
- * Extracts the integrator API keys from the `INTEGRATORS_ACL` environment variable for the provided group type.
- */
-export const getApiKeyWhitelistFromIntegratorsAcl = (groupType: 'rfqt' | 'rfqm'): string[] => {
-    return INTEGRATORS_ACL.filter((i) => i[groupType])
-        .flatMap((i) => i.apiKeys)
-        .sort();
-};
-
-/**
  * Gets the integrator ID for the provided label.
  */
 const getIntegratorIdFromLabel = (label: string): string | undefined => {
@@ -244,16 +235,6 @@ export const POSTGRES_READ_REPLICA_URIS: string[] | undefined = _.isEmpty(proces
 export const LOGGER_INCLUDE_TIMESTAMP = _.isEmpty(process.env.LOGGER_INCLUDE_TIMESTAMP)
     ? DEFAULT_LOGGER_INCLUDE_TIMESTAMP
     : assertEnvVarType('LOGGER_INCLUDE_TIMESTAMP', process.env.LOGGER_INCLUDE_TIMESTAMP, EnvVarType.Boolean);
-
-export const RFQT_REGISTRY_PASSWORDS: string[] = resolveEnvVar<string[]>(
-    'RFQT_REGISTRY_PASSWORDS',
-    EnvVarType.JsonStringList,
-    [],
-);
-
-export const RFQT_INTEGRATORS: Integrator[] = INTEGRATORS_ACL.filter((i) => i.rfqt);
-export const RFQT_INTEGRATOR_IDS: string[] = INTEGRATORS_ACL.filter((i) => i.rfqt).map((i) => i.integratorId);
-export const RFQT_API_KEY_WHITELIST: string[] = getApiKeyWhitelistFromIntegratorsAcl('rfqt');
 
 export const MATCHA_INTEGRATOR_ID: string | undefined = getIntegratorIdFromLabel('Matcha');
 
