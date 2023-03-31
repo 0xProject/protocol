@@ -35,6 +35,11 @@ contract GovernanceE2ETest is BaseTest {
     uint256 internal mainnetFork;
     string internal MAINNET_RPC_URL = vm.envString("MAINNET_RPC_URL");
 
+    struct DelegatorPool {
+        address delegator;
+        bytes32 pool;
+    }
+
     address internal constant ZRX_TOKEN = 0xE41d2489571d322189246DaFA5ebDe1F4699F498;
     address internal constant MATIC_TOKEN = 0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0;
     address internal constant WCELO_TOKEN = 0xE452E6Ea2dDeB012e20dB73bf5d3863A3Ac8d77a;
@@ -61,6 +66,25 @@ contract GovernanceE2ETest is BaseTest {
         0x0C073E7248C1b548a08b27dD3af5D0f39c774280,
         0xA178FF321335BB777A7E21A56376592F69556b9c,
         0xD06CfBb59d2e8918F84D99d981039d7706DCA288
+    ];
+
+    DelegatorPool[] internal delegatorPools = [
+        DelegatorPool(
+            0x0ee1F33A2EB0da738FdF035C48d62d75e996a3bd,
+            0x0000000000000000000000000000000000000000000000000000000000000016
+        ),
+        DelegatorPool(
+            0xcAb3d8cBBb3dA1bDabfB003B9C828B27a821717f,
+            0x0000000000000000000000000000000000000000000000000000000000000017
+        ),
+        DelegatorPool(
+            0x7f88b00Db27a500fBfA7EbC9c3CaA2Dea6F59d5b,
+            0x0000000000000000000000000000000000000000000000000000000000000014
+        ),
+        DelegatorPool(
+            0xcE266E6123B682f7A7388097e2155b5379D9AC78,
+            0x0000000000000000000000000000000000000000000000000000000000000014
+        )
     ];
 
     // voting power 1500000e18
@@ -312,16 +336,18 @@ contract GovernanceE2ETest is BaseTest {
         }
 
         // Delegator can withdraw rewards
-        address delegator1 = 0x0ee1F33A2EB0da738FdF035C48d62d75e996a3bd;
-        bytes32 pool1 = 0x0000000000000000000000000000000000000000000000000000000000000016;
-        uint256 reward = staking.computeRewardBalanceOfDelegator(pool1, delegator1);
-        assertGt(reward, 0);
-        uint256 balanceBeforeReward = weth.balanceOf(delegator1);
+        for (uint256 i = 0; i < delegatorPools.length; i++) {
+            address delegator = delegatorPools[i].delegator;
+            bytes32 pool = delegatorPools[i].pool;
+            uint256 reward = staking.computeRewardBalanceOfDelegator(pool, delegator);
+            assertGt(reward, 0);
+            uint256 balanceBeforeReward = weth.balanceOf(delegator);
 
-        vm.prank(delegator1);
-        staking.withdrawDelegatorRewards(pool1);
-        vm.stopPrank();
+            vm.prank(delegator);
+            staking.withdrawDelegatorRewards(pool);
+            vm.stopPrank();
 
-        assertEq(weth.balanceOf(delegator1), balanceBeforeReward + reward);
+            assertEq(weth.balanceOf(delegator), balanceBeforeReward + reward);
+        }
     }
 }
