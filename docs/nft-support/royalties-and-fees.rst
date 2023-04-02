@@ -1,48 +1,38 @@
-Generating 0x Order Hashes
-==========================
+Royalties and Fees
+=================
 
-A 0x Order Hash acts as both the *identifier* for a 0x order, as well as
-the *message* that gets signed to authorize the 0x smart contracts to
-perform swaps.
+0x V4 has flexible support for creator royalties and platform fees. Marketplaces can pay out royalties to creators in real-time, and even have the option to send fees to their own custom fee disbursement contract. 
 
-0x Order Hashes are `EIP-712
-hashes <https://eips.ethereum.org/EIPS/eip-712>`__.
+Fees are paid by the **buyer**, denominated in the asset paid by the buyer, and are paid **in addition** to the ``erc20TokenAmount`` specified in the order. 
 
-Generating 0x Order Hashes with @0x/protocol-utils
---------------------------------------------------
-
-The easiest way of generating 0x Order Hashes is using the npm packages
-```@0x/protocol-utils`` <https://www.npmjs.com/package/@0x/protocol-utils>`__
-and ```@0x/utils`` <https://www.npmjs.com/package/@0x/utils>`__\ \`\`
-
-.. code:: bash
-
-   yarn add @0x/protocol-utils @0x/utils
-
-Use as follows:
+The following code snippet shows how to create an ERC721 order with a single fee. Multiple fees can be specified by providing multiple fee objects in the order ``fees`` field.
 
 .. code:: javascript
 
-   const protocolUtils = require("@0x/protocol-utils");
-   const utils = require("@0x/utils");
+    const { ERC721Order, NFTOrder } = require("@0x/protocol-utils");
+    const utils = require("@0x/utils");
 
-   // Construct Order
-   const order = new protocolUtils.LimitOrder({ // or protocolUtils.RfqOrder
-       makerToken: '0x6B175474E89094C44Da98b954EedeAC495271d0F', // DAI
-       takerToken: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', // WETH
-       makerAmount: new utils.BigNumber(1e18),
-       takerAmount: new utils.BigNumber(1e18),
-       ... // Other fields
-   })
+    const fee = {
+        // Address to receive the fee. Can be a smart contract.
+        recipient: '0x871dd7c2b4b25e1aa18728e9d5f2af4c4e431f5c', 
+        amount: utils.BigNumber('1e17'), // 0.1 ETH
+        // If the fee recipient is a contract, this field can be used
+        // to invoke a callback. In this case, there is no callback. 
+        feeData: '0x',
+    };
 
-   // Get hash
-   const orderHash = order.getHash();
-
-Protocol Utils supports the following order types:
-
--  ``LimitOrder``
--  ``RfqOrder``
--  ``OtcOrder``
-
-As more order types are added to the protocol, this library will expand
-to cover them as well.
+    // Construct sell order
+    const order = new ERC721Order({
+        chainId: 1, 
+        verifyingContract: '0xdef1c0ded9bec7f1a1670819833240f027b25eff', 
+        direction: NFTOrder.TradeDirection.SellNFT,
+        erc20Token: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+        erc20TokenAmount: utils.BigNumber('1e18'),
+        erc721Token: '0x5180db8f5c931aae63c74266b211f580155ecac8',
+        erc721TokenId: 123,
+        maker: '0x6cc5f688a315f3dc28a7781717a9a798a59fda7b',
+        taker: '0x0000000000000000000000000000000000000000',
+        fees: [fee],
+        nonce: 420,
+        expiry: new utils.BigNumber(Math.floor(Date.now() / 1000 + 3600)),
+    });
