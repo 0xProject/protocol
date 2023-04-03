@@ -3,7 +3,6 @@
  */
 import { cacheControl, createDefaultServer } from '@0x/api-utils';
 import * as express from 'express';
-import * as core from 'express-serve-static-core';
 import { Server } from 'http';
 
 import { getDefaultAppDependenciesAsync } from './utils';
@@ -52,12 +51,8 @@ if (require.main === module) {
     })().catch((error) => logger.error(error.stack));
 }
 
-async function runHttpServiceAsync(
-    dependencies: AppDependencies,
-    config: HttpServiceConfig,
-    _app?: core.Express,
-): Promise<Server> {
-    const app = _app || express();
+async function runHttpServiceAsync(dependencies: AppDependencies, config: HttpServiceConfig): Promise<Server> {
+    const app = express();
 
     if (dependencies.hasSentry) {
         const options: SentryOptions = {

@@ -3,7 +3,6 @@
  */
 import { cacheControl, createDefaultServer } from '@0x/api-utils';
 import * as express from 'express';
-import * as core from 'express-serve-static-core';
 import { Server } from 'http';
 
 import { getDefaultAppDependenciesAsync } from './utils';
@@ -52,15 +51,8 @@ if (require.main === module) {
     })().catch((error) => logger.error(error.stack));
 }
 
-async function runHttpServiceAsync(
-    dependencies: AppDependencies,
-    config: HttpServiceConfig,
-    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-    // eslint-disable-next-line @typescript-eslint/no-inferrable-types
-    useMetricsMiddleware: boolean = true,
-    _app?: core.Express,
-): Promise<Server> {
-    const app = _app || express();
+async function runHttpServiceAsync(dependencies: AppDependencies, config: HttpServiceConfig): Promise<Server> {
+    const app = express();
 
     if (dependencies.hasSentry) {
         const options: SentryOptions = {
@@ -75,28 +67,25 @@ async function runHttpServiceAsync(
         SentryInit(options);
     }
 
-    if (useMetricsMiddleware) {
-        /**
-         * express-prom-bundle will create a histogram metric called "http_request_duration_seconds"
-         * The official prometheus docs describe how to use this exact histogram metric: https://prometheus.io/docs/practices/histograms/
-         * We use the following labels: statusCode, path
-         */
-        const metricsMiddleware = promBundle({
-            autoregister: false,
-            includeStatusCode: true,
-            includePath: true,
-            includeMethod: true,
-            customLabels: { chainId: undefined },
-            normalizePath: [['/order/.*', '/order/#orderHash']],
-            transformLabels: (labels, req, _res) => {
-                Object.assign(labels, { chainId: req.header('0x-chain-id') || 1 });
-            },
-            // buckets used for the http_request_duration_seconds histogram. All numbers (in seconds) represents boundaries of buckets.
-            // tslint:disable-next-line: custom-no-magic-numbers
-            buckets: [0.01, 0.04, 0.1, 0.3, 0.6, 1, 1.5, 2, 2.5, 3, 4, 6, 9],
-        });
-        app.use(metricsMiddleware);
-    }
+    /**
+     * express-prom-bundle will create a histogram metric called "http_request_duration_seconds"
+     * The official prometheus docs describe how to use this exact histogram metric: https://prometheus.io/docs/practices/histograms/
+     * We use the following labels: statusCode, path
+     */
+    const metricsMiddleware = promBundle({
+        autoregister: false,
+        includeStatusCode: true,
+        includePath: true,
+        includeMethod: true,
+        customLabels: { chainId: undefined },
+        normalizePath: [['/order/.*', '/order/#orderHash']],
+        transformLabels: (labels, req, _res) => {
+            Object.assign(labels, { chainId: req.header('0x-chain-id') || 1 });
+        },
+        // buckets used for the http_request_duration_seconds histogram. All numbers (in seconds) represents boundaries of buckets.
+        buckets: [0.01, 0.04, 0.1, 0.3, 0.6, 1, 1.5, 2, 2.5, 3, 4, 6, 9],
+    });
+    app.use(metricsMiddleware);
 
     app.use(addressNormalizer);
     app.use(cacheControl(DEFAULT_CACHE_AGE_SECONDS));
