@@ -252,7 +252,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
 
         // Leaving here for posterity this is the original OZ implementation which we've replaced
         // return high == 0 ? 0 : _unsafeAccess(ckpts, high - 1).votes;
-        checkpoint = high == 0 ? Checkpoint(0, 0, 0) : _unsafeAccess(ckpts, high - 1);
+        if (high != 0) checkpoint = _unsafeAccess(ckpts, high - 1);
     }
 
     function _writeCheckpoint(
