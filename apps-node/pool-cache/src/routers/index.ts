@@ -9,6 +9,7 @@ import {
     TokenPair,
 } from 'pool-cache-interface';
 import { implement } from './zod';
+import { PoolCacheService } from '../services/pool-cache-service';
 
 const t = initTRPC.context<inferRouterContext<PoolCacheRouter>>().meta<inferRouterMeta<PoolCacheRouter>>().create();
 
@@ -18,7 +19,7 @@ const ethereumAddress = z.string().regex(addressRegex, { message: 'Must be an et
 const uniswapV3PoolShape = implement<UniswapV3Pool>().with({
     poolAddress: ethereumAddress,
     fee: z.union([z.literal(100), z.literal(500), z.literal(3000), z.literal(10000)]),
-    score: z.number().positive().lte(100),
+    score: z.number().nonnegative().lte(100),
 });
 
 const uniswapV3PoolCacheShape = implement<UniswapV3PoolCache>().with({
@@ -40,16 +41,13 @@ const getPoolCacheOfPairInputShape = implement<GetPoolCacheOfPairsInput>().with(
     uniswapV3Pairs: z.array(tokenPairShape),
 });
 
-export const poolCacheRouter = t.router({
-    getPoolCacheOfPairs: t.procedure
-        .input(getPoolCacheOfPairInputShape)
-        .output(getPoolCacheOfPairsOutputShape.array())
-        .query(({ input: _input }) => {
-            // TODO: implement
-            return [
-                {
-                    uniswapV3Cache: [],
-                },
-            ];
-        }),
-}) satisfies PoolCacheRouter;
+export function createPoolCacheRouter(service: PoolCacheService): PoolCacheRouter {
+    return t.router({
+        getPoolCacheOfPairs: t.procedure
+            .input(getPoolCacheOfPairInputShape)
+            .output(getPoolCacheOfPairsOutputShape)
+            .query(({ input }) => {
+                return service.get(input);
+            }),
+    }) satisfies PoolCacheRouter;
+}
