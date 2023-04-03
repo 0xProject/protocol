@@ -44,7 +44,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     modifier onlyToken() {
-        require(msg.sender == token, "ZeroExVotes: only token allowed");
+        _checkSenderIsToken();
         _;
     }
 
@@ -324,5 +324,9 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
             mstore(0, ckpts.slot)
             result.slot := add(keccak256(0, 0x20), pos)
         }
+    }
+
+    function _checkSenderIsToken() private {
+        require(msg.sender == token, "ZeroExVotes: only token allowed");
     }
 }
