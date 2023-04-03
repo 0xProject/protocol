@@ -72,7 +72,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
      */
     function getVotes(address account) public view returns (uint256) {
         uint256 pos = _checkpoints[account].length;
-        return pos == 0 ? 0 : _checkpoints[account][pos - 1].votes;
+        return pos == 0 ? 0 : _unsafeAccess(_checkpoints[account], pos - 1).votes;
     }
 
     /**
@@ -80,7 +80,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
      */
     function getQuadraticVotes(address account) public view returns (uint256) {
         uint256 pos = _checkpoints[account].length;
-        return pos == 0 ? 0 : _checkpoints[account][pos - 1].quadraticVotes;
+        return pos == 0 ? 0 : _unsafeAccess(_checkpoints[account], pos - 1).quadraticVotes;
     }
 
     /**
