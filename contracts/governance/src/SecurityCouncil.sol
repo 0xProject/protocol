@@ -26,7 +26,7 @@ abstract contract SecurityCouncil {
     event SecurityCouncilEjected();
 
     modifier onlySecurityCouncil() {
-        require(msg.sender == securityCouncil, "ZeroExProtocolGovernor: only security council allowed");
+        require(msg.sender == securityCouncil, "SecurityCouncil: only security council allowed");
         _;
     }
 

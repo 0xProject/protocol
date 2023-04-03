@@ -161,7 +161,7 @@ contract ZeroExProtocolGovernorTest is ZeroExGovernorBaseTest {
         calldatas[0] = abi.encodeWithSignature("rollback(bytes4,address)", testFunctionSig, testFunctionImpl);
 
         vm.startPrank(account2);
-        vm.expectRevert("ZeroExProtocolGovernor: only security council allowed");
+        vm.expectRevert("SecurityCouncil: only security council allowed");
         protocolGovernor.executeRollback(targets, values, calldatas, keccak256(bytes("Emergency rollback")));
     }
 }
