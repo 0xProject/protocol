@@ -21,7 +21,7 @@ import { create as teamCreate, getById as teamGetById, update as teamUpdate } fr
 import {
     create as appCreate,
     list as appList,
-    get as appGet,
+    getById as appGetById,
     update as appUpdate,
     createApiKey as appCreateApiKey,
     updateApiKey as appUpdateApiKey,
@@ -140,7 +140,7 @@ const router = t.router({
         getById: zippoProcedure
             .input(zippoRouterDefinition.app.getById.input)
             .output(zippoRouterDefinition.app.getById.output)
-            .query(({ input }) => appGet(input)),
+            .query(({ input }) => appGetById(input)),
         create: zippoProcedure
             .input(zippoRouterDefinition.app.create.input)
             .output(zippoRouterDefinition.app.create.output)

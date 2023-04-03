@@ -42,7 +42,7 @@ export async function list(
  *
  * @param id App ID
  */
-export async function get(
+export async function getById(
     id: z.infer<typeof zippoRouterDefinition.app.getById.input>,
 ): Promise<z.infer<typeof zippoRouterDefinition.app.getById.output>> {
     return prisma.integratorApp.findUnique({

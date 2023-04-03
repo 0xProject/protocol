@@ -20,12 +20,14 @@
         "test:integration": "jest -i -c jest.config.integration.js"
     },
     "devDependencies": {
+        "@faker-js/faker": "^7.6.0",
         "@types/bcrypt": "^5",
         "@types/jest": "^29.2.6",
         "@types/node": "^18.11.18",
         "@types/pino": "^7.0.5",
         "@types/wait-on": "^5.3.1",
         "bcrypt": "^5.1.0",
+        "fishery": "^2.2.2",
         "jest": "^29.3.1",
         "jest-mock-extended": "^3.0.1",
         "mailgun.js": "^8.2.1",
