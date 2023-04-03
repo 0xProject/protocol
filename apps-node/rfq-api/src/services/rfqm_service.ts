@@ -1322,6 +1322,8 @@ export class RfqmService {
                     requestedAmount: assetFillAmount,
                     quotedAmount,
                     quote,
+                    makerUri: quote.makerUri,
+                    workflow,
                 },
                 'Maker returned an incorrect amount',
             );

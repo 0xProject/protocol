@@ -22,6 +22,12 @@ const ORDER_NOT_FILLABLE = new Counter({
     labelNames: ['chainId', 'makerUri'],
 });
 
+const RFQT_MM_RETURNED_OVERFILL = new Counter({
+    name: 'rfqt_mm_returned_overfill_total',
+    help: 'A maker responded a quote with more amount than requested',
+    labelNames: ['maker_uri', 'chain_id'],
+});
+
 /**
  * Performs basic validation on fetched prices from Market Makers.
  *
@@ -36,6 +42,7 @@ export function validateV2Prices(
     prices: RfqtV2Price[],
     quoteContext: QuoteContext,
     validityWindowMs: number,
+    chainId: number,
     now: Date = new Date(),
 ): RfqtV2Price[] {
     // calculate minimum expiry threshold
@@ -45,6 +52,27 @@ export function validateV2Prices(
 
     return prices
         .filter((price) => price.makerToken === quoteContext.makerToken && price.takerToken === quoteContext.takerToken)
+        .map((price) => {
+            // log if MM returns an overfill
+            const { assetFillAmount, isSelling, workflow } = quoteContext;
+            const { makerAmount, makerUri, takerAmount } = price;
+            const quotedAmount = isSelling ? takerAmount : makerAmount;
+            if (quotedAmount.gt(assetFillAmount)) {
+                logger.warn(
+                    {
+                        isSelling,
+                        requestedAmount: assetFillAmount,
+                        quotedAmount,
+                        price,
+                        makerUri,
+                        workflow,
+                    },
+                    'MM returned an overfilled amount',
+                );
+                RFQT_MM_RETURNED_OVERFILL.labels(makerUri, chainId.toString()).inc();
+            }
+            return price;
+        })
         .filter((price) => price.expiry.gte(expiryThreshold));
 }
 

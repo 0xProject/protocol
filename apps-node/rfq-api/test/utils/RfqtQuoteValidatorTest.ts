@@ -74,7 +74,7 @@ describe('Rfqt Quote Validator', () => {
                     takerToken: '0x3',
                 },
             ];
-            const validatedPrices = validateV2Prices(prices, quoteContext, validityWindowMs);
+            const validatedPrices = validateV2Prices(prices, quoteContext, validityWindowMs, chainId);
             expect(validatedPrices).toEqual(validPrices);
         });
 
@@ -92,12 +92,12 @@ describe('Rfqt Quote Validator', () => {
                     takerToken: '0x2',
                 },
             ];
-            const validatedPrices = validateV2Prices(prices, quoteContext, validityWindowMs);
+            const validatedPrices = validateV2Prices(prices, quoteContext, validityWindowMs, chainId);
             expect(validatedPrices).toEqual(validPrices);
         });
 
         it('returns an empty array from empty prices', () => {
-            const emptyPrices = validateV2Prices([], quoteContext, validityWindowMs);
+            const emptyPrices = validateV2Prices([], quoteContext, validityWindowMs, chainId);
             expect(emptyPrices).toEqual([]);
         });
     });

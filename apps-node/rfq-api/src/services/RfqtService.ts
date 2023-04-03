@@ -756,7 +756,7 @@ export class RfqtService {
         });
 
         // Filter out invalid prices
-        const validatedPrices = validateV2Prices(prices, quoteContext, this._minExpiryDurationMs, now);
+        const validatedPrices = validateV2Prices(prices, quoteContext, this._minExpiryDurationMs, this._chainId, now);
 
         return validatedPrices;
     }
