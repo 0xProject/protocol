@@ -18,6 +18,7 @@ model IntegratorTeam {
   name        String   @map("name")
   image       String?  @map("image")
   productType String   @map("product_type")
+  tier        String?  @map("tier")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 

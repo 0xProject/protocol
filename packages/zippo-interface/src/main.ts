@@ -39,6 +39,7 @@ const team = z.object({
     image: z.string().nullable(),
     name: z.string(),
     productType: z.string(),
+    tier: z.string().nullable(),
     createdAt: z.date(),
     updatedAt: z.date(),
 });
@@ -132,6 +133,7 @@ export const zippoRouterDefinition = {
                             name: z.string().min(1, { message: 'Name is required' }),
                             image: z.string().url().optional(),
                             productType: z.string().min(1, { message: 'Product type is required' }),
+                            tier: z.string().optional(),
                         })
                         .optional(),
                 })
@@ -252,6 +254,7 @@ export const zippoRouterDefinition = {
                 name: z.string().min(1, { message: 'Name is required' }),
                 image: z.string().url().optional(),
                 productType: z.string().min(1, { message: 'Project type is required' }),
+                tier: z.string().optional(),
             }),
             output: team.strip().nullable().describe('The newly created team'),
             type: 'mutation',
@@ -263,6 +266,7 @@ export const zippoRouterDefinition = {
                     name: z.string().min(1).optional(),
                     image: z.string().url().optional(),
                     productType: z.string().optional(),
+                    tier: z.string().optional(),
                 })
                 .partial()
                 .merge(z.object({ id: z.string().cuid().describe('The team ID') })),

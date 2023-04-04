@@ -8,6 +8,7 @@ const defaultTeamSelect = Prisma.validator<Prisma.IntegratorTeamSelect>()({
     name: true,
     image: true,
     productType: true,
+    tier: true,
     createdAt: true,
     updatedAt: true,
 });
