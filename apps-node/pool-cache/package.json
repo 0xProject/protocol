@@ -20,6 +20,7 @@
     },
     "dependencies": {
         "@trpc/server": "^10.14.1",
+        "dotenv": "^16.0.3",
         "ethers": "6.1.0",
         "immutable": "^4.3.0",
         "ioredis": "^5.3.1",
