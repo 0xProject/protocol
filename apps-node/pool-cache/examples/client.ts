@@ -5,7 +5,7 @@ import * as util from 'node:util';
 const client = createTRPCProxyClient<PoolCacheRouter>({
     links: [
         httpBatchLink({
-            url: 'http://localhost:3000',
+            url: 'http://localhost:3001/trpc',
         }),
     ],
 });

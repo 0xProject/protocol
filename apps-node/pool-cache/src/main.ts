@@ -1,4 +1,5 @@
-import { createHTTPServer } from '@trpc/server/adapters/standalone';
+import express from 'express';
+import * as trpcExpress from '@trpc/server/adapters/express';
 import { Map } from 'immutable';
 import { RedisCacheClient } from './cache/redis-cache-client';
 import { EthCallPoolFetcher } from './pool-fetcher/eth-call-pool-fetcher';
@@ -18,18 +19,30 @@ function getRpcUrlMap(): Map<number, string> {
         const [, url] = tuple;
         return url !== undefined;
     };
-
     return Map(entries.filter(isUrlDefined));
 }
 
-createHTTPServer({
-    router: createPoolCacheRouter(
+const createContext = ({ req: _req, res: _res }: trpcExpress.CreateExpressContextOptions) => ({});
+
+async function main() {
+    const app = express();
+
+    const poolCacheRouter = createPoolCacheRouter(
         new PoolCacheService({
             poolFetcher: new EthCallPoolFetcher(getRpcUrlMap()),
             cacheClient: new RedisCacheClient(env.REDIS_URL),
         }),
-    ),
-    createContext() {
-        return {};
-    },
-}).listen(env.POOL_CACHE_PORT);
+    );
+
+    app.use(
+        '/trpc',
+        trpcExpress.createExpressMiddleware({
+            router: poolCacheRouter,
+            createContext,
+        }),
+    );
+
+    app.listen(env.POOL_CACHE_PORT);
+}
+
+main();
