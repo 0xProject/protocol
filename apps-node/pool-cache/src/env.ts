@@ -7,6 +7,8 @@ const envSchema = z.object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
     POOL_CACHE_PORT: z.coerce.number().positive().default(3001),
     REDIS_URL: z.string(),
+    ENABLE_PROMETHEUS_METRICS: z.boolean().default(false),
+    LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
     // RPC URLs
     ETHEREUM_RPC_URL: z.string().url().optional(),
     POLYGON_RPC_URL: z.string().url().optional(),
