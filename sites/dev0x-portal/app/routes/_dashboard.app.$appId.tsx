@@ -72,7 +72,7 @@ export default function AppDashboard() {
     return (
         <>
             <div className="border-grey-200 border-b border-solid pt-8 pb-9">
-                <div className="max-w-page-size mx-auto flex items-start justify-between">
+                <div className="max-w-page-size mx-auto flex items-start justify-between px-24">
                     <div>
                         <div className="flex items-center">
                             <h1 className="inline-block text-5xl font-normal">{app.name}</h1>
@@ -124,33 +124,33 @@ export default function AppDashboard() {
                     </div>
                 </div>
             </div>
-            <div className="max-w-page-size bg-grey-100 mx-auto my-11 grid h-[236px] grid-cols-5 rounded-2xl p-5">
-                <div className="p-4">
-                    <h2 className="text-1.5lg mb-3.5 leading-none">Make a live API call</h2>
-                    <div className="text-grey-700/50 mb-12 max-w-[200px] font-sans text-base">
-                        Make your first live request with your API key.
+            <div className="max-w-page-size mx-auto px-24">
+                <div className=" bg-grey-100 mx-auto my-11 grid h-[236px] grid-cols-5 rounded-2xl p-5">
+                    <div className="p-4">
+                        <h2 className="text-1.5lg mb-3.5 leading-none">Make a live API call</h2>
+                        <div className="text-grey-700/50 mb-12 max-w-[200px] font-sans text-base">
+                            Make your first live request with your API key.
+                        </div>
+                        <ViewDocsLink />
                     </div>
-                    <ViewDocsLink />
-                </div>
-                <SwapCodeBlock className="col-span-2" />
-                <div className="col-span-2 flex justify-evenly pt-4">
-                    <div className="min-w-max">
-                        <h3 className="font-sans text-base">Build a gasless dApp</h3>
-                        <ViewDocsLink className="mt-2 mb-5 inline-block" />
-                        <img src="/assets/buildGaslessDApp.svg" alt="Gasless dApp" />
-                    </div>
-                    <div className="min-w-max">
-                        <h3 className="font-sans text-base">Try Limit orders</h3>
-                        <ViewDocsLink className="mt-2 mb-5 inline-block" />
-                        <img src="/assets/tryLimitOrder.svg" alt="Limit order" />
+                    <SwapCodeBlock className="col-span-2" />
+                    <div className="col-span-2 flex justify-evenly pt-4">
+                        <div className="min-w-max">
+                            <h3 className="font-sans text-base">Build a gasless dApp</h3>
+                            <ViewDocsLink className="mt-2 mb-5 inline-block" />
+                            <img src="/assets/buildGaslessDApp.svg" alt="Gasless dApp" />
+                        </div>
+                        <div className="min-w-max">
+                            <h3 className="font-sans text-base">Try Limit orders</h3>
+                            <ViewDocsLink className="mt-2 mb-5 inline-block" />
+                            <img src="/assets/tryLimitOrder.svg" alt="Limit order" />
+                        </div>
                     </div>
                 </div>
             </div>
-            <GoToExplorer
-                url="https://explorer.0x.org/apps"
-                className="max-w-page-size mx-auto mb-44 p-9"
-                buttonClassName="mt-6"
-            />
+            <div className="max-w-page-size mx-auto mb-44 px-24">
+                <GoToExplorer url="https://explorer.0x.org/apps" className="p-9" buttonClassName="mt-6" />
+            </div>
             <Outlet context={{ app }} />
         </>
     );

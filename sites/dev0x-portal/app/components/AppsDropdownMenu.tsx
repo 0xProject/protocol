@@ -51,7 +51,7 @@ export const Content = forwardRef<ElementRef<typeof DropdownMenu.Content>, AppsD
                 ref={forwardedRef}
             >
                 <DropdownMenu.Item asChild>
-                    <Link to={'/apps/create'} className="bg-grey-100 flex items-center">
+                    <Link to={'/apps/create-app'} className="bg-grey-100 flex items-center">
                         <PlusCirce className="relative -top-[1px] mr-2" />
                         <span>Create an app</span>
                     </Link>

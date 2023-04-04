@@ -28,7 +28,7 @@ export const Content = forwardRef<HTMLDivElement, DropdownMenu.DropdownMenuConte
     return (
         <DropdownMenu.Content
             className={twMerge(
-                'border-grey-200 overflow-hidden rounded-xl border border-solid bg-white px-2 pt-2 pb-1.5 shadow-md',
+                'border-grey-200 z-40 overflow-hidden rounded-xl border border-solid bg-white px-2 pt-2 pb-1.5 shadow-md',
                 className,
             )}
             {...other}

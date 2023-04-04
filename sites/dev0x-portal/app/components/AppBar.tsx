@@ -20,7 +20,7 @@ export const AppBar = ({ apps, userEmail, userTeam }: AppBarProps) => {
     const currentApp = useCurrentApp(apps);
 
     return (
-        <Toolbar.Root className="border-grey-100 sticky top-0 flex min-h-[82px] items-center border-b border-solid bg-white py-4 px-8">
+        <Toolbar.Root className="border-grey-100 sticky top-0 z-10 flex min-h-[82px] items-center border-b border-solid bg-white py-4 px-8">
             <div className="mr-7">
                 <ZeroExLogo />
             </div>
