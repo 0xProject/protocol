@@ -70,7 +70,7 @@ export async function create(parameters: z.infer<typeof zippoRouterDefinition.ap
         select: defaultAppSelect,
     });
 
-    const apiKey = await generateAndProvisionApiKey(integratorTeam.id, integratorApp.id);
+    const apiKey = await generateAndProvisionApiKey(integratorTeam.id, integratorApp.id, parameters.apiKey);
 
     await prisma.integratorApiKey.create({
         data: {
@@ -209,7 +209,11 @@ export async function createApiKey(parameters: z.infer<typeof zippoRouterDefinit
 
     const { integratorTeamId, ...apiKeyParameters } = parameters;
 
-    const apiKey = await generateAndProvisionApiKey(integratorApp.integratorTeamId, integratorApp.id);
+    const apiKey = await generateAndProvisionApiKey(
+        integratorApp.integratorTeamId,
+        integratorApp.id,
+        parameters.apiKey,
+    );
 
     await prisma.integratorApiKey.create({
         data: {
@@ -282,12 +286,12 @@ export async function deleteApiKey(id: z.infer<typeof zippoRouterDefinition.app.
     });
 }
 
-async function generateAndProvisionApiKey(integratorTeamId: string, integratorAppId: string) {
-    const newApiKey = randomUUID();
+async function generateAndProvisionApiKey(integratorTeamId: string, integratorAppId: string, apiKey?: string) {
+    const provisionApiKey = apiKey || randomUUID();
 
-    if (!(await provisionIntegratorKey(integratorTeamId, integratorAppId, newApiKey))) {
+    if (!(await provisionIntegratorKey(integratorTeamId, integratorAppId, provisionApiKey))) {
         throw new Error('Unable to provision API key');
     }
 
-    return newApiKey;
+    return provisionApiKey;
 }

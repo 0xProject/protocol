@@ -18,150 +18,231 @@ describe('appService', () => {
     beforeEach(() => jest.resetAllMocks());
     beforeEach(() => mockKongWithKey());
 
-    test('get by app ID', async () => {
-        const app = appFactory.build();
+    describe('getById', () => {
+        test('get an app by ID', async () => {
+            const app = appFactory.build();
 
-        // mock prisma database access
-        prismaMock.integratorApp.findUnique.mockResolvedValue(app);
+            // mock prisma database access
+            prismaMock.integratorApp.findUnique.mockResolvedValue(app);
 
-        await expect(getById(app.id)).resolves.toEqual(app);
+            const result = await getById(app.id);
 
-        // confirm calls to prisma happened as expected
-        expect(prismaMock.integratorApp.findUnique.mock.calls[0][0].where.id).toEqual(app.id);
+            expect(result).toEqual(app);
+
+            // confirm calls to prisma happened as expected
+            expect(prismaMock.integratorApp.findUnique.mock.calls[0][0].where.id).toEqual(app.id);
+        });
     });
 
-    test('create app', async () => {
-        const app = appFactory.build();
-        const appWithKey = { ...app };
-        appWithKey.apiKeys.push(apiKeyFactory.build({ app: appWithKey }));
+    describe('create', () => {
+        test('create an app', async () => {
+            const app = appFactory.build();
+            const appWithKey = { ...app };
+            const apiKey = apiKeyFactory.build({ app: appWithKey });
+            appWithKey.apiKeys.push(apiKey);
 
-        // mock prisma database access
-        prismaMock.integratorApp.create.mockResolvedValue(app);
-        prismaMock.integratorApp.findUnique.mockResolvedValue(appWithKey);
-        prismaMock.integratorTeam.findUnique.mockResolvedValue(app.integratorTeam);
+            // mock prisma database access
+            prismaMock.integratorApp.create.mockResolvedValue(app);
+            prismaMock.integratorApiKey.create.mockResolvedValue(apiKey);
+            prismaMock.integratorApp.findUnique.mockResolvedValue(appWithKey);
+            prismaMock.integratorTeam.findUnique.mockResolvedValue(app.integratorTeam);
 
-        await expect(
-            create({
+            const result = await create({
                 name: app.name,
                 description: app.description as string,
                 integratorTeamId: app.integratorTeamId,
-            }),
-        ).resolves.toEqual(appWithKey);
+            });
 
-        // confirm calls to prisma happened as expected
-        expect(prismaMock.integratorApp.create.mock.calls[0][0].data.name).toEqual(app.name);
+            expect(result).toEqual(appWithKey);
+
+            // confirm calls to prisma happened as expected
+            expect(prismaMock.integratorApp.create.mock.calls[0][0].data.name).toEqual(app.name);
+        });
+
+        test('create an app with explicit apiKey', async () => {
+            const app = appFactory.build();
+            const appWithKey = { ...app };
+            const apiKey = apiKeyFactory.build({ app: appWithKey });
+            appWithKey.apiKeys.push(apiKey);
+
+            // mock prisma database access
+            prismaMock.integratorApp.create.mockResolvedValue(app);
+            prismaMock.integratorApiKey.create.mockResolvedValue(apiKey);
+            prismaMock.integratorApp.findUnique.mockResolvedValue(appWithKey);
+            prismaMock.integratorTeam.findUnique.mockResolvedValue(app.integratorTeam);
+
+            const result = await create({
+                name: app.name,
+                description: app.description as string,
+                integratorTeamId: app.integratorTeamId,
+                apiKey: apiKey.apiKey,
+            });
+
+            expect(result).toEqual(appWithKey);
+
+            // confirm calls to prisma happened as expected
+            expect(prismaMock.integratorApp.create.mock.calls[0][0].data.name).toEqual(app.name);
+            expect(prismaMock.integratorApiKey.create.mock.calls[0][0].data.apiKey).toEqual(apiKey.apiKey);
+        });
     });
 
-    test('update app', async () => {
-        const app = appFactory.build();
+    describe('update', () => {
+        test('update an app', async () => {
+            const app = appFactory.build();
 
-        // mock prisma database access
-        prismaMock.integratorApp.update.mockResolvedValue(app);
+            // mock prisma database access
+            prismaMock.integratorApp.update.mockResolvedValue(app);
 
-        await expect(
-            update(app.id, {
+            const result = await update(app.id, {
                 name: 'My Updated App',
-            }),
-        ).resolves.toEqual(app);
+            });
 
-        // confirm calls to prisma happened as expected
-        expect(prismaMock.integratorApp.update.mock.calls[0][0].where.id).toEqual(app.id);
-        expect(prismaMock.integratorApp.update.mock.calls[0][0].data.name).toEqual('My Updated App');
-    });
+            expect(result).toEqual(app);
 
-    test('provision access', async () => {
-        const app = appFactory.build();
-        // simulate adding a new integratorAccess to the app
-        app.integratorAccess.push({
-            integratorAppId: app.id,
-            routeTag: TZippoRouteTag.SwapV1Prices,
-            rateLimit: '{ minute: 3 }',
-            updatedAt: new Date(),
-            createdAt: new Date(),
-        });
-
-        // mock prisma database access
-        prismaMock.integratorApp.findUnique.mockResolvedValue(app);
-
-        const provisionedApp = await provisionAccess(app.id, [TZippoRouteTag.SwapV1Prices], [{ minute: 3 }]);
-        if (!provisionedApp) {
-            throw new Error('Unable to provision access');
-        }
-        expect(provisionedApp.integratorAccess.length).toEqual(1);
-
-        // confirm calls to prisma happened as expected
-        expect(prismaMock.integratorAccess.upsert.mock.calls[0][0].where).toEqual({
-            integratorAppId_routeTag: { integratorAppId: app.id, routeTag: TZippoRouteTag.SwapV1Prices },
+            // confirm calls to prisma happened as expected
+            expect(prismaMock.integratorApp.update.mock.calls[0][0].where.id).toEqual(app.id);
+            expect(prismaMock.integratorApp.update.mock.calls[0][0].data.name).toEqual('My Updated App');
         });
     });
 
-    test('deprovision access', async () => {
-        const app = appFactory.build();
+    describe('provisionAccess', () => {
+        test('provision access for an app', async () => {
+            const app = appFactory.build();
+            // simulate adding a new integratorAccess to the app
+            app.integratorAccess.push({
+                integratorAppId: app.id,
+                routeTag: TZippoRouteTag.SwapV1Prices,
+                rateLimit: '{ minute: 3 }',
+                updatedAt: new Date(),
+                createdAt: new Date(),
+            });
 
-        // mock prisma database access
-        prismaMock.integratorApp.findUnique.mockResolvedValue(app);
+            // mock prisma database access
+            prismaMock.integratorApp.findUnique.mockResolvedValue(app);
 
-        const deprovisionedApp = await deprovisionAccess(app.id, [TZippoRouteTag.SwapV1Prices]);
-        if (!deprovisionedApp) {
-            throw new Error('Unable to deprovision access');
-        }
-        expect(deprovisionedApp.integratorAccess.length).toEqual(0);
+            const provisionedApp = await provisionAccess(app.id, [TZippoRouteTag.SwapV1Prices], [{ minute: 3 }]);
+            if (!provisionedApp) {
+                throw new Error('Unable to provision access');
+            }
+            expect(provisionedApp.integratorAccess.length).toEqual(1);
 
-        // confirm calls to prisma happened as expected
-        expect(prismaMock.integratorAccess.deleteMany.mock.calls[0][0]?.where).toEqual({
-            integratorAppId: app.id,
-            routeTag: { in: [TZippoRouteTag.SwapV1Prices] },
+            // confirm calls to prisma happened as expected
+            expect(prismaMock.integratorAccess.upsert.mock.calls[0][0].where).toEqual({
+                integratorAppId_routeTag: { integratorAppId: app.id, routeTag: TZippoRouteTag.SwapV1Prices },
+            });
         });
     });
 
-    test('create api key', async () => {
-        const app = appFactory.build();
+    describe('deprovisionAccess', () => {
+        test('deprovision access for an app', async () => {
+            const app = appFactory.build();
 
-        // mock prisma database access
-        prismaMock.integratorApp.findUnique.mockResolvedValue(app);
+            // mock prisma database access
+            prismaMock.integratorApp.findUnique.mockResolvedValue(app);
 
-        await expect(
-            createApiKey({
+            const deprovisionedApp = await deprovisionAccess(app.id, [TZippoRouteTag.SwapV1Prices]);
+            if (!deprovisionedApp) {
+                throw new Error('Unable to deprovision access');
+            }
+            expect(deprovisionedApp.integratorAccess.length).toEqual(0);
+
+            // confirm calls to prisma happened as expected
+            expect(prismaMock.integratorAccess.deleteMany.mock.calls[0][0]?.where).toEqual({
+                integratorAppId: app.id,
+                routeTag: { in: [TZippoRouteTag.SwapV1Prices] },
+            });
+        });
+    });
+
+    describe('createApiKey', () => {
+        test('create an api key', async () => {
+            const app = appFactory.build();
+            const appWithKey = { ...app };
+            const apiKey = apiKeyFactory.build({ app: appWithKey });
+            appWithKey.apiKeys.push(apiKey);
+
+            // mock prisma database access
+            prismaMock.integratorApp.create.mockResolvedValue(app);
+            prismaMock.integratorApiKey.create.mockResolvedValue(apiKey);
+            prismaMock.integratorApp.findUnique.mockResolvedValue(appWithKey);
+            prismaMock.integratorTeam.findUnique.mockResolvedValue(app.integratorTeam);
+
+            const result = await createApiKey({
                 integratorTeamId: app.integratorTeamId,
                 integratorAppId: app.id,
                 description: 'test key',
-            }),
-        ).resolves.toEqual(app);
+            });
 
-        // confirm calls to prisma happened as expected
-        expect(prismaMock.integratorApiKey.create.mock.calls[0][0].data.integratorAppId).toEqual(app.id);
-        expect(prismaMock.integratorApiKey.create.mock.calls[0][0].data.description).toEqual('test key');
+            expect(result).toEqual(app);
+
+            // confirm calls to prisma happened as expected
+            expect(prismaMock.integratorApiKey.create.mock.calls[0][0].data.integratorAppId).toEqual(app.id);
+            expect(prismaMock.integratorApiKey.create.mock.calls[0][0].data.description).toEqual('test key');
+        });
+
+        test('create an api key with explicit key', async () => {
+            const app = appFactory.build();
+            const appWithKey = { ...app };
+            const apiKey = apiKeyFactory.build({ app: appWithKey });
+            appWithKey.apiKeys.push(apiKey);
+
+            // mock prisma database access
+            prismaMock.integratorApp.create.mockResolvedValue(app);
+            prismaMock.integratorApiKey.create.mockResolvedValue(apiKey);
+            prismaMock.integratorApp.findUnique.mockResolvedValue(appWithKey);
+            prismaMock.integratorTeam.findUnique.mockResolvedValue(app.integratorTeam);
+
+            const result = await createApiKey({
+                integratorTeamId: app.integratorTeamId,
+                integratorAppId: app.id,
+                description: 'test key',
+                apiKey: apiKey.apiKey,
+            });
+
+            expect(result).toEqual(app);
+
+            // confirm calls to prisma happened as expected
+            expect(prismaMock.integratorApiKey.create.mock.calls[0][0].data.integratorAppId).toEqual(app.id);
+            expect(prismaMock.integratorApiKey.create.mock.calls[0][0].data.description).toEqual('test key');
+            expect(prismaMock.integratorApiKey.create.mock.calls[0][0].data.apiKey).toEqual(apiKey.apiKey);
+        });
     });
 
-    test('update api key', async () => {
-        const apiKey = apiKeyFactory.build();
+    describe('updateApiKey', () => {
+        test('update an api key', async () => {
+            const apiKey = apiKeyFactory.build();
 
-        // mock prisma database access
-        prismaMock.integratorApp.findUnique.mockResolvedValue(apiKey.app);
-        prismaMock.integratorApiKey.findUnique.mockResolvedValue(apiKey);
+            // mock prisma database access
+            prismaMock.integratorApp.findUnique.mockResolvedValue(apiKey.app);
+            prismaMock.integratorApiKey.findUnique.mockResolvedValue(apiKey);
 
-        await expect(
-            updateApiKey(apiKey.id, {
+            const result = await updateApiKey(apiKey.id, {
                 description: 'updated test key',
-            }),
-        ).resolves.toEqual(apiKey.app);
+            });
 
-        // confirm calls to prisma happened as expected
-        expect(prismaMock.integratorApiKey.update.mock.calls[0][0].where.id).toEqual(apiKey.id);
-        expect(prismaMock.integratorApiKey.update.mock.calls[0][0].data.description).toEqual('updated test key');
+            expect(result).toEqual(apiKey.app);
+
+            // confirm calls to prisma happened as expected
+            expect(prismaMock.integratorApiKey.update.mock.calls[0][0].where.id).toEqual(apiKey.id);
+            expect(prismaMock.integratorApiKey.update.mock.calls[0][0].data.description).toEqual('updated test key');
+        });
     });
 
-    test('delete api key', async () => {
-        const apiKey = apiKeyFactory.build();
+    describe('deleteApiKey', () => {
+        test('delete an api key', async () => {
+            const apiKey = apiKeyFactory.build();
 
-        // mock prisma database access
-        prismaMock.integratorApp.findUnique.mockResolvedValue(apiKey.app);
-        prismaMock.integratorApiKey.findUnique.mockResolvedValue(apiKey);
+            // mock prisma database access
+            prismaMock.integratorApp.findUnique.mockResolvedValue(apiKey.app);
+            prismaMock.integratorApiKey.findUnique.mockResolvedValue(apiKey);
 
-        await expect(deleteApiKey(apiKey.id)).resolves.toEqual(apiKey.app);
+            const result = await deleteApiKey(apiKey.id);
 
-        // confirm calls to prisma happened as expected
-        expect(prismaMock.integratorApiKey.delete.mock.calls[0][0].where.id).toEqual(apiKey.id);
+            expect(result).toEqual(apiKey.app);
+
+            // confirm calls to prisma happened as expected
+            expect(prismaMock.integratorApiKey.delete.mock.calls[0][0].where.id).toEqual(apiKey.id);
+        });
     });
 });
 
