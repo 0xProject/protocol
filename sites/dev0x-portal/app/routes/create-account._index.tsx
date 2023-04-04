@@ -66,7 +66,7 @@ export async function action({ request }: ActionArgs) {
             },
             values: body,
         });
-    } else if (userResult.result === 'ERROR' && userResult.error.message !== 'User already exists') {
+    } else if (userResult.result === 'ERROR' && userResult.error.message !== 'User not found') {
         return json({
             errors: {
                 email: 'An error occurred while creating an account',
