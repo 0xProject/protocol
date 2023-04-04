@@ -71,7 +71,8 @@ export async function createUserWithEmailAndPassword({
 
     try {
         const result = await client.user.create.mutate({
-            name: `${firstName} ${lastName}`,
+            firstName: firstName,
+            lastName: lastName,
             email,
             password,
         });
