@@ -2,7 +2,6 @@ import { forwardRef } from 'react';
 import { Link, useLocation } from '@remix-run/react';
 import { twMerge } from 'tailwind-merge';
 import * as DropdownMenu from './DropdownMenu';
-import { Check } from '../icons/Check';
 
 import type { ClientApp } from '../types';
 import type { ElementRef, ComponentPropsWithRef, SVGAttributes } from 'react';
@@ -57,24 +56,20 @@ export const Content = forwardRef<ElementRef<typeof DropdownMenu.Content>, AppsD
                         <span>Create an app</span>
                     </Link>
                 </DropdownMenu.Item>
-                <DropdownMenu.Item asChild>
-                    <Link to={'/apps'} className="flex items-center justify-between">
-                        <span>All apps</span>
-                        {pathname === '/apps' && <Check width={16} height={16} className="relative -top-[1px] ml-2" />}
-                    </Link>
-                </DropdownMenu.Item>
-                {apps.map(({ name, id }) => {
-                    return (
-                        <DropdownMenu.Item asChild key={id}>
-                            <Link to={`/app/${id}`} className="flex items-center justify-between">
-                                <span>{name}</span>
-                                {pathname.includes(id) && (
-                                    <Check width={16} height={16} className="relative -top-[1px] ml-2" />
-                                )}
-                            </Link>
-                        </DropdownMenu.Item>
-                    );
-                })}
+                {pathname !== '/apps' && (
+                    <DropdownMenu.Item asChild>
+                        <Link to={'/apps'}>All apps</Link>
+                    </DropdownMenu.Item>
+                )}
+                {apps
+                    .filter(({ id }) => !pathname.includes(id))
+                    .map(({ name, id }) => {
+                        return (
+                            <DropdownMenu.Item asChild key={id}>
+                                <Link to={`/app/${id}`}>{name}</Link>
+                            </DropdownMenu.Item>
+                        );
+                    })}
             </DropdownMenu.Content>
         </DropdownMenu.Portal>
     );
