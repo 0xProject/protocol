@@ -20,7 +20,7 @@ export default Factory.define<UserWithTeam>(({ params }) => {
         updatedAt: new Date(),
         integratorTeam: integratorTeam,
         integratorTeamId: integratorTeam.id,
-        emailVerifiedAt: new Date(),
+        emailVerifiedAt: params.emailVerifiedAt === null ? null : new Date(),
         image: faker.image.imageUrl(),
         passwordHash: faker.internet.password(),
         salt: 'abc',

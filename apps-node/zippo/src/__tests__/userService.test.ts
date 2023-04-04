@@ -17,225 +17,257 @@ import userFactory from './factories/userFactory';
 import sessionFactory from './factories/sessionFactory';
 import verificationTokenFactory from './factories/verificationTokenFactory';
 
-describe('userService tests', () => {
+describe('userService', () => {
     beforeEach(async () => jest.resetAllMocks());
 
-    test('get by user ID', async () => {
-        const user = userFactory.build();
+    describe('getById', () => {
+        test('get a user by ID', async () => {
+            const user = userFactory.build();
+            prismaMock.user.findUnique.mockResolvedValue(user);
 
-        prismaMock.user.findUnique.mockResolvedValue(user);
+            const result = await getById(user.id);
 
-        // perform get and ensure we got the mocked user
-        await expect(getById(user.id)).resolves.toEqual(user);
-        expect(prismaMock.user.findUnique.mock.calls[0][0].where.id).toEqual(user.id);
+            expect(result).toEqual(user);
+            expect(prismaMock.user.findUnique.mock.calls[0][0].where.id).toEqual(user.id);
+        });
+
+        test('attempt to fetch a user that does not exist', async () => {
+            prismaMock.user.findUnique.mockResolvedValue(null);
+
+            const result = await getById('not-a-real-id');
+
+            expect(result).toBeNull();
+            expect(prismaMock.user.findUnique.mock.calls[0][0].where.id).toEqual('not-a-real-id');
+        });
     });
 
-    test('get by user by email', async () => {
-        const user = userFactory.build();
+    describe('getByEmail', () => {
+        test('get by user by email', async () => {
+            const user = userFactory.build();
+            prismaMock.user.findUnique.mockResolvedValue(user);
 
-        // mock prisma database access
-        prismaMock.user.findUnique.mockResolvedValue(user);
+            const email = user.email;
+            if (!email) {
+                throw new Error();
+            }
 
-        // perform get and ensure we got the mocked user
-        await expect(getByEmail(user.email as string)).resolves.toEqual(user);
+            const result = await getByEmail(email);
 
-        // confirm calls to prisma happened as expected
-        expect(prismaMock.user.findUnique.mock.calls[0][0].where.email).toEqual(user.email);
+            expect(result).toEqual(user);
+            expect(prismaMock.user.findUnique.mock.calls[0][0].where.email).toEqual(user.email);
+        });
+
+        test('attempt to fetch a user by email that does not exist', async () => {
+            prismaMock.user.findUnique.mockResolvedValue(null);
+
+            const result = await getByEmail('not-a-real-email');
+
+            expect(result).toBeNull();
+            expect(prismaMock.user.findUnique.mock.calls[0][0].where.email).toEqual('not-a-real-email');
+        });
     });
 
-    test('create user no team params', async () => {
-        const user = userFactory.build({ integratorTeam: { name: '__not_init' } });
+    describe('create', () => {
+        test('create user with no team params', async () => {
+            const user = userFactory.build({ integratorTeam: { name: '__not_init' } });
+            prismaMock.integratorTeam.create.mockResolvedValue(user.integratorTeam);
+            prismaMock.user.create.mockResolvedValue(user);
+            const { email } = user;
+            if (!email) {
+                throw new Error();
+            }
 
-        // mock prisma database access
-        prismaMock.integratorTeam.create.mockResolvedValue(user.integratorTeam);
-        prismaMock.user.create.mockResolvedValue(user);
-
-        // perform create and ensure we get back the mocked user
-        await expect(
-            create({
+            const result = await create({
                 firstName: user.firstName,
                 lastName: user.lastName,
-                email: user.email as string,
+                email,
                 password: 'sljnbd%&$%&sewefw242345',
-            }),
-        ).resolves.toEqual(user);
+            });
 
-        // confirm calls to prisma happened as expected
-        expect(prismaMock.integratorTeam.create.mock.calls[0][0].data.name).toEqual(user.integratorTeam.name);
-        expect(prismaMock.user.create.mock.calls[0][0].data.firstName).toEqual(user.firstName);
-        expect(prismaMock.user.create.mock.calls[0][0].data.lastName).toEqual(user.lastName);
-        expect(prismaMock.user.create.mock.calls[0][0].data.email).toEqual(user.email);
-        expect(prismaMock.user.create.mock.calls[0][0].data.integratorTeamId).toEqual(user.integratorTeam.id);
-    });
+            expect(result).toEqual(user);
+            expect(prismaMock.integratorTeam.create.mock.calls[0][0].data.name).toEqual(user.integratorTeam.name);
+            expect(prismaMock.user.create.mock.calls[0][0].data.firstName).toEqual(user.firstName);
+            expect(prismaMock.user.create.mock.calls[0][0].data.lastName).toEqual(user.lastName);
+            expect(prismaMock.user.create.mock.calls[0][0].data.email).toEqual(user.email);
+            expect(prismaMock.user.create.mock.calls[0][0].data.integratorTeamId).toEqual(user.integratorTeam.id);
+        });
 
-    test('create user with team params', async () => {
-        const user = userFactory.build();
+        test('create user with team params', async () => {
+            const user = userFactory.build();
+            prismaMock.integratorTeam.create.mockResolvedValue(user.integratorTeam);
+            prismaMock.user.create.mockResolvedValue(user);
+            const { email } = user;
+            if (!email) {
+                throw new Error();
+            }
 
-        // mock prisma database access
-        prismaMock.integratorTeam.create.mockResolvedValue(user.integratorTeam);
-        prismaMock.user.create.mockResolvedValue(user);
-
-        // perform create and ensure we get back the mocked user
-        await expect(
-            create({
+            const result = await create({
                 firstName: user.firstName,
                 lastName: user.lastName,
-                email: user.email as string,
+                email,
                 password: 'sljnbd%&$%&sewefw242345',
                 integratorTeam: {
                     name: user.integratorTeam.name,
                     productType: user.integratorTeam.productType,
                 },
-            }),
-        ).resolves.toEqual(user);
+            });
 
-        // confirm calls to prisma happened as expected
-        expect(prismaMock.integratorTeam.create.mock.calls[0][0].data.name).toEqual(user.integratorTeam.name);
-        expect(prismaMock.user.create.mock.calls[0][0].data.firstName).toEqual(user.firstName);
-        expect(prismaMock.user.create.mock.calls[0][0].data.lastName).toEqual(user.lastName);
-        expect(prismaMock.user.create.mock.calls[0][0].data.email).toEqual(user.email);
-        expect(prismaMock.user.create.mock.calls[0][0].data.integratorTeamId).toEqual(user.integratorTeam.id);
-    });
+            expect(result).toEqual(user);
+            expect(prismaMock.integratorTeam.create.mock.calls[0][0].data.name).toEqual(user.integratorTeam.name);
+            expect(prismaMock.user.create.mock.calls[0][0].data.firstName).toEqual(user.firstName);
+            expect(prismaMock.user.create.mock.calls[0][0].data.lastName).toEqual(user.lastName);
+            expect(prismaMock.user.create.mock.calls[0][0].data.email).toEqual(user.email);
+            expect(prismaMock.user.create.mock.calls[0][0].data.integratorTeamId).toEqual(user.integratorTeam.id);
+        });
 
-    test('create user with team id', async () => {
-        const user = userFactory.build();
+        test('create user with team id', async () => {
+            const user = userFactory.build();
+            prismaMock.integratorTeam.findUnique.mockResolvedValue(user.integratorTeam);
+            prismaMock.user.create.mockResolvedValue(user);
 
-        // mock prisma database access
-        prismaMock.integratorTeam.findUnique.mockResolvedValue(user.integratorTeam);
-        prismaMock.user.create.mockResolvedValue(user);
-
-        // perform create and ensure we get back the mocked user
-        await expect(
-            create({
+            const result = await create({
                 firstName: user.firstName,
                 lastName: user.lastName,
                 email: user.email as string,
                 password: 'sljnbd%&$%&sewefw242345',
                 integratorTeamId: user.integratorTeam.id,
-            }),
-        ).resolves.toEqual(user);
+            });
 
-        // confirm calls to prisma happened as expected
-        expect(prismaMock.integratorTeam.findUnique.mock.calls[0][0].where.id).toEqual(user.integratorTeam.id);
-        expect(prismaMock.user.create.mock.calls[0][0].data.firstName).toEqual(user.firstName);
-        expect(prismaMock.user.create.mock.calls[0][0].data.lastName).toEqual(user.lastName);
-        expect(prismaMock.user.create.mock.calls[0][0].data.email).toEqual(user.email);
-        expect(prismaMock.user.create.mock.calls[0][0].data.integratorTeamId).toEqual(user.integratorTeam.id);
+            expect(result).toEqual(user);
+            expect(prismaMock.integratorTeam.findUnique.mock.calls[0][0].where.id).toEqual(user.integratorTeam.id);
+            expect(prismaMock.user.create.mock.calls[0][0].data.firstName).toEqual(user.firstName);
+            expect(prismaMock.user.create.mock.calls[0][0].data.lastName).toEqual(user.lastName);
+            expect(prismaMock.user.create.mock.calls[0][0].data.email).toEqual(user.email);
+            expect(prismaMock.user.create.mock.calls[0][0].data.integratorTeamId).toEqual(user.integratorTeam.id);
+        });
     });
 
-    test('user login', async () => {
-        const password = 'sljnbd%&$%&sewefw242345';
-        const [salt, passwordHash] = await validatePassword(password);
+    describe('login', () => {
+        test('user login', async () => {
+            const password = 'sljnbd%&$%&sewefw242345';
+            const [salt, passwordHash] = await validatePassword(password);
 
-        const user = userFactory.build({ salt, passwordHash });
+            const user = userFactory.build({ salt, passwordHash });
+            const { email } = user;
+            if (!email) {
+                throw new Error();
+            }
+            prismaMock.user.findUnique.mockResolvedValue(user);
+            const session = sessionFactory.build();
+            prismaMock.session.create.mockResolvedValue(session);
 
-        // mock prisma database access
-        prismaMock.user.findUnique.mockResolvedValue(user);
+            const result = await login({
+                email,
+                password,
+            });
 
-        // perform login
-        await expect(
-            login({
-                email: user.email as string,
-                password: password,
-            }),
-        ).resolves.not.toThrow();
-
-        expect(prismaMock.user.findUnique.mock.calls[0][0].where.email).toEqual(user.email);
+            expect(result).toEqual(session);
+            expect(prismaMock.user.findUnique.mock.calls[0][0].where.email).toEqual(user.email);
+        });
     });
 
-    test('log user out', async () => {
-        const session = sessionFactory.build();
+    describe('logout', () => {
+        test('log user out', async () => {
+            const session = sessionFactory.build();
 
-        // mock prisma database access
-        prismaMock.session.create.mockResolvedValue(session);
+            await logout(session.sessionToken);
 
-        // perform logout
-        await expect(logout(session.sessionToken)).resolves.not.toEqual(session);
-
-        // confirm calls to prisma happened as expected
-        expect(prismaMock.session.delete.mock.calls[0][0].where.sessionToken).toEqual(session.sessionToken);
+            expect(prismaMock.session.delete.mock.calls[0][0].where.sessionToken).toEqual(session.sessionToken);
+        });
     });
 
-    test('get session token', async () => {
-        const session = sessionFactory.build();
+    describe('getSession', () => {
+        test('get session token', async () => {
+            const session = sessionFactory.build();
+            prismaMock.session.findUnique.mockResolvedValue(session);
 
-        // mock prisma database access
-        prismaMock.session.findUnique.mockResolvedValue(session);
+            const result = getSession(session.user.id);
 
-        // perform getSession
-        await expect(getSession(session.user.id)).resolves.toBe(session);
+            expect(result).resolves.toBe(session);
+            expect(prismaMock.session.findUnique.mock.calls[0][0].where.userId).toEqual(session.userId);
+        });
 
-        // confirm calls to prisma happened as expected
-        expect(prismaMock.session.findUnique.mock.calls[0][0].where.userId).toEqual(session.userId);
+        test('no session exists', async () => {
+            prismaMock.session.findUnique.mockResolvedValue(null);
+
+            const result = await getSession('user-id-with-no-session');
+
+            expect(result).toEqual(null);
+            expect(prismaMock.session.findUnique.mock.calls[0][0].where.userId).toEqual('user-id-with-no-session');
+        });
     });
 
-    test('verify user email', async () => {
-        const verificationToken = verificationTokenFactory.build();
-        const newEmail = faker.internet.email();
+    describe('verifyEmail', () => {
+        test('verify user email', async () => {
+            const user = userFactory.build({ emailVerifiedAt: null });
+            const verificationToken = verificationTokenFactory.build({ user });
+            const newEmail = faker.internet.email();
 
-        // mock prisma database access
-        prismaMock.verificationToken.findUnique.mockResolvedValue(verificationToken);
-        prismaMock.user.create.mockResolvedValue(verificationToken.user);
+            // mock prisma database access
+            prismaMock.verificationToken.findUnique.mockResolvedValue(verificationToken);
+            prismaMock.user.create.mockResolvedValue(verificationToken.user);
 
-        await expect(
-            verifyEmail({
+            await verifyEmail({
                 verificationToken: verificationToken.verificationToken,
                 email: newEmail,
-            }),
-        ).resolves.not.toBeNull();
+            });
 
-        // confirm calls to prisma happened as expected
-        expect(prismaMock.user.update.mock.calls[0][0].data.email).toEqual(newEmail);
+            expect(prismaMock.user.update.mock.calls[0][0].data.email).toEqual(newEmail);
+        });
     });
 
-    test('reset user password', async () => {
-        const verificationToken = verificationTokenFactory.build();
+    describe('resetPassword', () => {
+        test('reset user password', async () => {
+            const user = userFactory.build();
+            const verificationToken = verificationTokenFactory.build({ user });
+            console.log({ user, verificationToken });
+            prismaMock.verificationToken.findUnique.mockResolvedValue(verificationToken);
+            prismaMock.user.create.mockResolvedValue(verificationToken.user);
 
-        // mock prisma database access
-        prismaMock.verificationToken.findUnique.mockResolvedValue(verificationToken);
-        prismaMock.user.create.mockResolvedValue(verificationToken.user);
-
-        await expect(
-            resetPassword({
+            await resetPassword({
                 verificationToken: verificationToken.verificationToken,
                 password: '2498thjbfDFEHET5350smd!!9QR45',
-            }),
-        ).resolves.not.toEqual(verificationToken.user);
+            });
 
-        expect(
-            verifyPassword({
+            // The verification token should be deleted
+            expect(prismaMock.verificationToken.delete.mock.calls[0][0].where.verificationToken).toEqual(
+                verificationToken.verificationToken,
+            );
+            // The user should be updated with a valid password
+            const passwordHash = prismaMock.user.update.mock.calls[0][0].data.passwordHash;
+            if (typeof passwordHash !== 'string') {
+                throw new Error();
+            }
+            const isPasswordValid = await verifyPassword({
                 password: '2498thjbfDFEHET5350smd!!9QR45',
-                passwordHash: prismaMock.user.update.mock.calls[0][0].data.passwordHash as string,
-            }),
-        ).toBeTruthy();
+                passwordHash,
+            });
+            expect(isPasswordValid).toEqual(true);
+        });
     });
 
-    test('send email', async () => {
-        const user = userFactory.build();
+    describe('sendEmail', () => {
+        test('send email', async () => {
+            const user = userFactory.build();
+            const emailMessage = {
+                id: 'abc',
+                message: 'test',
+                status: 200,
+                details: 'n/a',
+            };
+            prismaMock.user.findUnique.mockResolvedValue(user);
+            mailgunMock.messages.create.mockResolvedValue(emailMessage);
 
-        const emailMessage = {
-            id: 'abc',
-            message: 'test',
-            status: 200,
-            details: 'n/a',
-        };
+            const result = await sendEmail({ userId: user.id, template: 'test-template', subject: 'test subject' });
 
-        // mock prisma database access and mailgun
-        prismaMock.user.findUnique.mockResolvedValue(user);
-        mailgunMock.messages.create.mockResolvedValue(emailMessage);
-
-        // send an email
-        await expect(
-            sendEmail({ userId: user.id, template: 'test-template', subject: 'test subject' }),
-        ).resolves.toEqual(emailMessage);
-
-        // confirm calls to mailgun happened as expected
-        expect(mailgunMock.messages.create.mock.calls[0][0]).toEqual('mg.0x.org');
-        expect(mailgunMock.messages.create.mock.calls[0][1]).toEqual(
-            expect.objectContaining({
-                subject: 'test subject',
-                template: 'test-template',
-            }),
-        );
+            expect(result).toEqual(emailMessage);
+            expect(mailgunMock.messages.create.mock.calls[0][0]).toEqual('mg.0x.org');
+            expect(mailgunMock.messages.create.mock.calls[0][1]).toEqual(
+                expect.objectContaining({
+                    subject: 'test subject',
+                    template: 'test-template',
+                }),
+            );
+        });
     });
 });
