@@ -44,7 +44,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     modifier onlyToken() {
-        require(msg.sender == token, "ZeroExVotes: only token allowed");
+        _checkSenderIsToken();
         _;
     }
 
@@ -71,16 +71,20 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
      * @inheritdoc IZeroExVotes
      */
     function getVotes(address account) public view returns (uint256) {
-        uint256 pos = _checkpoints[account].length;
-        return pos == 0 ? 0 : _checkpoints[account][pos - 1].votes;
+        unchecked {
+            uint256 pos = _checkpoints[account].length;
+            return pos == 0 ? 0 : _unsafeAccess(_checkpoints[account], pos - 1).votes;
+        }
     }
 
     /**
      * @inheritdoc IZeroExVotes
      */
     function getQuadraticVotes(address account) public view returns (uint256) {
-        uint256 pos = _checkpoints[account].length;
-        return pos == 0 ? 0 : _checkpoints[account][pos - 1].quadraticVotes;
+        unchecked {
+            uint256 pos = _checkpoints[account].length;
+            return pos == 0 ? 0 : _unsafeAccess(_checkpoints[account], pos - 1).quadraticVotes;
+        }
     }
 
     /**
@@ -213,7 +217,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
     function _checkpointsLookup(
         Checkpoint[] storage ckpts,
         uint256 blockNumber
-    ) internal view returns (Checkpoint memory) {
+    ) internal view returns (Checkpoint memory checkpoint) {
         // We run a binary search to look for the earliest checkpoint taken after `blockNumber`.
         //
         // Initially we check if the block is recent to narrow the search range.
@@ -252,8 +256,7 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
 
         // Leaving here for posterity this is the original OZ implementation which we've replaced
         // return high == 0 ? 0 : _unsafeAccess(ckpts, high - 1).votes;
-        Checkpoint memory checkpoint = high == 0 ? Checkpoint(0, 0, 0) : _unsafeAccess(ckpts, high - 1);
-        return checkpoint;
+        if (high != 0) checkpoint = _unsafeAccess(ckpts, high - 1);
     }
 
     function _writeCheckpoint(
@@ -325,5 +328,9 @@ contract ZeroExVotes is IZeroExVotes, Initializable, OwnableUpgradeable, UUPSUpg
             mstore(0, ckpts.slot)
             result.slot := add(keccak256(0, 0x20), pos)
         }
+    }
+
+    function _checkSenderIsToken() private {
+        require(msg.sender == token, "ZeroExVotes: only token allowed");
     }
 }
