@@ -103,7 +103,7 @@ export default function ExplorerTag() {
             <div className="p-6">
                 <Form method="post">
                     <Button size="md" className="w-full items-center justify-center" type="submit">
-                        Go to project
+                        Go to app
                         <ArrowNarrowRight height={24} width={24} className="ml-2" />
                     </Button>
                 </Form>

@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { Button } from '../components/Button';
 
 import type { ActionArgs, LoaderArgs } from '@remix-run/server-runtime';
+import { getUserByEmail } from '../data/zippo.server';
 
 const firstPageFormModel = z.object({
     firstName: z.string().min(1, 'First name is required'),
@@ -55,6 +56,23 @@ export async function action({ request }: ActionArgs) {
 
     if (errors) {
         return json({ errors, values: body });
+    }
+
+    const userResult = await getUserByEmail({ email: body.email });
+    if (userResult.result === 'SUCCESS') {
+        return json({
+            errors: {
+                email: 'This email is already in use',
+            },
+            values: body,
+        });
+    } else if (userResult.result === 'ERROR' && userResult.error.message !== 'User already exists') {
+        return json({
+            errors: {
+                email: 'An error occurred while creating an account',
+            },
+            values: body,
+        });
     }
 
     const session = await sessionStorage.getSession(request.headers.get('Cookie'));

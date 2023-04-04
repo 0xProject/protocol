@@ -126,7 +126,7 @@ export default function AppDashboard() {
             </div>
             <div className="max-w-page-size bg-grey-100 mx-auto my-11 grid h-[236px] grid-cols-5 rounded-2xl p-5">
                 <div className="p-4">
-                    <h2 className="text-1.5lg mb-3.5 leading-none">Awaiting your first call</h2>
+                    <h2 className="text-1.5lg mb-3.5 leading-none">Make a live API call</h2>
                     <div className="text-grey-700/50 mb-12 max-w-[200px] font-sans text-base">
                         Make your first live request with your API key.
                     </div>

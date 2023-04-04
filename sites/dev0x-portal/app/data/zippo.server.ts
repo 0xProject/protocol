@@ -87,10 +87,18 @@ export async function createUserWithEmailAndPassword({
         };
     } catch (e) {
         console.warn(e);
+        if (e instanceof Error && e.message.includes('Unique constraint failed on the fields: (`email`)')) {
+            return {
+                result: 'ERROR',
+                error: new Error('User already exists'),
+            };
+        }
+
         return {
             result: 'ERROR',
             error: new Error('Unknown error'),
         };
+
     }
 }
 

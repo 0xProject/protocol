@@ -11,7 +11,9 @@ export function OnboardingAppBar({ showNavSwitch }: OnboardingAppBarProps) {
     const location = useLocation();
     return (
         <AppBarContainer>
-            <img src="/assets/logo.svg" alt="Dev0x" height={28} width={45.55} />
+            <Link to={'/'}>
+                <img src="/assets/logo.svg" alt="Dev0x" height={28} width={45.55} />
+            </Link>
             {showNavSwitch && (
                 <div aria-label="Navigation" className="ml-10 w-full">
                     <nav className="-ml-[45.55px] flex w-full justify-center">
