@@ -9,11 +9,11 @@ const button = tv({
     base: 'font-sans focus:outline-none focus-visible:ring-2 inline-flex items-center',
     variants: {
         size: {
-            md: 'px-6 py-4 text-lg',
-            base: 'px-4 py-3 text-lg',
-            sm: 'px-3 py-[0.6875rem] text-base',
-            xs: 'py-1.5 px-2.5 text-base',
-            '2xs': 'py-1 px-2.5 text-base',
+            md: 'px-6 py-4 text-lg font-medium',
+            base: 'px-4 py-3 text-lg font-medium',
+            sm: 'px-5 py-[0.6875rem] text-base font-medium',
+            xs: 'px-4 py-1.5 text-base',
+            '2xs': 'py-1 px-4 text-base',
         },
         color: {
             default: 'bg-grey-900 text-white hover:bg-grey-800 shadow-md focus-visible:ring-grey-500 antialiased',
@@ -28,6 +28,16 @@ const button = tv({
             default: 'rounded-[0.875rem]',
             lg: 'rounded-3xl',
         },
+        //Use in compound variants
+        startIcon: {
+            true: '',
+            false: '',
+        },
+        //Use in compound variants
+        endIcon: {
+            true: '',
+            false: '',
+        },
     },
     compoundVariants: [
         {
@@ -35,6 +45,16 @@ const button = tv({
             roundness: 'default',
             className: 'rounded-xl',
         },
+        { size: 'md', startIcon: true, className: 'pl-4' },
+        { size: 'md', endIcon: true, className: 'pr-4' },
+        { size: 'base', startIcon: true, className: 'pl-3' },
+        { size: 'base', endIcon: true, className: 'pr-3' },
+        { size: 'sm', startIcon: true, className: 'pl-4' },
+        { size: 'sm', endIcon: true, className: 'pr-4' },
+        { size: 'xs', startIcon: true, className: 'pl-3' },
+        { size: 'xs', endIcon: true, className: 'pr-3' },
+        { size: '2xs', startIcon: true, className: 'pl-3' },
+        { size: '2xs', endIcon: true, className: 'pr-3' },
     ],
 });
 
@@ -45,15 +65,11 @@ const iconStartContainer = tv({
     extend: iconContainerBase,
     variants: {
         size: {
-            md: 'mr-2 -ml-2',
-            base: 'mr-2 -ml-2',
-            sm: 'mr-1 -ml-1',
-            xs: 'mr-1 -ml-1 w-5 h-5',
-            '2xs': 'mr-1 -ml-1 w-4 h-4',
-        },
-        roundness: {
-            default: '',
-            lg: '',
+            md: 'mr-2',
+            base: 'mr-2',
+            sm: 'mr-1',
+            xs: 'mr-1 w-5 h-5',
+            '2xs': 'mr-1 w-4 h-4',
         },
     },
     compoundVariants: [
@@ -68,11 +84,11 @@ const iconEndContainer = tv({
     extend: iconContainerBase,
     variants: {
         size: {
-            md: '-mr-2 ml-2',
-            base: '-mr-2 ml-2',
-            sm: '-mr-1 ml-1',
-            xs: '-mr-1 ml-1 w-5 h-5',
-            '2xs': '-mr-1 ml-1 w-4 h-4',
+            md: 'ml-2',
+            base: 'ml-2',
+            sm: 'ml-1',
+            xs: 'ml-1 w-5 h-5',
+            '2xs': 'ml-1 w-4 h-4',
         },
     },
     compoundVariants: [
@@ -130,7 +146,14 @@ export const LinkButton = forwardRef<HTMLAnchorElement, LinkButtonProps>(functio
     ref,
 ) {
     return (
-        <Link className={twMerge(button({ color, size, disabled, roundness }), className)} {...other} ref={ref}>
+        <Link
+            className={twMerge(
+                button({ color, size, disabled, roundness, endIcon: Boolean(endIcon), startIcon: Boolean(startIcon) }),
+                className,
+            )}
+            {...other}
+            ref={ref}
+        >
             {startIcon ? <span className={iconStartContainer({ size })}>{startIcon}</span> : null}
             {children}
             {endIcon ? <span className={iconEndContainer({ size })}>{endIcon}</span> : null}
@@ -154,7 +177,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
 ) {
     return (
         <button
-            className={twMerge(button({ color, size, disabled, roundness }), className)}
+            className={twMerge(
+                button({ color, size, disabled, roundness, startIcon: Boolean(startIcon), endIcon: Boolean(endIcon) }),
+                className,
+            )}
             disabled={disabled}
             {...other}
             ref={forwardedRef}
@@ -181,7 +207,14 @@ export const AnchorButton = forwardRef<HTMLAnchorElement, AnchorProps>(function 
     forwardedRef,
 ) {
     return (
-        <a className={twMerge(button({ color, size, disabled, roundness }), className)} {...other} ref={forwardedRef}>
+        <a
+            className={twMerge(
+                button({ color, size, disabled, roundness, startIcon: Boolean(startIcon), endIcon: Boolean(endIcon) }),
+                className,
+            )}
+            {...other}
+            ref={forwardedRef}
+        >
             {startIcon ? <span className={iconStartContainer({ size })}>{startIcon}</span> : null}
             {children}
             {endIcon ? <span className={iconEndContainer({ size })}>{endIcon}</span> : null}
