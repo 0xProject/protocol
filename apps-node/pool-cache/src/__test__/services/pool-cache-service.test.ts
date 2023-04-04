@@ -31,6 +31,7 @@ function createMockCacheClient(output: GetPoolCacheOfPairsOutput): jest.Mocked<C
     return {
         set: jest.fn().mockReturnValue(Promise.resolve('OK')),
         get: jest.fn().mockReturnValue(Promise.resolve(output)),
+        destroy: jest.fn(),
     };
 }
 

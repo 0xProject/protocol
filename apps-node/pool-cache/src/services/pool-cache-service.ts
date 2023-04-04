@@ -25,6 +25,10 @@ export class PoolCacheService {
         return output;
     }
 
+    async destroy(): Promise<void> {
+        await this.cacheClient.destroy();
+    }
+
     async fetchThenCache(input: GetPoolCacheOfPairsInput): Promise<'OK'> {
         const output = await this.poolFetcher.get(input);
         return this.cacheClient.set(input, output);

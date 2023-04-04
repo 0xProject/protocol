@@ -40,18 +40,16 @@ const createContext = ({ req: _req, res: _res }: trpcExpress.CreateExpressContex
 async function main() {
     const app = express();
 
-    // TODO: implement destroy (gracefully disconnect redis, etc.)
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    const destroy = async () => {};
+    const poolCacheService = new PoolCacheService({
+        poolFetcher: new EthCallPoolFetcher(getRpcUrlMap()),
+        cacheClient: new RedisCacheClient(env.REDIS_URL),
+    });
 
-    const server = createDefaultServer(httpServiceConfig, app, logger, destroy);
+    const server = createDefaultServer(httpServiceConfig, app, logger, async () => {
+        await poolCacheService.destroy();
+    });
 
-    const poolCacheRouter = createPoolCacheRouter(
-        new PoolCacheService({
-            poolFetcher: new EthCallPoolFetcher(getRpcUrlMap()),
-            cacheClient: new RedisCacheClient(env.REDIS_URL),
-        }),
-    );
+    const poolCacheRouter = createPoolCacheRouter(poolCacheService);
 
     app.use(
         '/trpc',

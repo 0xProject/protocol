@@ -2,8 +2,9 @@ import { GetPoolCacheOfPairsInput, GetPoolCacheOfPairsOutput, UniswapV3PoolCache
 import Redis from 'ioredis';
 import { toUniswapV3Key } from './keys';
 import * as _ from 'lodash';
+import { CacheClient } from './types';
 
-export class RedisCacheClient {
+export class RedisCacheClient implements CacheClient {
     redis: Redis;
 
     constructor(redisUri: string) {
@@ -30,6 +31,11 @@ export class RedisCacheClient {
         return {
             uniswapV3Cache: uniswapValues.map(RedisCacheClient.toUniswapV3PoolCache),
         };
+    }
+
+    async destroy(): Promise<void> {
+        // https://redis.io/commands/quit/
+        await this.redis.quit();
     }
 
     private static toUniswapV3PoolCache(value: string | null): UniswapV3PoolCache {
