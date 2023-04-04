@@ -90,12 +90,16 @@ const iconEndContainer = tv({
             xs: 'ml-1 w-5 h-5',
             '2xs': 'ml-1 w-4 h-4',
         },
+        roundness: {
+            default: '',
+            lg: '',
+        },
     },
     compoundVariants: [
         {
             size: 'sm',
             roundness: 'lg',
-            className: 'w-5 h-5',
+            className: 'w-5 h-5 -top-[1px]',
         },
     ],
 });
@@ -154,9 +158,9 @@ export const LinkButton = forwardRef<HTMLAnchorElement, LinkButtonProps>(functio
             {...other}
             ref={ref}
         >
-            {startIcon ? <span className={iconStartContainer({ size })}>{startIcon}</span> : null}
+            {startIcon ? <span className={iconStartContainer({ size, roundness })}>{startIcon}</span> : null}
             {children}
-            {endIcon ? <span className={iconEndContainer({ size })}>{endIcon}</span> : null}
+            {endIcon ? <span className={iconEndContainer({ size, roundness })}>{endIcon}</span> : null}
         </Link>
     );
 });
@@ -185,9 +189,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
             {...other}
             ref={forwardedRef}
         >
-            {startIcon ? <span className={iconStartContainer({ size })}>{startIcon}</span> : null}
+            {startIcon ? <span className={iconStartContainer({ size, roundness })}>{startIcon}</span> : null}
             {children}
-            {endIcon ? <span className={iconEndContainer({ size })}>{endIcon}</span> : null}
+            {endIcon ? <span className={iconEndContainer({ size, roundness })}>{endIcon}</span> : null}
         </button>
     );
 });
@@ -217,7 +221,7 @@ export const AnchorButton = forwardRef<HTMLAnchorElement, AnchorProps>(function 
         >
             {startIcon ? <span className={iconStartContainer({ size })}>{startIcon}</span> : null}
             {children}
-            {endIcon ? <span className={iconEndContainer({ size })}>{endIcon}</span> : null}
+            {endIcon ? <span className={iconEndContainer({ size, roundness })}>{endIcon}</span> : null}
         </a>
     );
 });

@@ -13,6 +13,7 @@ import { appsList, createApp } from '../data/zippo.server';
 
 import type { ActionArgs } from '@remix-run/node';
 import type { AppsOutletContext } from './_dashboard';
+import { CopyButton } from '../components/CopyButton';
 
 export async function action({ request }: ActionArgs) {
     const [user, headers] = await getSignedInUser(request);
@@ -73,12 +74,9 @@ export default function Apps() {
                     </p>
 
                     {demoApp ? (
-                        <div className={'mt-14 flex items-center justify-between'}>
-                            <div className="text-grey-700 mr-6 font-sans text-base font-normal">API key</div>
-                            <HiddenText width={120} revealTooltipText="Reveal test key">
-                                {demoApp.apiKeys[0].apiKey}
-                            </HiddenText>
-                        </div>
+                        <CopyButton className="mt-12" postCopyMessage="Test Key Copied">
+                            {demoApp.apiKeys[0].apiKey}
+                        </CopyButton>
                     ) : (
                         <div
                             className={twMerge(
