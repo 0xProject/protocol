@@ -68,29 +68,6 @@ contract GovernanceE2ETest is BaseTest {
         0xD06CfBb59d2e8918F84D99d981039d7706DCA288
     ];
 
-    DelegatorPool[] internal delegatorPools = [
-        DelegatorPool(
-            0x0ee1F33A2EB0da738FdF035C48d62d75e996a3bd,
-            0x0000000000000000000000000000000000000000000000000000000000000016
-        ),
-        DelegatorPool(
-            0xcAb3d8cBBb3dA1bDabfB003B9C828B27a821717f,
-            0x0000000000000000000000000000000000000000000000000000000000000017
-        ),
-        DelegatorPool(
-            0x7f88b00Db27a500fBfA7EbC9c3CaA2Dea6F59d5b,
-            0x0000000000000000000000000000000000000000000000000000000000000014
-        ),
-        DelegatorPool(
-            0xcE266E6123B682f7A7388097e2155b5379D9AC78,
-            0x0000000000000000000000000000000000000000000000000000000000000014
-        ),
-        DelegatorPool(
-            0xBa4f44E774158408E2DC6c5cb65BC995F0a89180,
-            0x0000000000000000000000000000000000000000000000000000000000000017
-        )
-    ];
-
     // voting power 1500000e18
     address internal voter1 = 0x292c6DAE7417B3D31d8B6e1d2EeA0258d14C4C4b;
     bytes32 internal voter1Pool = 0x0000000000000000000000000000000000000000000000000000000000000030;
@@ -294,6 +271,29 @@ contract GovernanceE2ETest is BaseTest {
 
     // Test entering catastrophic failure mode on the zrx vault to decomission v3 staking
     function testCatastrophicFailureModeOnStaking() public {
+        DelegatorPool[5] memory delegatorPools = [
+            DelegatorPool(
+                0x0ee1F33A2EB0da738FdF035C48d62d75e996a3bd,
+                0x0000000000000000000000000000000000000000000000000000000000000016
+            ),
+            DelegatorPool(
+                0xcAb3d8cBBb3dA1bDabfB003B9C828B27a821717f,
+                0x0000000000000000000000000000000000000000000000000000000000000017
+            ),
+            DelegatorPool(
+                0x7f88b00Db27a500fBfA7EbC9c3CaA2Dea6F59d5b,
+                0x0000000000000000000000000000000000000000000000000000000000000014
+            ),
+            DelegatorPool(
+                0xcE266E6123B682f7A7388097e2155b5379D9AC78,
+                0x0000000000000000000000000000000000000000000000000000000000000014
+            ),
+            DelegatorPool(
+                0xBa4f44E774158408E2DC6c5cb65BC995F0a89180, // pool operator
+                0x0000000000000000000000000000000000000000000000000000000000000017
+            )
+        ];
+
         // Enter catastrophic failure mode on the zrx vault
         vm.prank(STAKING_AND_VAULT_OWNER);
         vault.enterCatastrophicFailure();
