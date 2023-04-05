@@ -4,7 +4,14 @@ import { Response } from '@remix-run/node';
 import { RemixServer } from '@remix-run/react';
 import isbot from 'isbot';
 import { renderToPipeableStream, renderToString } from 'react-dom/server';
+import * as Sentry from '@sentry/remix';
 import { Head } from './root';
+import { env } from './env';
+
+Sentry.init({
+    dsn: env.SENTRY_DSN,
+    tracesSampleRate: 1,
+});
 
 const ABORT_DELAY = 5000;
 

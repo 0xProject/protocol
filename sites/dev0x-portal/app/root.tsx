@@ -2,6 +2,7 @@ import type { LinksFunction, MetaFunction } from '@remix-run/node';
 import { Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration } from '@remix-run/react';
 import { createPortal } from 'react-dom';
 import { ClientOnly } from 'remix-utils';
+import { withSentry } from '@sentry/remix';
 
 import styles from './styles/tailwind.css';
 
@@ -32,7 +33,7 @@ export function Head() {
     );
 }
 
-export default function App() {
+function App() {
     return (
         <>
             <ClientOnly>{() => createPortal(<Head />, document.head)}</ClientOnly>
@@ -43,3 +44,5 @@ export default function App() {
         </>
     );
 }
+
+export default withSentry(App);

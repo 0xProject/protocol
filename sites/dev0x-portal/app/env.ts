@@ -5,6 +5,7 @@ const envSchema = z.object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
     ZIPPO_URL: z.string().url(),
     ZIPPO_API_KEY: z.string(),
+    SENTRY_DSN: z.string().url().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
