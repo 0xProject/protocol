@@ -11,7 +11,10 @@
     "test": "forge test",
     "build": "forge build",
     "build:smt": "FOUNDRY_PROFILE=smt forge build",
-    "test:integration": "source .env && FOUNDRY_PROFILE=integration forge test --fork-url $MAINNET_RPC_URL --fork-block-number 16884148 -vvv"
+    "test:integration": "source .env && FOUNDRY_PROFILE=integration forge test --fork-url $MAINNET_RPC_URL --fork-block-number 16884148 -vvv",
+    "goerli:deploy:zrxtoken": "source .env && forge script script/DeployToken.s.sol:Deploy --rpc-url $GOERLI_RPC_URL --broadcast --slow -vvvv",
+    "goerli:deploy:governance": "source .env && forge script script/DeployGovernance.s.sol:Deploy --rpc-url $GOERLI_RPC_URL --broadcast --slow -vvvv",
+    "mainnet:deploy:governance": "source .env && forge script script/DeployGovernance.s.sol:Deploy --rpc-url $MAINNET_RPC_URL --broadcast --slow -vvvv"
   },
   "repository": {
     "type": "git",
