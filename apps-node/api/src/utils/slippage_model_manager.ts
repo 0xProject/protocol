@@ -25,6 +25,12 @@ const SLIPPAGE_MODEL_FILE_STALE = new Counter({
     labelNames: ['bucket', 'fileName'],
 });
 
+const SLIPPAGE_MODEL_FILE_NOT_FOUND = new Counter({
+    name: 'slippage_model_file_not_found',
+    help: 'Unable to find slippage model file in s3',
+    labelNames: ['bucket', 'fileName'],
+});
+
 export interface SlippageModel {
     token0: string;
     token1: string;
@@ -236,6 +242,7 @@ export class SlippageModelManager {
 
             // If the file does not exist, reset the in-memory cache
             if (!doesFileExist) {
+                SLIPPAGE_MODEL_FILE_NOT_FOUND.labels(bucket, fileName).inc();
                 this._resetCache();
                 return;
             }
