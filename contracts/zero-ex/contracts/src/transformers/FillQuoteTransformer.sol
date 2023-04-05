@@ -119,7 +119,9 @@ contract FillQuoteTransformer is Transformer {
     /// @dev Intermediate state variables to get around stack limits.
     struct FillState {
         uint256 ethRemaining;
+        /// deprecated
         uint256 boughtAmount;
+        /// deprecated
         uint256 soldAmount;
         uint256 protocolFee;
         uint256 takerTokenBalanceRemaining;
