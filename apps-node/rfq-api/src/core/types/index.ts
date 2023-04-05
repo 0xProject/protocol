@@ -211,6 +211,8 @@ export type RfqtV2Price = {
     makerUri: string;
     takerAmount: BigNumber;
     takerToken: string;
+    requestedSellAmount?: BigNumber;
+    requestedBuyAmount?: BigNumber;
     fee?: FeeWithDetails;
 };
 
@@ -226,6 +228,8 @@ export type RfqtV2Quote = {
     makerUri: string;
     order: OtcOrder;
     signature: Signature;
+    requestedSellAmount?: BigNumber;
+    requestedBuyAmount?: BigNumber;
     fee?: FeeWithDetails;
 };
 

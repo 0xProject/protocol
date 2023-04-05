@@ -371,8 +371,8 @@ export const quoteReportUtils = {
                 const feeEvent: RfqtV2FeeEvent = {
                     createdAt,
                     orderHash: quote.order.getHash(),
-                    requestedBuyAmount: logOpts.requestedBuyAmount,
-                    requestedSellAmount: logOpts.requestedSellAmount,
+                    requestedBuyAmount: quote.requestedBuyAmount || logOpts.requestedBuyAmount, // use the requested amount if it's on the quote
+                    requestedSellAmount: quote.requestedSellAmount || logOpts.requestedSellAmount, // use the requested amount if it's on the quote
                     requestedTakerAddress: logOpts.requestedTakerAddress,
                     fillableBuyAmount: quote.fillableMakerAmount,
                     fillableSellAmount: quote.fillableTakerAmount,

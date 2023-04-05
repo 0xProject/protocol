@@ -433,6 +433,8 @@ export class RfqtService {
                 const { makerUri, makerId, fee } = price;
                 return {
                     ...fillableAmount,
+                    requestedSellAmount: price.requestedSellAmount,
+                    requestedBuyAmount: price.requestedBuyAmount,
                     fillableTakerFeeAmount: new BigNumber(0),
                     makerUri,
                     makerId,
@@ -752,6 +754,9 @@ export class RfqtService {
                 makerUri: price.makerUri,
                 takerAmount: price.takerAmount,
                 takerToken: price.takerToken,
+                ...(quoteContext.isSelling
+                    ? { requestedSellAmount: quoteContext.assetFillAmount }
+                    : { requestedBuyAmount: quoteContext.assetFillAmount }),
             };
         });
 

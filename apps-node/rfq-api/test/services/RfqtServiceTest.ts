@@ -270,6 +270,7 @@ describe('Rfqt Service', () => {
             });
         });
     });
+
     describe('v2', () => {
         const maker = new RfqMaker({
             makerId: 'maker-id',
@@ -608,6 +609,7 @@ describe('Rfqt Service', () => {
                       "makerId": "maker-id",
                       "makerToken": "0x1",
                       "makerUri": "maker.uri",
+                      "requestedSellAmount": "1000",
                       "takerAmount": "1001",
                       "takerToken": "0x2",
                     }
@@ -694,6 +696,7 @@ describe('Rfqt Service', () => {
                       "makerId": "maker1",
                       "makerToken": "0x1",
                       "makerUri": "maker.uri",
+                      "requestedSellAmount": "1000",
                       "takerAmount": "1001",
                       "takerToken": "0x2",
                     }
@@ -870,12 +873,15 @@ describe('Rfqt Service', () => {
                 expect(result.length).toEqual(1);
                 expect(result).toEqual([
                     {
+                        fee: undefined,
                         fillableMakerAmount: new BigNumber(100),
                         fillableTakerAmount: new BigNumber(100),
                         fillableTakerFeeAmount: new BigNumber(0),
                         makerId: maker2.makerId,
                         makerUri: maker2.rfqtUri,
                         order,
+                        requestedBuyAmount: new BigNumber(1000),
+                        requestedSellAmount: undefined,
                         signature: {
                             v: 27,
                             r: '0x0000000000000000000000000000000000000000000000000000000000000123',
@@ -1419,6 +1425,7 @@ describe('Rfqt Service', () => {
                           "makerId": "maker-id",
                           "makerToken": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
                           "makerUri": "maker.uri",
+                          "requestedBuyAmount": "50",
                           "takerAmount": "100000",
                           "takerToken": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
                         }
@@ -1536,6 +1543,7 @@ describe('Rfqt Service', () => {
                           "makerId": "maker-id",
                           "makerToken": "0x1",
                           "makerUri": "maker.uri",
+                          "requestedSellAmount": "1000",
                           "takerAmount": "1001",
                           "takerToken": "0x2",
                         }
