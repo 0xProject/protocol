@@ -4,6 +4,7 @@ import type { User } from '../auth.server';
 import type { Result } from '../types';
 import type { RouterInputs, RouterOutputs } from './trpc.server';
 import type { ClientApp, Rename } from '../types';
+import { getBaseUrl } from '../utils/utils.server';
 
 export const NO_TEAM_MARKER = '__not_init' as const;
 
@@ -16,9 +17,8 @@ const zippoAppToClientApp = (zippoApp: ZippoApp): ClientApp => {
         description: zippoApp.description,
         apiKeys: zippoApp.apiKeys,
         teamId: zippoApp.integratorTeamId,
-        onChainTag: [],
-    }
-}
+    };
+};
 
 export async function doesSessionExist({
     userId,
@@ -71,8 +71,8 @@ export async function createUserWithEmailAndPassword({
 
     try {
         const result = await client.user.create.mutate({
-            firstName: firstName,
-            lastName: lastName,
+            firstName,
+            lastName,
             email,
             password,
         });
@@ -99,7 +99,6 @@ export async function createUserWithEmailAndPassword({
             result: 'ERROR',
             error: new Error('Unknown error'),
         };
-
     }
 }
 
@@ -112,7 +111,11 @@ export async function sendVerificationEmail({
 }): Promise<Result<void>> {
     console.log('Verification email sent');
     try {
-        await client.user.sendEmailVerifyEmail.mutate({ newEmail: email, userId });
+        await client.user.sendEmailVerifyEmail.mutate({
+            newEmail: email,
+            userId,
+            verifyUrl: `${getBaseUrl()}/create-account/verify-email?email=${encodeURIComponent(email)}`,
+        });
         return { result: 'SUCCESS', data: undefined };
     } catch (e) {
         console.warn(e);
@@ -183,9 +186,18 @@ export async function createTeam({
     }
 }
 
-export async function sendResetPasswordEmail({ userId }: { userId: string }): Promise<Result<boolean>> {
+export async function sendResetPasswordEmail({
+    userId,
+    email,
+}: {
+    userId: string;
+    email: string;
+}): Promise<Result<boolean>> {
     try {
-        await client.user.sendPasswordResetEmail.mutate({ userId });
+        await client.user.sendPasswordResetEmail.mutate({
+            userId,
+            verifyUrl: `${getBaseUrl()}/reset-password/set-password?email=${encodeURIComponent(email)}`,
+        });
         return {
             result: 'SUCCESS',
             data: true,
@@ -361,7 +373,7 @@ export async function createApp({
 
         return {
             result: 'SUCCESS',
-            data: zippoAppToClientApp(app)
+            data: zippoAppToClientApp(app),
         };
     } catch (e) {
         console.warn(e);
@@ -437,20 +449,19 @@ export async function appsList(integratorTeamId: RouterInputs['app']['list']): P
         if (!apps || !apps.length) {
             return {
                 result: 'SUCCESS',
-                data: []
-            }
+                data: [],
+            };
         }
         return {
             result: 'SUCCESS',
-            data: apps.map(zippoAppToClientApp)
-        }
-
+            data: apps.map(zippoAppToClientApp),
+        };
     } catch (error) {
-        console.warn(error)
+        console.warn(error);
         return {
             result: 'ERROR',
             error: new Error('Failed to fetch apps'),
-        }
+        };
     }
 }
 export async function getAppById(id: RouterInputs['app']['getById']): Promise<Result<ClientApp>> {
@@ -460,18 +471,18 @@ export async function getAppById(id: RouterInputs['app']['getById']): Promise<Re
             return {
                 result: 'ERROR',
                 error: new Error('App not found'),
-            }
+            };
         }
         return {
             result: 'SUCCESS',
             data: zippoAppToClientApp(app),
-        }
+        };
     } catch (error) {
-        console.warn(error)
+        console.warn(error);
         return {
             result: 'ERROR',
             error: new Error('Failed to fetch app'),
-        }
+        };
     }
 }
 
@@ -482,44 +493,49 @@ export async function deleteAppKey(id: RouterInputs['app']['key']['delete']): Pr
             return {
                 result: 'ERROR',
                 error: new Error('Key not found'),
-            }
+            };
         }
         return {
             result: 'SUCCESS',
             data: zippoAppToClientApp(app),
-        }
+        };
     } catch (error) {
-        console.warn(error)
+        console.warn(error);
         return {
             result: 'ERROR',
             error: new Error('Failed to delete key'),
-        }
+        };
     }
 }
 
-export async function createAppKey({ appId, teamId, description }: Rename<RouterInputs['app']['key']['create'], { integratorTeamId: 'teamId', integratorAppId: 'appId' }>): Promise<Result<ClientApp>> {
+export async function createAppKey({
+    appId,
+    teamId,
+    description,
+}: Rename<RouterInputs['app']['key']['create'], { integratorTeamId: 'teamId'; integratorAppId: 'appId' }>): Promise<
+    Result<ClientApp>
+> {
     try {
         const app = await client.app.key.create.mutate({
             integratorAppId: appId,
             integratorTeamId: teamId,
-            description
-
-        })
+            description,
+        });
         if (!app) {
             return {
                 result: 'ERROR',
                 error: new Error('Failed to create key'),
-            }
+            };
         }
         return {
             result: 'SUCCESS',
             data: zippoAppToClientApp(app),
-        }
+        };
     } catch (error) {
-        console.warn(error)
+        console.warn(error);
         return {
             result: 'ERROR',
             error: new Error('Failed to create key'),
-        }
+        };
     }
 }

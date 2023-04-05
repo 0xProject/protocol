@@ -37,7 +37,7 @@ export async function action({ request }: ActionArgs) {
 
     // we don't want to give away whether the email exists or not
     if (userRes.result === 'SUCCESS') {
-        await sendResetPasswordEmail({ userId: userRes.data.id });
+        await sendResetPasswordEmail({ userId: userRes.data.id, email: zodResult.data.email });
     }
 
     const setVerifyEmailHeaders = await setResendEmailRetryIn(request, 'resetPassword', 45);

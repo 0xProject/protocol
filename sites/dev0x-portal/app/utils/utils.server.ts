@@ -3,6 +3,7 @@ import { addSeconds, differenceInSeconds } from 'date-fns';
 import type { TZippoRouteTag } from 'zippo-interface';
 import { sessionStorage } from '../auth.server';
 import type { ClientApp } from '../types';
+import { env } from '../env';
 
 type MultiStepFormSessionHandler<T extends [...any]> = {
     getPage: <N extends keyof T>(page: N) => T[N] | undefined;
@@ -130,4 +131,12 @@ export function enhanceAppWithMockedData(app: ClientApp, session: Session): Clie
         out.productAccess = mockForThisApp.enabledProducts;
     }
     return out;
+}
+
+export function getBaseUrl() {
+    if (env.BASE_URL) {
+        return env.BASE_URL;
+    }
+    // zod checked for us that one of them is present
+    return `https://${env.VERCEL_URL}`; // VERCEL_URL is provided without protocol
 }

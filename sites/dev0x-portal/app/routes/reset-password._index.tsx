@@ -34,7 +34,7 @@ export async function action({ request }: ActionArgs) {
 
     // we don't want to give away whether the email exists or not
     if (userRes.result === 'SUCCESS') {
-        await sendResetPasswordEmail({ userId: userRes.data.id });
+        await sendResetPasswordEmail({ userId: userRes.data.id, email: body.email });
     }
 
     throw redirect('/reset-password/email-sent?email=' + encodeURIComponent(body.email));
