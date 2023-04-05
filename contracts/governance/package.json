@@ -10,7 +10,8 @@
   "scripts": {
     "test": "forge test",
     "build": "forge build",
-    "build:smt": "FOUNDRY_PROFILE=smt forge build"
+    "build:smt": "FOUNDRY_PROFILE=smt forge build",
+    "test:integration": "source .env && FOUNDRY_PROFILE=integration forge test --fork-url $MAINNET_RPC_URL --fork-block-number 16884148 -vvv"
   },
   "repository": {
     "type": "git",
