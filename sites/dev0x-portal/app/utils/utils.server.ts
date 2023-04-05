@@ -3,7 +3,7 @@ import { addSeconds, differenceInSeconds } from 'date-fns';
 import type { TZippoRouteTag } from 'zippo-interface';
 import { sessionStorage } from '../auth.server';
 import type { ClientApp } from '../types';
-import { env } from '../env';
+import { env } from '../env.server';
 
 type MultiStepFormSessionHandler<T extends [...any]> = {
     getPage: <N extends keyof T>(page: N) => T[N] | undefined;
