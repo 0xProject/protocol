@@ -5,12 +5,10 @@ import "forge-std/Script.sol";
 import "forge-std/console2.sol";
 
 contract Deploy is Script {
-    address internal constant DEPLOYER = 0xd56716E3cC851bAF569795351917df73F8762A7F;
-
     function setUp() public {}
 
     function run() external {
-        vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
+        vm.startBroadcast(vm.envAddress("DEPLOYER"));
 
         bytes memory _bytecode = vm.getCode("./ZRXToken.json");
         address zrxToken;

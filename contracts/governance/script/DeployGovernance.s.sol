@@ -14,7 +14,7 @@ import "../src/ZeroExProtocolGovernor.sol";
 import "../src/ZeroExTreasuryGovernor.sol";
 
 contract Deploy is Script {
-    address internal constant DEPLOYER = 0xd56716E3cC851bAF569795351917df73F8762A7F;
+    address internal constant DEPLOYER = 0xEf37aD2BACD70119F141140f7B5E46Cd53a65fc4;
     address internal constant ZRX_TOKEN = 0xE41d2489571d322189246DaFA5ebDe1F4699F498;
     address internal constant TREASURY = 0x0bB1810061C2f5b2088054eE184E6C79e1591101;
     address internal constant EXCHANGE = 0xDef1C0ded9bec7F1a1670819833240f027b25EfF;
@@ -24,10 +24,7 @@ contract Deploy is Script {
     function setUp() public {}
 
     function run() external {
-        //uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        //vm.startBroadcast(deployerPrivateKey);
-
-        vm.startBroadcast(DEPLOYER);
+        vm.startBroadcast(vm.envAddress("DEPLOYER"));
 
         console2.log("Zrx Token", ZRX_TOKEN);
         address wTokenPrediction = predict(DEPLOYER, vm.getNonce(DEPLOYER) + 2);
