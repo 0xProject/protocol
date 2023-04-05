@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { EthCallPoolFetcher } from '../../pool-fetcher/eth-call-pool-fetcher';
 import * as _ from 'lodash';
 import { Map } from 'immutable';
 import { getTimestampInSeconds } from '../../utils/time';
 import { ChainId } from '../../utils/constants';
 import { ARBITRUM, ETHEREUM, POLYGON } from '../test-utils/constants';
+import { Counter } from 'prom-client';
 
 // 2023 May: This test isn't run as a part of CI.
 // As these test run against real blockchains, they can be flaky (e.g. network error) or break overtime.
@@ -17,6 +19,57 @@ describe('EthCallPoolFetcher Integration Test', () => {
             [ChainId.Arbitrum, 'https://arbitrum-mainnet.infura.io/v3/1468c2ecb7f04f84a023cb71f03964c7'],
         ]),
     );
+
+    const counterInc = jest.fn();
+    Counter.prototype.inc = counterInc;
+
+    afterEach(async () => {
+        jest.clearAllMocks();
+    });
+
+    describe('Metrics', () => {
+        test('Updates eth_call_requests with ok on success', async () => {
+            await fetcher.get({
+                chainId: ChainId.Ethereum,
+                uniswapV3Pairs: [
+                    {
+                        tokenA: ETHEREUM.USDC,
+                        tokenB: ETHEREUM.WETH,
+                    },
+                ],
+            });
+
+            expect(counterInc).toBeCalledWith({ status: 'ok' });
+        });
+
+        test('Updates eth_call_requests with error on failure', async () => {
+            jest.spyOn(fetcher as any, 'chainIdToOnChainPoolFetcher', 'get').mockReturnValueOnce(
+                Map([
+                    [
+                        ChainId.Ethereum,
+                        {
+                            batchFetch() {
+                                throw new Error('Mocked eth-call error');
+                            },
+                        },
+                    ],
+                ]),
+            );
+
+            expect(
+                fetcher.get({
+                    chainId: ChainId.Ethereum,
+                    uniswapV3Pairs: [
+                        {
+                            tokenA: ETHEREUM.USDC,
+                            tokenB: ETHEREUM.WETH,
+                        },
+                    ],
+                }),
+            ).rejects.toThrowError('Mocked eth-call error');
+            expect(counterInc).toBeCalledWith({ status: 'error' });
+        });
+    });
 
     describe('Uniswap V3', () => {
         test('Returns USDC/WETH pools on Ethereum', async () => {
