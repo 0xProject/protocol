@@ -15,7 +15,6 @@ describe('Rfqt Quote Validator', () => {
         label: 'test integrator',
         plp: false,
         rfqm: false,
-        rfqt: true,
     };
     const quoteContext: QuoteContext = {
         isFirm: false,

@@ -23,7 +23,6 @@ const integrator: Integrator = {
     label: 'integrator',
     plp: false,
     rfqm: true,
-    rfqt: true,
 };
 
 // Maker

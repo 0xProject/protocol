@@ -429,7 +429,6 @@ export interface Integrator {
     label: string;
     plp: boolean;
     rfqm: boolean;
-    rfqt: boolean;
     gaslessRfqtVip?: boolean;
 }
 export type IntegratorsAcl = Integrator[];
@@ -452,7 +451,7 @@ export const INTEGRATORS_ACL: IntegratorsAcl = (() => {
 /**
  * Extracts the integrator API keys from the `INTEGRATORS_ACL` environment variable for the provided group type.
  */
-export const getApiKeyWhitelistFromIntegratorsAcl = (groupType: 'rfqt' | 'plp' | 'rfqm'): string[] => {
+export const getApiKeyWhitelistFromIntegratorsAcl = (groupType: 'plp' | 'rfqm'): string[] => {
     return INTEGRATORS_ACL.filter((i) => i[groupType])
         .flatMap((i) => i.apiKeys)
         .sort();

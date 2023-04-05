@@ -80,7 +80,6 @@ const MOCK_INTEGRATOR: Integrator = {
     label: 'Test',
     plp: false,
     rfqm: true,
-    rfqt: true,
     gaslessRfqtVip: true,
 };
 

@@ -191,7 +191,6 @@ describe('RfqtHandlers', () => {
                     label: 'Polygon Swap Machine',
                     plp: false,
                     rfqm: false,
-                    rfqt: true,
                 };
                 return integrator;
             });
@@ -234,7 +233,6 @@ describe('RfqtHandlers', () => {
                     label: 'Polygon Swap Machine',
                     plp: false,
                     rfqm: false,
-                    rfqt: true,
                 };
                 return integrator;
             });
@@ -274,7 +272,6 @@ describe('RfqtHandlers', () => {
                     label: 'Polygon Swap Machine',
                     plp: false,
                     rfqm: false,
-                    rfqt: true,
                 };
                 return integrator;
             });
@@ -315,7 +312,6 @@ describe('RfqtHandlers', () => {
                       "label": "Polygon Swap Machine",
                       "plp": false,
                       "rfqm": false,
-                      "rfqt": true,
                     },
                     "integratorId": "uuid-polygon-swap-machine",
                     "intentOnFilling": false,
@@ -350,7 +346,6 @@ describe('RfqtHandlers', () => {
                     label: 'Polygon Swap Machine',
                     plp: false,
                     rfqm: false,
-                    rfqt: true,
                 };
                 return integrator;
             });
@@ -393,7 +388,6 @@ describe('RfqtHandlers', () => {
                     label: 'Polygon Swap Machine',
                     plp: false,
                     rfqm: false,
-                    rfqt: true,
                 };
                 return integrator;
             });
@@ -433,7 +427,6 @@ describe('RfqtHandlers', () => {
                     label: 'Polygon Swap Machine',
                     plp: false,
                     rfqm: false,
-                    rfqt: true,
                 };
                 return integrator;
             });
@@ -474,7 +467,6 @@ describe('RfqtHandlers', () => {
                       "label": "Polygon Swap Machine",
                       "plp": false,
                       "rfqm": false,
-                      "rfqt": true,
                     },
                     "integratorId": "uuid-polygon-swap-machine",
                     "intentOnFilling": true,
@@ -524,7 +516,6 @@ describe('RfqtHandlers', () => {
                     label: 'Polygon Swap Machine',
                     plp: false,
                     rfqm: false,
-                    rfqt: true,
                 };
                 return integrator;
             });
@@ -718,7 +709,6 @@ describe('RfqtHandlers', () => {
                     label: 'Polygon Swap Machine',
                     plp: false,
                     rfqm: false,
-                    rfqt: true,
                 };
                 return integrator;
             });
@@ -760,7 +750,6 @@ describe('RfqtHandlers', () => {
                     label: 'Polygon Swap Machine',
                     plp: false,
                     rfqm: false,
-                    rfqt: true,
                 };
                 return integrator;
             });
@@ -798,7 +787,6 @@ describe('RfqtHandlers', () => {
                     label: 'Polygon Swap Machine',
                     plp: false,
                     rfqm: false,
-                    rfqt: true,
                 };
                 return integrator;
             });
@@ -839,7 +827,6 @@ describe('RfqtHandlers', () => {
                       "label": "Polygon Swap Machine",
                       "plp": false,
                       "rfqm": false,
-                      "rfqt": true,
                     },
                     "isFirm": false,
                     "isSelling": false,
@@ -886,7 +873,6 @@ describe('RfqtHandlers', () => {
                     label: 'Polygon Swap Machine',
                     plp: false,
                     rfqm: false,
-                    rfqt: true,
                 };
                 return integrator;
             });
@@ -928,7 +914,6 @@ describe('RfqtHandlers', () => {
                     label: 'Polygon Swap Machine',
                     plp: false,
                     rfqm: false,
-                    rfqt: true,
                 };
                 return integrator;
             });
@@ -967,7 +952,6 @@ describe('RfqtHandlers', () => {
                     label: 'Polygon Swap Machine',
                     plp: false,
                     rfqm: false,
-                    rfqt: true,
                 };
                 return integrator;
             });
@@ -1008,7 +992,6 @@ describe('RfqtHandlers', () => {
                       "label": "Polygon Swap Machine",
                       "plp": false,
                       "rfqm": false,
-                      "rfqt": true,
                     },
                     "isFirm": true,
                     "isSelling": false,
@@ -1070,7 +1053,6 @@ describe('RfqtHandlers', () => {
                     label: 'Polygon Swap Machine',
                     plp: false,
                     rfqm: false,
-                    rfqt: true,
                 };
                 return integrator;
             });

@@ -235,7 +235,6 @@ describe('RFQM Integration', () => {
             label: 'Test',
             rfqm: true,
             plp: false,
-            rfqt: false,
             gaslessRfqtVip: true,
         });
         const configManager = instance(configManagerMock);

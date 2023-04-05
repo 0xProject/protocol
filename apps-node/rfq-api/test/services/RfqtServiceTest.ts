@@ -140,7 +140,6 @@ describe('Rfqt Service', () => {
                         integratorId: 'uuid-integrator',
                         plp: false,
                         rfqm: false,
-                        rfqt: true,
                         label: 'Scam Integrator 1',
                     },
                     txOrigin: '0xtxorigin',
@@ -173,7 +172,6 @@ describe('Rfqt Service', () => {
                           "label": "Scam Integrator 1",
                           "plp": false,
                           "rfqm": false,
-                          "rfqt": true,
                         },
                         "intentOnFilling": false,
                         "isIndicative": true,
@@ -231,7 +229,6 @@ describe('Rfqt Service', () => {
                         integratorId: 'uuid-integrator',
                         plp: false,
                         rfqm: false,
-                        rfqt: true,
                         label: 'Scam Integrator 1',
                     },
                     txOrigin: '0xtxorigin',
@@ -264,7 +261,6 @@ describe('Rfqt Service', () => {
                           "label": "Scam Integrator 1",
                           "plp": false,
                           "rfqm": false,
-                          "rfqt": true,
                         },
                         "intentOnFilling": false,
                         "isIndicative": false,
@@ -310,7 +306,6 @@ describe('Rfqt Service', () => {
             label: 'test integrator',
             plp: false,
             rfqm: false,
-            rfqt: true,
         };
         describe('getV2PricesAsync', () => {
             it('transforms the API request into a quote server client request for buys', async () => {
@@ -374,7 +369,6 @@ describe('Rfqt Service', () => {
                         "label": "test integrator",
                         "plp": false,
                         "rfqm": false,
-                        "rfqt": true,
                       },
                       {
                         "buyAmountBaseUnits": "1000",
@@ -455,7 +449,6 @@ describe('Rfqt Service', () => {
                         "label": "test integrator",
                         "plp": false,
                         "rfqm": false,
-                        "rfqt": true,
                       },
                       {
                         "buyAmountBaseUnits": "1000",
@@ -535,7 +528,6 @@ describe('Rfqt Service', () => {
                         "label": "test integrator",
                         "plp": false,
                         "rfqm": false,
-                        "rfqt": true,
                       },
                       {
                         "buyTokenAddress": "0x1",
@@ -1256,7 +1248,6 @@ describe('Rfqt Service', () => {
                             integratorId: 'uuid-integrator',
                             plp: false,
                             rfqm: false,
-                            rfqt: true,
                             label: 'Scam Integrator 1',
                         },
                         isUnwrap: false,

@@ -1285,7 +1285,6 @@ export class WorkerService {
                         label: 'decline-to-sign-price-check',
                         plp: true,
                         rfqm: true,
-                        rfqt: true,
                     };
                     const priceResponse = await this._quoteServerClient.getPriceV2Async(
                         job.makerUri,

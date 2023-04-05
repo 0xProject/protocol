@@ -62,7 +62,7 @@ jest.mock('../../utils/config_manager', () => {
                         integratorId: 'integrator-id',
                         label: 'test integrator',
                         plp: false,
-                        rfqt: false,
+
                         rfqm: true,
                     };
                     return integrator;
@@ -515,7 +515,6 @@ describe('GaslessSwapHandlers', () => {
                           "label": "test integrator",
                           "plp": false,
                           "rfqm": true,
-                          "rfqt": false,
                         },
                         "priceImpactProtectionPercentage": undefined,
                         "sellAmount": undefined,
@@ -639,7 +638,6 @@ describe('GaslessSwapHandlers', () => {
                           "label": "test integrator",
                           "plp": false,
                           "rfqm": true,
-                          "rfqt": false,
                         },
                         "priceImpactProtectionPercentage": "0.2",
                         "sellAmount": undefined,
@@ -762,7 +760,6 @@ describe('GaslessSwapHandlers', () => {
                           "label": "test integrator",
                           "plp": false,
                           "rfqm": true,
-                          "rfqt": false,
                         },
                         "priceImpactProtectionPercentage": undefined,
                         "sellAmount": undefined,
@@ -919,7 +916,6 @@ describe('GaslessSwapHandlers', () => {
                           "label": "test integrator",
                           "plp": false,
                           "rfqm": true,
-                          "rfqt": false,
                         },
                         "priceImpactProtectionPercentage": "0.2",
                         "sellAmount": undefined,
