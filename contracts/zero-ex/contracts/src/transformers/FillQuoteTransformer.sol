@@ -208,18 +208,6 @@ contract FillQuoteTransformer is Transformer {
 
         // Fill the orders.
         for (uint256 i = 0; i < data.fillSequence.length; ++i) {
-            // Check if we've hit our targets.
-            if (data.side == Side.Sell) {
-                // Market sell check.
-                if (state.soldAmount >= data.fillAmount) {
-                    break;
-                }
-            } else {
-                // Market buy check.
-                if (state.boughtAmount >= data.fillAmount) {
-                    break;
-                }
-            }
 
             state.currentOrderType = OrderType(data.fillSequence[i]);
             uint256 orderIndex = state.currentIndices[uint256(state.currentOrderType)];
@@ -238,28 +226,8 @@ contract FillQuoteTransformer is Transformer {
             }
 
             // Accumulate totals.
-            state.soldAmount = state.soldAmount.safeAdd(results.takerTokenSoldAmount);
-            state.boughtAmount = state.boughtAmount.safeAdd(results.makerTokenBoughtAmount);
             state.ethRemaining = state.ethRemaining.safeSub(results.protocolFeePaid);
-            state.takerTokenBalanceRemaining = state.takerTokenBalanceRemaining.safeSub(results.takerTokenSoldAmount);
             state.currentIndices[uint256(state.currentOrderType)]++;
-        }
-
-        // Ensure we hit our targets.
-        if (data.side == Side.Sell) {
-            // Market sell check.
-            if (state.soldAmount < data.fillAmount) {
-                LibTransformERC20RichErrors
-                    .IncompleteFillSellQuoteError(address(data.sellToken), state.soldAmount, data.fillAmount)
-                    .rrevert();
-            }
-        } else {
-            // Market buy check.
-            if (state.boughtAmount < data.fillAmount) {
-                LibTransformERC20RichErrors
-                    .IncompleteFillBuyQuoteError(address(data.buyToken), state.boughtAmount, data.fillAmount)
-                    .rrevert();
-            }
         }
 
         // Refund unspent protocol fees.
