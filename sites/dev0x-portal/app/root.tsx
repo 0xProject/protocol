@@ -6,6 +6,7 @@ import { withSentry } from '@sentry/remix';
 import styles from './styles/tailwind.css';
 import { env, sentryEnvironment } from './env.server';
 import type { LinksFunction, MetaFunction } from '@remix-run/node';
+import type { PUBLIC_ENV } from './types';
 
 export const meta: MetaFunction = () => ({
     charset: 'utf-8',
@@ -26,12 +27,11 @@ export const links: LinksFunction = () => [
 ];
 
 export async function loader() {
-    console.log(env);
     return json({
         ENV: {
             SENTRY_ENV: sentryEnvironment,
-            SENTRY_DNS: env.SENTRY_DSN,
-        },
+            SENTRY_DSN: env.SENTRY_DSN,
+        } as PUBLIC_ENV,
     });
 }
 
@@ -58,7 +58,6 @@ function App() {
             <Scripts />
             <ScrollRestoration />
             <Scripts />
-
             <LiveReload />
         </>
     );

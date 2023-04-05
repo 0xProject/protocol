@@ -63,3 +63,9 @@ export type Rename<T extends Record<string, any>, M extends RenameRecord<T>> = S
     Omit<T, keyof M extends string ? keyof M : never> &
     Remap<T, keyof M extends string ? keyof M : never, M extends Record<string, string> ? M : never>
 >;
+
+
+export type PUBLIC_ENV = {
+    SENTRY_DSN: string;
+    SENTRY_ENV: string;
+};
