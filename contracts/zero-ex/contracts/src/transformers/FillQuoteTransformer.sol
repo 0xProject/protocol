@@ -210,7 +210,6 @@ contract FillQuoteTransformer is Transformer {
 
         // Fill the orders.
         for (uint256 i = 0; i < data.fillSequence.length; ++i) {
-
             state.currentOrderType = OrderType(data.fillSequence[i]);
             uint256 orderIndex = state.currentIndices[uint256(state.currentOrderType)];
             // Fill the order.
