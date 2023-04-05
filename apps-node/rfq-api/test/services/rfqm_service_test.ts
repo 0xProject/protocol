@@ -78,7 +78,6 @@ const MOCK_INTEGRATOR: Integrator = {
     integratorId: 'an-integrator-id',
     allowedChainIds: [1337],
     label: 'Test',
-    plp: false,
     rfqm: true,
     gaslessRfqtVip: true,
 };

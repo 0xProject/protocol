@@ -13,7 +13,6 @@ describe('Rfqt Quote Validator', () => {
         apiKeys: [],
         integratorId: 'integrator-id',
         label: 'test integrator',
-        plp: false,
         rfqm: false,
     };
     const quoteContext: QuoteContext = {

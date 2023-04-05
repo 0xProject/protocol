@@ -1283,7 +1283,6 @@ export class WorkerService {
                         integratorId: job.integratorId!,
                         allowedChainIds: [this._chainId],
                         label: 'decline-to-sign-price-check',
-                        plp: true,
                         rfqm: true,
                     };
                     const priceResponse = await this._quoteServerClient.getPriceV2Async(

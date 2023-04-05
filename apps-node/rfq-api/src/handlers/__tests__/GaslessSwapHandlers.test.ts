@@ -61,8 +61,6 @@ jest.mock('../../utils/config_manager', () => {
                         allowedChainIds: [420, 1337], // tslint:disable-line: custom-no-magic-numbers
                         integratorId: 'integrator-id',
                         label: 'test integrator',
-                        plp: false,
-
                         rfqm: true,
                     };
                     return integrator;
@@ -513,7 +511,6 @@ describe('GaslessSwapHandlers', () => {
                           ],
                           "integratorId": "integrator-id",
                           "label": "test integrator",
-                          "plp": false,
                           "rfqm": true,
                         },
                         "priceImpactProtectionPercentage": undefined,
@@ -636,7 +633,6 @@ describe('GaslessSwapHandlers', () => {
                           ],
                           "integratorId": "integrator-id",
                           "label": "test integrator",
-                          "plp": false,
                           "rfqm": true,
                         },
                         "priceImpactProtectionPercentage": "0.2",
@@ -758,7 +754,6 @@ describe('GaslessSwapHandlers', () => {
                           ],
                           "integratorId": "integrator-id",
                           "label": "test integrator",
-                          "plp": false,
                           "rfqm": true,
                         },
                         "priceImpactProtectionPercentage": undefined,
@@ -914,7 +909,6 @@ describe('GaslessSwapHandlers', () => {
                           ],
                           "integratorId": "integrator-id",
                           "label": "test integrator",
-                          "plp": false,
                           "rfqm": true,
                         },
                         "priceImpactProtectionPercentage": "0.2",

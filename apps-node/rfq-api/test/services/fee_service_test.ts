@@ -99,7 +99,6 @@ describe('FeeService', () => {
         integratorId: 'integratorId',
         allowedChainIds: [1, 3, 137, 1337],
         label: 'dummy integrator',
-        plp: true,
         rfqm: true,
         rfqt: true,
     };

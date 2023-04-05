@@ -189,7 +189,6 @@ describe('RfqtHandlers', () => {
                     // tslint:disable-next-line: custom-no-magic-numbers
                     allowedChainIds: [1337],
                     label: 'Polygon Swap Machine',
-                    plp: false,
                     rfqm: false,
                 };
                 return integrator;
@@ -231,7 +230,6 @@ describe('RfqtHandlers', () => {
                     // tslint:disable-next-line: custom-no-magic-numbers
                     allowedChainIds: [1337],
                     label: 'Polygon Swap Machine',
-                    plp: false,
                     rfqm: false,
                 };
                 return integrator;
@@ -270,7 +268,6 @@ describe('RfqtHandlers', () => {
                     // tslint:disable-next-line: custom-no-magic-numbers
                     allowedChainIds: [1337],
                     label: 'Polygon Swap Machine',
-                    plp: false,
                     rfqm: false,
                 };
                 return integrator;
@@ -310,7 +307,6 @@ describe('RfqtHandlers', () => {
                       "apiKeys": [],
                       "integratorId": "uuid-integrator-id",
                       "label": "Polygon Swap Machine",
-                      "plp": false,
                       "rfqm": false,
                     },
                     "integratorId": "uuid-polygon-swap-machine",
@@ -344,7 +340,6 @@ describe('RfqtHandlers', () => {
                     // tslint:disable-next-line: custom-no-magic-numbers
                     allowedChainIds: [1337],
                     label: 'Polygon Swap Machine',
-                    plp: false,
                     rfqm: false,
                 };
                 return integrator;
@@ -386,7 +381,6 @@ describe('RfqtHandlers', () => {
                     // tslint:disable-next-line: custom-no-magic-numbers
                     allowedChainIds: [1337],
                     label: 'Polygon Swap Machine',
-                    plp: false,
                     rfqm: false,
                 };
                 return integrator;
@@ -425,7 +419,6 @@ describe('RfqtHandlers', () => {
                     // tslint:disable-next-line: custom-no-magic-numbers
                     allowedChainIds: [1337],
                     label: 'Polygon Swap Machine',
-                    plp: false,
                     rfqm: false,
                 };
                 return integrator;
@@ -465,7 +458,6 @@ describe('RfqtHandlers', () => {
                       "apiKeys": [],
                       "integratorId": "uuid-integrator-id",
                       "label": "Polygon Swap Machine",
-                      "plp": false,
                       "rfqm": false,
                     },
                     "integratorId": "uuid-polygon-swap-machine",
@@ -514,7 +506,6 @@ describe('RfqtHandlers', () => {
                     // tslint:disable-next-line: custom-no-magic-numbers
                     allowedChainIds: [1337],
                     label: 'Polygon Swap Machine',
-                    plp: false,
                     rfqm: false,
                 };
                 return integrator;
@@ -707,7 +698,6 @@ describe('RfqtHandlers', () => {
                     // tslint:disable-next-line: custom-no-magic-numbers
                     allowedChainIds: [1337],
                     label: 'Polygon Swap Machine',
-                    plp: false,
                     rfqm: false,
                 };
                 return integrator;
@@ -748,7 +738,6 @@ describe('RfqtHandlers', () => {
                     // tslint:disable-next-line: custom-no-magic-numbers
                     allowedChainIds: [1337],
                     label: 'Polygon Swap Machine',
-                    plp: false,
                     rfqm: false,
                 };
                 return integrator;
@@ -785,7 +774,6 @@ describe('RfqtHandlers', () => {
                     // tslint:disable-next-line: custom-no-magic-numbers
                     allowedChainIds: [1337],
                     label: 'Polygon Swap Machine',
-                    plp: false,
                     rfqm: false,
                 };
                 return integrator;
@@ -825,7 +813,6 @@ describe('RfqtHandlers', () => {
                       "apiKeys": [],
                       "integratorId": "uuid-integrator-id",
                       "label": "Polygon Swap Machine",
-                      "plp": false,
                       "rfqm": false,
                     },
                     "isFirm": false,
@@ -871,7 +858,6 @@ describe('RfqtHandlers', () => {
                     // tslint:disable-next-line: custom-no-magic-numbers
                     allowedChainIds: [1337],
                     label: 'Polygon Swap Machine',
-                    plp: false,
                     rfqm: false,
                 };
                 return integrator;
@@ -912,7 +898,6 @@ describe('RfqtHandlers', () => {
                     // tslint:disable-next-line: custom-no-magic-numbers
                     allowedChainIds: [1337],
                     label: 'Polygon Swap Machine',
-                    plp: false,
                     rfqm: false,
                 };
                 return integrator;
@@ -950,7 +935,6 @@ describe('RfqtHandlers', () => {
                     // tslint:disable-next-line: custom-no-magic-numbers
                     allowedChainIds: [1337],
                     label: 'Polygon Swap Machine',
-                    plp: false,
                     rfqm: false,
                 };
                 return integrator;
@@ -990,7 +974,6 @@ describe('RfqtHandlers', () => {
                       "apiKeys": [],
                       "integratorId": "uuid-integrator-id",
                       "label": "Polygon Swap Machine",
-                      "plp": false,
                       "rfqm": false,
                     },
                     "isFirm": true,
@@ -1051,7 +1034,6 @@ describe('RfqtHandlers', () => {
                     // tslint:disable-next-line: custom-no-magic-numbers
                     allowedChainIds: [1337],
                     label: 'Polygon Swap Machine',
-                    plp: false,
                     rfqm: false,
                 };
                 return integrator;

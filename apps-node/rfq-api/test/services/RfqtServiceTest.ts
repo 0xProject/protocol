@@ -138,7 +138,6 @@ describe('Rfqt Service', () => {
                         apiKeys: [],
                         allowedChainIds: [],
                         integratorId: 'uuid-integrator',
-                        plp: false,
                         rfqm: false,
                         label: 'Scam Integrator 1',
                     },
@@ -170,7 +169,6 @@ describe('Rfqt Service', () => {
                           "apiKeys": [],
                           "integratorId": "uuid-integrator",
                           "label": "Scam Integrator 1",
-                          "plp": false,
                           "rfqm": false,
                         },
                         "intentOnFilling": false,
@@ -227,7 +225,6 @@ describe('Rfqt Service', () => {
                         allowedChainIds: [],
                         apiKeys: [],
                         integratorId: 'uuid-integrator',
-                        plp: false,
                         rfqm: false,
                         label: 'Scam Integrator 1',
                     },
@@ -259,7 +256,6 @@ describe('Rfqt Service', () => {
                           "apiKeys": [],
                           "integratorId": "uuid-integrator",
                           "label": "Scam Integrator 1",
-                          "plp": false,
                           "rfqm": false,
                         },
                         "intentOnFilling": false,
@@ -304,7 +300,6 @@ describe('Rfqt Service', () => {
             apiKeys: [],
             integratorId: 'integrator-id',
             label: 'test integrator',
-            plp: false,
             rfqm: false,
         };
         describe('getV2PricesAsync', () => {
@@ -367,7 +362,6 @@ describe('Rfqt Service', () => {
                         "apiKeys": [],
                         "integratorId": "integrator-id",
                         "label": "test integrator",
-                        "plp": false,
                         "rfqm": false,
                       },
                       {
@@ -447,7 +441,6 @@ describe('Rfqt Service', () => {
                         "apiKeys": [],
                         "integratorId": "integrator-id",
                         "label": "test integrator",
-                        "plp": false,
                         "rfqm": false,
                       },
                       {
@@ -526,7 +519,6 @@ describe('Rfqt Service', () => {
                         "apiKeys": [],
                         "integratorId": "integrator-id",
                         "label": "test integrator",
-                        "plp": false,
                         "rfqm": false,
                       },
                       {
@@ -1246,7 +1238,6 @@ describe('Rfqt Service', () => {
                             apiKeys: [],
                             allowedChainIds: [],
                             integratorId: 'uuid-integrator',
-                            plp: false,
                             rfqm: false,
                             label: 'Scam Integrator 1',
                         },

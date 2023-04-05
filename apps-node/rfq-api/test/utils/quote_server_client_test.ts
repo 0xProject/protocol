@@ -21,7 +21,6 @@ const integrator: Integrator = {
     apiKeys: [],
     allowedChainIds: [],
     label: 'integrator',
-    plp: false,
     rfqm: true,
 };
 

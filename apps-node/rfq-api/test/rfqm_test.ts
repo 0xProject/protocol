@@ -234,7 +234,6 @@ describe('RFQM Integration', () => {
             allowedChainIds: [1337],
             label: 'Test',
             rfqm: true,
-            plp: false,
             gaslessRfqtVip: true,
         });
         const configManager = instance(configManagerMock);
