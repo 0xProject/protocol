@@ -594,6 +594,66 @@ describe('RfqtHandlers', () => {
             expect(response.statusCode).toEqual(HttpStatus.BAD_REQUEST);
         });
 
+        it('validating gasPrice', async () => {
+            const requestBody = {
+                altRfqAssetOfferings: {},
+                assetFillAmount: new BigNumber(100),
+                chainId: 1337,
+                makerToken: '0xmakertoken',
+                marketOperation: 'Buy', // Invalid
+                takerToken: '0xtakertoken',
+                takerAddress: '0xtakeraddress',
+                txOrigin: '0xtxorigin',
+                intentOnFilling: false,
+                integratorId: 'uuid-integrator-id',
+                gasPrice: new BigNumber(1000000000),
+            };
+
+            await supertest(
+                express()
+                    .use(express.json())
+                    .post('/', asyncHandler(rfqtHandlers.getV2QuotesAsync.bind(rfqtHandlers))),
+            )
+                .post('/')
+                .set({ 'Content-type': 'application/json', '0x-chain-id': 1337 })
+                .send(requestBody);
+
+            expect(mockRfqtService.getV2QuotesAsync.mock.calls[0][0].gasPrice).toEqual(new BigNumber(1000000000));
+
+            const requestBody2 = {
+                ...requestBody,
+                gasPrice: '1000000000', // test string input
+            };
+
+            await supertest(
+                express()
+                    .use(express.json())
+                    .post('/', asyncHandler(rfqtHandlers.getV2QuotesAsync.bind(rfqtHandlers))),
+            )
+                .post('/')
+                .set({ 'Content-type': 'application/json', '0x-chain-id': 1337 })
+                .send(requestBody2);
+
+            expect(mockRfqtService.getV2QuotesAsync.mock.calls[1][0].gasPrice).toEqual(new BigNumber(1000000000));
+
+            const requestBody3 = {
+                ...requestBody,
+                gasPrice: undefined, // test string input
+            };
+
+            await supertest(
+                express()
+                    .use(express.json())
+                    .post('/', asyncHandler(rfqtHandlers.getV2QuotesAsync.bind(rfqtHandlers))),
+            )
+                .post('/')
+                .set({ 'Content-type': 'application/json', '0x-chain-id': 1337 })
+                .send(requestBody3);
+
+            expect(mockRfqtService.getV2QuotesAsync.mock.calls[2][0].gasPrice).toEqual(undefined);
+            jest.clearAllMocks();
+        });
+
         it('throws with an invalid market operation', async () => {
             const response = await supertest(
                 express()
@@ -769,6 +829,7 @@ describe('RfqtHandlers', () => {
                     "bucket": undefined,
                     "chainId": 1337,
                     "feeModelVersion": 1,
+                    "gasPrice": undefined,
                     "integrator": {
                       "allowedChainIds": [
                         1337,
@@ -937,6 +998,7 @@ describe('RfqtHandlers', () => {
                     "bucket": undefined,
                     "chainId": 1337,
                     "feeModelVersion": 1,
+                    "gasPrice": undefined,
                     "integrator": {
                       "allowedChainIds": [
                         1337,

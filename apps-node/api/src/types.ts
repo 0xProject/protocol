@@ -488,6 +488,7 @@ export interface RfqtV2Request {
     takerAddress: string;
     takerToken: string;
     txOrigin: string;
+    gasPrice: BigNumber;
 }
 
 interface FeeConfigBase {

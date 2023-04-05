@@ -571,6 +571,7 @@ export class MarketOperationUtils {
                               takerAddress: rfqt.takerAddress,
                               takerToken,
                               txOrigin: rfqt.txOrigin,
+                              gasPrice: _opts.gasPrice,
                           });
 
                 logger.info(
@@ -627,6 +628,7 @@ export class MarketOperationUtils {
                                   takerAddress: rfqt.takerAddress,
                                   takerToken,
                                   txOrigin: rfqt.txOrigin,
+                                  gasPrice: _opts.gasPrice,
                               }),
                           ]);
 

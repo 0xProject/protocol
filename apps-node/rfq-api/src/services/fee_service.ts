@@ -320,6 +320,7 @@ export class FeeService {
             makerTokenDecimals,
             isSelling,
             feeModelVersion,
+            gasPrice,
         } = quoteContext;
 
         const { tradeSizeBps } = this._configManager.getFeeModelConfiguration(this._chainId, makerToken, takerToken);
@@ -345,8 +346,8 @@ export class FeeService {
 
         // Add a gas improvement fee for RFQT only
         // TODO: this is a temporary experiment to see if we can improve RFQt revenues. Remove if experiment is not successful
-        const gasPrice = gasFee.breakdown.gas?.details.gasPrice || RFQT_GAS_IMPROVEMENT_FALLBACK_GAS_PRICE;
-        const rfqtFixedFee = gasPrice.times(RFQT_GAS_IMPROVEMENT);
+        const rfqtGasPrice = gasPrice || RFQT_GAS_IMPROVEMENT_FALLBACK_GAS_PRICE;
+        const rfqtFixedFee = rfqtGasPrice.times(RFQT_GAS_IMPROVEMENT);
         logger.info(
             { rfqtFixedFee, gasPrice, gasFeeBreakdown: gasFee.breakdown },
             'RFQT fixed fee - only applies when fees are applied',

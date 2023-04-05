@@ -259,6 +259,7 @@ interface QuoteContextBase {
     assetFillAmount: BigNumber;
     feeModelVersion: FeeModelVersion;
     volumeUSD?: BigNumber; // an estimate of the volume of the asset in USD
+    gasPrice?: BigNumber;
 }
 
 /**

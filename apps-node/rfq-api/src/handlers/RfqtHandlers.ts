@@ -351,6 +351,7 @@ export class RfqtHandlers {
             marketOperation,
             integratorId,
             bucket,
+            gasPrice: gasPriceStr,
         } = request.body;
 
         if (
@@ -373,12 +374,15 @@ export class RfqtHandlers {
 
         const isSelling = (marketOperation as string) === MarketOperation.Sell.toString();
         const assetFillAmount = new BigNumber(assetFillAmountStr);
+        const gasPrice = gasPriceStr ? new BigNumber(gasPriceStr) : undefined;
+
         let takerAmount, makerAmount;
         if (isSelling) {
             takerAmount = assetFillAmount;
         } else {
             makerAmount = assetFillAmount;
         }
+
         const takerTokenDecimals = await service.getTokenDecimalsAsync(takerToken);
         const makerTokenDecimals = await service.getTokenDecimalsAsync(makerToken);
         const volumeUSD = await service.getVolumeUSDAsync({
@@ -407,6 +411,7 @@ export class RfqtHandlers {
             feeModelVersion: service.feeModelVersion,
             bucket,
             volumeUSD,
+            gasPrice,
         };
         if (isFirm === true) {
             if (!txOrigin) {
