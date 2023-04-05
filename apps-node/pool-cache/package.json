@@ -31,6 +31,7 @@
         "pino": "^8.11.0",
         "pino-pretty": "^10.0.0",
         "pool-cache-interface": "*",
+        "prom-client": "^14.2.0",
         "zod": "^3.20.6"
     },
     "devDependencies": {

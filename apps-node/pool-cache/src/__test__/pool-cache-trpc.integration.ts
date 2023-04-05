@@ -12,6 +12,7 @@ import { PoolCacheService } from '../services/pool-cache-service';
 import { RedisCacheClient } from '../cache/redis-cache-client';
 import { ETHEREUM } from './test-utils/constants';
 import { getTimestampInSeconds } from '../utils/time';
+import { Counter, Histogram } from 'prom-client';
 
 const TRPC_SERVER_PORT = 1001;
 
@@ -23,6 +24,11 @@ describe('PoolCache tRPC Integration Test', () => {
     let teardownDependenciesFn: TeardownDependenciesFn;
     let redis: Redis;
     let server: ReturnType<typeof createHTTPServer>;
+
+    const counterInc = jest.fn();
+    const histogramObserve = jest.fn();
+    Counter.prototype.inc = counterInc;
+    Histogram.prototype.observe = histogramObserve;
 
     const client = createTRPCProxyClient<PoolCacheRouter>({
         links: [
@@ -64,6 +70,21 @@ describe('PoolCache tRPC Integration Test', () => {
     afterEach(async () => {
         // Remove all keys for the next test.
         await redis.flushall();
+        jest.clearAllMocks();
+    });
+
+    test('Updates relevant metrics for getPoolCacheOfPairs', async () => {
+        await client.getPoolCacheOfPairs.query({
+            chainId: ChainId.Ethereum,
+            uniswapV3Pairs: [
+                {
+                    tokenA: ETHEREUM.APE,
+                    tokenB: ETHEREUM.ZRX,
+                },
+            ],
+        });
+        expect(counterInc).toBeCalledWith({ procedure: 'getPoolCacheOfPairs', chain_id: 1 });
+        expect(histogramObserve).toBeCalledWith({ procedure: 'getPoolCacheOfPairs', chain_id: 1 }, expect.any(Number));
     });
 
     test('Returns no pool cache on cache miss (Ethereum APE/ZRX)', async () => {
