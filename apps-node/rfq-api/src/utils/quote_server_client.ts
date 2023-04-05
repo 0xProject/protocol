@@ -213,7 +213,6 @@ export class QuoteServerClient {
         const response = await this._axiosInstance.get(makerUriToUrl(makerUri), {
             timeout: RFQ_PRICE_ENDPOINT_TIMEOUT_MS,
             validateStatus: (status: number) => {
-                // tslint:disable-next-line: custom-no-magic-numbers
                 if (status >= 300) {
                     logger.warn({ status, makerUri }, 'Received non-OK status requesting price from market maker');
                 }

@@ -1,4 +1,3 @@
-// tslint:disable:max-file-line-count
 import { OtcOrder, Signature } from '@0x/protocol-utils';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
@@ -155,7 +154,7 @@ const MAX_FEE_PER_GAS_MULTIPLIER = 1.1; // Increase multiplier in max fee per ga
 const MAX_GAS_ESTIMATE = 500_000;
 
 // How often the worker should publish a heartbeat
-const WORKER_HEARTBEAT_FREQUENCY_MS = ONE_SECOND_MS * 30; // tslint:disable-line: custom-no-magic-numbers
+const WORKER_HEARTBEAT_FREQUENCY_MS = ONE_SECOND_MS * 30;
 
 /**
  * The service layer for Gasless Workers.

@@ -39,7 +39,6 @@ export class RfqtV2QuoteEntity {
     @Column({ name: 'affiliate_address', type: 'varchar', nullable: true })
     public affiliateAddress: string | null;
 
-    // tslint:disable-next-line no-object-literal-type-assertion
     constructor(opts: RfqtV2QuoteConstructorOpts = {} as RfqtV2QuoteConstructorOpts) {
         // allow createdAt overrides for testing
         if (opts.createdAt) {

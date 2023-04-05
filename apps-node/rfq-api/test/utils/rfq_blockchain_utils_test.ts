@@ -1,4 +1,3 @@
-// tslint:disable:custom-no-magic-numbers no-unused-expression
 import { SupportedProvider } from '@0x/subproviders';
 import { BigNumber } from '@0x/utils';
 import { providers, Wallet } from 'ethersv5';

@@ -1,4 +1,3 @@
-// tslint:disable:custom-no-magic-numbers
 import { Queue, Worker } from 'bullmq';
 import Redis from 'ioredis';
 

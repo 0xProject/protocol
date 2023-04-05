@@ -1,4 +1,3 @@
-// tslint:disable:custom-no-magic-numbers
 import { Job, Queue } from 'bullmq';
 import { Counter } from 'prom-client';
 
@@ -38,7 +37,6 @@ const backgroundJobMBCUpdate: BackgroundJobBlueprint<BackgroundJobMBCUpdateData,
     createAsync,
     processAsync,
 };
-// tslint:disable-next-line: no-default-export
 export default backgroundJobMBCUpdate;
 
 const MAKER_BALANCE_CACHE_UPDATE_PROCESS_COUNT = new Counter({

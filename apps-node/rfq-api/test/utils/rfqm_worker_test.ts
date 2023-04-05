@@ -1,7 +1,3 @@
-// tslint:disable:custom-no-magic-numbers
-// tslint:disable:no-empty
-// tslint:disable:max-file-line-count
-
 import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import { BlockParamLiteral } from 'ethereum-types';

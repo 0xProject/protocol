@@ -50,7 +50,6 @@ process.on('SIGINT', async () => {
 });
 
 if (require.main === module) {
-    // tslint:disable:no-floating-promises
     // Promise rejections would be handled by the unhandledRejection handler
     (async () => {
         // Start the metrics server

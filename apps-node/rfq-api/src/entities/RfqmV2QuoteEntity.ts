@@ -59,7 +59,6 @@ export class RfqmV2QuoteEntity {
     @Column({ name: 'taker_specified_side', type: 'varchar', nullable: true })
     public takerSpecifiedSide: 'makerToken' | 'takerToken' | null;
 
-    // tslint:disable-next-line no-object-literal-type-assertion
     constructor(opts: RfqmV2QuoteConstructorOpts = {} as RfqmV2QuoteConstructorOpts) {
         // allow createdAt overrides for testing
         if (opts.createdAt) {

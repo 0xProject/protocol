@@ -1,7 +1,3 @@
-// tslint:disable:custom-no-magic-numbers
-// tslint:disable:no-empty
-// tslint:disable:max-file-line-count
-
 import { DEFAULT_FEE_MODEL_CONFIGURATION } from '../../src/config';
 import { ConfigManager } from '../../src/utils/config_manager';
 

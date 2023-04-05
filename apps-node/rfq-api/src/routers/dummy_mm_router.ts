@@ -3,7 +3,6 @@ import * as asyncHandler from 'express-async-handler';
 
 import { DummyMMHandlers } from '../handlers/dummy_mm_handler';
 
-// tslint:disable-next-line:completed-docs
 export function createDummyMMRouter(): express.Router {
     const router = express.Router();
     const handlers = new DummyMMHandlers();

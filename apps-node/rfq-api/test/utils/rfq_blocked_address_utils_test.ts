@@ -9,7 +9,6 @@ import { initDbDataSourceAsync } from '../test_utils/initDbDataSourceAsync';
 
 const ttlMs = 50;
 
-// tslint:disable-next-line: custom-no-magic-numbers
 jest.setTimeout(ONE_MINUTE_MS * 2);
 let teardownDependencies: TeardownDependenciesFunctionHandle;
 
@@ -19,7 +18,6 @@ describe('rfqBlockedAddressUtils', () => {
 
     beforeAll(async () => {
         teardownDependencies = await setupDependenciesAsync(['postgres']);
-        // tslint:disable-next-line: custom-no-magic-numbers
         dataSource = await initDbDataSourceAsync();
         rfqBlacklistUtils = new RfqBlockedAddressUtils(dataSource, new Set(), ttlMs);
     });
@@ -119,4 +117,3 @@ describe('rfqBlockedAddressUtils', () => {
         expect(isUpperCaseBlocked).to.equal(true);
     });
 });
-// tslint:disable-line:max-file-line-count

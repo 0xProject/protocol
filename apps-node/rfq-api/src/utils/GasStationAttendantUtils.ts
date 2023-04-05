@@ -9,7 +9,6 @@ import { GasStationAttendantEthereum } from './GasStationAttendantEthereum';
 import { GasStationAttendantPolygon } from './GasStationAttendantPolygon';
 
 export function getGasStationAttendant(chain: ChainConfiguration, axiosInstance: AxiosInstance): GasStationAttendant {
-    // tslint:disable: custom-no-magic-numbers
     switch (chain.chainId) {
         case /* ethereum */ 1:
             return new GasStationAttendantEthereum(GasOracleType2.create(chain.gasStationUrl, axiosInstance));
@@ -22,5 +21,4 @@ export function getGasStationAttendant(chain: ChainConfiguration, axiosInstance:
         default:
             throw new Error(`Gas station attendant not configured for chain: ${chain.name}`);
     }
-    // tslint:enable: custom-no-magic-numbers
 }

@@ -1,4 +1,3 @@
-// tslint:disable custom-no-magic-numbers
 import { BigNumber } from '@0x/utils';
 import { Producer } from 'sqs-producer';
 import { instance, mock, when } from 'ts-mockito';

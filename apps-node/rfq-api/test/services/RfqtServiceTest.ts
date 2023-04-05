@@ -1,4 +1,3 @@
-// tslint:disable custom-no-magic-numbers max-file-line-count
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { OtcOrder } from '@0x/protocol-utils';
 import { Signature, SignatureType } from '@0x/protocol-utils/lib/src/signature_utils';
@@ -78,7 +77,6 @@ const mockFeeService = jest.mocked(
 );
 const mockRfqBlockchainUtils = jest.mocked({} as RfqBlockchainUtils);
 const mockTokenMetadataManager = jest.mocked(new TokenMetadataManager(1337, {} as RfqBlockchainUtils));
-// tslint:enable: no-object-literal-type-assertion
 const mockContractAddresses = getContractAddressesForChainOrThrow(1337);
 const mockRfqMakerBalanceCacheService = jest.mocked(
     new RfqMakerBalanceCacheService({} as CacheClient, {} as RfqBalanceCheckUtils),
@@ -297,7 +295,7 @@ describe('Rfqt Service', () => {
             rfqtUri: 'altonomy.uri',
         });
         const integrator: Integrator = {
-            allowedChainIds: [1337], // tslint:disable-line: custom-no-magic-numbers
+            allowedChainIds: [1337],
             apiKeys: [],
             integratorId: 'integrator-id',
             label: 'test integrator',
@@ -333,7 +331,7 @@ describe('Rfqt Service', () => {
                 });
 
                 const rfqtService = new RfqtService(
-                    1337, // tslint:disable-line: custom-no-magic-numbers
+                    1337,
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
@@ -412,7 +410,7 @@ describe('Rfqt Service', () => {
                 });
 
                 const rfqtService = new RfqtService(
-                    1337, // tslint:disable-line: custom-no-magic-numbers
+                    1337,
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
@@ -490,7 +488,7 @@ describe('Rfqt Service', () => {
                 });
 
                 const rfqtService = new RfqtService(
-                    1337, // tslint:disable-line: custom-no-magic-numbers
+                    1337,
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
@@ -582,7 +580,7 @@ describe('Rfqt Service', () => {
                 });
 
                 const rfqtService = new RfqtService(
-                    1337, // tslint:disable-line: custom-no-magic-numbers
+                    1337,
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
@@ -669,7 +667,7 @@ describe('Rfqt Service', () => {
                 });
 
                 const rfqtService = new RfqtService(
-                    1337, // tslint:disable-line: custom-no-magic-numbers
+                    1337,
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
@@ -755,7 +753,7 @@ describe('Rfqt Service', () => {
                 });
 
                 const rfqtService = new RfqtService(
-                    1337, // tslint:disable-line: custom-no-magic-numbers
+                    1337,
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
@@ -838,7 +836,7 @@ describe('Rfqt Service', () => {
                     .mockResolvedValue([new BigNumber(1000), new BigNumber(100)]);
 
                 const rfqtService = new RfqtService(
-                    1337, // tslint:disable-line: custom-no-magic-numbers
+                    1337,
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
@@ -934,7 +932,7 @@ describe('Rfqt Service', () => {
                 });
 
                 const rfqtService = new RfqtService(
-                    1337, // tslint:disable-line: custom-no-magic-numbers
+                    1337,
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
@@ -1011,7 +1009,7 @@ describe('Rfqt Service', () => {
                 mockQuoteServerClient.signV2Async = jest.fn().mockResolvedValue(signature);
 
                 const rfqtService = new RfqtService(
-                    1337, // tslint:disable-line: custom-no-magic-numbers
+                    1337,
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
@@ -1096,7 +1094,7 @@ describe('Rfqt Service', () => {
                 mockCacheClient.getNextNOtcOrderBucketsAsync = jest.fn().mockResolvedValue(0);
 
                 const rfqtService = new RfqtService(
-                    1337, // tslint:disable-line: custom-no-magic-numbers
+                    1337,
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
@@ -1172,7 +1170,7 @@ describe('Rfqt Service', () => {
                     .mockResolvedValue([new BigNumber(10000)]);
 
                 const rfqtService = new RfqtService(
-                    1337, // tslint:disable-line: custom-no-magic-numbers
+                    1337,
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
@@ -1395,7 +1393,7 @@ describe('Rfqt Service', () => {
                         });
 
                     const rfqtService = new RfqtService(
-                        1337, // tslint:disable-line: custom-no-magic-numbers
+                        1337,
                         mockRfqMakerManager,
                         mockQuoteRequestor,
                         mockQuoteServerClient,
@@ -1516,7 +1514,7 @@ describe('Rfqt Service', () => {
                     });
 
                     const rfqtService = new RfqtService(
-                        1337, // tslint:disable-line: custom-no-magic-numbers
+                        1337,
                         mockRfqMakerManager,
                         mockQuoteRequestor,
                         mockQuoteServerClient,

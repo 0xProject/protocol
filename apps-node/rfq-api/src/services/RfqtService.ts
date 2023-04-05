@@ -185,7 +185,7 @@ export class RfqtService {
             assetFillAmount,
             comparisonPrice,
             integrator,
-            intentOnFilling, // tslint:disable-line boolean-naming
+            intentOnFilling,
             makerToken,
             marketOperation,
             takerAddress,
@@ -236,7 +236,7 @@ export class RfqtService {
             assetFillAmount,
             comparisonPrice,
             integrator,
-            intentOnFilling, // tslint:disable-line boolean-naming
+            intentOnFilling,
             makerToken,
             marketOperation,
             takerAddress,

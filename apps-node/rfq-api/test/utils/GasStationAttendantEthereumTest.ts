@@ -32,7 +32,6 @@ describe('GasStationAttendantEthereum', () => {
             );
 
             expect(workerGasToTrade.toPrecision(2).toString()).toEqual(
-                // tslint:disable-next-line: custom-no-magic-numbers
                 new BigNumber(1771.561).plus(666).times(gasEstimate).toPrecision(2).toString(),
             );
         });
@@ -58,10 +57,7 @@ describe('GasStationAttendantEthereum', () => {
             // Tip estimate is
             const tipEstimate = new BigNumber(2750000000);
 
-            expect(gasRate.toString()).toEqual(
-                // tslint:disable-next-line: custom-no-magic-numbers
-                new BigNumber(1000).plus(tipEstimate).toString(),
-            );
+            expect(gasRate.toString()).toEqual(new BigNumber(1000).plus(tipEstimate).toString());
         });
 
         it('throws if gas oracle rejects', async () => {

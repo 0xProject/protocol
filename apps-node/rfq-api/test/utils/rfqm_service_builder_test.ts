@@ -9,7 +9,6 @@ describe('rfqm_service_builder', () => {
             it('returns an object with the value of `exchangeProxy` set to the override address', async () => {
                 const ethersProvider = new providers.JsonRpcProvider();
 
-                // tslint:disable-next-line:custom-no-magic-numbers
                 const contractAddresses = await getContractAddressesForNetworkOrThrowAsync(ethersProvider, {
                     chainId: 80001,
                     exchangeProxyContractAddressOverride: '0x_override_address',
@@ -22,7 +21,6 @@ describe('rfqm_service_builder', () => {
             it('returns an object with the value of `exchangeProxy` set value got from upstream module', async () => {
                 const ethersProvider = new providers.JsonRpcProvider();
 
-                // tslint:disable-next-line:custom-no-magic-numbers
                 const contractAddresses = await getContractAddressesForNetworkOrThrowAsync(ethersProvider, {
                     chainId: 80001,
                 });

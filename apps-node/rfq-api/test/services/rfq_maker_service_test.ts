@@ -1,7 +1,3 @@
-// tslint:disable:custom-no-magic-numbers
-// tslint:disable:no-empty
-// tslint:disable:max-file-line-count
-
 import { ChainId } from '@0x/contract-addresses';
 import { anything, instance, mock, when } from 'ts-mockito';
 import { Connection, Repository } from 'typeorm';

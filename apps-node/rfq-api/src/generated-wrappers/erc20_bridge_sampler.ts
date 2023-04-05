@@ -2,7 +2,6 @@
 import {
     AwaitTransactionSuccessOpts,
     EncoderOverrides,
-    ContractFunctionObj,
     ContractTxFunctionObj,
     SendTransactionOpts,
     BaseContract,
@@ -13,30 +12,22 @@ import {
 import { schemas } from '@0x/json-schemas';
 import {
     BlockParam,
-    BlockParamLiteral,
-    BlockRange,
     CallData,
     ContractAbi,
     ContractArtifact,
-    DecodedLogArgs,
     MethodAbi,
     TransactionReceiptWithDecodedLogs,
     TxData,
-    TxDataPayable,
     TxAccessListWithGas,
     SupportedProvider,
 } from 'ethereum-types';
-import { AbiEncoder, BigNumber, classUtils, EncodingRules, hexUtils, logUtils, providerUtils } from '@0x/utils';
-import { EventCallback, IndexedFilterValues, SimpleContractArtifact } from '@0x/types';
+import { BigNumber, classUtils, logUtils, providerUtils } from '@0x/utils';
+import { SimpleContractArtifact } from '@0x/types';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import { assert } from '@0x/assert';
 import * as ethers from 'ethers';
-// tslint:enable:no-unused-variable
 
 /* istanbul ignore next */
-// tslint:disable:array-type
-// tslint:disable:no-parameter-reassignment
-// tslint:disable-next-line:class-name
 export class ERC20BridgeSamplerContract extends BaseContract {
     /**
      * @ignore
@@ -2500,7 +2491,7 @@ export class ERC20BridgeSamplerContract extends BaseContract {
 
     public getFunctionSignature(methodName: string): string {
         const index = this._methodABIIndex[methodName];
-        const methodAbi = ERC20BridgeSamplerContract.ABI()[index] as MethodAbi; // tslint:disable-line:no-unnecessary-type-assertion
+        const methodAbi = ERC20BridgeSamplerContract.ABI()[index] as MethodAbi;
         const functionSignature = methodAbiToFunctionSignature(methodAbi);
         return functionSignature;
     }
@@ -7428,7 +7419,3 @@ export class ERC20BridgeSamplerContract extends BaseContract {
         });
     }
 }
-
-// tslint:disable:max-file-line-count
-// tslint:enable:no-unbound-method no-parameter-reassignment no-consecutive-blank-lines ordered-imports align
-// tslint:enable:trailing-comma whitespace no-trailing-whitespace

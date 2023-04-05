@@ -1,4 +1,3 @@
-// tslint:disable max-file-line-count
 import { tokenUtils } from '@0x/dev-utils';
 import { FillQuoteTransformerOrderType, SignatureType } from '@0x/protocol-utils';
 import { MarketOperation, StatusCodes } from '@0x/types';
@@ -39,7 +38,6 @@ const CREATED_STATUS_CODE = 201;
 
 function makeThreeMinuteExpiry(): BigNumber {
     const expiry = new Date(Date.now());
-    // tslint:disable-next-line: custom-no-magic-numbers
     expiry.setMinutes(expiry.getMinutes() + 3);
     return new BigNumber(Math.round(expiry.valueOf() / ONE_SECOND_MS));
 }
@@ -67,7 +65,6 @@ describe('QuoteRequestor', () => {
             const apiKey = 'my-ko0l-api-key';
 
             // Set up RFQT responses
-            // tslint:disable-next-line:array-type
             const mockedRequests: MockedRfqQuoteResponse[] = [];
             const altMockedRequests: AltMockedRfqQuoteResponse[] = [];
 
@@ -117,7 +114,6 @@ describe('QuoteRequestor', () => {
             const altFirmResponse = {
                 ...altFirmRequestData,
                 id: 'random_id',
-                // tslint:disable-next-line:custom-no-magic-numbers
                 price: new BigNumber(10 / 100).toString(),
                 status: 'active',
                 data: {
@@ -273,7 +269,6 @@ describe('QuoteRequestor', () => {
             const apiKey = 'my-ko0l-api-key';
 
             // Set up RFQT responses
-            // tslint:disable-next-line:array-type
             const mockedRequests: MockedRfqQuoteResponse[] = [];
             const expectedParams: TakerRequestQueryParamsUnnested = {
                 sellTokenAddress: takerToken,
@@ -388,11 +383,9 @@ describe('QuoteRequestor', () => {
             const takerAddress = '0xd209925defc99488e3afff1174e48b4fa628302a';
             const apiKey = 'my-ko0l-api-key';
             const maxTimeoutMs = 10;
-            // tslint:disable-next-line:custom-no-magic-numbers
             const exceedTimeoutMs = maxTimeoutMs + 50;
 
             // Set up RFQT responses
-            // tslint:disable-next-line:array-type
             const mockedRequests: MockedRfqQuoteResponse[] = [];
             const expectedParams: TakerRequestQueryParamsUnnested = {
                 sellTokenAddress: takerToken,
@@ -431,7 +424,6 @@ describe('QuoteRequestor', () => {
                 endpoint: 'https://420.0.0.1',
                 responseData: successfulQuote1,
                 callback: async () => {
-                    // tslint:disable-next-line:no-inferred-empty-object-type
                     return new Promise((resolve, _reject) => {
                         setTimeout(() => {
                             resolve([StatusCodes.Success, successfulQuote1]);
@@ -482,7 +474,6 @@ describe('QuoteRequestor', () => {
             const apiKey = 'my-ko0l-api-key';
 
             // Set up RFQT responses
-            // tslint:disable-next-line:array-type
             const mockedRequests: MockedRfqQuoteResponse[] = [];
             const expectedParams: TakerRequestQueryParamsUnnested = {
                 sellTokenAddress: takerToken,
@@ -622,7 +613,6 @@ describe('QuoteRequestor', () => {
             const buyAmountAltResponse = {
                 ...buyAmountAltRequest,
                 id: 'random_id',
-                // tslint:disable-next-line:custom-no-magic-numbers
                 price: new BigNumber(0.01).toString(),
                 status: 'live',
             };
@@ -668,7 +658,6 @@ describe('QuoteRequestor', () => {
             const buyValueAltResponse = {
                 ...buyValueAltRequest,
                 id: 'random_id',
-                // tslint:disable-next-line:custom-no-magic-numbers
                 price: new BigNumber(0.01).toString(),
                 status: 'live',
             };
@@ -714,7 +703,6 @@ describe('QuoteRequestor', () => {
             const sellAmountAltResponse = {
                 ...sellAmountAltRequest,
                 id: 'random_id',
-                // tslint:disable-next-line:custom-no-magic-numbers
                 price: new BigNumber(0.01).toString(),
                 status: 'live',
             };
@@ -760,7 +748,6 @@ describe('QuoteRequestor', () => {
             const sellValueAltResponse = {
                 ...sellValueAltRequest,
                 id: 'random_id',
-                // tslint:disable-next-line:custom-no-magic-numbers
                 price: new BigNumber(0.01).toString(),
                 status: 'live',
             };

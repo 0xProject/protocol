@@ -1,4 +1,3 @@
-// tslint:disable:max-file-line-count
 import { OtcOrder } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { FindOptionsWhere, In } from 'typeorm';

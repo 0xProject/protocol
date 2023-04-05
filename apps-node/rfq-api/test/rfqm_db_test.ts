@@ -115,7 +115,6 @@ function createMockMetaTransactionV2(opts: Partial<MetaTransactionV2Fields> = {}
     });
 }
 
-// tslint:disable-next-line: custom-no-magic-numbers
 jest.setTimeout(ONE_MINUTE_MS * 3);
 let teardownDependencies: TeardownDependenciesFunctionHandle;
 let dataSource: DataSource;
@@ -765,4 +764,3 @@ describe('RFQM Database', () => {
         });
     });
 });
-// tslint:disable-line:max-file-line-count

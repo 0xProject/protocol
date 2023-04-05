@@ -16,7 +16,7 @@ import { logger } from '../logger';
 const RFQ_TOKEN_PRICE_FETCH_REQUEST_DURATION_SECONDS = new Summary({
     name: 'rfq_token_price_fetch_request_duration_seconds',
     help: 'Histogram of request duration of token price fetch request',
-    percentiles: [0.5, 0.9, 0.95, 0.99, 0.999], // tslint:disable-line: custom-no-magic-numbers
+    percentiles: [0.5, 0.9, 0.95, 0.99, 0.999],
     labelNames: ['chainId', 'success'],
     // Set sliding window to 1 minutes
     maxAgeSeconds: 60,

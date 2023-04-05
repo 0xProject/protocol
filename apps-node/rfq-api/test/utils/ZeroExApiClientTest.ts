@@ -1,4 +1,3 @@
-// tslint:disable: custom-no-magic-numbers
 import { BigNumber } from '@0x/utils';
 import Axios, { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';

@@ -7,7 +7,7 @@ import * as Tracing from '@sentry/tracing';
 import Axios from 'axios';
 import * as express from 'express';
 import * as promBundle from 'express-prom-bundle';
-// tslint:disable-next-line:no-implicit-dependencies
+
 import * as core from 'express-serve-static-core';
 import { Server } from 'http';
 import * as HttpStatus from 'http-status-codes';
@@ -198,7 +198,6 @@ export async function runHttpRfqmServiceAsync(
                 Object.assign(labels, { chainId: req.header('0x-chain-id') || 1 });
             },
             // buckets used for the http_request_duration_seconds histogram. All numbers (in seconds) represents boundaries of buckets.
-            // tslint:disable-next-line: custom-no-magic-numbers
             buckets: [0.01, 0.04, 0.1, 0.3, 0.6, 1, 1.5, 2, 2.5, 3, 4, 6, 9],
         });
         app.use(metricsMiddleware);

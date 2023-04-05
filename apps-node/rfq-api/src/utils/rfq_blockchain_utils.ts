@@ -73,7 +73,6 @@ export class RfqBlockchainUtils {
         return providerEngine;
     }
 
-    // tslint:disable-next-line:prefer-function-over-method
     private static _getPathByIndex(index: number): string {
         // ensure index is a 0+ integer
         if (index < 0 || index !== Math.floor(index)) {

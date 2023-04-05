@@ -14,7 +14,7 @@ export class SubproviderAdapter extends Subprovider {
         super();
         this._provider = providerUtils.standardizeOrThrow(provider);
     }
-    // tslint:disable-next-line:async-suffix
+
     public async handleRequest(payload: JSONRPCRequestPayload, _next: Callback, end: ErrorCallback): Promise<void> {
         this._provider.sendAsync(payload, (err, result) => {
             // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me

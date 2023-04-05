@@ -1,4 +1,3 @@
-// tslint:disable: max-file-line-count
 import { schemas, SchemaValidator } from '@0x/json-schemas';
 import { FillQuoteTransformerOrderType, Signature } from '@0x/protocol-utils';
 import { MarketOperation } from '@0x/types';

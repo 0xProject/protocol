@@ -32,7 +32,6 @@ const backgroundJobNoOp: BackgroundJobBlueprint<BackgroundJobNoOpData, Backgroun
     createAsync,
     processAsync,
 };
-// tslint:disable-next-line: no-default-export
 export default backgroundJobNoOp;
 
 const NO_OP_PROCESS_COUNT = new Counter({
@@ -72,7 +71,6 @@ async function processAsync(
         { jobName: job.name, queue: job.queueName, data: job.data, timestamp: Date.now() },
         'Processing the no-op background job on queue',
     );
-    // tslint:disable:custom-no-magic-numbers
     // sleep for 5 seconds
     await new Promise((resolve) => setTimeout(resolve, ONE_SECOND_MS * 5));
     await job.updateProgress(50);

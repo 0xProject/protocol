@@ -321,7 +321,6 @@ export class SubmissionContext<
      * `perfer-function-over-method` rule is disabled to since a function would not be able to use the
      * `T` generic type.
      */
-    // tslint:disable-next-line: prefer-function-over-method
     private _ensureTransactionsAreConsistent(transactions: T): void {
         if (!transactions.length) {
             throw new Error('`transactions` must have a nonzero length');

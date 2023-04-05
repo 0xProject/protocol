@@ -18,7 +18,6 @@ describe('logger', () => {
             if (!swapId) {
                 throw new Error();
             }
-            // tslint:disable-next-line: custom-no-magic-numbers
             expect(swapId).toHaveLength(16);
             expect(/[0-9A-Fa-f]{16}/.test(swapId)).toBeTruthy();
         });

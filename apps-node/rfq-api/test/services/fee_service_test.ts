@@ -1,6 +1,3 @@
-// tslint:disable:max-file-line-count
-// tslint:disable:custom-no-magic-numbers
-
 import { BigNumber } from '@0x/utils';
 import { anything, instance, mock, when } from 'ts-mockito';
 

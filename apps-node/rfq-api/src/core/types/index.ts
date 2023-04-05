@@ -292,5 +292,3 @@ export enum OrderEventEndState {
 
 export * from './assetSwapper';
 export * from './fees';
-
-// tslint:disable-line:max-file-line-count

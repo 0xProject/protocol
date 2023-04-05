@@ -19,7 +19,6 @@ export class GasStationAttendantEthereum implements GasStationAttendant {
      * The Safe Balance For Trade is based on historical data as outlined here:
      * https://0xproject.quip.com/qZdFAHLpT7JI/RFQm-healthz-System-Health-Endpoint#temp:C:cXH5851e0f15e8c4828bffc1339d
      */
-    // tslint:disable-next-line: prefer-function-over-method
     public async getSafeBalanceForTradeAsync(): Promise<Wei> {
         return new BigNumber(82500000000000000);
     }

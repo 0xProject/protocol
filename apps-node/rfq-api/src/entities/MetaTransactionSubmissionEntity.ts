@@ -73,7 +73,6 @@ export class MetaTransactionSubmissionEntity {
     // With no default `opts`, `opts` will be undefined and the validation will throw,
     // therefore, add this hacky default.
     constructor(
-        // tslint:disable-next-line no-object-literal-type-assertion
         opts: MetaTransactionSubmissionEntityConstructorOpts = {} as MetaTransactionSubmissionEntityConstructorOpts,
     ) {
         this.kind = 'meta_transaction_submission';

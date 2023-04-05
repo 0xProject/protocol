@@ -36,14 +36,13 @@ jest.mock('../../utils/rfq_maker_manager', () => {
 
 // TODO (rhinodavid): Find a better way to initialize mocked classes
 const mockRfqMakerManager = jest.mocked(
-    // tslint:disable-next-line: no-object-literal-type-assertion custom-no-magic-numbers
     new RfqMakerManager({} as ConfigManager, {} as RfqMakerDbUtils, /* chainId */ 1337),
 );
 const mockAxiosInstance = jest.mocked(axios.create()) as unknown as jest.MockedObject<AxiosInstance>;
 
 describe('RefreshingQuoteRequestor', () => {
     it('refreshes the quote requestor instance on new pairs', () => {
-        new RefreshingQuoteRequestor(mockRfqMakerManager, mockAxiosInstance); // tslint:disable-line: no-unused-expression
+        new RefreshingQuoteRequestor(mockRfqMakerManager, mockAxiosInstance);
 
         expect(QuoteRequestor).toBeCalledTimes(1);
 

@@ -1,5 +1,3 @@
-// tslint:disable:custom-no-magic-numbers
-
 import { OtcOrder } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 

@@ -1,5 +1,3 @@
-// tslint:disable:custom-no-magic-numbers
-// tslint:disable:max-file-line-count
 import { RFQM_TX_GAS_ESTIMATE } from '../../src/core/constants';
 import { calculateGasEstimate } from '../../src/utils/rfqm_gas_estimate_utils';
 

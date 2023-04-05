@@ -57,7 +57,7 @@ async function waitForDependencyStartupAsync(
     services: Service[],
 ): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-        const startupTimeout = ONE_MINUTE_MS * 3; // tslint:disable-line custom-no-magic-numbers
+        const startupTimeout = ONE_MINUTE_MS * 3;
         const timeoutHandle = setTimeout(() => {
             reject(new Error(`Timed out waiting for dependency logs\n${JSON.stringify(isServiceStarted)}`));
         }, startupTimeout);
@@ -100,13 +100,11 @@ async function waitForDependencyStartupAsync(
     });
 }
 
-// $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-// eslint-disable-next-line @typescript-eslint/no-inferrable-types
-async function confirmPostgresConnectivityAsync(maxTries: number = 5): Promise<void> {
+async function confirmPostgresConnectivityAsync(maxTries = 5): Promise<void> {
     try {
         await Promise.all([
             // delay before retrying
-            new Promise<void>((resolve) => setTimeout(resolve, 2000)), // tslint:disable-line:custom-no-magic-numbers
+            new Promise<void>((resolve) => setTimeout(resolve, 2000)),
             async () => {
                 await initDbDataSourceAsync();
             },

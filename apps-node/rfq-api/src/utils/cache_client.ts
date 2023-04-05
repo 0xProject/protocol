@@ -178,7 +178,6 @@ export class CacheClient {
      * If balances are passed, validates that every cache key has a corresponding value.
      * Generates a cache key for every pair through string concatenation.
      */
-    // tslint:disable-next-line: prefer-function-over-method
     private _validateAndGetBalanceCacheKeys(
         chainId: number,
         erc20Owners: ERC20Owner[],

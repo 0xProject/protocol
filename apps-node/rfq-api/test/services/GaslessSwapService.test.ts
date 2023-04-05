@@ -1,4 +1,3 @@
-// tslint:disable: max-file-line-count
 import { ValidationError, ValidationErrorCodes } from '@0x/api-utils';
 import { ethSignHashWithKey, MetaTransaction, MetaTransactionV2, OtcOrder, SignatureType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
@@ -102,7 +101,6 @@ jest.mock('sqs-producer', () => {
     };
 });
 
-// tslint:disable: no-object-literal-type-assertion
 const getMetaTransactionV1QuoteAsyncMock = getV1QuoteAsync as jest.Mock<
     ReturnType<typeof getV1QuoteAsync>,
     Parameters<typeof getV1QuoteAsync>
@@ -140,7 +138,7 @@ const mockRfqmService = jest.mocked(
 const mockRedis = jest.mocked(new Redis());
 
 const gaslessSwapService = new GaslessSwapService(
-    /* chainId */ 1337, // tslint:disable-line: custom-no-magic-numbers
+    /* chainId */ 1337,
     mockRfqmService,
     new URL('https://hokiesports.com/quote'),
     {} as AxiosInstance,
@@ -252,9 +250,8 @@ describe('GaslessSwapService', () => {
             feeTokenAmountPerWei: new BigNumber(0.001),
         },
     };
-    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-    // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
-    const expiry = new BigNumber(9999999999999999); // tslint:disable-line custom-no-magic-numbers
+
+    const expiry = new BigNumber('9999999999999999');
     const otcOrder = new OtcOrder({
         txOrigin: '0x0000000000000000000000000000000000000000',
         taker: '0x1111111111111111111111111111111111111111',
@@ -577,46 +574,46 @@ describe('GaslessSwapService', () => {
 
                 expect(getMetaTransactionV2QuoteAsyncMock.mock.calls[0][2].metaTransactionVersion).toEqual('v2');
                 expect(result).toMatchInlineSnapshot(`
-                    {
-                      "allowanceTarget": "0x12345",
-                      "buyAmount": "1800054805473",
-                      "buyTokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-                      "estimatedPriceImpact": "10",
-                      "fees": {
-                        "gasFee": {
-                          "feeAmount": "10000000",
-                          "feeToken": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
-                          "feeType": "gas",
-                        },
-                        "integratorFee": {
-                          "feeAmount": "1000000000000000000",
-                          "feeToken": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
-                          "feeType": "volume",
-                        },
-                        "zeroExFee": {
-                          "feeAmount": "1000000000000000",
-                          "feeToken": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
-                          "feeType": "integrator_share",
-                        },
+                  {
+                    "allowanceTarget": "0x12345",
+                    "buyAmount": "1800054805473",
+                    "buyTokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+                    "estimatedPriceImpact": "10",
+                    "fees": {
+                      "gasFee": {
+                        "feeAmount": "10000000",
+                        "feeToken": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
+                        "feeType": "gas",
                       },
-                      "price": "1800.054805",
-                      "sellAmount": "1000000000000000000000",
-                      "sellTokenAddress": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
-                      "sources": [
-                        {
-                          "name": "QuickSwap",
-                          "proportion": "0.2308",
-                        },
-                        {
-                          "name": "DODO_V2",
-                          "proportion": "0.07692",
-                        },
-                        {
-                          "name": "Uniswap_V3",
-                          "proportion": "0.6923",
-                        },
-                      ],
-                    }
+                      "integratorFee": {
+                        "feeAmount": "1000000000000000000",
+                        "feeToken": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
+                        "feeType": "volume",
+                      },
+                      "zeroExFee": {
+                        "feeAmount": "1000000000000000",
+                        "feeToken": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
+                        "feeType": "integrator_share",
+                      },
+                    },
+                    "price": "1800.054805",
+                    "sellAmount": "1000000000000000000000",
+                    "sellTokenAddress": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
+                    "sources": [
+                      {
+                        "name": "QuickSwap",
+                        "proportion": "0.2308",
+                      },
+                      {
+                        "name": "DODO_V2",
+                        "proportion": "0.07692",
+                      },
+                      {
+                        "name": "Uniswap_V3",
+                        "proportion": "0.6923",
+                      },
+                    ],
+                  }
                 `);
             });
 
@@ -731,12 +728,12 @@ describe('GaslessSwapService', () => {
                       "liquiditySource": "rfq",
                       "order": OtcOrder {
                         "chainId": 1337,
-                        "expiry": "10000000000000000",
-                        "expiryAndNonce": "62771017353866807638357894232076664161023554444640345128970000000000000000",
+                        "expiry": "9999999999999999",
+                        "expiryAndNonce": "62771017353866801361256158845395900325234131236973929026614555535965487103",
                         "maker": "0x2222222222222222222222222222222222222222",
                         "makerAmount": "0",
                         "makerToken": "0x3333333333333333333333333333333333333333",
-                        "nonce": "10000000000000000",
+                        "nonce": "9999999999999999",
                         "nonceBucket": "0",
                         "taker": "0x1111111111111111111111111111111111111111",
                         "takerAmount": "0",
@@ -744,7 +741,7 @@ describe('GaslessSwapService', () => {
                         "txOrigin": "0x0000000000000000000000000000000000000000",
                         "verifyingContract": "0x0000000000000000000000000000000000000000",
                       },
-                      "orderHash": "0x69b784087387d37e2361a40146420a5a68b08375238a5ba0329f612d5673b2ea",
+                      "orderHash": "0xec6ca6e8c744adf7c3e61f670ca6b5153efc8dc74efec40094ab98b49094e9f3",
                       "price": "1800.054805",
                       "sellAmount": "1000000000000000000000",
                       "sellTokenAddress": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
@@ -1817,7 +1814,7 @@ describe('GaslessSwapService', () => {
 
                 expect(result.metaTransactionHash).toEqual(metaTransactionV1.getHash());
                 expect(result.type).toEqual(GaslessTypes.MetaTransaction);
-                // tslint:disable-next-line: no-unbound-method
+
                 expect(mockSqsProducer.send).toHaveBeenCalledWith({
                     body: '{"id":"id","type":"metatransaction"}',
                     deduplicationId: 'id',
@@ -1850,7 +1847,6 @@ describe('GaslessSwapService', () => {
 
                 expect(result.tradeHash).toEqual(MOCK_META_TRANSACTION_TRADE.trade.getHash());
                 expect(result.type).toEqual(GaslessTypes.MetaTransactionV2);
-                // tslint:disable-next-line: no-unbound-method
                 expect(mockSqsProducer.send).toHaveBeenCalledWith({
                     body: '{"id":"id","type":"metatransaction"}',
                     deduplicationId: 'id',

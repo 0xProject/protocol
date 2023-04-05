@@ -75,7 +75,6 @@ export function getKafkaProducer(): KafkaProducer | undefined {
         });
 
         kafkaProducer = kafka.producer();
-        // tslint:disable-next-line: no-floating-promises
         kafkaProducer.connect();
     }
     return kafkaProducer;

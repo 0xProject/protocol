@@ -1,7 +1,3 @@
-// tslint:disable:custom-no-magic-numbers
-// tslint:disable:no-empty
-// tslint:disable:max-file-line-count
-
 import { TooManyRequestsError } from '@0x/api-utils';
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import {
@@ -268,7 +264,7 @@ describe('RfqmService HTTP Logic', () => {
             expect(service.submitTakerSignedOtcOrderAsync(params)).to.be.rejectedWith(
                 TooManyRequestsError,
                 'a pending trade for this taker and takertoken already exists',
-            ); // tslint:disable-line no-unused-expression
+            );
         });
 
         it('should allow two trades by the same taker with different taker tokens', async () => {
@@ -1220,7 +1216,7 @@ describe('RfqmService HTTP Logic', () => {
                     checkApproval: false,
                 });
 
-                expect(res).to.exist; // tslint:disable-line: no-unused-expression
+                expect(res).to.exist;
                 expect(res?.type).to.equal(GaslessTypes.OtcOrder);
 
                 expect(res?.sellAmount).to.equal(sellAmount);
@@ -1280,7 +1276,7 @@ describe('RfqmService HTTP Logic', () => {
                     checkApproval: false,
                 });
 
-                expect(res).to.exist; // tslint:disable-line: no-unused-expression
+                expect(res).to.exist;
                 expect(res?.type).to.equal(GaslessTypes.OtcOrder);
                 expect(res?.sellAmount).to.equal(sellAmount);
                 expect(res?.buyAmount.toNumber()).to.equal(101); // result is scaled
@@ -1401,7 +1397,7 @@ describe('RfqmService HTTP Logic', () => {
                     checkApproval: false,
                 });
 
-                expect(res).to.exist; // tslint:disable-line: no-unused-expression
+                expect(res).to.exist;
                 expect(res?.type).to.equal(GaslessTypes.OtcOrder);
 
                 expect(res?.sellAmount).to.equal(sellAmount);
@@ -1471,7 +1467,7 @@ describe('RfqmService HTTP Logic', () => {
                     checkApproval: true,
                 });
 
-                expect(res).to.exist; // tslint:disable-line: no-unused-expression
+                expect(res).to.exist;
                 expect(res?.type).to.equal(GaslessTypes.OtcOrder);
 
                 expect(res?.sellAmount).to.equal(sellAmount);
@@ -1559,7 +1555,7 @@ describe('RfqmService HTTP Logic', () => {
                         checkApproval: false,
                     });
 
-                    expect(res).to.exist; // tslint:disable-line: no-unused-expression
+                    expect(res).to.exist;
                     expect(res?.type).to.equal(GaslessTypes.OtcOrder);
 
                     expect(res?.sellAmount).to.equal(sellAmount);
@@ -1662,7 +1658,7 @@ describe('RfqmService HTTP Logic', () => {
                         checkApproval: false,
                     });
 
-                    expect(res).to.exist; // tslint:disable-line: no-unused-expression
+                    expect(res).to.exist;
                     expect(res?.type).to.equal(GaslessTypes.OtcOrder);
 
                     expect(res?.sellAmount).to.equal(sellAmount);
@@ -1804,7 +1800,7 @@ describe('RfqmService HTTP Logic', () => {
                         checkApproval: true,
                     });
 
-                    expect(res).to.exist; // tslint:disable-line: no-unused-expression
+                    expect(res).to.exist;
                     expect(res?.type).to.equal(GaslessTypes.OtcOrder);
 
                     expect(res?.sellAmount).to.equal(sellAmount);
@@ -1878,7 +1874,7 @@ describe('RfqmService HTTP Logic', () => {
                     checkApproval: false,
                 });
 
-                expect(res).to.exist; // tslint:disable-line: no-unused-expression
+                expect(res).to.exist;
                 expect(res?.type).to.equal(GaslessTypes.OtcOrder);
                 expect(res?.buyAmount.toNumber()).to.equal(buyAmount.toNumber());
                 expect(res?.price.toNumber()).to.equal(0.8);
@@ -1937,7 +1933,7 @@ describe('RfqmService HTTP Logic', () => {
                     checkApproval: false,
                 });
 
-                expect(res).to.exist; // tslint:disable-line: no-unused-expression
+                expect(res).to.exist;
                 expect(res?.type).to.equal(GaslessTypes.OtcOrder);
                 expect(res?.buyAmount.toNumber()).to.equal(buyAmount.toNumber());
                 expect(res?.sellAmount.toNumber()).to.equal(80); // result is scaled
@@ -2019,7 +2015,7 @@ describe('RfqmService HTTP Logic', () => {
                         checkApproval: false,
                     });
 
-                    expect(res).to.exist; // tslint:disable-line: no-unused-expression
+                    expect(res).to.exist;
                     expect(res?.type).to.equal(GaslessTypes.OtcOrder);
                     expect(res?.buyAmount.toNumber()).to.equal(buyAmount.toNumber());
                     expect(res?.price.toNumber()).to.equal(0.8);
@@ -2141,7 +2137,7 @@ describe('RfqmService HTTP Logic', () => {
                     expect.fail('Status should be failed');
                     throw new Error();
                 }
-                expect(jobStatus.transactions).to.have.length(0); // tslint:disable-line no-unused-expression
+                expect(jobStatus.transactions).to.have.length(0);
             });
 
             it('should return pending for unexpired enqueued jobs', async () => {

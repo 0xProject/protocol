@@ -3,7 +3,6 @@ import type { Config } from '@jest/types';
 /**
  * Configure the jest testing framework
  */
-// tslint:disable-next-line: no-default-export
 export default async (): Promise<Config.InitialOptions> => {
     return {
         cacheDirectory: './.jestCache',

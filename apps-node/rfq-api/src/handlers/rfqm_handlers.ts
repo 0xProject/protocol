@@ -1,4 +1,3 @@
-// tslint:disable:max-file-line-count
 import { InvalidAPIKeyError, ValidationError, ValidationErrorCodes } from '@0x/api-utils';
 import { OtcOrder } from '@0x/protocol-utils';
 import { getTokenMetadataIfExists, isNativeSymbolOrAddress, nativeWrappedTokenSymbol } from '@0x/token-metadata';

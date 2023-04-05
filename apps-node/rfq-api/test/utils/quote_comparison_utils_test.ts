@@ -1,6 +1,3 @@
-// tslint:disable:custom-no-magic-numbers
-// tslint:disable:no-empty
-// tslint:disable:max-file-line-count
 import { OtcOrder, SignatureType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
@@ -8,9 +5,7 @@ import { DEFAULT_MIN_EXPIRY_DURATION_MS, ONE_SECOND_MS, ZERO } from '../../src/c
 import { FirmOtcQuote, IndicativeQuote } from '../../src/core/types';
 import { getBestQuote } from '../../src/utils/quote_comparison_utils';
 
-// $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-// eslint-disable-next-line @typescript-eslint/no-loss-of-precision
-const NEVER_EXPIRES = new BigNumber(9999999999999999);
+const NEVER_EXPIRES = new BigNumber(999999999999999);
 
 function createBaseQuote(): FirmOtcQuote {
     return {

@@ -1,4 +1,3 @@
-// tslint:disable: custom-no-magic-numbers
 import Axios, { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import * as HttpStatus from 'http-status-codes';

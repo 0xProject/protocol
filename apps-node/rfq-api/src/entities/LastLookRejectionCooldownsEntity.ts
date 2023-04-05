@@ -29,7 +29,6 @@ export class LastLookRejectionCooldownEntity {
     @Column({ name: 'order_hash', type: 'varchar' })
     public orderHash: string;
 
-    // tslint:disable-next-line: no-object-literal-type-assertion
     constructor(opts: LastLookRejectionCooldownOpts = {} as LastLookRejectionCooldownOpts) {
         this.makerId = opts.makerId;
         this.chainId = opts.chainId;

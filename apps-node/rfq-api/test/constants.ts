@@ -24,7 +24,7 @@ export const CHAIN_ID = 1337;
 export const RPC_URL = 'http://localhost:12000';
 export const POSTGRES_PORT = 12001;
 export const REDIS_PORT = 12002;
-// tslint:disable-next-line:custom-no-magic-numbers
+
 export const MAX_INT = new BigNumber(2).pow(256).minus(1);
 export const MAX_MINT_AMOUNT = new BigNumber('10000000000000000000000');
 export const CONTRACT_ADDRESSES: ContractAddresses = getContractAddressesForChainOrThrow(CHAIN_ID);

@@ -15,7 +15,7 @@ import { QuoteContext } from '../services/types';
 const RFQ_AMM_QUOTE_FETCH_REQUEST_DURATION_SECONDS = new Summary({
     name: 'rfq_amm_quote_fetch_request_duration_seconds',
     help: 'Histogram of request duration of AMM Quote fetch request',
-    percentiles: [0.5, 0.9, 0.95, 0.99, 0.999], // tslint:disable-line: custom-no-magic-numbers
+    percentiles: [0.5, 0.9, 0.95, 0.99, 0.999],
     labelNames: ['chainId', 'success', 'errorType'],
     // Set sliding window to 1 minutes
     maxAgeSeconds: 60,

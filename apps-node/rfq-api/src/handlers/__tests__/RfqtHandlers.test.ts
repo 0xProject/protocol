@@ -1,4 +1,3 @@
-// tslint:disable: max-file-line-count
 import { ContractAddresses } from '@0x/contract-addresses';
 import { OtcOrder } from '@0x/protocol-utils';
 import { SignatureType } from '@0x/protocol-utils/lib/src/signature_utils';
@@ -51,7 +50,6 @@ jest.mock('../../utils/config_manager', () => {
     };
 });
 
-// tslint:disable: no-object-literal-type-assertion
 const mockRfqtService = jest.mocked(
     new RfqtService(
         0,
@@ -75,9 +73,7 @@ mockRfqtService.feeModelVersion = 1;
 mockRfqtService.getTokenDecimalsAsync = jest.fn().mockResolvedValue(18);
 
 const mockConfigManager = jest.mocked(new ConfigManager());
-// tslint:enable: no-object-literal-type-assertion
 
-// tslint:disable-next-line: custom-no-magic-numbers
 const rfqtHandlers = new RfqtHandlers(new Map([[1337, mockRfqtService]]), mockConfigManager);
 
 /**
@@ -186,7 +182,6 @@ describe('RfqtHandlers', () => {
                 const integrator: Integrator = {
                     apiKeys: [],
                     integratorId: 'uuid-integrator-id',
-                    // tslint:disable-next-line: custom-no-magic-numbers
                     allowedChainIds: [1337],
                     label: 'Polygon Swap Machine',
                     rfqm: false,
@@ -227,7 +222,6 @@ describe('RfqtHandlers', () => {
                 const integrator: Integrator = {
                     apiKeys: [],
                     integratorId: 'uuid-integrator-id',
-                    // tslint:disable-next-line: custom-no-magic-numbers
                     allowedChainIds: [1337],
                     label: 'Polygon Swap Machine',
                     rfqm: false,
@@ -265,7 +259,6 @@ describe('RfqtHandlers', () => {
                 const integrator: Integrator = {
                     apiKeys: [],
                     integratorId: 'uuid-integrator-id',
-                    // tslint:disable-next-line: custom-no-magic-numbers
                     allowedChainIds: [1337],
                     label: 'Polygon Swap Machine',
                     rfqm: false,
@@ -337,7 +330,6 @@ describe('RfqtHandlers', () => {
                 const integrator: Integrator = {
                     apiKeys: [],
                     integratorId: 'uuid-integrator-id',
-                    // tslint:disable-next-line: custom-no-magic-numbers
                     allowedChainIds: [1337],
                     label: 'Polygon Swap Machine',
                     rfqm: false,
@@ -378,7 +370,6 @@ describe('RfqtHandlers', () => {
                 const integrator: Integrator = {
                     apiKeys: [],
                     integratorId: 'uuid-integrator-id',
-                    // tslint:disable-next-line: custom-no-magic-numbers
                     allowedChainIds: [1337],
                     label: 'Polygon Swap Machine',
                     rfqm: false,
@@ -416,7 +407,6 @@ describe('RfqtHandlers', () => {
                 const integrator: Integrator = {
                     apiKeys: [],
                     integratorId: 'uuid-integrator-id',
-                    // tslint:disable-next-line: custom-no-magic-numbers
                     allowedChainIds: [1337],
                     label: 'Polygon Swap Machine',
                     rfqm: false,
@@ -503,7 +493,6 @@ describe('RfqtHandlers', () => {
                 const integrator: Integrator = {
                     apiKeys: [],
                     integratorId: 'uuid-integrator-id',
-                    // tslint:disable-next-line: custom-no-magic-numbers
                     allowedChainIds: [1337],
                     label: 'Polygon Swap Machine',
                     rfqm: false,
@@ -695,7 +684,6 @@ describe('RfqtHandlers', () => {
                 const integrator: Integrator = {
                     apiKeys: [],
                     integratorId: 'uuid-integrator-id',
-                    // tslint:disable-next-line: custom-no-magic-numbers
                     allowedChainIds: [1337],
                     label: 'Polygon Swap Machine',
                     rfqm: false,
@@ -735,7 +723,6 @@ describe('RfqtHandlers', () => {
                 const integrator: Integrator = {
                     apiKeys: [],
                     integratorId: 'uuid-integrator-id',
-                    // tslint:disable-next-line: custom-no-magic-numbers
                     allowedChainIds: [1337],
                     label: 'Polygon Swap Machine',
                     rfqm: false,
@@ -771,7 +758,6 @@ describe('RfqtHandlers', () => {
                 const integrator: Integrator = {
                     apiKeys: [],
                     integratorId: 'uuid-integrator-id',
-                    // tslint:disable-next-line: custom-no-magic-numbers
                     allowedChainIds: [1337],
                     label: 'Polygon Swap Machine',
                     rfqm: false,
@@ -855,7 +841,6 @@ describe('RfqtHandlers', () => {
                 const integrator: Integrator = {
                     apiKeys: [],
                     integratorId: 'uuid-integrator-id',
-                    // tslint:disable-next-line: custom-no-magic-numbers
                     allowedChainIds: [1337],
                     label: 'Polygon Swap Machine',
                     rfqm: false,
@@ -895,7 +880,6 @@ describe('RfqtHandlers', () => {
                 const integrator: Integrator = {
                     apiKeys: [],
                     integratorId: 'uuid-integrator-id',
-                    // tslint:disable-next-line: custom-no-magic-numbers
                     allowedChainIds: [1337],
                     label: 'Polygon Swap Machine',
                     rfqm: false,
@@ -932,7 +916,6 @@ describe('RfqtHandlers', () => {
                 const integrator: Integrator = {
                     apiKeys: [],
                     integratorId: 'uuid-integrator-id',
-                    // tslint:disable-next-line: custom-no-magic-numbers
                     allowedChainIds: [1337],
                     label: 'Polygon Swap Machine',
                     rfqm: false,
@@ -1031,7 +1014,6 @@ describe('RfqtHandlers', () => {
                 const integrator: Integrator = {
                     apiKeys: [],
                     integratorId: 'uuid-integrator-id',
-                    // tslint:disable-next-line: custom-no-magic-numbers
                     allowedChainIds: [1337],
                     label: 'Polygon Swap Machine',
                     rfqm: false,

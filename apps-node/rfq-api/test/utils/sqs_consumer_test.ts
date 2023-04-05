@@ -1,7 +1,3 @@
-// tslint:disable:custom-no-magic-numbers
-// tslint:disable:no-empty
-// tslint:disable:max-file-line-count
-
 import { expect } from 'chai';
 import { anyString, anything, instance, mock, verify, when } from 'ts-mockito';
 

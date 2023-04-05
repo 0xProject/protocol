@@ -1,4 +1,3 @@
-// tslint:disable:max-file-line-count
 import { TooManyRequestsError } from '@0x/api-utils';
 import { OtcOrder, ZERO } from '@0x/protocol-utils';
 import {
@@ -730,7 +729,6 @@ export class RfqmService {
             submissions: RfqmV2TransactionSubmissionEntity[] | MetaTransactionSubmissionEntity[],
         ) => {
             // `_transformTransactionSubmission` is a static method so no-unbound-method does not apply here
-            // tslint:disable-next-line:no-unbound-method
             return submissions.map(RfqmService._transformTransactionSubmission).flatMap((s) => (s ? s : []));
         };
 
@@ -1420,7 +1418,6 @@ export class RfqmService {
      *  only used for logging in case of validation error
      * @returns The Approval object
      */
-    // tslint:disable-next-line: prefer-function-over-method
     private _convertEIP712ContextToApproval<T extends ExecuteMetaTransactionEip712Context | PermitEip712Context>(
         eip712: T,
         tradeHash: string,

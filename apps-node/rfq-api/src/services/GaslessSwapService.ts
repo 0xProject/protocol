@@ -1,4 +1,3 @@
-// tslint:disable:max-file-line-count
 import { InternalServerError, TooManyRequestsError, ValidationError, ValidationErrorCodes } from '@0x/api-utils';
 import { ITransformERC20Contract } from '@0x/contract-wrappers';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
@@ -62,7 +61,7 @@ import { MetaTransaction } from '@0x/protocol-utils';
  * The length of time the quote metatransaction hash
  * is stored in Redis.
  */
-const META_TRANSACTION_HASH_TTL_S = 15 * ONE_MINUTE_S; // tslint:disable-line binary-expression-operand-order custom-no-magic-numbers
+const META_TRANSACTION_HASH_TTL_S = 15 * ONE_MINUTE_S;
 
 enum GaslessSwapServiceErrorReason {
     MetaTransactionAboutToExpire = 'meta_transaction_about_to_expire', // meta-transaction is about to expire
@@ -114,7 +113,7 @@ function decodeTransformErc20Calldata(calldata: string): {
 const ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS = new Summary({
     name: 'zerog_meta_transaction_quote_request_duration_seconds',
     help: 'Histogram of request duration of gasless swap',
-    // tslint:disable-next-line: custom-no-magic-numbers
+
     percentiles: [0.5, 0.9, 0.95, 0.99, 0.999],
     labelNames: ['chainId', 'success'],
     maxAgeSeconds: 60,

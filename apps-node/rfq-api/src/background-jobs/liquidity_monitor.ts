@@ -58,7 +58,6 @@ const backgroundJobLiquidityMonitor: BackgroundJobBlueprint<
     createAsync,
     processAsync,
 };
-// tslint:disable-next-line: no-default-export
 export default backgroundJobLiquidityMonitor;
 
 /**
@@ -399,13 +398,12 @@ async function processAsync(
                     Status.Fail,
                 );
             } finally {
-                progress += 100 / totalCheckCount; // tslint:disable-line: custom-no-magic-numbers
+                progress += 100 / totalCheckCount;
                 await job.updateProgress(progress);
             }
         }
     }
 
-    // tslint:disable-next-line: custom-no-magic-numbers
     await job.updateProgress(100);
     return {
         jobName: job.name,

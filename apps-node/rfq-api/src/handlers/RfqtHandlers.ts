@@ -1,4 +1,3 @@
-// tslint:disable:max-file-line-count
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import * as express from 'express';

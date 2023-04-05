@@ -1,4 +1,3 @@
-// tslint:disable: max-classes-per-file
 import * as Sentry from '@sentry/node';
 import { Transaction as SentryTransaction } from '@sentry/types';
 import { SQS } from 'aws-sdk';

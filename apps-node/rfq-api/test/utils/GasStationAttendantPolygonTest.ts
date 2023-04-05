@@ -25,7 +25,6 @@ describe('GasStationAttendantPolygon', () => {
             // Total = 1331 * 110,000 = 146,410,000 GWEI
 
             expect(workerGasToTrade.toPrecision(2).toString()).toEqual(
-                // tslint:disable-next-line: custom-no-magic-numbers
                 new BigNumber(146_410_000).times(Math.pow(10, GWEI_DECIMALS)).toPrecision(2).toString(),
             );
         });
@@ -49,7 +48,6 @@ describe('GasStationAttendantPolygon', () => {
 
             // 666 * 1.1^1.5 = 768.35736217 GWEI
             expect(gasRate.toString()).toEqual(
-                // tslint:disable-next-line: custom-no-magic-numbers
                 new BigNumber(768.35736217)
                     .times(Math.pow(10, GWEI_DECIMALS))
                     .integerValue(BigNumber.ROUND_CEIL)

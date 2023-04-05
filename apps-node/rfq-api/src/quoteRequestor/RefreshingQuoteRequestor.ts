@@ -12,7 +12,6 @@ import type { RfqRequestOpts } from './QuoteRequestor';
 import { MetricsProxy, QuoteRequestor, V4RFQIndicativeQuoteMM } from './QuoteRequestor';
 
 // This number should not be greater than 90s. Otherwise, the RFQt quotes from Jump and WM are likely to be filtered out
-// tslint:disable-next-line: custom-no-magic-numbers
 const DEFAULT_EXPIRY_BUFFER_MS = ONE_SECOND_MS * 80;
 
 /**

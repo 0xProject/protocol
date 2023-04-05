@@ -1,4 +1,3 @@
-// tslint:disable: custom-no-magic-numbers
 import { EIP_712_REGISTRY } from '../../src/eip712registry';
 import { extractEIP712DomainType, getSortedEip712Domain, getZeroExEip712Domain } from '../../src/utils/Eip712Utils';
 

@@ -1,4 +1,3 @@
-// tslint:disable: prefer-function-over-method
 import { createHash } from 'crypto';
 
 import {

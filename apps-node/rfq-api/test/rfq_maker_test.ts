@@ -1,7 +1,3 @@
-// tslint:disable:custom-no-magic-numbers
-// tslint:disable:no-empty
-// tslint:disable:max-file-line-count
-
 import { Server } from 'http';
 import * as HttpStatus from 'http-status-codes';
 import * as request from 'supertest';

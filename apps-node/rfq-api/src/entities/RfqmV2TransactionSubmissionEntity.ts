@@ -65,7 +65,6 @@ export class RfqmV2TransactionSubmissionEntity {
     public type: RfqmTransactionSubmissionType;
 
     constructor(
-        // tslint:disable-next-line no-object-literal-type-assertion
         opts: RfqmV2TransactionSubmissionEntityConstructorOpts = {} as RfqmV2TransactionSubmissionEntityConstructorOpts,
     ) {
         this.kind = 'rfqm_v2_transaction_submission';

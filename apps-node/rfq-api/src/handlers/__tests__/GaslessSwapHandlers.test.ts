@@ -1,4 +1,3 @@
-// tslint:disable: max-file-line-count
 import { ValidationErrorCodes } from '@0x/api-utils';
 import { ethSignHashWithKey, MetaTransaction, OtcOrder } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
@@ -39,7 +38,6 @@ jest.mock('../../services/GaslessSwapService', () => {
                 fetchPriceAsync: jest.fn(),
                 fetchQuoteAsync: jest.fn(),
                 processSubmitAsync: jest.fn(),
-                // tslint:disable-next-line: custom-no-magic-numbers
                 getTokenDecimalsAsync: jest.fn().mockResolvedValue(18),
             };
         }),
@@ -58,7 +56,7 @@ jest.mock('../../utils/config_manager', () => {
                     }
                     const integrator: Integrator = {
                         apiKeys: ['integrator-api-key'],
-                        allowedChainIds: [420, 1337], // tslint:disable-line: custom-no-magic-numbers
+                        allowedChainIds: [420, 1337],
                         integratorId: 'integrator-id',
                         label: 'test integrator',
                         rfqm: true,
@@ -70,7 +68,6 @@ jest.mock('../../utils/config_manager', () => {
     };
 });
 
-// tslint:disable: no-object-literal-type-assertion
 const mockGaslessSwapService = jest.mocked(
     new GaslessSwapService(
         0,
@@ -84,7 +81,6 @@ const mockGaslessSwapService = jest.mocked(
     ),
 );
 const mockConfigManager = jest.mocked(new ConfigManager());
-// tslint:enable: no-object-literal-type-assertion
 
 const testChainId = 1337;
 
@@ -128,7 +124,7 @@ describe('GaslessSwapHandlers', () => {
                 .get(`${ZERO_G_ALIAS_PATH}/price`)
                 .set('Content-type', 'application/json')
                 .set('0x-api-key', 'integrator-api-key')
-                .set('0x-chain-id', '420') // tslint:disable-line: custom-no-magic-numbers
+                .set('0x-chain-id', '420')
                 .query({
                     buyToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
                     sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
@@ -148,7 +144,7 @@ describe('GaslessSwapHandlers', () => {
                     .get(`${ZERO_G_ALIAS_PATH}/price`)
                     .set('Content-type', 'application/json')
                     .set('0x-api-key', 'integrator-api-key')
-                    .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
+                    .set('0x-chain-id', '1337')
                     .query({
                         buyToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
                         sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
@@ -166,7 +162,7 @@ describe('GaslessSwapHandlers', () => {
                     .get(`${ZERO_G_ALIAS_PATH}/quote`)
                     .set('Content-type', 'application/json')
                     .set('0x-api-key', 'integrator-api-key')
-                    .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
+                    .set('0x-chain-id', '1337')
                     .query({
                         buyToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
                         sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
@@ -184,7 +180,7 @@ describe('GaslessSwapHandlers', () => {
                     .get(`${ZERO_G_ALIAS_PATH}/quote`)
                     .set('Content-type', 'application/json')
                     .set('0x-api-key', 'integrator-api-key')
-                    .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
+                    .set('0x-chain-id', '1337')
                     .query({
                         buyToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
                         sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
@@ -204,7 +200,7 @@ describe('GaslessSwapHandlers', () => {
                     .get(`${TX_RELAY_V1_PATH}/price`)
                     .set('Content-type', 'application/json')
                     .set('0x-api-key', 'integrator-api-key')
-                    .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
+                    .set('0x-chain-id', '1337')
                     .query({
                         buyToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
                         sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
@@ -222,7 +218,7 @@ describe('GaslessSwapHandlers', () => {
                     .get(`${TX_RELAY_V1_PATH}/quote`)
                     .set('Content-type', 'application/json')
                     .set('0x-api-key', 'integrator-api-key')
-                    .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
+                    .set('0x-chain-id', '1337')
                     .query({
                         buyToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
                         sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
@@ -240,7 +236,7 @@ describe('GaslessSwapHandlers', () => {
                     .get(`${TX_RELAY_V1_PATH}/quote`)
                     .set('Content-type', 'application/json')
                     .set('0x-api-key', 'integrator-api-key')
-                    .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
+                    .set('0x-chain-id', '1337')
                     .query({
                         buyToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
                         sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
@@ -258,7 +254,7 @@ describe('GaslessSwapHandlers', () => {
                     .get(`${TX_RELAY_V1_PATH}/price`)
                     .set('Content-type', 'application/json')
                     .set('0x-api-key', 'integrator-api-key')
-                    .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
+                    .set('0x-chain-id', '1337')
                     .query({
                         buyToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
                         sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
@@ -276,7 +272,7 @@ describe('GaslessSwapHandlers', () => {
                     .get(`${TX_RELAY_V1_PATH}/quote`)
                     .set('Content-type', 'application/json')
                     .set('0x-api-key', 'integrator-api-key')
-                    .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
+                    .set('0x-chain-id', '1337')
                     .query({
                         buyToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
                         sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
@@ -294,7 +290,7 @@ describe('GaslessSwapHandlers', () => {
                     .get(`${TX_RELAY_V1_PATH}/quote`)
                     .set('Content-type', 'application/json')
                     .set('0x-api-key', 'integrator-api-key')
-                    .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
+                    .set('0x-chain-id', '1337')
                     .query({
                         buyToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
                         sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
@@ -312,7 +308,7 @@ describe('GaslessSwapHandlers', () => {
                     .get(`${TX_RELAY_V1_PATH}/price`)
                     .set('Content-type', 'application/json')
                     .set('0x-api-key', 'integrator-api-key')
-                    .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
+                    .set('0x-chain-id', '1337')
                     .query({
                         buyToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
                         sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
@@ -330,7 +326,7 @@ describe('GaslessSwapHandlers', () => {
                     .get(`${TX_RELAY_V1_PATH}/quote`)
                     .set('Content-type', 'application/json')
                     .set('0x-api-key', 'integrator-api-key')
-                    .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
+                    .set('0x-chain-id', '1337')
                     .query({
                         buyToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
                         sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
@@ -348,7 +344,7 @@ describe('GaslessSwapHandlers', () => {
                     .get(`${TX_RELAY_V1_PATH}/quote`)
                     .set('Content-type', 'application/json')
                     .set('0x-api-key', 'integrator-api-key')
-                    .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
+                    .set('0x-chain-id', '1337')
                     .query({
                         buyToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
                         sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
@@ -369,7 +365,7 @@ describe('GaslessSwapHandlers', () => {
                     .get(`${TX_RELAY_V1_PATH}/quote`)
                     .set('Content-type', 'application/json')
                     .set('0x-api-key', 'integrator-api-key')
-                    .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
+                    .set('0x-chain-id', '1337')
                     .query({
                         buyToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
                         sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
@@ -389,7 +385,7 @@ describe('GaslessSwapHandlers', () => {
                     .get(`${TX_RELAY_V1_PATH}/quote`)
                     .set('Content-type', 'application/json')
                     .set('0x-api-key', 'integrator-api-key')
-                    .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
+                    .set('0x-chain-id', '1337')
                     .query({
                         buyToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
                         sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
@@ -410,7 +406,7 @@ describe('GaslessSwapHandlers', () => {
                     .get(`${TX_RELAY_V1_PATH}/price`)
                     .set('Content-type', 'application/json')
                     .set('0x-api-key', 'integrator-api-key')
-                    .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
+                    .set('0x-chain-id', '1337')
                     .query({
                         buyToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
                         sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
@@ -431,7 +427,7 @@ describe('GaslessSwapHandlers', () => {
                     .get(`${TX_RELAY_V1_PATH}/quote`)
                     .set('Content-type', 'application/json')
                     .set('0x-api-key', 'integrator-api-key')
-                    .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
+                    .set('0x-chain-id', '1337')
                     .query({
                         buyToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
                         sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',

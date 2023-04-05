@@ -1,7 +1,3 @@
-// tslint:disable:custom-no-magic-numbers
-// tslint:disable:no-empty
-// tslint:disable:max-file-line-count
-
 import { pino } from '@0x/api-utils';
 import { OtcOrder, SignatureType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';

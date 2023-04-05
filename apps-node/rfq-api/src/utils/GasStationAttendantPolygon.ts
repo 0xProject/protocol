@@ -35,7 +35,6 @@ export class GasStationAttendantPolygon implements GasStationAttendant {
      * The Safe Balance For Trade is from the p95 data shown here:
      * https://0xproject.slack.com/archives/CQG0ZGBFS/p1649708977452469
      */
-    // tslint:disable-next-line: prefer-function-over-method
     public async getSafeBalanceForTradeAsync(): Promise<Wei> {
         const p95PriorityFeeGwei = 261;
         // Base fee is essentially zero
@@ -63,7 +62,7 @@ export class GasStationAttendantPolygon implements GasStationAttendant {
         const maxPriorityFeePerGas = gasPriceEstimateWei;
 
         // Pad the tip for 3 10% increases
-        const maxPriorityFeePad = Math.pow(TEN_PERCENT_INCREASE, 3); // tslint:disable-line: custom-no-magic-numbers
+        const maxPriorityFeePad = Math.pow(TEN_PERCENT_INCREASE, 3);
         const paddedMaxPriorityFeePerGas = maxPriorityFeePerGas.times(maxPriorityFeePad);
         const gasRateWei = BigNumber.max(paddedMaxPriorityFeePerGas.plus(0), MINIMUM_BID_WEI); // Amortizing the base fee to 0
 
@@ -89,7 +88,7 @@ export class GasStationAttendantPolygon implements GasStationAttendant {
         const maxPriorityFeePerGas = gasPriceEstimateWei;
 
         // Pad the tip for 1.5 10% increases
-        const baseFeePad = Math.pow(TEN_PERCENT_INCREASE, 1.5); // tslint:disable-line: custom-no-magic-numbers
+        const baseFeePad = Math.pow(TEN_PERCENT_INCREASE, 1.5);
         const paddedMaxPriorityFeePerGas = maxPriorityFeePerGas.times(baseFeePad);
         const gasRateWei = paddedMaxPriorityFeePerGas.plus(0); // Amortizing the base fee to 0
 

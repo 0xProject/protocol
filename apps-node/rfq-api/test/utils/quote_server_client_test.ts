@@ -1,7 +1,3 @@
-// tslint:disable:custom-no-magic-numbers
-// tslint:disable:no-empty
-// tslint:disable:max-file-line-count
-
 import { ethSignHashWithKey, OtcOrder } from '@0x/protocol-utils';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import Axios from 'axios';

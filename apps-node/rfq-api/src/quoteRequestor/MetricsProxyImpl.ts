@@ -17,7 +17,6 @@ const EXPIRATION_FOR_VALID_ORDER_SECONDS = new Histogram({
     labelNames: ['maker', 'isLastLook'],
     // Buckets go from 30 seconds all the way to 5 minutes
 
-    // tslint:disable-next-line: custom-no-magic-numbers
     buckets: [0, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180, 195, 210, 225, 240, 255, 270, 285, 300],
 });
 

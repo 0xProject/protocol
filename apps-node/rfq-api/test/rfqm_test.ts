@@ -427,7 +427,7 @@ describe('RFQM Integration', () => {
                 .set('0x-chain-id', '3')
                 .expect(HttpStatus.OK)
                 .expect('Content-Type', /json/);
-            // tslint:disable-next-line: no-unused-expression
+
             expect(chainId3HealthzResponse.body.pairs).to.be.an('array').that.is.empty;
 
             const chainId1337HealthzResponse = await request(app)

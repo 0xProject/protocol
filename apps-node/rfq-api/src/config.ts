@@ -1,4 +1,3 @@
-// tslint:disable:custom-no-magic-numbers max-file-line-count
 import { HttpServiceConfig } from '@0x/api-utils';
 import { assert } from '@0x/assert';
 import { ChainId } from '@0x/contract-addresses';
@@ -24,8 +23,6 @@ import { schemas } from './core/schemas';
 import { FeeModelVersion } from './core/types';
 import { toPairString } from './core/pair_utils';
 import { schemaUtils } from './core/schema_utils';
-
-// tslint:disable:no-bitwise
 
 enum EnvVarType {
     AddressList,
@@ -685,7 +682,6 @@ export const RFQM_WORKER_GROUP_SIZE: number | undefined = _.isEmpty(process.env.
 
 // If set to TRUE, system health will change to MAINTENANCE and integrators will be told to not
 // send RFQM orders.
-// tslint:disable-next-line boolean-naming
 export const RFQM_MAINTENANCE_MODE: boolean = _.isEmpty(process.env.RFQM_MAINTENANCE_MODE)
     ? false
     : assertEnvVarType('RFQM_MAINTENANCE_MODE', process.env.RFQM_MAINTENANCE_MODE, EnvVarType.Boolean);
@@ -708,7 +704,6 @@ export const META_TXN_RELAY_EXPECTED_MINED_SEC: number = _.isEmpty(process.env.M
       );
 
 // Whether or not prometheus metrics should be enabled.
-// tslint:disable-next-line:boolean-naming
 export const ENABLE_PROMETHEUS_METRICS: boolean = _.isEmpty(process.env.ENABLE_PROMETHEUS_METRICS)
     ? false
     : assertEnvVarType('ENABLE_PROMETHEUS_METRICS', process.env.ENABLE_PROMETHEUS_METRICS, EnvVarType.Boolean);
@@ -730,7 +725,6 @@ export const RFQ_PROXY_PORT: number | undefined = _.isEmpty(process.env.RFQ_PROX
     ? undefined
     : assertEnvVarType('RFQ_PROXY_PORT', process.env.RFQ_PROXY_PORT, EnvVarType.Port);
 
-// tslint:disable-next-line boolean-naming
 export const ENABLE_LLR_COOLDOWN: boolean = _.isEmpty(process.env.ENABLE_LLR_COOLDOWN)
     ? false
     : assertEnvVarType('ENABLE_LLR_COOLDOWN', process.env.ENABLE_LLR_COOLDOWN, EnvVarType.Boolean);

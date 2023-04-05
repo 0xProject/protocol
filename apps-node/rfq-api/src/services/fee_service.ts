@@ -1,4 +1,3 @@
-// tslint:disable:max-file-line-count
 import { TokenMetadata } from '@0x/token-metadata';
 import { BigNumber } from '@0x/utils';
 

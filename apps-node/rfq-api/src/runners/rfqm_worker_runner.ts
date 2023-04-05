@@ -152,7 +152,7 @@ if (require.main === module) {
 
         // Wait for pulling loops
         await Promise.all(consumeLoops);
-    })(); // tslint:disable-line no-floating-promises
+    })();
 }
 
 /**
