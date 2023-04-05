@@ -1,7 +1,7 @@
 import { createTRPCProxyClient, httpLink } from '@trpc/client';
 import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
 import type { TZippoRouter } from 'zippo-interface';
-import { env } from '../env';
+import { env } from '../env.server';
 
 const makeClient = () =>
     createTRPCProxyClient<TZippoRouter>({

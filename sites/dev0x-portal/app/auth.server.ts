@@ -4,7 +4,7 @@ import { Authenticator, AuthorizationError } from 'remix-auth';
 import { FormStrategy } from 'remix-auth-form';
 import { GoogleStrategy } from 'remix-auth-socials';
 import { doesSessionExist, loginWithEmailAndPassword } from './data/zippo.server';
-import { env } from './env';
+import { env } from './env.server';
 import { UserDoesNotExistException } from './exceptions/authExeptions';
 import { zxcvbn, zxcvbnOptions } from '@zxcvbn-ts/core';
 import zxcvbnCommonPackage from '@zxcvbn-ts/language-common';

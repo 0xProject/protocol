@@ -2,10 +2,19 @@ import { RemixBrowser, useLocation, useMatches } from '@remix-run/react';
 import { startTransition, StrictMode, useEffect } from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import * as Sentry from '@sentry/remix';
-import { env } from './env';
+
+declare global {
+    interface Window {
+        ENV: {
+            SENTRY_DSN: string;
+            SENTRY_ENV: string;
+        };
+    }
+}
 
 Sentry.init({
-    dsn: env.SENTRY_DSN,
+    dsn: window.ENV.SENTRY_DSN,
+    environment: window.ENV.SENTRY_ENV,
     tracesSampleRate: 1,
     integrations: [
         new Sentry.BrowserTracing({

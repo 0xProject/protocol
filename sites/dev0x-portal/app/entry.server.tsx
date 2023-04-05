@@ -1,15 +1,17 @@
-import { PassThrough } from 'stream';
-import type { EntryContext } from '@remix-run/node';
 import { Response } from '@remix-run/node';
 import { RemixServer } from '@remix-run/react';
+import * as Sentry from '@sentry/remix';
 import isbot from 'isbot';
 import { renderToPipeableStream, renderToString } from 'react-dom/server';
-import * as Sentry from '@sentry/remix';
+import { PassThrough } from 'stream';
+import { env, sentryEnvironment } from './env.server';
 import { Head } from './root';
-import { env } from './env';
+
+import type { EntryContext } from '@remix-run/node';
 
 Sentry.init({
-    dsn: env.SENTRY_DSN,
+    dsn: env.VERCEL_ENV === 'production' ? env.SENTRY_DSN : undefined,
+    environment: sentryEnvironment,
     tracesSampleRate: 1,
 });
 

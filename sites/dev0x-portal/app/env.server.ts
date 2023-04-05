@@ -9,6 +9,8 @@ const envSchema = z
         BASE_URL: z.string().url().optional(),
         SENTRY_DSN: z.string().url().optional(),
         VERCEL_URL: z.string().optional(),
+        VERCEL_ENV: z.enum(['development', 'preview', 'production']).default('development'),
+        VERCEL_GIT_COMMIT_REF: z.string().optional(),
     })
     .refine(
         (data) => {
@@ -19,9 +21,14 @@ const envSchema = z
         },
     );
 
+
 const parsed = envSchema.safeParse(process.env);
 if (!parsed.success) {
     console.error('❌ Invalid environment variables:', JSON.stringify(parsed.error.format(), null, 4));
     process.exit(1);
 }
 export const env = parsed.data;
+
+export const isProduction = env.NODE_ENV === 'production' && env.VERCEL_GIT_COMMIT_REF === 'portal-releases';
+export const isStaging = env.NODE_ENV === 'production' && env.VERCEL_GIT_COMMIT_REF === 'main';
+export const sentryEnvironment = isProduction ? 'production' : isStaging ? 'staging' : 'development';
