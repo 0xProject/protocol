@@ -34,7 +34,12 @@ describe('kong gateway integration', () => {
         );
 
         // should create zeroex headers
-        await expect(kongEnsureZeroexHeaders('app1', 'integrator1')).resolves.not.toBeNull();
+        await expect(
+            kongEnsureZeroexHeaders('app1', {
+                team_id: 'team1',
+                app_id: 'app1',
+            }),
+        ).resolves.not.toBeNull();
 
         // should be able to get the new consumer
         await expect(kongGetConsumer('app1')).resolves.toEqual(
@@ -53,8 +58,18 @@ describe('kong gateway integration', () => {
         await expect(kongEnsureConsumer('app1')).resolves.not.toBeNull();
 
         // should ensure zeroex headers idempotency
-        await expect(kongEnsureZeroexHeaders('app1', 'integrator1')).resolves.not.toBeNull();
-        await expect(kongEnsureZeroexHeaders('app1', 'integrator1')).resolves.not.toBeNull();
+        await expect(
+            kongEnsureZeroexHeaders('app1', {
+                team_id: 'team1',
+                app_id: 'app1',
+            }),
+        ).resolves.not.toBeNull();
+        await expect(
+            kongEnsureZeroexHeaders('app1', {
+                team_id: 'team1',
+                app_id: 'app1',
+            }),
+        ).resolves.not.toBeNull();
 
         // should be able to get the new consumer
         await expect(kongGetConsumer('app1')).resolves.toEqual(
@@ -67,7 +82,12 @@ describe('kong gateway integration', () => {
     test('create kong keys', async () => {
         // should start with an empty kong configuration
         await expect(kongEnsureConsumer('app1')).resolves.not.toBeNull();
-        await expect(kongEnsureZeroexHeaders('app1', 'integrator1')).resolves.not.toBeNull();
+        await expect(
+            kongEnsureZeroexHeaders('app1', {
+                team_id: 'team1',
+                app_id: 'app1',
+            }),
+        ).resolves.not.toBeNull();
         await expect(kongGetKey('app1', '56ce736a-37d4-40e4-8d19-820f849383b3')).resolves.toBeNull();
 
         // should create a new key
@@ -88,7 +108,12 @@ describe('kong gateway integration', () => {
     test('create multiple kong keys', async () => {
         // should start with an empty kong configuration
         await expect(kongEnsureConsumer('app1')).resolves.not.toBeNull();
-        await expect(kongEnsureZeroexHeaders('app1', 'integrator1')).resolves.not.toBeNull();
+        await expect(
+            kongEnsureZeroexHeaders('app1', {
+                team_id: 'team1',
+                app_id: 'app1',
+            }),
+        ).resolves.not.toBeNull();
         await expect(kongGetKey('app1', '56ce736a-37d4-40e4-8d19-820f849383b3')).resolves.toBeNull();
         await expect(kongGetKey('app1', 'app1-key2')).resolves.toBeNull();
 
@@ -120,7 +145,12 @@ describe('kong gateway integration', () => {
     test('create same kong key twice', async () => {
         // should start with an empty kong configuration
         await expect(kongEnsureConsumer('app1')).resolves.not.toBeNull();
-        await expect(kongEnsureZeroexHeaders('app1', 'integrator1')).resolves.not.toBeNull();
+        await expect(
+            kongEnsureZeroexHeaders('app1', {
+                team_id: 'team1',
+                app_id: 'app1',
+            }),
+        ).resolves.not.toBeNull();
         await expect(kongGetKey('app1', '56ce736a-37d4-40e4-8d19-820f849383b3')).resolves.toBeNull();
 
         // should confirm key creation idempotency
@@ -146,7 +176,12 @@ describe('kong gateway integration', () => {
     test('create kong acl', async () => {
         // should start with an empty kong configuration
         await expect(kongEnsureConsumer('app1')).resolves.not.toBeNull();
-        await expect(kongEnsureZeroexHeaders('app1', 'integrator1')).resolves.not.toBeNull();
+        await expect(
+            kongEnsureZeroexHeaders('app1', {
+                team_id: 'team1',
+                app_id: 'app1',
+            }),
+        ).resolves.not.toBeNull();
         await expect(kongEnsureKey('app1', '56ce736a-37d4-40e4-8d19-820f849383b3')).resolves.not.toBeNull();
         await expect(kongGetAcl('app1', 'swap_v1_price_group')).resolves.toBeNull();
 

@@ -20,6 +20,7 @@ export default Factory.define<AppWithTeam>(({ params }) => {
         name: 'My App',
         description: faker.lorem.sentence(),
         affiliateAddress: faker.finance.ethereumAddress(),
+        legacyIntegratorId: null,
         explorerTag: faker.lorem.word(),
         explorerImage: faker.image.imageUrl(),
         category: 'DEX',

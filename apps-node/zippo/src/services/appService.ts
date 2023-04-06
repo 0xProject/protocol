@@ -1,20 +1,17 @@
-import { Prisma } from 'integrator-db';
+import { IntegratorApp, IntegratorTeam, Prisma } from 'integrator-db';
 import prisma from '../prisma';
 import { z } from 'zod';
-import { zippoRouterDefinition } from 'zippo-interface';
-import { randomUUID } from 'crypto';
-import {
-    deprovisionIntegratorAccess,
-    provisionIntegratorAccess,
-    provisionIntegratorKey,
-    revokeIntegratorKey,
-} from '../gateway';
+import { TZippoZeroExHeaders, zippoRouterDefinition } from 'zippo-interface';
+import { randomUUID, randomBytes } from 'crypto';
+import { ethers } from 'ethers';
+import { deprovisionAppAccess, provisionAppAccess, provisionAppKey, revokeAppKey } from '../gateway';
 
 const defaultAppSelect = Prisma.validator<Prisma.IntegratorAppSelect>()({
     id: true,
     name: true,
     description: true,
     affiliateAddress: true,
+    legacyIntegratorId: true,
     category: true,
     createdAt: true,
     updatedAt: true,
@@ -89,12 +86,20 @@ export async function create(parameters: z.infer<typeof zippoRouterDefinition.ap
         });
     }
 
+    if (!appParameters.affiliateAddress) {
+        appParameters.affiliateAddress = generateRandomAffiliateAddress();
+    }
+
     const integratorApp = await prisma.integratorApp.create({
         data: { ...appParameters, integratorExternalAppId: externalAppEntity ? externalAppEntity.id : null },
-        select: defaultAppSelect,
+        include: { integratorTeam: true },
     });
 
-    const apiKey = await generateAndProvisionApiKey(integratorTeam.id, integratorApp.id, parameters.apiKey);
+    const apiKey = await generateAndProvisionApiKey(
+        integratorApp.id,
+        zeroExHeaderConfig(integratorApp),
+        parameters.apiKey,
+    );
 
     await prisma.integratorApiKey.create({
         data: {
@@ -161,13 +166,13 @@ export async function provisionAccess(
 
     const integratorApp = await prisma.integratorApp.findUnique({
         where: { id },
-        select: { id: true, integratorTeamId: true },
+        include: { integratorTeam: true },
     });
     if (!integratorApp) {
         throw new Error('Invalid app ID');
     }
 
-    if (!(await provisionIntegratorAccess(integratorApp.integratorTeamId, id, routeTags, rateLimits))) {
+    if (!(await provisionAppAccess(id, zeroExHeaderConfig(integratorApp), routeTags, rateLimits))) {
         throw new Error('Unable to provision access');
     }
 
@@ -215,7 +220,7 @@ export async function deprovisionAccess(
         throw new Error('Invalid app ID');
     }
 
-    if (!(await deprovisionIntegratorAccess(integratorApp.integratorTeamId, id, routeTags))) {
+    if (!(await deprovisionAppAccess(id, routeTags))) {
         throw new Error('Unable to deprovision access');
     }
 
@@ -240,7 +245,7 @@ export async function deprovisionAccess(
 export async function createApiKey(parameters: z.infer<typeof zippoRouterDefinition.app.key.create.input>) {
     const integratorApp = await prisma.integratorApp.findUnique({
         where: { id: parameters.integratorAppId },
-        select: { id: true, integratorTeamId: true },
+        include: { integratorTeam: true },
     });
     if (!integratorApp || integratorApp.integratorTeamId !== parameters.integratorTeamId) {
         throw new Error('Invalid app ID');
@@ -249,8 +254,8 @@ export async function createApiKey(parameters: z.infer<typeof zippoRouterDefinit
     const { integratorTeamId, ...apiKeyParameters } = parameters;
 
     const apiKey = await generateAndProvisionApiKey(
-        integratorApp.integratorTeamId,
         integratorApp.id,
+        zeroExHeaderConfig(integratorApp),
         parameters.apiKey,
     );
 
@@ -309,11 +314,7 @@ export async function deleteApiKey(id: z.infer<typeof zippoRouterDefinition.app.
         throw new Error('Invalid API key ID');
     }
 
-    await revokeIntegratorKey(
-        integratorApiKey.app.integratorTeamId,
-        integratorApiKey.integratorAppId,
-        integratorApiKey.apiKey,
-    );
+    await revokeAppKey(integratorApiKey.integratorAppId, integratorApiKey.apiKey);
 
     await prisma.integratorApiKey.delete({
         where: { id },
@@ -325,12 +326,34 @@ export async function deleteApiKey(id: z.infer<typeof zippoRouterDefinition.app.
     });
 }
 
-async function generateAndProvisionApiKey(integratorTeamId: string, integratorAppId: string, apiKey?: string) {
+function zeroExHeaderConfig(integratorApp: IntegratorApp & { integratorTeam: IntegratorTeam }) {
+    return {
+        team_id: integratorApp.integratorTeamId,
+        app_id: integratorApp.id,
+        tier: integratorApp.integratorTeam.tier,
+        app_properties: encodeAppProperties(integratorApp),
+        affiliate_address: integratorApp.affiliateAddress,
+        legacy_integrator_id: integratorApp.legacyIntegratorId,
+    };
+}
+
+function encodeAppProperties(integratorApp: IntegratorApp) {
+    // TODO: replace empty object literal with integrator app service properties
+    return Buffer.from(JSON.stringify({})).toString('base64');
+}
+
+async function generateAndProvisionApiKey(integratorAppId: string, zeroExConfig: TZippoZeroExHeaders, apiKey?: string) {
     const provisionApiKey = apiKey || randomUUID();
 
-    if (!(await provisionIntegratorKey(integratorTeamId, integratorAppId, provisionApiKey))) {
+    if (!(await provisionAppKey(integratorAppId, zeroExConfig, provisionApiKey))) {
         throw new Error('Unable to provision API key');
     }
 
     return provisionApiKey;
+}
+
+function generateRandomAffiliateAddress() {
+    const bytes = randomBytes(32).toString('hex');
+    const wallet = new ethers.Wallet('0x' + bytes);
+    return wallet.address;
 }

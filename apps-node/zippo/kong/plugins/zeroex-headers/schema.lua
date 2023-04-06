@@ -4,11 +4,12 @@ return {
     { config = {
         type = "record",
         fields = {
-          { integrator_id = { type = "string" }, },
+          { team_id = { type = "string" }, },
           { app_id = { type = "string" }, },
           { tier = { type = "string" }, },
-          { integrator_properties = { type = "string" }, },
           { app_properties = { type = "string" }, },
+          { affiliate_address = { type = "string" }, },
+          { legacy_integrator_id = { type = "string" }, },
         },
     }, },
   }

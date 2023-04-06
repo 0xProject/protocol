@@ -1,6 +1,6 @@
 import { kongMock } from './mocks/kongMock';
 
-import { provisionIntegratorAccess } from '../gateway';
+import { provisionAppAccess } from '../gateway';
 import { TZippoRouteTag } from 'zippo-interface';
 
 describe('gateway tests', () => {
@@ -31,13 +31,20 @@ describe('gateway tests', () => {
 
         // should provision integrator access
         await expect(
-            provisionIntegratorAccess('integrator12345', 'app12345', [TZippoRouteTag.SwapV1Prices], [{ minute: 30 }]),
+            provisionAppAccess(
+                'app12345',
+                {
+                    team_id: 'abc',
+                    app_id: 'app12345',
+                },
+                [TZippoRouteTag.SwapV1Prices],
+                [{ minute: 30 }],
+            ),
         ).resolves.toBeTruthy();
 
         // should confirm mock calls, () => {
         expect(kongMock.kongEnsureConsumer.mock.calls[0][0]).toEqual('app12345');
         expect(kongMock.kongEnsureZeroexHeaders.mock.calls[0][0]).toEqual('app12345');
-        expect(kongMock.kongEnsureZeroexHeaders.mock.calls[0][1]).toEqual('integrator12345');
         expect(kongMock.kongEnsureAcl.mock.calls[0][0]).toEqual('app12345');
         expect(kongMock.kongEnsureAcl.mock.calls[0][1]).toEqual('swap_v1_prices_group');
         expect(kongMock.kongEnsureRateLimit.mock.calls[0][0]).toEqual('app12345');

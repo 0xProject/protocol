@@ -109,6 +109,7 @@ model IntegratorApp {
   name                    String   @map("name")
   description             String   @default("") @map("description")
   affiliateAddress        String?  @map("affiliate_address")
+  legacyIntegratorId      String?  @map("legacy_integrator_id")
   category                String?  @map("category")
   createdAt               DateTime @default(now()) @map("created_at")
   updatedAt               DateTime @updatedAt @map("updated_at")

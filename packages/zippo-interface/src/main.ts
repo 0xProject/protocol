@@ -17,6 +17,15 @@ export interface TZippoRateLimit {
     day?: number;
 }
 
+export interface TZippoZeroExHeaders {
+    team_id: string;
+    app_id: string;
+    tier?: string | null;
+    app_properties?: string | null;
+    affiliate_address?: string | null;
+    legacy_integrator_id?: string | null;
+}
+
 const tierModel = z.enum(['dev', 'growth', 'enterprise']);
 export type TZippoTier = z.infer<typeof tierModel>;
 
@@ -92,6 +101,7 @@ const app = z.object({
     name: z.string(),
     description: z.string().nullable(),
     affiliateAddress: z.string().nullable(),
+    legacyIntegratorId: z.string().uuid().nullable(),
     category: z.string().nullable(),
     createdAt: z.date(),
     updatedAt: z.date(),
@@ -355,6 +365,7 @@ export const zippoRouterDefinition = {
                 name: z.string().min(1, { message: 'Name is required' }),
                 description: z.string().optional(),
                 affiliateAddress: z.string().optional(),
+                legacyIntegratorId: z.string().optional(),
                 category: z.string().optional(),
                 apiKey: z.string().optional(),
                 integratorExternalAppId: z.string().cuid().optional(),
@@ -376,6 +387,7 @@ export const zippoRouterDefinition = {
                     name: z.string().min(1, { message: 'Name is required' }),
                     description: z.string().optional(),
                     affiliateAddress: z.string().optional(),
+                    legacyIntegratorId: z.string().optional(),
                     category: z.string().optional(),
                     integratorExternalAppId: z.string().cuid().optional(),
                 })

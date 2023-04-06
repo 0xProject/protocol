@@ -52,6 +52,7 @@
         "cuid": "^3.0.0",
         "date-fns": "^2.29.3",
         "dotenv": "^16.0.3",
+        "ethers": "^6.2.3",
         "http-status-codes": "^2.2.0",
         "integrator-db": "*",
         "pino": "^8.8.0",

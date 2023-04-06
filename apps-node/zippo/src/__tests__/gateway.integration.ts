@@ -3,13 +3,7 @@ import { kongGetAcl, kongGetConsumer, kongGetKey, kongGetRateLimit } from '../ga
 import { ensureKongIsRunning, resetKongConfiguration } from './utils/kongUtils';
 import { TZippoRouteTag } from 'zippo-interface';
 
-import {
-    deprovisionIntegratorAccess,
-    provisionIntegratorAccess,
-    provisionIntegratorKey,
-    removeIntegrator,
-    revokeIntegratorKey,
-} from '../gateway';
+import { deprovisionAppAccess, provisionAppAccess, provisionAppKey, removeApp, revokeAppKey } from '../gateway';
 
 jest.setTimeout(30000);
 
@@ -27,11 +21,16 @@ describe('gateway integration', () => {
         await expect(kongGetConsumer('app9876')).resolves.toBeNull();
 
         // should confirm provisioning an API key indicates success
-        await expect(provisionIntegratorKey('integrator9876', 'app9876', 'abc123')).resolves.toBeTruthy();
+        await expect(provisionAppKey('app9876', { team_id: 'abc', app_id: 'abc123' }, 'abc123')).resolves.toBeTruthy();
 
         // should confirm provisioning new integrator indicates success
         await expect(
-            provisionIntegratorAccess('integrator9876', 'app9876', [TZippoRouteTag.SwapV1Prices], [{ minute: 30 }]),
+            provisionAppAccess(
+                'app9876',
+                { team_id: 'abc', app_id: 'abc123' },
+                [TZippoRouteTag.SwapV1Prices],
+                [{ minute: 30 }],
+            ),
         ).resolves.toBeTruthy();
 
         // should confirm kong consumer was created
@@ -78,7 +77,12 @@ describe('gateway integration', () => {
 
         // should confirm provisioning new integrator indicates success
         await expect(
-            provisionIntegratorAccess('integrator9876', 'app9876', [TZippoRouteTag.SwapV1Prices], [{ minute: 30 }]),
+            provisionAppAccess(
+                'app9876',
+                { team_id: 'abc', app_id: 'abc123' },
+                [TZippoRouteTag.SwapV1Prices],
+                [{ minute: 30 }],
+            ),
         ).resolves.toBeTruthy();
 
         // should confirm integrator as correct ACL access
@@ -100,9 +104,7 @@ describe('gateway integration', () => {
         );
 
         // should remove integrator access to a route
-        await expect(
-            deprovisionIntegratorAccess('integrator9876', 'app9876', [TZippoRouteTag.SwapV1Prices]),
-        ).resolves.toBeTruthy();
+        await expect(deprovisionAppAccess('app9876', [TZippoRouteTag.SwapV1Prices])).resolves.toBeTruthy();
 
         // should confirm integrator is no longer a member of the ACL
         await expect(kongGetAcl('app9876', routeInfo.groupName)).resolves.toBeNull();
@@ -121,7 +123,12 @@ describe('gateway integration', () => {
 
         // should confirm provisioning new integrator indicates success
         await expect(
-            provisionIntegratorAccess('integrator9876', 'app9876', [TZippoRouteTag.SwapV1Prices], [{ minute: 30 }]),
+            provisionAppAccess(
+                'app9876',
+                { team_id: 'abc', app_id: 'abc123' },
+                [TZippoRouteTag.SwapV1Prices],
+                [{ minute: 30 }],
+            ),
         ).resolves.toBeTruthy();
 
         // should confirm kong consumer was created
@@ -132,7 +139,7 @@ describe('gateway integration', () => {
         );
 
         // should remove integrator
-        await expect(removeIntegrator('integrator9876', 'app9876')).resolves.toBeTruthy();
+        await expect(removeApp('app9876')).resolves.toBeTruthy();
 
         // should confirm kong consumer was deleted
         await expect(kongGetConsumer('app9876')).resolves.toBeNull();
@@ -143,7 +150,7 @@ describe('gateway integration', () => {
         await expect(kongGetConsumer('app9876')).resolves.toBeNull();
 
         // should confirm provisioning an API key indicates success
-        await expect(provisionIntegratorKey('integrator9876', 'app9876', 'abc123')).resolves.toBeTruthy();
+        await expect(provisionAppKey('app9876', { team_id: 'abc', app_id: 'abc123' }, 'abc123')).resolves.toBeTruthy();
 
         // should confirm kong consumer was created
         await expect(kongGetConsumer('app9876')).resolves.toEqual(
@@ -160,7 +167,7 @@ describe('gateway integration', () => {
         );
 
         // should revoke the integrator key
-        await expect(revokeIntegratorKey('integrator9876', 'app9876', 'abc123')).resolves.toBeTruthy();
+        await expect(revokeAppKey('app9876', 'abc123')).resolves.toBeTruthy();
 
         // should confirm kong consumer still exists
         await expect(kongGetConsumer('app9876')).resolves.toEqual(

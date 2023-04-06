@@ -2,7 +2,7 @@ import { env } from '../env';
 import { KongConsumer, KongKey, KongAcl, KongPlugins, KongPlugin, KongKeys } from './types';
 import axios, { AxiosResponse, AxiosHeaders } from 'axios';
 import { StatusCodes } from 'http-status-codes';
-import { TZippoRateLimit } from 'zippo-interface';
+import { TZippoRateLimit, TZippoZeroExHeaders } from 'zippo-interface';
 
 const axiosInstance = axios.create({
     baseURL: env.KONG_ADMIN_URL,
@@ -44,36 +44,30 @@ export async function kongRemoveConsumer(appId: string): Promise<boolean> {
 }
 
 /**
- * Ensure the kong zeroex-headers plugin is configured with the app/integrator IDs
+ * Ensure the kong zeroex-headers plugin has the required configuration to set the proper 0x headers
  * @param appId Kong consumer appId
- * @param integratorId Integrator ID to map to appId (used in request headers to backend services)
+ * @param zeroExConfig zeroex-headers plugin config object
  */
-export async function kongEnsureZeroexHeaders(appId: string, integratorId: string): Promise<boolean> {
-    let foundPlugin;
-    try {
-        const { data, status } = await kongGet<KongPlugins>(`/consumers/${appId}/plugins`);
-        if (status !== StatusCodes.OK) {
-            return false;
-        }
-        foundPlugin = data.data.find((plugin) => plugin.name === 'zeroex-headers');
-    } catch {
-        return false;
+export async function kongEnsureZeroexHeaders(appId: string, zeroExConfig: TZippoZeroExHeaders): Promise<boolean> {
+    const req = {
+        name: 'zeroex-headers',
+        config: { ...zeroExConfig },
+    };
+
+    const { status: getStatus, data: getData } = await kongGet<KongPlugins>(`/consumers/${appId}/plugins`);
+    let existingZeroExPlugin;
+    if (getStatus == StatusCodes.OK) {
+        existingZeroExPlugin = getData.data.find((plugin) => plugin.name === 'zeroex-headers');
     }
-    if (foundPlugin) {
-        return true;
-    }
-    try {
-        const req = {
-            name: 'zeroex-headers',
-            config: {
-                integrator_id: integratorId,
-                app_id: appId,
-            },
-        };
-        const { status } = await kongPost(`/consumers/${appId}/plugins`, req);
-        return status === StatusCodes.CREATED;
-    } catch {
-        return false;
+    if (existingZeroExPlugin) {
+        const { status } = await kongPut<KongPlugin<TZippoZeroExHeaders>>(
+            `/consumers/${appId}/plugins/${existingZeroExPlugin.id}`,
+            req,
+        );
+        return status == StatusCodes.OK;
+    } else {
+        const { status } = await kongPost<KongPlugin<TZippoZeroExHeaders>>(`/consumers/${appId}/plugins`, req);
+        return status == StatusCodes.CREATED;
     }
 }
 
