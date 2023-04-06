@@ -34,7 +34,6 @@ export async function doesSessionExist({
 }): Promise<Result<boolean>> {
     try {
         const session = await client.session.getSession.query(sessionToken);
-        console.log({ session, userId, sessionToken });
         if (!session) {
             return {
                 result: 'ERROR',

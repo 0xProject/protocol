@@ -17,7 +17,14 @@ import { generateNonce, getRateLimitByTier } from '../utils/utils.server';
 import { auth, sessionStorage } from '../auth.server';
 import { z } from 'zod';
 import type { ErrorWithGeneral } from '../types';
-import { createOnChainTag, getAppById, getTeamById, updateApp, updateProvisionAccess } from '../data/zippo.server';
+import {
+    createOnChainTag,
+    doesSessionExist,
+    getAppById,
+    getTeamById,
+    updateApp,
+    updateProvisionAccess,
+} from '../data/zippo.server';
 import { getSignedInUser } from '../auth.server';
 import { Alert } from '../components/Alert';
 import * as AppSettingsConfirmDialog from '../components/AppSettingsConfirmDialog';
@@ -70,14 +77,13 @@ export async function action({ request, params }: ActionArgs) {
 
     // as this is an "admin" like action, we verify if the session is still valid
 
-    /**@TODO currently not possible as ZIPPO does currently not allow to verifiy specific tokens */
-    // const sessionResult = await doesSessionExist({ userId: user.id, sessionToken: user.sessionToken });
+    const sessionResult = await doesSessionExist({ userId: user.id, sessionToken: user.sessionToken });
 
-    // if (sessionResult.result === 'ERROR' || sessionResult.data === false) {
-    //     console.warn(`User with id ${user.id} tried to update app settings but their session was invalid`);
-    //     await auth.logout(request, { redirectTo: '/login' });
-    //     throw redirect('/login'); // throwing again to stop execution flow for the analyzer
-    // }
+    if (sessionResult.result === 'ERROR' || sessionResult.data === false) {
+        console.warn(`User with id ${user.id} tried to update app settings but their session was invalid`);
+        await auth.logout(request, { redirectTo: '/login' });
+        throw redirect('/login'); // throwing again to stop execution flow for the analyzer
+    }
 
     // we additionally want to verify that the user has access to this app
     const returnedApp = await getAppById(params.appId);
