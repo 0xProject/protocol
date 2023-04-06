@@ -1,8 +1,7 @@
 import type { Session } from '@remix-run/server-runtime';
 import { addSeconds, differenceInSeconds } from 'date-fns';
-import type { TZippoRouteTag } from 'zippo-interface';
+import type { TZippoRateLimit, TZippoTier } from 'zippo-interface';
 import { sessionStorage } from '../auth.server';
-import type { ClientApp } from '../types';
 import { env } from '../env.server';
 import crypto from 'crypto';
 
@@ -110,3 +109,20 @@ export function getBaseUrl() {
 export function generateNonce() {
     return crypto.randomBytes(16).toString('base64');
 }
+
+export const getRateLimitByTier = (tier: TZippoTier): TZippoRateLimit => {
+    switch (tier) {
+        case 'dev':
+            return {
+                second: 2,
+            };
+        case 'growth':
+            return {
+                second: 10,
+            };
+        case 'enterprise':
+            return {
+                second: 20,
+            };
+    }
+};

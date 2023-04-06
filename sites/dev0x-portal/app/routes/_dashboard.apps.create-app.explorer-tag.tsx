@@ -12,7 +12,8 @@ import { addProvisionAccess, createApp, getTeam } from '../data/zippo.server';
 import { ArrowNarrowRight } from '../icons/ArrowNarrowRight';
 import type { CreateAppFlowType, ErrorWithGeneral } from '../types';
 import { PRODUCT_TO_ZIPPO_ROUTE_TAG, validateFormData } from '../utils/utils';
-import { makeMultipageHandler } from '../utils/utils.server';
+import { getRateLimitByTier, makeMultipageHandler } from '../utils/utils.server';
+import type { TZippoTier } from 'zippo-interface';
 
 const zodExplorerTagSchema = z.object({
     tagName: z.optional(z.string().min(1, 'Tag name is required')),
@@ -90,9 +91,7 @@ export async function action({ request }: ActionArgs) {
 
     const routeTags = previousData.products.map((product) => PRODUCT_TO_ZIPPO_ROUTE_TAG[product]);
 
-    // console.log(productToZippoTag, previousData.products, routeTags);
-
-    const rateLimits = previousData.products.map(() => ({ minute: 3 }));
+    const rateLimits = previousData.products.map(() => getRateLimitByTier((teamRes.data.tier as TZippoTier) || 'dev'));
 
     const provisionRes = await addProvisionAccess({
         appId: res.data.id,
@@ -103,12 +102,6 @@ export async function action({ request }: ActionArgs) {
     if (provisionRes.result === 'ERROR') {
         return json({ errors: { general: 'Error adding provision access' } as Errors, values: body });
     }
-
-    // const apiKeyRes = await generateAPIKey({ appId: res.data.id, teamId: teamRes.data.id });
-
-    // if (apiKeyRes.result === 'ERROR') {
-    //     return json({ errors: { general: 'Error creating api key' } as Errors, values: body });
-    // }
 
     sessionHandler.setPage(2, { apiKey: res.data.apiKeys[0].apiKey, appId: res.data.id });
 

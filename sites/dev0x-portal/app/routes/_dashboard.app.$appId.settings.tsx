@@ -13,15 +13,16 @@ import { PRODUCT_TO_ZIPPO_ROUTE_TAG, ZIPPO_ROUTE_TAG_TO_PRODUCT, validateFormDat
 import type { ActionArgs, LoaderArgs } from '@remix-run/server-runtime';
 import { redirect } from '@remix-run/server-runtime';
 import { json } from '@remix-run/server-runtime';
-import { generateNonce } from '../utils/utils.server';
-import { sessionStorage } from '../auth.server';
+import { generateNonce, getRateLimitByTier } from '../utils/utils.server';
+import { auth, sessionStorage } from '../auth.server';
 import { z } from 'zod';
 import type { ErrorWithGeneral } from '../types';
-import { createOnChainTag, getAppById, updateApp, updateProvisionAccess } from '../data/zippo.server';
+import { createOnChainTag, getAppById, getTeamById, updateApp, updateProvisionAccess } from '../data/zippo.server';
 import { getSignedInUser } from '../auth.server';
 import { Alert } from '../components/Alert';
 import * as AppSettingsConfirmDialog from '../components/AppSettingsConfirmDialog';
 import { ArrowRightIcon } from '@radix-ui/react-icons';
+import type { TZippoTier } from 'zippo-interface';
 
 const updateAppModel = z.object({
     nonce: z.string().min(16, 'Invalid nonce'), // 16 bytes in hex
@@ -90,14 +91,18 @@ export async function action({ request, params }: ActionArgs) {
         return json({ errors: { general: 'You do not have access to this app' } as Errors, values: body }, { headers });
     }
 
+    const teamRes = await getTeamById({ teamId: user.teamId });
+
+    if (teamRes.result === 'ERROR') {
+        return json({ errors: { general: 'Error fetching team' } as Errors, values: body }, { headers });
+    }
+
     const productAccess = Array.isArray(body.products) ? body.products : [body.products];
 
     const updateResult = await updateProvisionAccess({
         appId: params.appId,
         routeTags: productAccess.map((product) => PRODUCT_TO_ZIPPO_ROUTE_TAG[product]),
-        rateLimits: productAccess.map(() => {
-            return { minute: 3 };
-        }),
+        rateLimits: productAccess.map(() => getRateLimitByTier((teamRes.data.tier as TZippoTier) || 'dev')),
     });
 
     if (updateResult.result === 'ERROR') {
@@ -106,6 +111,8 @@ export async function action({ request, params }: ActionArgs) {
             { headers },
         );
     }
+
+    session.set(auth.sessionKey, updateResult.data);
 
     let onChainTagId: string | undefined;
 
@@ -136,6 +143,23 @@ export async function action({ request, params }: ActionArgs) {
             );
         }
     }
+
+    if (onChainTagId || returnedApp.data.name !== body.name) {
+        const updateResult = await updateApp({ appId: returnedApp.data.id, name: body.name, onChainTagId });
+        if (updateResult.result === 'ERROR') {
+            return json(
+                {
+                    errors: { general: 'Error persisting updated information, please try again later' } as Errors,
+                    values: body,
+                },
+                { headers },
+            );
+        }
+
+        session.set(auth.sessionKey, updateResult.data);
+    }
+
+    headers.set('Set-Cookie', await sessionStorage.commitSession(session));
 
     throw redirect(`/app/${params.appId}`, { headers });
 }

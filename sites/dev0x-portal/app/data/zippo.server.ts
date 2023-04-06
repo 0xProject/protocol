@@ -362,6 +362,32 @@ export async function getTeam({
     }
 }
 
+export async function getTeamById({
+    teamId,
+}: {
+    teamId: string;
+}): Promise<Result<Awaited<Exclude<RouterOutputs['team']['getById'], null>>>> {
+    try {
+        const team = await client.team.getById.query(teamId);
+        if (!team) {
+            return {
+                result: 'ERROR',
+                error: new Error('Team not found'),
+            };
+        }
+        return {
+            result: 'SUCCESS',
+            data: team,
+        };
+    } catch (e) {
+        console.warn(e);
+        return {
+            result: 'ERROR',
+            error: new Error('Unknown error'),
+        };
+    }
+}
+
 export async function createApp({
     appName,
     teamId,
@@ -408,12 +434,13 @@ export async function createApp({
 
 export async function updateApp({
     appId,
+    onChainTagId,
     ...rest
 }: Rename<RouterInputs['app']['update'], { id: 'appId'; integratorExternalAppId: 'onChainTagId' }>): Promise<
     Result<ClientApp>
 > {
     try {
-        const app = await client.app.update.mutate({ id: appId, ...rest });
+        const app = await client.app.update.mutate({ id: appId, integratorExternalAppId: onChainTagId, ...rest });
         if (!app) {
             return {
                 result: 'ERROR',
