@@ -10,8 +10,8 @@ import { IconButton } from '../components/IconButton';
 import { ArrowNarrowRight } from '../icons/ArrowNarrowRight';
 import type { CreateAppFlowType } from '../types';
 import { makeMultipageHandler, storeMockForApp } from '../utils/utils.server';
-import { productToZippoTag } from './_dashboard.apps.create-app.explorer-tag';
 import { CloseContext } from './_dashboard.apps.create-app';
+import { PRODUCT_TO_ZIPPO_ROUTE_TAG } from '../utils/utils';
 
 export async function action({ request }: ActionArgs) {
     const session = await sessionStorage.getSession(request.headers.get('Cookie'));
@@ -54,7 +54,6 @@ export async function loader({ request }: LoaderArgs) {
         {
             tagName: pageTwoData.skipped ? undefined : pageTwoData.tagName,
             id: pageThreeData.appId,
-            enabledProducts: pageOneData.products.map((product) => productToZippoTag[product]),
         },
         session,
     );

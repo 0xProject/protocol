@@ -8,16 +8,11 @@ import { getSignedInUser, sessionStorage } from '../auth.server';
 import { BackButton } from '../components/BackButton';
 import { Button } from '../components/Button';
 import { TextInput } from '../components/TextInput';
-import { createApp, generateAPIKey, getTeam } from '../data/zippo.server';
+import { addProvisionAccess, createApp, getTeam } from '../data/zippo.server';
 import { ArrowNarrowRight } from '../icons/ArrowNarrowRight';
 import type { CreateAppFlowType, ErrorWithGeneral } from '../types';
-import { validateFormData } from '../utils/utils';
+import { PRODUCT_TO_ZIPPO_ROUTE_TAG, validateFormData } from '../utils/utils';
 import { makeMultipageHandler } from '../utils/utils.server';
-
-export const productToZippoTag: Record<string, TZippoRouteTag> = {
-    'swap-api': TZippoRouteTag.SwapV1,
-    'orderbook-api': TZippoRouteTag.OrderbookV1,
-} as const;
 
 const zodExplorerTagSchema = z.object({
     tagName: z.optional(z.string().min(1, 'Tag name is required')),
@@ -79,23 +74,21 @@ export async function action({ request }: ActionArgs) {
         return json({ errors: { general: 'Error creating app' } as Errors, values: body });
     }
 
-    // TODO: Skipped until after the demo
-
-    // const routeTags = previousData.products.map((product) => productToZippoTag[product]);
+    const routeTags = previousData.products.map((product) => PRODUCT_TO_ZIPPO_ROUTE_TAG[product]);
 
     // console.log(productToZippoTag, previousData.products, routeTags);
 
-    // const rateLimits = previousData.products.map(() => ({ minute: 3 }));
+    const rateLimits = previousData.products.map(() => ({ minute: 3 }));
 
-    // const provisionRes = await addProvisionAccess({
-    //     appId: res.data.id,
-    //     routeTags,
-    //     rateLimits,
-    // });
+    const provisionRes = await addProvisionAccess({
+        appId: res.data.id,
+        routeTags,
+        rateLimits,
+    });
 
-    // if (provisionRes.result === 'ERROR') {
-    //     return json({ errors: { general: 'Error adding provision access' } as Errors, values: body });
-    // }
+    if (provisionRes.result === 'ERROR') {
+        return json({ errors: { general: 'Error adding provision access' } as Errors, values: body });
+    }
 
     // const apiKeyRes = await generateAPIKey({ appId: res.data.id, teamId: teamRes.data.id });
 

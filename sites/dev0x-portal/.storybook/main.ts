@@ -38,6 +38,8 @@ const config: StorybookConfig = {
             alias: {
                 ...(config.resolve?.alias || {}),
                 '@remix-run/react': require.resolve('./__mocks__/@remix-run/react.ts'),
+                /** @TODO Workaround as rollup doesn't find the exports */
+                'zippo-interface': require.resolve('./__mocks__/zippo-interface.ts'),
             },
         };
         return config;

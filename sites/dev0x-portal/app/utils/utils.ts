@@ -1,4 +1,6 @@
+import { TZippoRouteTag } from 'zippo-interface';
 import type { ZodSchema } from 'zod';
+import type { BadgeColor } from '../components/Badge';
 
 export const generateNumbersArray = (n: number) => {
     return Array.from(Array(n).keys());
@@ -39,3 +41,23 @@ export function validateFormData<ActionInput>({
 
     return { body, errors: null };
 }
+
+export const ZIPPO_ROUTE_TAG_TO_PRODUCT: Partial<
+    Record<TZippoRouteTag, { name: string; color: BadgeColor; id: string }>
+> = {
+    [TZippoRouteTag.SwapV1]: {
+        name: 'Swap API',
+        color: 'green',
+        id: 'swap-api',
+    },
+    [TZippoRouteTag.OrderbookV1]: {
+        name: 'Orderbook',
+        color: 'blue',
+        id: 'orderbook-api',
+    },
+} as const;
+
+export const PRODUCT_TO_ZIPPO_ROUTE_TAG: Record<string, TZippoRouteTag> = {
+    'swap-api': TZippoRouteTag.SwapV1,
+    'orderbook-api': TZippoRouteTag.OrderbookV1,
+} as const;

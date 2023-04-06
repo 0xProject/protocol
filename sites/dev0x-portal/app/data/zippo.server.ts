@@ -5,6 +5,7 @@ import type { Result } from '../types';
 import type { RouterInputs, RouterOutputs } from './trpc.server';
 import type { ClientApp, Rename } from '../types';
 import { getBaseUrl } from '../utils/utils.server';
+import type { TZippoRouteTag } from 'zippo-interface';
 
 export const NO_TEAM_MARKER = '__not_init' as const;
 
@@ -17,6 +18,7 @@ const zippoAppToClientApp = (zippoApp: ZippoApp): ClientApp => {
         description: zippoApp.description,
         apiKeys: zippoApp.apiKeys,
         teamId: zippoApp.integratorTeamId,
+        productAccess: zippoApp.integratorAccess.map((access) => access.routeTag as TZippoRouteTag),
     };
 };
 
@@ -29,6 +31,7 @@ export async function doesSessionExist({
 }): Promise<Result<boolean>> {
     try {
         const session = await client.session.getSession.query(sessionToken);
+        console.log({ session, userId, sessionToken });
         if (!session) {
             return {
                 result: 'ERROR',
@@ -374,6 +377,108 @@ export async function createApp({
         return {
             result: 'SUCCESS',
             data: zippoAppToClientApp(app),
+        };
+    } catch (e) {
+        console.warn(e);
+        return {
+            result: 'ERROR',
+            error: new Error('Unknown error'),
+        };
+    }
+}
+
+export async function updateApp({
+    appId,
+    ...rest
+}: Rename<RouterInputs['app']['update'], { id: 'appId' }>): Promise<Result<ClientApp>> {
+    try {
+        const app = await client.app.update.mutate({ id: appId, ...rest });
+        if (!app) {
+            return {
+                result: 'ERROR',
+                error: new Error('Failed to update app'),
+            };
+        }
+
+        return {
+            result: 'SUCCESS',
+            data: zippoAppToClientApp(app),
+        };
+    } catch (e) {
+        console.warn(e);
+        return {
+            result: 'ERROR',
+            error: new Error('Unknown error'),
+        };
+    }
+}
+
+export async function updateProvisionAccess({
+    appId,
+    rateLimits,
+    routeTags,
+}: Rename<RouterInputs['app']['provisionAccess'], { id: 'appId' }>): Promise<Result<ClientApp>> {
+    try {
+        const appRes = await client.app.getById.query(appId);
+
+        if (!appRes) {
+            return {
+                result: 'ERROR',
+                error: new Error('Failed to update app'),
+            };
+        }
+
+        const routeTagsWithRateLimits = routeTags.map((routeTag, idx) => {
+            return {
+                routeTag,
+                rateLimit: rateLimits[idx],
+            };
+        });
+
+        const currentProducts = appRes.integratorAccess.map((access) => access.routeTag);
+
+        const productsToDelete = currentProducts.filter((product) => !routeTags.includes(product as TZippoRouteTag));
+
+        const productsToAdd = routeTagsWithRateLimits.filter((product) => !currentProducts.includes(product.routeTag));
+
+        try {
+            await client.app.provisionAccess.mutate({
+                id: appId,
+                rateLimits: productsToAdd.map((product) => product.rateLimit),
+                routeTags: productsToAdd.map((product) => product.routeTag) as TZippoRouteTag[],
+            });
+        } catch (e) {
+            console.warn(e);
+            return {
+                result: 'ERROR',
+                error: new Error('Failed to add products'),
+            };
+        }
+        try {
+            await client.app.deprovisionAccess.mutate({
+                id: appId,
+                routeTags: productsToDelete as TZippoRouteTag[],
+            });
+        } catch (e) {
+            console.warn(e);
+            return {
+                result: 'ERROR',
+                error: new Error('Failed to remove products'),
+            };
+        }
+
+        const updatedApp = await client.app.getById.query(appId);
+
+        if (!updatedApp) {
+            return {
+                result: 'ERROR',
+                error: new Error('Failed to retrieve updated app'),
+            };
+        }
+
+        return {
+            result: 'SUCCESS',
+            data: zippoAppToClientApp(updatedApp),
         };
     } catch (e) {
         console.warn(e);

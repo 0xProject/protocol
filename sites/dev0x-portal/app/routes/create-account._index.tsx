@@ -17,6 +17,8 @@ const firstPageFormModel = z.object({
 
 type ActionInput = z.TypeOf<typeof firstPageFormModel>;
 
+type Errors = Partial<{ general: string } & Record<keyof ActionInput, string>>;
+
 export async function loader({ request }: LoaderArgs) {
     const [user, headers] = await getSignedInUser(request);
 
@@ -44,7 +46,7 @@ export async function action({ request }: ActionArgs) {
     const [user, headers] = await getSignedInUser(request);
 
     if (user) {
-        return redirect('/apps', { headers });
+        throw redirect('/apps', { headers });
     }
 
     const formData = await request.formData();
@@ -55,7 +57,7 @@ export async function action({ request }: ActionArgs) {
     });
 
     if (errors) {
-        return json({ errors, values: body });
+        return json({ errors: errors as Errors, values: body });
     }
 
     const userResult = await getUserByEmail({ email: body.email });
@@ -63,14 +65,14 @@ export async function action({ request }: ActionArgs) {
         return json({
             errors: {
                 email: 'This email is already in use',
-            },
+            } as Errors,
             values: body,
         });
     } else if (userResult.result === 'ERROR' && userResult.error.message !== 'User not found') {
         return json({
             errors: {
                 email: 'An error occurred while creating an account',
-            },
+            } as Errors,
             values: body,
         });
     }

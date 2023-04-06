@@ -14,7 +14,7 @@ import { createAppKey, deleteAppKey, getAppById } from '../data/zippo.server';
 import { BlurredInputWithCopy } from '../components/BlurredInputWithCopy';
 
 import type { ActionArgs } from '@remix-run/node';
-import type { AppOutletContext } from './apps.$appId';
+import type { AppOutletContext } from './_dashboard.app.$appId';
 import type { ErrorWithGeneral } from '../types';
 
 const actionFromModel = z.object({

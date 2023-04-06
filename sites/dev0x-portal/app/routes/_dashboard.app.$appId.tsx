@@ -1,7 +1,6 @@
 import { json, redirect } from '@remix-run/node';
 import { Outlet, useLoaderData } from '@remix-run/react';
 import { twMerge } from 'tailwind-merge';
-import type { BadgeColor } from '../components/Badge';
 import { Badge, isBadgeColor } from '../components/Badge';
 import { LinkButton } from '../components/Button';
 import { Key2 } from '../icons/Key2';
@@ -11,22 +10,11 @@ import { SwapCodeBlock } from '../components/SwapCodeBlock';
 import { getAppById } from '../data/zippo.server';
 import { sessionStorage } from '../auth.server';
 import { enhanceAppWithMockedData } from '../utils/utils.server';
-import { TZippoRouteTag } from 'zippo-interface';
 
 import type { LoaderArgs, MetaFunction } from '@remix-run/node';
 import type { ComponentPropsWithoutRef } from 'react';
 import type { ClientApp } from '../types';
-
-const ZIPPO_ROUTE_TAG_TO_PRODUCT: Partial<Record<TZippoRouteTag, { name: string; color: BadgeColor }>> = {
-    [TZippoRouteTag.SwapV1]: {
-        name: 'Swap API',
-        color: 'green',
-    },
-    [TZippoRouteTag.OrderbookV1]: {
-        name: 'Orderbook',
-        color: 'blue',
-    },
-} as const;
+import { ZIPPO_ROUTE_TAG_TO_PRODUCT } from '../utils/utils';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return {

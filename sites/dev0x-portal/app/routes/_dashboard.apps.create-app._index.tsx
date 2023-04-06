@@ -19,8 +19,12 @@ import { ArrowNarrowRight } from '../icons/ArrowNarrowRight';
 const zodAppDetailsSchema = z.object({
     name: z.string().min(1, 'App name is required'),
     products: z
-        .array(z.enum(['swap-api', 'orderbook-api', 'token-registry', 'transaction-history', 'tx-relay']))
-        .min(1, 'Please select at least one product'),
+        .enum(['swap-api', 'orderbook-api', 'token-registry', 'transaction-history', 'tx-relay'])
+        .or(
+            z
+                .array(z.enum(['swap-api', 'orderbook-api', 'token-registry', 'transaction-history', 'tx-relay']))
+                .min(1, 'Please select at least one product'),
+        ),
 });
 
 type ActionInput = z.TypeOf<typeof zodAppDetailsSchema>;
@@ -42,7 +46,10 @@ export async function action({ request }: ActionArgs) {
     const session = await sessionStorage.getSession(request.headers.get('Cookie'));
 
     const sessionHandler = makeMultipageHandler<CreateAppFlowType>({ session, namespace: 'create-app' });
-    sessionHandler.setPage(0, { appName: body.name, products: body.products });
+    sessionHandler.setPage(0, {
+        appName: body.name,
+        products: Array.isArray(body.products) ? body.products : [body.products],
+    });
 
     const header = await sessionStorage.commitSession(session);
 

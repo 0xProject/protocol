@@ -4,6 +4,7 @@ import type { TZippoRouteTag } from 'zippo-interface';
 import { sessionStorage } from '../auth.server';
 import type { ClientApp } from '../types';
 import { env } from '../env.server';
+import crypto from 'crypto';
 
 type MultiStepFormSessionHandler<T extends [...any]> = {
     getPage: <N extends keyof T>(page: N) => T[N] | undefined;
@@ -41,7 +42,6 @@ export async function getResendEmailRetryIn(
         verifyEmailRetryIn && new Date(verifyEmailRetryIn) > now
             ? differenceInSeconds(new Date(verifyEmailRetryIn), now)
             : 0;
-
     return [retryIn, headers];
 }
 
@@ -99,7 +99,7 @@ export function makeMultipageHandler<T extends [...any]>({
     };
 }
 
-type MockedAppData = { tagName?: string; id: string; enabledProducts: TZippoRouteTag[] };
+type MockedAppData = { tagName?: string; id: string };
 
 export function storeMockForApp(mockedData: MockedAppData, session: Session) {
     const currentMockedData = session.get('mockedData') as MockedAppData[] | undefined;
@@ -127,9 +127,6 @@ export function enhanceAppWithMockedData(app: ClientApp, session: Session): Clie
     if (mockForThisApp.tagName) {
         out.onChainTag = { name: mockForThisApp.tagName, color: 'green' };
     }
-    if (mockForThisApp.enabledProducts) {
-        out.productAccess = mockForThisApp.enabledProducts;
-    }
     return out;
 }
 
@@ -139,4 +136,8 @@ export function getBaseUrl() {
     }
     // zod checked for us that one of them is present
     return `https://${env.VERCEL_URL}`; // VERCEL_URL is provided without protocol
+}
+
+export function generateNonce() {
+    return crypto.randomBytes(16).toString('base64');
 }
