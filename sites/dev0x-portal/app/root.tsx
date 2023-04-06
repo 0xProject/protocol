@@ -1,7 +1,5 @@
 import { json } from '@remix-run/node';
 import { Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration, useLoaderData } from '@remix-run/react';
-import { createPortal } from 'react-dom';
-import { ClientOnly } from 'remix-utils';
 import { withSentry } from '@sentry/remix';
 import styles from './styles/tailwind.css';
 import { env, sentryEnvironment } from './env.server';
@@ -35,31 +33,28 @@ export async function loader() {
     });
 }
 
-export function Head() {
-    return (
-        <>
-            <Meta />
-            <Links />
-        </>
-    );
-}
-
-function App() {
+export function App() {
     const data = useLoaderData<typeof loader>();
     return (
-        <>
-            <ClientOnly>{() => createPortal(<Head />, document.head)}</ClientOnly>
-            <Outlet />
-            <script
-                dangerouslySetInnerHTML={{
-                    __html: `window.PUBLIC_ENV = ${JSON.stringify(data.ENV)}`,
-                }}
-            />
-            <Scripts />
-            <ScrollRestoration />
-            <Scripts />
-            <LiveReload />
-        </>
+        <html lang="en">
+            <head>
+                <meta charSet="utf-8" />
+                <meta name="viewport" content="width=device-width,initial-scale=1" />
+                <Meta />
+                <Links />
+            </head>
+            <body>
+                <Outlet />
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `window.PUBLIC_ENV = ${JSON.stringify(data.ENV)}`,
+                    }}
+                />
+                <ScrollRestoration />
+                <Scripts />
+                <LiveReload />
+            </body>
+        </html>
     );
 }
 
