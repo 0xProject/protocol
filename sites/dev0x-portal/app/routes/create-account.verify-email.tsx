@@ -116,6 +116,8 @@ export async function loader({ request }: LoaderArgs) {
     const isValid = await verifyEmailVerificationToken({ email: zodResult.data.email, token: zodResult.data.token });
 
     if (isValid) {
+        session.unset('verifyEmail');
+        headers.set('Set-Cookie', await sessionStorage.commitSession(session));
         return json({ error: null, values: { email, retryIn } }, { headers });
     }
     return json({ error: 'Invalid token or email address', values: { email, retryIn } }, { headers });
