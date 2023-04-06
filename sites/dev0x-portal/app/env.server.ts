@@ -29,6 +29,7 @@ if (!parsed.success) {
 }
 export const env = parsed.data;
 
-export const isProduction = env.NODE_ENV === 'production' && env.VERCEL_GIT_COMMIT_REF === 'portal-releases';
-export const isStaging = env.NODE_ENV === 'production' && env.VERCEL_GIT_COMMIT_REF === 'main';
+export const isProduction = env.VERCEL_ENV === "production";
+export const isStaging = env.VERCEL_ENV === "preview" && env.VERCEL_GIT_COMMIT_REF === "main";
+
 export const sentryEnvironment = isProduction ? 'production' : isStaging ? 'staging' : 'development';
