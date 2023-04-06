@@ -94,16 +94,6 @@ export default function VerificationSent() {
                     <p className="mb-3">
                         Check <b>{loaderData.email}</b> to verify your account and get started.
                     </p>
-                    <p className="mb-6">
-                        If you need help,{' '}
-                        <a href="#" className="text-blue-brand">
-                            visit support
-                        </a>{' '}
-                        or{' '}
-                        <a href="#" className="text-blue-brand">
-                            contact us
-                        </a>
-                    </p>
                     <ResendEmailButton
                         retryIn={loaderData.retryIn}
                         email={loaderData.email}
