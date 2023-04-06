@@ -354,4 +354,28 @@ contract GovernanceE2ETest is BaseTest {
             assertEq(weth.balanceOf(delegator), balanceBeforeReward + reward);
         }
     }
+
+    function testSwitchDelegationInCatastrophicMode() public {
+        // Enter catastrophic failure mode on the zrx vault
+        vm.prank(STAKING_AND_VAULT_OWNER);
+        vault.enterCatastrophicFailure();
+        vm.stopPrank();
+
+        // 0x delegator
+        address delegator = 0x5775afA796818ADA27b09FaF5c90d101f04eF600;
+
+        uint256 stake = vault.balanceOf(delegator);
+        uint256 balance = token.balanceOf(delegator);
+        assertGt(stake, 0);
+
+        // Withdraw stake all at once
+        vm.prank(delegator);
+        vault.withdrawAllFrom(delegator);
+        vm.stopPrank();
+
+        assertEq(vault.balanceOf(delegator), 0);
+        assertEq(token.balanceOf(delegator), stake + balance);
+
+        // delegate 1M ZRX to 0x4990cE223209FCEc4ec4c1ff6E0E81eebD8Cca08
+    }
 }
