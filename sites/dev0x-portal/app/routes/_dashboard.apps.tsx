@@ -8,12 +8,13 @@ import { GoToExplorer } from '../components/GoToExplorer';
 import { Button, LinkButton } from '../components/Button';
 import { useDemoApp } from '../hooks/useDemoApp';
 import { getSignedInUser } from '../auth.server';
-import { HiddenText } from '../components/HiddenText';
 import { appsList, createApp } from '../data/zippo.server';
+import * as Tooltip from '../components/Tooltip';
 
 import type { ActionArgs } from '@remix-run/node';
 import type { AppsOutletContext } from './_dashboard';
 import { CopyButton } from '../components/CopyButton';
+import { useRef } from 'react';
 
 export async function action({ request }: ActionArgs) {
     const [user, headers] = await getSignedInUser(request);
@@ -47,6 +48,7 @@ export default function Apps() {
     const navigation = useNavigation();
 
     const hasFormError = Boolean(actionData?.error);
+    const tooltipTriggerRef = useRef<HTMLButtonElement>(null);
 
     return (
         <div className="max-w-page-size mx-auto box-content px-24 pb-12">
@@ -72,11 +74,27 @@ export default function Apps() {
                     <p className="text-grey-400  max-w-[266px] font-sans text-base font-thin">
                         Make a sample request to any 0x product with the key below.
                     </p>
-
                     {demoApp ? (
-                        <CopyButton className="mt-12" postCopyMessage="Test Key Copied">
-                            {demoApp.apiKeys[0].apiKey}
-                        </CopyButton>
+                        <>
+                            {demoApp.apiKeys[0] ? (
+                                <CopyButton className="mt-12" postCopyMessage="Test Key Copied">
+                                    {demoApp.apiKeys[0].apiKey}
+                                </CopyButton>
+                            ) : (
+                                <Tooltip.Provider>
+                                    <Tooltip.Root>
+                                        <Tooltip.Trigger ref={tooltipTriggerRef} asChild>
+                                            <LinkButton className="mt-12" to={`/app/${demoApp.id}/settings`}>
+                                                Go to settings
+                                            </LinkButton>
+                                        </Tooltip.Trigger>
+                                        <Tooltip.Content sideOffset={4}>
+                                            To enable products for test API key
+                                        </Tooltip.Content>
+                                    </Tooltip.Root>
+                                </Tooltip.Provider>
+                            )}
+                        </>
                     ) : (
                         <div
                             className={twMerge(

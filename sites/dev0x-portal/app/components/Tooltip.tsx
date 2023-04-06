@@ -23,7 +23,7 @@ const content = tv({
     base: 'z-50 overflow-hidden text-base',
     variants: {
         color: {
-            black: 'bg-grey-900 text-white px-3 py-2 rounded antialiased font-medium',
+            black: 'bg-grey-900 text-white px-3 py-2 rounded text-base antialiased font-medium',
         },
     },
 });

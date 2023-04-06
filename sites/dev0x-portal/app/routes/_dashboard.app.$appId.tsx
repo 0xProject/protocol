@@ -122,12 +122,18 @@ export default function AppDashboard() {
                     <div className="col-span-2 flex justify-evenly pt-4">
                         <div className="min-w-max">
                             <h3 className="font-sans text-base">Build a gasless dApp</h3>
-                            <ViewDocsLink className="mt-2 mb-5 inline-block" />
+                            <ViewDocsLink
+                                className="mt-2 mb-5 inline-block"
+                                href="https://docs.0x.org/tx-relay-api/introduction"
+                            />
                             <img src="/assets/buildGaslessDApp.svg" alt="Gasless dApp" />
                         </div>
                         <div className="min-w-max">
                             <h3 className="font-sans text-base">Try Limit orders</h3>
-                            <ViewDocsLink className="mt-2 mb-5 inline-block" />
+                            <ViewDocsLink
+                                className="mt-2 mb-5 inline-block"
+                                href="https://docs.0x.org/0x-orderbook-api/introduction"
+                            />
                             <img src="/assets/tryLimitOrder.svg" alt="Limit order" />
                         </div>
                     </div>

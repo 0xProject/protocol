@@ -55,7 +55,7 @@ export const CopyButton = forwardRef<ElementRef<typeof Button>, CopyButtonProps>
         };
     }, [localButtonRef, clicked]);
 
-    const text = useTruncateMiddle({ text: children, maxLength: 16 });
+    const text = useTruncateMiddle({ text: children, maxLength: 14   });
 
     return (
         <Button

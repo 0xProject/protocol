@@ -1,4 +1,5 @@
 import * as Toolbar from '@radix-ui/react-toolbar';
+import { Link } from '@remix-run/react';
 import { ZeroExLogo } from '../icons/ZeroExLogo';
 import * as AppsDropdownMenu from './AppsDropdownMenu';
 import { Button } from './Button';
@@ -8,7 +9,7 @@ import { UserCircle } from '../icons/UserCircle';
 import { ChevronDown } from '../icons/ChevronDown';
 import { useCurrentApp } from '../hooks/useCurrentApp';
 import { HelpCircle } from '../icons/HelpCircle';
-
+import { AnchorButton } from './Button';
 import type { ClientApp } from '../types';
 
 type AppBarProps = {
@@ -21,9 +22,9 @@ export const AppBar = ({ apps, userEmail, userTeam }: AppBarProps) => {
 
     return (
         <Toolbar.Root className="border-grey-100 sticky top-0 z-10 flex min-h-[82px] items-center border-b border-solid bg-white py-4 px-8">
-            <div className="mr-7">
+            <Link className="mr-7" to="/apps">
                 <ZeroExLogo />
-            </div>
+            </Link>
             <AppsDropdownMenu.Root>
                 <Toolbar.Button asChild>
                     <AppsDropdownMenu.Trigger asChild>
@@ -37,14 +38,15 @@ export const AppBar = ({ apps, userEmail, userTeam }: AppBarProps) => {
 
             <div className="ml-auto grid grid-flow-col gap-x-4">
                 <Toolbar.Button asChild>
-                    <Button size="sm" color="transparent">
+                    <AnchorButton
+                        size="sm"
+                        color="transparent"
+                        href="https://docs.0x.org/"
+                        rel="noreferrer"
+                        target="_blank"
+                    >
                         See docs
-                    </Button>
-                </Toolbar.Button>
-                <Toolbar.Button asChild>
-                    <IconButton size="sm" color="grey" aria-label="Help" roundness="lg">
-                        <HelpCircle aria-hidden />
-                    </IconButton>
+                    </AnchorButton>
                 </Toolbar.Button>
                 <AccountDropdownMenu.Root>
                     <Toolbar.Button asChild>
