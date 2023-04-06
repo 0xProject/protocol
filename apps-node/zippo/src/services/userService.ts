@@ -167,13 +167,13 @@ export async function logout(input: z.infer<typeof zippoRouterDefinition.session
 }
 
 /**
- * Return session token information per user id
+ * Return session token information for a session ID
  *
- * @param input user id
+ * @param input session id
  */
 export async function getSession(input: z.infer<typeof zippoRouterDefinition.session.getSession.input>) {
     return prisma.session.findUnique({
-        where: { userId: input },
+        where: { sessionToken: input },
         select: sessionSelect,
     });
 }

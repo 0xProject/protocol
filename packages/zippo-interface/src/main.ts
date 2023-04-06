@@ -116,7 +116,7 @@ const app = z.object({
  */
 const session = z.object({
     id: z.string().cuid(),
-    sessionToken: z.string(),
+    sessionToken: z.string().cuid(),
     userId: z.string().cuid(),
     expires: z.date(),
 });
@@ -263,7 +263,7 @@ export const zippoRouterDefinition = {
         },
         getSession: {
             // Fetch a session token
-            input: z.string({ required_error: 'User Id is required' }).cuid().describe('Get session token for userId'),
+            input: z.string({ required_error: 'Session ID is required' }).cuid().describe('Get session token'),
             output: session.strip().nullable().describe('Returns session token info'),
             type: 'query',
         },

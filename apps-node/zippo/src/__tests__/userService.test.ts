@@ -17,6 +17,7 @@ import userFactory from './factories/userFactory';
 import sessionFactory from './factories/sessionFactory';
 import verificationTokenFactory from './factories/verificationTokenFactory';
 import { TZippoTier } from 'zippo-interface';
+import cuid from 'cuid';
 
 describe('userService', () => {
     beforeEach(async () => jest.resetAllMocks());
@@ -183,19 +184,18 @@ describe('userService', () => {
             const session = sessionFactory.build();
             prismaMock.session.findUnique.mockResolvedValue(session);
 
-            const result = getSession(session.user.id);
+            const result = getSession(session.sessionToken);
 
             expect(result).resolves.toBe(session);
-            expect(prismaMock.session.findUnique.mock.calls[0][0].where.userId).toEqual(session.userId);
+            expect(prismaMock.session.findUnique.mock.calls[0][0].where.sessionToken).toEqual(session.sessionToken);
         });
 
         test('no session exists', async () => {
             prismaMock.session.findUnique.mockResolvedValue(null);
 
-            const result = await getSession('user-id-with-no-session');
+            const result = await getSession(cuid());
 
             expect(result).toEqual(null);
-            expect(prismaMock.session.findUnique.mock.calls[0][0].where.userId).toEqual('user-id-with-no-session');
         });
     });
 
