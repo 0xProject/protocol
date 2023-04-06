@@ -22,8 +22,9 @@ model IntegratorTeam {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  users          User[]
-  integratorApps IntegratorApp[]
+  users                 User[]
+  integratorApps        IntegratorApp[]
+  IntegratorExternalApp IntegratorExternalApp[]
 
   @@map("integrator_teams")
 }
@@ -102,21 +103,42 @@ model VerificationToken {
 
 // Represents a logical unit of work by an integrator.
 model IntegratorApp {
-  id               String   @id @default(cuid()) @map("id")
-  integratorTeamId String   @map("integrator_team_id")
-  name             String   @map("name")
-  description      String?  @map("description")
-  affiliateAddress String?  @map("affiliate_address")
-  category         String?  @map("category")
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
+  id                      String   @id @default(cuid()) @map("id")
+  integratorTeamId        String   @map("integrator_team_id")
+  integratorExternalAppId String?  @map("integrator_external_app_id")
+  name                    String   @map("name")
+  description             String   @default("") @map("description")
+  affiliateAddress        String?  @map("affiliate_address")
+  category                String?  @map("category")
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
 
   apiKeys          IntegratorApiKey[]
   integratorAccess IntegratorAccess[]
 
-  integratorTeam IntegratorTeam @relation(fields: [integratorTeamId], references: [id], onDelete: Cascade)
+  integratorTeam        IntegratorTeam         @relation(fields: [integratorTeamId], references: [id], onDelete: Cascade)
+  integratorExternalApp IntegratorExternalApp? @relation(fields: [integratorExternalAppId], references: [id], onDelete: Cascade)
 
   @@map("integrator_apps")
+}
+
+// Represents an external rolled up group view of one or more IntegratorApps
+// This is the entity shown on 0x Explorer
+model IntegratorExternalApp {
+  id               String    @id @default(cuid()) @map("id")
+  integratorTeamId String    @map("integrator_team_id")
+  name             String    @map("name")
+  description      String    @default("") @map("description")
+  image            String?   @map("image")
+  approvedAt       DateTime? @map("approved_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  apps IntegratorApp[]
+
+  integratorTeam IntegratorTeam @relation(fields: [integratorTeamId], references: [id], onDelete: Cascade)
+
+  @@map("integrator_external_apps")
 }
 
 // An API key for access to 0x services

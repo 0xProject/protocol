@@ -19,6 +19,13 @@ import {
 } from './services/userService';
 import { create as teamCreate, getById as teamGetById, update as teamUpdate } from './services/teamService';
 import {
+    create as externalAppCreate,
+    list as externalAppList,
+    getById as externalAppGetById,
+    update as externalAppUpdate,
+    approve as externalAppApprove,
+} from './services/externalAppService';
+import {
     create as appCreate,
     list as appList,
     getById as appGetById,
@@ -130,6 +137,35 @@ const router = t.router({
             .mutation(async ({ input }) => {
                 const { id, ...parameters } = input;
                 return teamUpdate(id, parameters);
+            }),
+    }),
+    externalApp: t.router({
+        list: zippoProcedure
+            .input(zippoRouterDefinition.externalApp.list.input)
+            .output(zippoRouterDefinition.externalApp.list.output)
+            .query(({ input }) => externalAppList(input)),
+        getById: zippoProcedure
+            .input(zippoRouterDefinition.externalApp.getById.input)
+            .output(zippoRouterDefinition.externalApp.getById.output)
+            .query(({ input }) => externalAppGetById(input)),
+        create: zippoProcedure
+            .input(zippoRouterDefinition.externalApp.create.input)
+            .output(zippoRouterDefinition.externalApp.create.output)
+            .mutation(async ({ input }) => {
+                return externalAppCreate(input);
+            }),
+        update: zippoProcedure
+            .input(zippoRouterDefinition.externalApp.update.input)
+            .output(zippoRouterDefinition.externalApp.update.output)
+            .mutation(async ({ input }) => {
+                const { id, ...parameters } = input;
+                return externalAppUpdate(id, parameters);
+            }),
+        approve: zippoProcedure
+            .input(zippoRouterDefinition.externalApp.approve.input)
+            .output(zippoRouterDefinition.externalApp.approve.output)
+            .mutation(async ({ input }) => {
+                return externalAppApprove(input);
             }),
     }),
     app: t.router({

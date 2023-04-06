@@ -21,6 +21,7 @@ const defaultAppSelect = Prisma.validator<Prisma.IntegratorAppSelect>()({
     integratorTeamId: true,
     apiKeys: true,
     integratorAccess: true,
+    integratorExternalApp: true,
 });
 
 /**
@@ -65,8 +66,31 @@ export async function create(parameters: z.infer<typeof zippoRouterDefinition.ap
         throw new Error('Invalid team ID');
     }
 
+    const { integratorExternalAppId, integratorExternalApp, ...appParameters } = parameters;
+
+    let externalAppEntity;
+
+    // if we are given an explicit external app id - use that (if it exists in the db)
+    if (integratorExternalAppId) {
+        externalAppEntity = await prisma.integratorExternalApp.findUnique({
+            where: { id: integratorExternalAppId },
+        });
+        if (!externalAppEntity) {
+            throw new Error('Unable to find external app');
+        }
+        if (externalAppEntity.integratorTeamId !== integratorTeam.id) {
+            throw new Error('Cannot change to external app owned by another team');
+        }
+    }
+    // else if we are given external parameters - use those to create a new external app on the same team
+    if (!externalAppEntity && integratorExternalApp) {
+        externalAppEntity = await prisma.integratorExternalApp.create({
+            data: { ...integratorExternalApp, integratorTeamId: integratorTeam.id },
+        });
+    }
+
     const integratorApp = await prisma.integratorApp.create({
-        data: { ...parameters },
+        data: { ...appParameters, integratorExternalAppId: externalAppEntity ? externalAppEntity.id : null },
         select: defaultAppSelect,
     });
 
@@ -97,6 +121,21 @@ export async function update(
     id: z.output<typeof zippoRouterDefinition.app.update.input>['id'],
     parameters: Omit<z.infer<typeof zippoRouterDefinition.app.update.input>, 'id'>,
 ) {
+    if (parameters.integratorExternalAppId) {
+        const existingApp = await prisma.integratorApp.findUnique({
+            where: { id },
+        });
+        const existingExternalApp = await prisma.integratorExternalApp.findUnique({
+            where: { id: parameters.integratorExternalAppId },
+        });
+        if (!existingApp || !existingExternalApp) {
+            throw new Error('Unable to find app');
+        }
+        if (existingExternalApp.integratorTeamId !== existingApp.integratorTeamId) {
+            throw new Error('Cannot change to external app owned by another team');
+        }
+    }
+
     return prisma.integratorApp.update({
         where: { id },
         data: { ...parameters },

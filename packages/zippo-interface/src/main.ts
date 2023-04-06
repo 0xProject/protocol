@@ -72,6 +72,19 @@ const integratorAccess = z.object({
 });
 
 /**
+ * API representation the `IntegratorExternalApp` model in integrator-db prisma schema
+ */
+const externalApp = z.object({
+    id: z.string().cuid(),
+    name: z.string(),
+    description: z.string().nullable(),
+    image: z.string().nullable(),
+    createdAt: z.date(),
+    updatedAt: z.date(),
+    integratorTeamId: z.string().cuid(),
+});
+
+/**
  * API representation the `IntegratorApp` model in integrator-db prisma schema
  */
 const app = z.object({
@@ -85,6 +98,7 @@ const app = z.object({
     integratorTeamId: z.string().cuid(),
     apiKeys: z.array(apiKey),
     integratorAccess: z.array(integratorAccess),
+    integratorExternalApp: externalApp.nullable(),
 });
 
 /**
@@ -277,6 +291,50 @@ export const zippoRouterDefinition = {
             type: 'mutation',
         },
     },
+    externalApp: {
+        list: {
+            // Get a list of external apps for a given team
+            input: z.string().cuid().describe('The team ID'),
+            output: z.array(externalApp.strip().describe('The list of external apps')),
+            type: 'query',
+        },
+        getById: {
+            // Get an external app by its ID
+            input: z.string().cuid().describe('The external app ID'),
+            output: externalApp.strip().nullable().describe('The external app, or null if not found'),
+            type: 'query',
+        },
+        create: {
+            // Create a new external app
+            input: z.object({
+                integratorTeamId: z.string().cuid(),
+                name: z.string().min(1, { message: 'Name is required' }),
+                description: z.string().optional(),
+                image: z.string().optional(),
+            }),
+            output: externalApp.nullable().describe('The newly created external app'),
+            type: 'mutation',
+        },
+        update: {
+            // Update an existing external app
+            input: z
+                .object({
+                    name: z.string().min(1, { message: 'Name is required' }),
+                    description: z.string().optional(),
+                    image: z.string().optional(),
+                })
+                .partial()
+                .merge(z.object({ id: z.string().cuid().describe('The external app ID') })),
+            output: externalApp.nullable().describe('The updated external app'),
+            type: 'mutation',
+        },
+        approve: {
+            // Approve an existing external app
+            input: z.string().cuid().describe('The external app ID'),
+            output: externalApp.nullable().describe('The updated external app'),
+            type: 'mutation',
+        },
+    },
     app: {
         list: {
             // Get a list of apps for a given team
@@ -299,6 +357,14 @@ export const zippoRouterDefinition = {
                 affiliateAddress: z.string().optional(),
                 category: z.string().optional(),
                 apiKey: z.string().optional(),
+                integratorExternalAppId: z.string().cuid().optional(),
+                integratorExternalApp: z
+                    .object({
+                        name: z.string().min(1, { message: 'Name is required' }),
+                        description: z.string().optional(),
+                        image: z.string().url().optional(),
+                    })
+                    .optional(),
             }),
             output: app.nullable().describe('The newly created app'),
             type: 'mutation',
@@ -311,6 +377,7 @@ export const zippoRouterDefinition = {
                     description: z.string().optional(),
                     affiliateAddress: z.string().optional(),
                     category: z.string().optional(),
+                    integratorExternalAppId: z.string().cuid().optional(),
                 })
                 .partial()
                 .merge(z.object({ id: z.string().cuid().describe('The app ID') })),

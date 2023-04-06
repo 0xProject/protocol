@@ -13,6 +13,7 @@ import {
 import appFactory from './factories/appFactory';
 import apiKeyFactory from './factories/apiKeyFactory';
 import { TZippoRouteTag } from 'zippo-interface';
+import externalAppFactory from './factories/externalAppFactory';
 
 describe('appService', () => {
     beforeEach(() => jest.resetAllMocks());
@@ -57,6 +58,106 @@ describe('appService', () => {
 
             // confirm calls to prisma happened as expected
             expect(prismaMock.integratorApp.create.mock.calls[0][0].data.name).toEqual(app.name);
+        });
+
+        test('create an app with new external app', async () => {
+            const app = appFactory.build({ integratorExternalApp: {} });
+            const appWithKey = { ...app };
+            const apiKey = apiKeyFactory.build({ app: appWithKey });
+            appWithKey.apiKeys.push(apiKey);
+            if (!app.integratorExternalApp) {
+                throw new Error();
+            }
+
+            // mock prisma database access
+            prismaMock.integratorApp.create.mockResolvedValue(app);
+            prismaMock.integratorExternalApp.create.mockResolvedValue(app.integratorExternalApp);
+            prismaMock.integratorApiKey.create.mockResolvedValue(apiKey);
+            prismaMock.integratorApp.findUnique.mockResolvedValue(appWithKey);
+            prismaMock.integratorExternalApp.findUnique.mockResolvedValue(null);
+            prismaMock.integratorTeam.findUnique.mockResolvedValue(app.integratorTeam);
+
+            const result = await create({
+                name: app.name,
+                description: app.description as string,
+                integratorTeamId: app.integratorTeamId,
+                integratorExternalApp: {
+                    name: app.integratorExternalApp.name,
+                },
+            });
+
+            expect(result).toEqual(appWithKey);
+
+            // confirm calls to prisma happened as expected
+            expect(prismaMock.integratorApp.create.mock.calls[0][0].data.name).toEqual(app.name);
+            expect(prismaMock.integratorExternalApp.create.mock.calls[0][0].data.name).toEqual(
+                app.integratorExternalApp.name,
+            );
+        });
+
+        test('create an app with existing external app', async () => {
+            const externalApp = externalAppFactory.build();
+            const app = appFactory.build({
+                integratorExternalApp: externalApp,
+                integratorTeam: externalApp.integratorTeam,
+            });
+            const appWithKey = { ...app };
+            const apiKey = apiKeyFactory.build({ app: appWithKey });
+            appWithKey.apiKeys.push(apiKey);
+            if (!app.integratorExternalApp) {
+                throw new Error();
+            }
+
+            // mock prisma database access
+            prismaMock.integratorApp.create.mockResolvedValue(app);
+            prismaMock.integratorApiKey.create.mockResolvedValue(apiKey);
+            prismaMock.integratorApp.findUnique.mockResolvedValue(appWithKey);
+            prismaMock.integratorExternalApp.findUnique.mockResolvedValue(externalApp);
+            prismaMock.integratorTeam.findUnique.mockResolvedValue(app.integratorTeam);
+
+            const result = await create({
+                name: app.name,
+                description: app.description as string,
+                integratorTeamId: app.integratorTeamId,
+                integratorExternalAppId: externalApp.id,
+            });
+
+            expect(result).toEqual(appWithKey);
+
+            // confirm calls to prisma happened as expected
+            expect(prismaMock.integratorApp.create.mock.calls[0][0].data.name).toEqual(app.name);
+            expect(prismaMock.integratorApp.create.mock.calls[0][0].data.integratorExternalAppId).toEqual(
+                externalApp.id,
+            );
+        });
+
+        test('create an app with existing external app owned by another team', async () => {
+            const externalApp = externalAppFactory.build();
+            // by not specifying the team when creating the following app, it will be assigned a different
+            // team than the above external app
+            const app = appFactory.build({ integratorExternalApp: externalApp });
+            const appWithKey = { ...app };
+            const apiKey = apiKeyFactory.build({ app: appWithKey });
+            appWithKey.apiKeys.push(apiKey);
+            if (!app.integratorExternalApp) {
+                throw new Error();
+            }
+
+            // mock prisma database access
+            prismaMock.integratorApp.create.mockResolvedValue(app);
+            prismaMock.integratorApiKey.create.mockResolvedValue(apiKey);
+            prismaMock.integratorApp.findUnique.mockResolvedValue(appWithKey);
+            prismaMock.integratorExternalApp.findUnique.mockResolvedValue(externalApp);
+            prismaMock.integratorTeam.findUnique.mockResolvedValue(app.integratorTeam);
+
+            await expect(
+                create({
+                    name: app.name,
+                    description: app.description as string,
+                    integratorTeamId: app.integratorTeamId,
+                    integratorExternalAppId: externalApp.id,
+                }),
+            ).rejects.toThrow(Error);
         });
 
         test('create an app with explicit apiKey', async () => {
