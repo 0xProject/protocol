@@ -13,6 +13,7 @@
         "examples:client": "tsx examples/client.ts",
         "fix": "prettier --write .",
         "lint:ci": "prettier --check . && eslint .",
+        "start": "node -r dotenv/config __build__/main.js",
         "test:ci": "yarn test:forge && jest --runInBand --forceExit",
         "test:forge": "./../../turbo-bin.sh forge test",
         "test": "yarn test:forge && jest",
