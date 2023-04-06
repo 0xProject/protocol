@@ -62,7 +62,7 @@ export default function OptionSelect<T extends Option[]>({
             {!hiddenLabel && label && <Label htmlFor={id} label={label} />}
             <Select.Root name={name} onValueChange={onChange}>
                 <Select.Trigger
-                    className={twMerge(input({ error: isError }), className)}
+                    className={twMerge('items-center', input({ error: isError }), className)}
                     id={id}
                     aria-label={hiddenLabel ? label : undefined}
                 >

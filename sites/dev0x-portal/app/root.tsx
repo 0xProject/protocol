@@ -52,7 +52,7 @@ function App() {
             <Outlet />
             <script
                 dangerouslySetInnerHTML={{
-                    __html: `window.ENV = ${JSON.stringify(data.ENV)}`,
+                    __html: `window.PUBLIC_ENV = ${JSON.stringify(data.ENV)}`,
                 }}
             />
             <Scripts />
