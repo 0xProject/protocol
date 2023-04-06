@@ -66,7 +66,10 @@ auth.use(
             throw new AuthorizationError('Invalid credentials');
         }
 
-        const user = await loginWithEmailAndPassword({ email: parsed.data.email, password: parsed.data.password });
+        const user = await loginWithEmailAndPassword({
+            email: parsed.data.email.toLowerCase(),
+            password: parsed.data.password,
+        });
 
         if (user.result === 'ERROR') {
             throw new AuthorizationError('Invalid credentials');

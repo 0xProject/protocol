@@ -60,7 +60,9 @@ export async function action({ request }: ActionArgs) {
         return json({ errors: errors as Errors, values: body });
     }
 
-    const userResult = await getUserByEmail({ email: body.email });
+    const lowerCasedEmail = body.email.toLowerCase();
+
+    const userResult = await getUserByEmail({ email: lowerCasedEmail });
     if (userResult.result === 'SUCCESS') {
         return json({
             errors: {
@@ -82,7 +84,7 @@ export async function action({ request }: ActionArgs) {
     session.set('createAccount', {
         firstName: body.firstName,
         lastName: body.lastName,
-        email: body.email,
+        email: lowerCasedEmail,
     });
 
     throw redirect('/create-account/set-password', {
