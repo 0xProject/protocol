@@ -2,8 +2,7 @@ import Redis from 'ioredis';
 import { UniswapV3Pool } from 'pool-cache-interface';
 import { RedisCacheClient } from '../../cache/redis-cache-client';
 import { DOCKER_REDIS_URL, setupDependencies, TeardownDependenciesFn } from '../test-utils/dependencies';
-
-jest.setTimeout(1000 * 60);
+import { Counter } from 'prom-client';
 
 const POOL_A_B_500: UniswapV3Pool = {
     fee: 500,
@@ -34,6 +33,9 @@ describe('RedisCacheClient', () => {
     let redis: Redis;
     let client: RedisCacheClient;
 
+    const counterInc = jest.fn();
+    Counter.prototype.inc = counterInc;
+
     beforeAll(async () => {
         teardownDependenciesFn = await setupDependencies(['redis']);
         redis = new Redis(DOCKER_REDIS_URL);
@@ -49,6 +51,7 @@ describe('RedisCacheClient', () => {
     afterEach(async () => {
         // Remove all keys for the next test.
         await redis.flushall();
+        jest.clearAllMocks();
     });
 
     describe('set', () => {
@@ -139,6 +142,7 @@ describe('RedisCacheClient', () => {
                     },
                 ],
             });
+            expect(counterInc).toBeCalledWith({ result: 'hit' }, 2);
         });
 
         test('Returns pool cache from redis when it exists (indifferent to the token a/b order)', async () => {
@@ -170,6 +174,7 @@ describe('RedisCacheClient', () => {
                     },
                 ],
             });
+            expect(counterInc).toBeCalledWith({ result: 'hit' }, 1);
         });
 
         test('Returns pool cache with null timestamp if it does not exist', async () => {
@@ -195,6 +200,7 @@ describe('RedisCacheClient', () => {
                     { tokenA: 'c', tokenB: 'd' }, // cache miss
                 ],
             });
+
             expect(output).toEqual({
                 uniswapV3Cache: [
                     {
@@ -207,6 +213,8 @@ describe('RedisCacheClient', () => {
                     },
                 ],
             });
+            expect(counterInc).toBeCalledWith({ result: 'hit' }, 1);
+            expect(counterInc).toBeCalledWith({ result: 'miss' }, 1);
         });
     });
 });

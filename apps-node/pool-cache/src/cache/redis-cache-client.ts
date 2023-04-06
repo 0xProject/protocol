@@ -3,6 +3,13 @@ import Redis from 'ioredis';
 import { toUniswapV3Key } from './keys';
 import * as _ from 'lodash';
 import { CacheClient } from './types';
+import { Counter } from 'prom-client';
+
+const REDIS_CACHE_LOOKUP = new Counter({
+    name: 'redis_cache_lookups',
+    help: 'The Redis cache lookup count.',
+    labelNames: ['result'] as const,
+});
 
 export class RedisCacheClient implements CacheClient {
     redis: Redis;
@@ -27,6 +34,15 @@ export class RedisCacheClient implements CacheClient {
         const uniswapKeys = input.uniswapV3Pairs.map((pair) => toUniswapV3Key(input.chainId, pair));
 
         const uniswapValues = await this.redis.mget(uniswapKeys);
+
+        const cacheHitCount = uniswapValues.filter((value) => value !== null).length;
+        const cacheMissCount = uniswapValues.length - cacheHitCount;
+        if (cacheHitCount > 0) {
+            REDIS_CACHE_LOOKUP.inc({ result: 'hit' }, cacheHitCount);
+        }
+        if (cacheMissCount > 0) {
+            REDIS_CACHE_LOOKUP.inc({ result: 'miss' }, cacheMissCount);
+        }
 
         return {
             uniswapV3Cache: uniswapValues.map(RedisCacheClient.toUniswapV3PoolCache),
