@@ -11,6 +11,8 @@ export const NO_TEAM_MARKER = '__not_init' as const;
 
 export type ZippoApp = NonNullable<RouterOutputs['app']['getById']>;
 
+export type OnChainTagParams = Rename<RouterInputs['externalApp']['create'], { integratorTeamId: 'teamId' }>;
+
 const zippoAppToClientApp = (zippoApp: ZippoApp): ClientApp => {
     return {
         id: zippoApp.id,
@@ -19,6 +21,7 @@ const zippoAppToClientApp = (zippoApp: ZippoApp): ClientApp => {
         apiKeys: zippoApp.apiKeys,
         teamId: zippoApp.integratorTeamId,
         productAccess: zippoApp.integratorAccess.map((access) => access.routeTag as TZippoRouteTag),
+        onChainTag: zippoApp.integratorExternalApp ? { name: zippoApp.integratorExternalApp.name } : undefined,
     };
 };
 
@@ -362,10 +365,26 @@ export async function getTeam({
 export async function createApp({
     appName,
     teamId,
+    onChainTag,
+    onChainTagId,
     ...rest
-}: Rename<RouterInputs['app']['create'], { integratorTeamId: 'teamId'; name: 'appName' }>): Promise<Result<ClientApp>> {
+}: Rename<
+    RouterInputs['app']['create'],
+    {
+        integratorTeamId: 'teamId';
+        name: 'appName';
+        integratorExternalApp: 'onChainTag';
+        integratorExternalAppId: 'onChainTagId';
+    }
+>): Promise<Result<ClientApp>> {
     try {
-        const app = await client.app.create.mutate({ integratorTeamId: teamId, name: appName, ...rest });
+        const app = await client.app.create.mutate({
+            integratorTeamId: teamId,
+            name: appName,
+            integratorExternalApp: onChainTag,
+            integratorExternalAppId: onChainTagId,
+            ...rest,
+        });
 
         if (!app) {
             return {
@@ -390,7 +409,9 @@ export async function createApp({
 export async function updateApp({
     appId,
     ...rest
-}: Rename<RouterInputs['app']['update'], { id: 'appId' }>): Promise<Result<ClientApp>> {
+}: Rename<RouterInputs['app']['update'], { id: 'appId'; integratorExternalAppId: 'onChainTagId' }>): Promise<
+    Result<ClientApp>
+> {
     try {
         const app = await client.app.update.mutate({ id: appId, ...rest });
         if (!app) {
@@ -409,6 +430,31 @@ export async function updateApp({
         return {
             result: 'ERROR',
             error: new Error('Unknown error'),
+        };
+    }
+}
+
+export async function createOnChainTag({
+    teamId,
+    ...rest
+}: OnChainTagParams): Promise<Result<Awaited<Exclude<RouterOutputs['externalApp']['create'], null>>>> {
+    try {
+        const externalApp = await client.externalApp.create.mutate({ integratorTeamId: teamId, ...rest });
+        if (!externalApp) {
+            return {
+                result: 'ERROR',
+                error: new Error('Failed to create external app'),
+            };
+        }
+        return {
+            result: 'SUCCESS',
+            data: externalApp,
+        };
+    } catch (e) {
+        console.warn(e);
+        return {
+            result: 'ERROR',
+            error: new Error('Unknown error while creating onchain tag'),
         };
     }
 }

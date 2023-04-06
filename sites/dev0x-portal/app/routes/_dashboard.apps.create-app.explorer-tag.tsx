@@ -2,12 +2,12 @@ import { Form, useActionData, useLoaderData, useNavigation, useSubmit } from '@r
 import type { ActionArgs, LoaderArgs } from '@remix-run/server-runtime';
 import { json, redirect } from '@remix-run/server-runtime';
 import { useCallback, useRef, useState } from 'react';
-import { TZippoRouteTag } from 'zippo-interface';
 import { z } from 'zod';
 import { getSignedInUser, sessionStorage } from '../auth.server';
 import { BackButton } from '../components/BackButton';
 import { Button } from '../components/Button';
 import { TextInput } from '../components/TextInput';
+import type { OnChainTagParams } from '../data/zippo.server';
 import { addProvisionAccess, createApp, getTeam } from '../data/zippo.server';
 import { ArrowNarrowRight } from '../icons/ArrowNarrowRight';
 import type { CreateAppFlowType, ErrorWithGeneral } from '../types';
@@ -68,7 +68,21 @@ export async function action({ request }: ActionArgs) {
         return json({ errors: { general: 'Error getting team' } as Errors, values: body });
     }
 
-    const res = await createApp({ appName: previousData.appName, teamId: teamRes.data.id });
+    let onChainTag: OnChainTagParams | undefined = undefined;
+
+    if (!body.skipped) {
+        onChainTag = {
+            name: body.tagName as string,
+            teamId: teamRes.data.id,
+        };
+    }
+
+    const res = await createApp({
+        appName: previousData.appName,
+        teamId: teamRes.data.id,
+        onChainTag,
+        onChainTagId: undefined,
+    });
 
     if (res.result === 'ERROR') {
         return json({ errors: { general: 'Error creating app' } as Errors, values: body });

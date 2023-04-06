@@ -1,12 +1,12 @@
 import { json, redirect } from '@remix-run/node';
 import { Outlet, useLoaderData } from '@remix-run/react';
-import { getSignedInUser, sessionStorage } from '../auth.server';
+import { getSignedInUser } from '../auth.server';
 import { AppBar } from '../components/AppBar';
-import { appsList, createApp, NO_TEAM_MARKER } from '../data/zippo.server';
+import { addProvisionAccess, appsList, createApp, NO_TEAM_MARKER } from '../data/zippo.server';
 
 import type { LoaderArgs, MetaFunction } from '@remix-run/node';
 import type { ClientApp } from '../types';
-import { enhanceAppWithMockedData } from '../utils/utils.server';
+import { TZippoRouteTag } from 'zippo-interface';
 
 export type AppsOutletContext = {
     apps: ClientApp[];
@@ -22,7 +22,6 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 export const loader = async ({ request, params }: LoaderArgs) => {
     const [user, headers] = await getSignedInUser(request);
     if (!user) throw redirect('/login'); // shouldn't happen
-    const session = await sessionStorage.getSession(request.headers.get('Cookie'));
 
     if (user.teamName === NO_TEAM_MARKER) {
         throw redirect('/create-account/create-team', { headers });
@@ -39,13 +38,25 @@ export const loader = async ({ request, params }: LoaderArgs) => {
             appName: 'Demo App',
             description: '__test_key',
             teamId: user.teamId,
+            onChainTag: undefined,
+            onChainTagId: undefined,
         });
         if (result.result === 'SUCCESS') {
             demoApp = result.data;
+            // Add access to swap-api and orderbook-api
+            const accessResult = await addProvisionAccess({
+                appId: result.data.id,
+                routeTags: [TZippoRouteTag.SwapV1, TZippoRouteTag.OrderbookV1],
+                rateLimits: [{ second: 2 }, { second: 2 }],
+            });
+
+            if (accessResult.result === 'ERROR') {
+                console.error(`Error while adding access to demo app: ${accessResult.error}`);
+            }
         }
     }
 
-    const apps = (demoApp ? [...list.data, demoApp] : list.data).map((app) => enhanceAppWithMockedData(app, session));
+    const apps = demoApp ? [...list.data, demoApp] : list.data;
 
     return json(
         {

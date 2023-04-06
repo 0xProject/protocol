@@ -6,7 +6,7 @@ export type ClientApp = Rename<
     Pick<ZippoApp, 'id' | 'description' | 'integratorTeamId' | 'name' | 'apiKeys'>,
     { integratorTeamId: 'teamId' }
 > & {
-    onChainTag?: { name: string; color: string };
+    onChainTag?: { name: string; color?: string };
     productAccess?: TZippoRouteTag[];
     brandColor?: string;
 };
@@ -27,10 +27,10 @@ export type CreateAppFlowType = [
     { appName: string; products: string[] },
     (
         | {
-            skipped: false;
-            tagName: string;
-            //@TODO add logo
-        }
+              skipped: false;
+              tagName: string;
+              //@TODO add logo
+          }
         | { skipped: true }
     ),
     {
@@ -61,9 +61,8 @@ type Remap<T extends Record<string, any>, PM extends keyof T, M extends Record<P
  */
 export type Rename<T extends Record<string, any>, M extends RenameRecord<T>> = Simplify<
     Omit<T, keyof M extends string ? keyof M : never> &
-    Remap<T, keyof M extends string ? keyof M : never, M extends Record<string, string> ? M : never>
+        Remap<T, keyof M extends string ? keyof M : never, M extends Record<string, string> ? M : never>
 >;
-
 
 export type PUBLIC_ENV = {
     SENTRY_DSN: string;

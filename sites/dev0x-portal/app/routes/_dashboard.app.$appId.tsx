@@ -8,13 +8,12 @@ import { Settings4 } from '../icons/Settings4';
 import { GoToExplorer } from '../components/GoToExplorer';
 import { SwapCodeBlock } from '../components/SwapCodeBlock';
 import { getAppById } from '../data/zippo.server';
-import { sessionStorage } from '../auth.server';
-import { enhanceAppWithMockedData } from '../utils/utils.server';
 
 import type { LoaderArgs, MetaFunction } from '@remix-run/node';
 import type { ComponentPropsWithoutRef } from 'react';
 import type { ClientApp } from '../types';
 import { ZIPPO_ROUTE_TAG_TO_PRODUCT } from '../utils/utils';
+import type { TZippoRouteTag } from 'zippo-interface';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return {
@@ -26,8 +25,6 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 export const loader = async ({ params, request }: LoaderArgs) => {
     if (!params.appId) throw redirect('/apps');
 
-    const session = await sessionStorage.getSession(request.headers.get('Cookie'));
-
     const app = await getAppById(params.appId);
 
     if (app.result === 'ERROR') {
@@ -35,7 +32,7 @@ export const loader = async ({ params, request }: LoaderArgs) => {
     }
 
     return json({
-        app: enhanceAppWithMockedData(app.data, session),
+        app: app.data,
     });
 };
 
@@ -71,8 +68,8 @@ export default function AppDashboard() {
                             )}
                         </div>
                         <div className="mt-2 grid auto-cols-max grid-flow-col gap-4">
-                            {(app.productAccess || []).map((product) => {
-                                const { name, color } = ZIPPO_ROUTE_TAG_TO_PRODUCT[product] || {};
+                            {(app.productAccess || []).map((product: string) => {
+                                const { name, color } = ZIPPO_ROUTE_TAG_TO_PRODUCT[product as TZippoRouteTag] || {};
 
                                 if (!name || !color) {
                                     console.warn('Invalid product', product);

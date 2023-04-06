@@ -13,11 +13,11 @@ import { PRODUCT_TO_ZIPPO_ROUTE_TAG, ZIPPO_ROUTE_TAG_TO_PRODUCT, validateFormDat
 import type { ActionArgs, LoaderArgs } from '@remix-run/server-runtime';
 import { redirect } from '@remix-run/server-runtime';
 import { json } from '@remix-run/server-runtime';
-import { generateNonce, storeMockForApp } from '../utils/utils.server';
+import { generateNonce } from '../utils/utils.server';
 import { sessionStorage } from '../auth.server';
 import { z } from 'zod';
 import type { ErrorWithGeneral } from '../types';
-import { getAppById, updateProvisionAccess } from '../data/zippo.server';
+import { createOnChainTag, getAppById, updateApp, updateProvisionAccess } from '../data/zippo.server';
 import { getSignedInUser } from '../auth.server';
 import { Alert } from '../components/Alert';
 import * as AppSettingsConfirmDialog from '../components/AppSettingsConfirmDialog';
@@ -107,16 +107,34 @@ export async function action({ request, params }: ActionArgs) {
         );
     }
 
+    let onChainTagId: string | undefined;
+
     if (body.tagName && !returnedApp.data.onChainTag) {
-        // we need to update the tag name
-        storeMockForApp(
-            {
-                tagName: body.tagName,
-                id: updateResult.data.id,
-            },
-            session,
-        );
-        headers.set('Set-Cookie', await sessionStorage.commitSession(session));
+        const onChainTagRes = await createOnChainTag({
+            name: body.tagName,
+            teamId: user.teamId,
+        });
+
+        if (onChainTagRes.result === 'ERROR') {
+            return json({
+                errors: { general: 'Error creating the onchain tag, please try again later' } as Errors,
+                values: body,
+            });
+        }
+        onChainTagId = onChainTagRes.data.id;
+    }
+
+    if (onChainTagId || returnedApp.data.name !== body.name) {
+        const updateResult = await updateApp({ appId: returnedApp.data.id, name: body.name, onChainTagId });
+        if (updateResult.result === 'ERROR') {
+            return json(
+                {
+                    errors: { general: 'Error persisting updated information, please try again later' } as Errors,
+                    values: body,
+                },
+                { headers },
+            );
+        }
     }
 
     throw redirect(`/app/${params.appId}`, { headers });

@@ -9,9 +9,8 @@ import { Button } from '../components/Button';
 import { IconButton } from '../components/IconButton';
 import { ArrowNarrowRight } from '../icons/ArrowNarrowRight';
 import type { CreateAppFlowType } from '../types';
-import { makeMultipageHandler, storeMockForApp } from '../utils/utils.server';
+import { makeMultipageHandler } from '../utils/utils.server';
 import { CloseContext } from './_dashboard.apps.create-app';
-import { PRODUCT_TO_ZIPPO_ROUTE_TAG } from '../utils/utils';
 
 export async function action({ request }: ActionArgs) {
     const session = await sessionStorage.getSession(request.headers.get('Cookie'));
@@ -50,24 +49,9 @@ export async function loader({ request }: LoaderArgs) {
         throw redirect('/apps/create-app/explorer-tag');
     }
 
-    storeMockForApp(
-        {
-            tagName: pageTwoData.skipped ? undefined : pageTwoData.tagName,
-            id: pageThreeData.appId,
-        },
-        session,
-    );
-
-    return json(
-        {
-            apiKey: pageThreeData.apiKey,
-        },
-        {
-            headers: {
-                'Set-Cookie': await sessionStorage.commitSession(session),
-            },
-        },
-    );
+    return json({
+        apiKey: pageThreeData.apiKey,
+    });
 }
 
 export default function ExplorerTag() {
