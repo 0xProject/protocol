@@ -19,16 +19,10 @@ import { pairUtils } from './pair_utils';
 import { S3Client } from './s3_client';
 import { schemaUtils } from './schema_utils';
 
-const SLIPPAGE_MODEL_FILE_STALE = new Counter({
-    name: 'slippage_model_file_stale',
-    help: 'Slippage model file in S3 goes stale',
-    labelNames: ['bucket', 'fileName'],
-});
-
-const SLIPPAGE_MODEL_FILE_NOT_FOUND = new Counter({
-    name: 'slippage_model_file_not_found',
-    help: 'Unable to find slippage model file in s3',
-    labelNames: ['bucket', 'fileName'],
+const SLIPPAGE_MODEL_LOAD_STATUS = new Counter({
+    name: 'slippage_model_load_status',
+    help: 'Status for loading slippage model from S3',
+    labelNames: ['status', 'chainId'],
 });
 
 export interface SlippageModel {
@@ -242,7 +236,7 @@ export class SlippageModelManager {
 
             // If the file does not exist, reset the in-memory cache
             if (!doesFileExist) {
-                SLIPPAGE_MODEL_FILE_NOT_FOUND.labels(bucket, fileName).inc();
+                SLIPPAGE_MODEL_LOAD_STATUS.labels('error', CHAIN_ID.toString()).inc();
                 this._resetCache();
                 return;
             }
@@ -252,7 +246,7 @@ export class SlippageModelManager {
             // counter to potentially trigger an alert.
             if (lastModified < new Date(refreshTime.getTime() - SLIPPAGE_MODEL_S3_FILE_VALID_INTERVAL_MS)) {
                 logger.warn({ bucket, fileName, refreshTime }, `Slippage model file is stale.`);
-                SLIPPAGE_MODEL_FILE_STALE.labels(bucket, fileName).inc();
+                SLIPPAGE_MODEL_LOAD_STATUS.labels('error', CHAIN_ID.toString()).inc();
                 this._resetCache();
                 return;
             }
@@ -268,9 +262,11 @@ export class SlippageModelManager {
             const { content, lastModified: lastRefreshed } = await this._s3Client.getFileContentAsync(bucket, fileName);
             this._cachedSlippageModel = createSlippageModelCache(content, { bucket, fileName, refreshTime });
             this._lastRefreshed = lastRefreshed;
+            SLIPPAGE_MODEL_LOAD_STATUS.labels('ok', CHAIN_ID.toString()).inc();
 
             logger.info({ bucket, fileName, refreshTime }, `Successfully refreshed slippage models.`);
         } catch (error) {
+            SLIPPAGE_MODEL_LOAD_STATUS.labels('error', CHAIN_ID.toString()).inc();
             logger.error(
                 { bucket, fileName, refreshTime, errorMessage: error.message, errorCode: error.code },
                 `Failed to refresh slippage models.`,
