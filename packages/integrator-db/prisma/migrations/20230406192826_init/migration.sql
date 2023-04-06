@@ -3,6 +3,8 @@ CREATE TABLE "integrator_teams" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "image" TEXT,
+    "product_type" TEXT NOT NULL,
+    "tier" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -13,10 +15,13 @@ CREATE TABLE "integrator_teams" (
 CREATE TABLE "users" (
     "id" TEXT NOT NULL,
     "integrator_team_id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
+    "first_name" TEXT NOT NULL DEFAULT '',
+    "last_name" TEXT NOT NULL DEFAULT '',
     "email" TEXT,
     "email_verified_at" TIMESTAMP(3),
     "image" TEXT,
+    "password_hash" TEXT NOT NULL,
+    "salt" TEXT NOT NULL,
     "last_login_at" TIMESTAMP(3),
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
@@ -54,23 +59,42 @@ CREATE TABLE "sessions" (
 
 -- CreateTable
 CREATE TABLE "verification_tokens" (
-    "identifier" TEXT NOT NULL,
-    "token" TEXT NOT NULL,
-    "expires" TIMESTAMP(3) NOT NULL
+    "id" TEXT NOT NULL,
+    "verification_token" TEXT NOT NULL,
+    "user_email" TEXT NOT NULL,
+    "expires" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "verification_tokens_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "integrator_apps" (
     "id" TEXT NOT NULL,
     "integrator_team_id" TEXT NOT NULL,
+    "integrator_external_app_id" TEXT,
     "name" TEXT NOT NULL,
-    "description" TEXT,
+    "description" TEXT NOT NULL DEFAULT '',
     "affiliate_address" TEXT,
+    "legacy_integrator_id" TEXT,
     "category" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "integrator_apps_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "integrator_external_apps" (
+    "id" TEXT NOT NULL,
+    "integrator_team_id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL DEFAULT '',
+    "image" TEXT,
+    "approved_at" TIMESTAMP(3),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "integrator_external_apps_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -107,10 +131,13 @@ CREATE UNIQUE INDEX "accounts_provider_provider_account_id_key" ON "accounts"("p
 CREATE UNIQUE INDEX "sessions_session_token_key" ON "sessions"("session_token");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "verification_tokens_token_key" ON "verification_tokens"("token");
+CREATE UNIQUE INDEX "sessions_user_id_key" ON "sessions"("user_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "verification_tokens_identifier_token_key" ON "verification_tokens"("identifier", "token");
+CREATE UNIQUE INDEX "verification_tokens_verification_token_key" ON "verification_tokens"("verification_token");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "verification_tokens_user_email_key" ON "verification_tokens"("user_email");
 
 -- AddForeignKey
 ALTER TABLE "users" ADD CONSTRAINT "users_integrator_team_id_fkey" FOREIGN KEY ("integrator_team_id") REFERENCES "integrator_teams"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -122,7 +149,16 @@ ALTER TABLE "accounts" ADD CONSTRAINT "accounts_user_id_fkey" FOREIGN KEY ("user
 ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "verification_tokens" ADD CONSTRAINT "verification_tokens_user_email_fkey" FOREIGN KEY ("user_email") REFERENCES "users"("email") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "integrator_apps" ADD CONSTRAINT "integrator_apps_integrator_team_id_fkey" FOREIGN KEY ("integrator_team_id") REFERENCES "integrator_teams"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "integrator_apps" ADD CONSTRAINT "integrator_apps_integrator_external_app_id_fkey" FOREIGN KEY ("integrator_external_app_id") REFERENCES "integrator_external_apps"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "integrator_external_apps" ADD CONSTRAINT "integrator_external_apps_integrator_team_id_fkey" FOREIGN KEY ("integrator_team_id") REFERENCES "integrator_teams"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "integrator_api_keys" ADD CONSTRAINT "integrator_api_keys_integrator_app_id_fkey" FOREIGN KEY ("integrator_app_id") REFERENCES "integrator_apps"("id") ON DELETE CASCADE ON UPDATE CASCADE;
