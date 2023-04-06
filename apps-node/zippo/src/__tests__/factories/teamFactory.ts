@@ -10,5 +10,5 @@ export default Factory.define<IntegratorTeam>(({ sequence }) => ({
     updatedAt: new Date(),
     image: faker.image.imageUrl(),
     productType: 'DEX',
-    tier: faker.lorem.word(),
+    tier: 'dev',
 }));

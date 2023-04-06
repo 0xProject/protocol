@@ -3,7 +3,7 @@ import prisma from '../prisma';
 import { z } from 'zod';
 import cuid from 'cuid';
 import { addMinutes, addDays } from 'date-fns';
-import { zippoRouterDefinition } from 'zippo-interface';
+import { TZippoTier, zippoRouterDefinition } from 'zippo-interface';
 import { validatePassword, verifyPassword } from '../utils/passwordUtils';
 import mailgunClient from '../mailgun';
 import { env } from '../env';
@@ -97,6 +97,7 @@ export async function create(input: z.infer<typeof zippoRouterDefinition.user.cr
             data: {
                 name: '__not_init',
                 productType: '__not_init',
+                tier: 'dev',
             },
         });
     }

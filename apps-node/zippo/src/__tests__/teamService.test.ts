@@ -1,6 +1,7 @@
 import { prismaMock } from './mocks/prismaMock';
 import { getById, create, update } from '../services/teamService';
 import teamFactory from './factories/teamFactory';
+import { TZippoTier } from 'zippo-interface';
 
 describe('teamService', () => {
     beforeEach(async () => jest.resetAllMocks());
@@ -28,6 +29,7 @@ describe('teamService', () => {
                 name: team.name,
                 image: team.image as string,
                 productType: team.productType,
+                tier: team.tier as TZippoTier,
             }),
         ).resolves.toEqual(team);
 

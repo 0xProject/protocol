@@ -1,7 +1,7 @@
 import { Prisma } from 'integrator-db';
 import prisma from '../prisma';
 import { z } from 'zod';
-import { zippoRouterDefinition } from 'zippo-interface';
+import { TZippoTier, zippoRouterDefinition } from 'zippo-interface';
 
 const defaultTeamSelect = Prisma.validator<Prisma.IntegratorTeamSelect>()({
     id: true,

@@ -17,6 +17,9 @@ export interface TZippoRateLimit {
     day?: number;
 }
 
+const tierModel = z.enum(['dev', 'growth', 'enterprise']);
+export type TZippoTier = z.infer<typeof tierModel>;
+
 /**
  * API representation the `User` model in integrator-db prisma schema
  */
@@ -133,7 +136,7 @@ export const zippoRouterDefinition = {
                             name: z.string().min(1, { message: 'Name is required' }),
                             image: z.string().url().optional(),
                             productType: z.string().min(1, { message: 'Product type is required' }),
-                            tier: z.string().optional(),
+                            tier: tierModel.optional().default('dev'),
                         })
                         .optional(),
                 })
@@ -254,7 +257,7 @@ export const zippoRouterDefinition = {
                 name: z.string().min(1, { message: 'Name is required' }),
                 image: z.string().url().optional(),
                 productType: z.string().min(1, { message: 'Project type is required' }),
-                tier: z.string().optional(),
+                tier: tierModel.optional().default('dev'),
             }),
             output: team.strip().nullable().describe('The newly created team'),
             type: 'mutation',
@@ -266,7 +269,7 @@ export const zippoRouterDefinition = {
                     name: z.string().min(1).optional(),
                     image: z.string().url().optional(),
                     productType: z.string().optional(),
-                    tier: z.string().optional(),
+                    tier: tierModel.optional(),
                 })
                 .partial()
                 .merge(z.object({ id: z.string().cuid().describe('The team ID') })),

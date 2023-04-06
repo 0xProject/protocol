@@ -16,6 +16,7 @@ import { validatePassword, verifyPassword } from '../utils/passwordUtils';
 import userFactory from './factories/userFactory';
 import sessionFactory from './factories/sessionFactory';
 import verificationTokenFactory from './factories/verificationTokenFactory';
+import { TZippoTier } from 'zippo-interface';
 
 describe('userService', () => {
     beforeEach(async () => jest.resetAllMocks());
@@ -109,6 +110,7 @@ describe('userService', () => {
                 integratorTeam: {
                     name: user.integratorTeam.name,
                     productType: user.integratorTeam.productType,
+                    tier: user.integratorTeam.tier as TZippoTier,
                 },
             });
 
