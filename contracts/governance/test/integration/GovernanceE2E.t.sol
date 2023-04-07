@@ -354,4 +354,101 @@ contract GovernanceE2ETest is BaseTest {
             assertEq(weth.balanceOf(delegator), balanceBeforeReward + reward);
         }
     }
+
+    function testSwitchDelegationInCatastrophicMode() public {
+        // Enter catastrophic failure mode on the zrx vault
+        vm.prank(STAKING_AND_VAULT_OWNER);
+        vault.enterCatastrophicFailure();
+
+        // 0x delegator
+        address delegator = 0x5775afA796818ADA27b09FaF5c90d101f04eF600;
+
+        uint256 stake = vault.balanceOf(delegator);
+        uint256 balance = token.balanceOf(delegator);
+        assertGt(stake, 0);
+
+        // Withdraw stake all at once
+        vm.startPrank(delegator);
+        vault.withdrawAllFrom(delegator);
+
+        assertEq(vault.balanceOf(delegator), 0);
+        assertEq(token.balanceOf(delegator), stake + balance);
+
+        // delegate 1M ZRX to 0x4990cE223209FCEc4ec4c1ff6E0E81eebD8Cca08
+        vm.roll(block.number + 1);
+        address delegate = 0x4990cE223209FCEc4ec4c1ff6E0E81eebD8Cca08;
+        uint256 amountToDelegate = 1000000e18;
+
+        // Approve the wrapped token and deposit 1m ZRX
+        token.approve(address(wToken), amountToDelegate);
+        wToken.depositFor(delegator, amountToDelegate);
+
+        assertEq(wToken.balanceOf(delegator), amountToDelegate);
+
+        vm.roll(block.number + 1);
+        wToken.delegate(delegate);
+        vm.stopPrank();
+
+        assertEq(votes.getVotes(delegate), amountToDelegate);
+        assertEq(votes.getQuadraticVotes(delegate), amountToDelegate);
+    }
+
+    function testSwitchDelegationInNormalOperationMode() public {
+        // 0x delegator
+        address delegator = 0x5775afA796818ADA27b09FaF5c90d101f04eF600;
+        uint256 balance = token.balanceOf(delegator);
+
+        // Undelegate stake from pool 0x35
+        vm.startPrank(delegator);
+        staking.moveStake(
+            IStructs.StakeInfo(
+                IStructs.StakeStatus.DELEGATED,
+                0x0000000000000000000000000000000000000000000000000000000000000035
+            ),
+            IStructs.StakeInfo(IStructs.StakeStatus.UNDELEGATED, bytes32(0)),
+            3000000000000000000000000
+        );
+
+        // Undelegate stake from pool 0x38
+        IStructs.StoredBalance memory storedBalance38 = staking.getStakeDelegatedToPoolByOwner(
+            delegator,
+            0x0000000000000000000000000000000000000000000000000000000000000038
+        );
+        staking.moveStake(
+            IStructs.StakeInfo(
+                IStructs.StakeStatus.DELEGATED,
+                0x0000000000000000000000000000000000000000000000000000000000000038
+            ),
+            IStructs.StakeInfo(IStructs.StakeStatus.UNDELEGATED, bytes32(0)),
+            storedBalance38.currentEpochBalance
+        );
+
+        // Warp past an epochs and unstake
+        uint256 epochEndTime = staking.getCurrentEpochEarliestEndTimeInSeconds();
+        vm.warp(epochEndTime + 1);
+        staking.endEpoch();
+
+        staking.unstake(6000000000000000000000000);
+        vm.stopPrank();
+
+        assertEq(token.balanceOf(delegator), balance + 2 * 3000000000000000000000000);
+
+        // delegate 1M ZRX to 0x4990cE223209FCEc4ec4c1ff6E0E81eebD8Cca08
+        vm.roll(block.number + 1);
+        address delegate = 0x4990cE223209FCEc4ec4c1ff6E0E81eebD8Cca08;
+        uint256 amountToDelegate = 1000000e18;
+
+        // Approve the wrapped token and deposit 1m ZRX
+        token.approve(address(wToken), amountToDelegate);
+        wToken.depositFor(delegator, amountToDelegate);
+
+        assertEq(wToken.balanceOf(delegator), amountToDelegate);
+
+        vm.roll(block.number + 1);
+        wToken.delegate(delegate);
+        vm.stopPrank();
+
+        assertEq(votes.getVotes(delegate), amountToDelegate);
+        assertEq(votes.getQuadraticVotes(delegate), amountToDelegate);
+    }
 }
