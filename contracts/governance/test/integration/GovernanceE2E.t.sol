@@ -359,7 +359,6 @@ contract GovernanceE2ETest is BaseTest {
         // Enter catastrophic failure mode on the zrx vault
         vm.prank(STAKING_AND_VAULT_OWNER);
         vault.enterCatastrophicFailure();
-        vm.stopPrank();
 
         // 0x delegator
         address delegator = 0x5775afA796818ADA27b09FaF5c90d101f04eF600;
