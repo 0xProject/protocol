@@ -1,0 +1,40 @@
+{
+    "name": "dev-utils-deprecated",
+    "version": "0.0.0",
+    "description": "Migrated from 0xProject/tools at version 5.0.1",
+    "license": "UNLICENSED",
+    "main": "__build__/index.js",
+    "types": "__build__/index.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "fix": "prettier --write .",
+        "lint:ci": "prettier --check . && eslint .",
+        "run_mocha": "mocha --require source-map-support/register --require make-promises-safe __build__/test/**/*_test.js --bail --exit",
+        "test:ci": "yarn run_mocha"
+    },
+    "dependencies": {
+        "@0x/subproviders": "^7.0.1",
+        "@0x/types": "^3.3.7",
+        "@0x/typescript-typings": "^5.3.2",
+        "@0x/utils": "^7.0.0",
+        "@0x/web3-wrapper": "^8.0.0",
+        "@types/node": "^18.11.0",
+        "@types/web3-provider-engine": "^14.0.0",
+        "chai": "^4.0.1",
+        "chai-as-promised": "^7.1.0",
+        "chai-bignumber": "^3.0.0",
+        "dirty-chai": "^2.0.1",
+        "ethereum-types": "^3.7.1",
+        "web3-provider-engine": "16.0.4"
+    },
+    "devDependencies": {
+        "@0x/ts-doc-gen": "^0.0.28",
+        "@types/lodash": "4.14.104",
+        "@types/mocha": "^5.2.7",
+        "eslint-config-common": "*",
+        "make-promises-safe": "^1.1.0",
+        "mocha": "^6.2.0",
+        "tsconfig": "*",
+        "typescript": "^4.9.0"
+    }
+}
