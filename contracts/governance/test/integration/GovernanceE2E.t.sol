@@ -369,9 +369,8 @@ contract GovernanceE2ETest is BaseTest {
         assertGt(stake, 0);
 
         // Withdraw stake all at once
-        vm.prank(delegator);
+        vm.startPrank(delegator);
         vault.withdrawAllFrom(delegator);
-        vm.stopPrank();
 
         assertEq(vault.balanceOf(delegator), 0);
         assertEq(token.balanceOf(delegator), stake + balance);
@@ -380,15 +379,14 @@ contract GovernanceE2ETest is BaseTest {
         vm.roll(block.number + 1);
         address delegate = 0x4990cE223209FCEc4ec4c1ff6E0E81eebD8Cca08;
         uint256 amountToDelegate = 1000000e18;
-        vm.prank(delegator);
+
         // Approve the wrapped token and deposit 1m ZRX
         token.approve(address(wToken), amountToDelegate);
         wToken.depositFor(delegator, amountToDelegate);
-        vm.stopPrank();
+
         assertEq(wToken.balanceOf(delegator), amountToDelegate);
 
         vm.roll(block.number + 1);
-        vm.prank(delegator);
         wToken.delegate(delegate);
         vm.stopPrank();
 
