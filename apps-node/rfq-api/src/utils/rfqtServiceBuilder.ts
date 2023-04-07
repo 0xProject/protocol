@@ -16,7 +16,7 @@ import {
     RFQ_PROXY_PORT,
     ZERO_EX_API_KEY,
 } from '../config';
-import { DEFAULT_MIN_EXPIRY_DURATION_MS, KEEP_ALIVE_TTL } from '../core/constants';
+import { DEFAULT_MIN_EXPIRY_DURATION_MS, KEEP_ALIVE_TTL, PERMIT_AND_CALL_DEFAULT_ADDRESSES } from '../core/constants';
 import { RefreshingQuoteRequestor } from '../quoteRequestor/RefreshingQuoteRequestor';
 import { FeeService } from '../services/fee_service';
 import { RfqtService } from '../services/RfqtService';
@@ -72,6 +72,10 @@ export async function buildRfqtServicesAsync(
             if (!rfqtConfiguration) {
                 throw new Error(`RFQt Service for chain ${chainId} does not exist`);
             }
+            const permitAndCallAddress = PERMIT_AND_CALL_DEFAULT_ADDRESSES[chainId];
+            if (permitAndCallAddress === undefined) {
+                throw new Error(`Permit and call address for chain ${chainId} does not exist`);
+            }
 
             const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, chainId);
             await rfqMakerManager.initializeAsync();
@@ -85,6 +89,7 @@ export async function buildRfqtServicesAsync(
             const rfqBlockchainUtils = new RfqBlockchainUtils(
                 provider,
                 contractAddresses.exchangeProxy,
+                permitAndCallAddress,
                 balanceChecker,
                 ethersProvider,
             );

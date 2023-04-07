@@ -112,7 +112,13 @@ const getMetaTransactionV2QuoteAsyncMock = getV2QuoteAsync as jest.Mock<
 const mockSqsProducer = jest.mocked(new Producer({}));
 const mockDbUtils = jest.mocked(new RfqmDbUtils({} as Connection));
 const mockBlockchainUtils = jest.mocked(
-    new RfqBlockchainUtils({} as SupportedProvider, '0xdefi', {} as BalanceChecker, {} as providers.JsonRpcProvider),
+    new RfqBlockchainUtils(
+        {} as SupportedProvider,
+        '0xdefi',
+        '0xpermitAndCall',
+        {} as BalanceChecker,
+        {} as providers.JsonRpcProvider,
+    ),
 );
 
 const mockRfqmService = jest.mocked(

@@ -132,3 +132,9 @@ export const GAS_ESTIMATE_BUFFER = 0.5;
 // Time window to apply last look rejections (LLRs) cooldown, in seconds. Any LLRs for quotes
 // submited within the window are considered as `bad` LLRs, and the maker will be cooldown.
 export const LLR_COOLDOWN_WINDOW_SECONDS = 30;
+
+export const PERMIT_AND_CALL_DEFAULT_ADDRESSES: Record<number, string> = {
+    1: '0x1291c02d288de3de7dc25353459489073d11e1ae',
+    137: '0x2ddd30fe5c12fc4cd497526f14bf3d1fcd3d5db4',
+    80001: '0x53e50e91637acfb460705796aadbf41a363ac658',
+};

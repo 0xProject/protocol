@@ -2,6 +2,7 @@ import { artifacts as erc20Artifacts, DummyERC20TokenContract } from '@0x/contra
 import { artifacts as zeroExArtifacts, fullMigrateAsync, IZeroExContract } from '@0x/contracts-zero-ex';
 import { Web3ProviderEngine } from '@0x/dev-utils';
 import { Signature } from '@0x/protocol-utils';
+import { NULL_ADDRESS } from '@0x/utils';
 import { BigNumber } from '@0x/utils';
 import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
 import { expect } from 'chai';
@@ -101,6 +102,10 @@ describe('RFQ Blockchain Utils', () => {
             },
         );
 
+        // This is the address for the permitAndCall shim contract. It is not used in this test.
+        // If we wish to test it, we will need to deploy a variation of the contract that does NOT hardcode the ExchangeProxy
+        const permitAndCallAddress = NULL_ADDRESS;
+
         // Mint enough tokens for a few trades
         const numTrades = 2;
         makerBalance = makerAmount.times(numTrades);
@@ -117,6 +122,7 @@ describe('RFQ Blockchain Utils', () => {
         rfqBlockchainUtils = new RfqBlockchainUtils(
             provider,
             zeroEx.address,
+            permitAndCallAddress,
             balanceChecker,
             ethersProvider,
             ethersWallet,
@@ -229,6 +235,46 @@ describe('RFQ Blockchain Utils', () => {
             };
             const calldata = await rfqBlockchainUtils.generateApprovalCalldataAsync(token, approval, signature);
             expect(calldata).to.eq(MOCK_PERMIT_CALLDATA);
+        });
+    });
+
+    describe('generatePermitAndCallCalldataAsync', () => {
+        it('returns the correct calldata for executeMetatransaction permitAndCall', async () => {
+            const token = makerToken.address;
+            const approval = MOCK_EXECUTE_META_TRANSACTION_APPROVAL;
+            const signature: Signature = {
+                r: '0x0000000000000000000000000000000000000000000000000000000000000000',
+                s: '0x0000000000000000000000000000000000000000000000000000000000000000',
+                v: 28,
+                signatureType: 2,
+            };
+            const data = '0x12345678';
+            const calldata = await rfqBlockchainUtils.generatePermitAndCallCalldataAsync(
+                token,
+                approval,
+                signature,
+                data,
+            );
+            expect(calldata).to.match(/^0x9d50b5e4/);
+        });
+
+        it('returns the correct calldata for executeMetatransaction permitAndCall', async () => {
+            const token = makerToken.address;
+            const approval = MOCK_PERMIT_APPROVAL;
+            const signature: Signature = {
+                r: '0x0000000000000000000000000000000000000000000000000000000000000000',
+                s: '0x0000000000000000000000000000000000000000000000000000000000000000',
+                v: 28,
+                signatureType: 2,
+            };
+            const data = '0x12345678';
+            const calldata = await rfqBlockchainUtils.generatePermitAndCallCalldataAsync(
+                token,
+                approval,
+                signature,
+                data,
+            );
+            expect(calldata).to.match(/^0x34b4d153/);
         });
     });
 

@@ -9,6 +9,7 @@ import { GaslessApprovalTypes } from '../../src/core/types';
 import { BalanceChecker } from '../../src/utils/balance_checker';
 import { extractEIP712DomainType } from '../../src/utils/Eip712Utils';
 import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
+import { NULL_ADDRESS } from '@0x/utils';
 
 let supportedProvider: SupportedProvider;
 let balancerChecker: BalanceChecker;
@@ -22,6 +23,7 @@ const ACCESS_LIST_ADDR_2 = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 const STORAGE_KEY_2 = '0x3617319a054d772f909f7c479a2cebe5066e836a939412e32403c99029b92eff';
 const CALLDATA = '0xd0e30db0';
 const PROXY_ADDR = '0xdef1c0ded9bec7f1a1670819833240f027b25eff';
+const PERMIT_AND_CALL_ADDR = NULL_ADDRESS;
 const FROM = '0xdef1c0ded9bec7f1a1670819833240f027b25ef1';
 
 describe('RfqBlockchainUtils', () => {
@@ -33,6 +35,7 @@ describe('RfqBlockchainUtils', () => {
         rfqBlockchainUtils = new RfqBlockchainUtils(
             instance(supportedProvider),
             PROXY_ADDR,
+            PERMIT_AND_CALL_ADDR,
             instance(balancerChecker),
             instance(ethersProvider),
             instance(ethersWallet),

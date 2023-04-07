@@ -243,10 +243,10 @@ export class RfqmDbUtils {
      */
     public async findV2TransactionSubmissionsByOrderHashAsync(
         orderHash: string,
-        type: RfqmTransactionSubmissionType = RfqmTransactionSubmissionType.Trade,
+        types: RfqmTransactionSubmissionType[] = [RfqmTransactionSubmissionType.Trade],
     ): Promise<RfqmV2TransactionSubmissionEntity[]> {
         return this._connection.getRepository(RfqmV2TransactionSubmissionEntity).find({
-            where: { orderHash, type },
+            where: { orderHash, type: In(types) },
         });
     }
 
@@ -434,10 +434,10 @@ export class RfqmDbUtils {
      */
     public async findMetaTransactionSubmissionsByJobIdAsync(
         metaTransactionJobId: string,
-        type: RfqmTransactionSubmissionType = RfqmTransactionSubmissionType.Trade,
+        types: RfqmTransactionSubmissionType[] = [RfqmTransactionSubmissionType.Trade],
     ): Promise<MetaTransactionSubmissionEntity[]> {
         return this._connection.getRepository(MetaTransactionSubmissionEntity).find({
-            where: { metaTransactionJobId, type },
+            where: { metaTransactionJobId, type: In(types) },
         });
     }
 
@@ -541,10 +541,10 @@ export class RfqmDbUtils {
      */
     public async findMetaTransactionV2SubmissionsByJobIdAsync(
         metaTransactionV2JobId: string,
-        type: RfqmTransactionSubmissionType = RfqmTransactionSubmissionType.Trade,
+        types: RfqmTransactionSubmissionType[] = [RfqmTransactionSubmissionType.Trade],
     ): Promise<MetaTransactionV2SubmissionEntity[]> {
         return this._connection.getRepository(MetaTransactionV2SubmissionEntity).find({
-            where: { metaTransactionV2JobId, type },
+            where: { metaTransactionV2JobId, type: In(types) },
         });
     }
 

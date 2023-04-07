@@ -36,6 +36,13 @@ import { serviceUtils } from './service_utils';
 import { SubproviderAdapter } from './subprovider_adapter';
 import * as _ from 'lodash';
 
+// Since these function names are overloaded, ethers needs to signatures to disambiguate them.
+const PERMIT_AND_CALL_FUNCTION_SELECTORS = {
+    Permit: 'permitAndCall(address,address,uint256,uint256,uint8,bytes32,bytes32,bytes)',
+    DaiPermit: 'permitAndCall(address,address,uint256,uint256,bool,uint8,bytes32,bytes32,bytes)',
+    ExecuteMetaTransaction: 'permitAndCall(address,address,uint256,uint8,bytes32,bytes32,bytes)',
+};
+
 function toBigNumber(ethersBigNumber: EthersBigNumber): BigNumber {
     return new BigNumber(ethersBigNumber.toString());
 }
@@ -84,6 +91,7 @@ export class RfqBlockchainUtils {
     constructor(
         provider: SupportedProvider,
         private readonly _exchangeProxyAddress: string,
+        private readonly _permitAndCallAddress: string,
         balanceChecker: BalanceChecker,
         ethersProvider: providers.JsonRpcProvider,
         ethersWallet?: Wallet,
@@ -164,6 +172,10 @@ export class RfqBlockchainUtils {
 
     public getExchangeProxyAddress(): string {
         return this._exchangeProxyAddress;
+    }
+
+    public getPermitAndCallAddress(): string {
+        return this._permitAndCallAddress;
     }
 
     /**
@@ -570,6 +582,64 @@ export class RfqBlockchainUtils {
                     signature.v,
                     signature.r,
                     signature.s,
+                );
+                if (!data) {
+                    throw new Error(`Cannot generate approval submission calldata for ${kind}`);
+                }
+                return data;
+            }
+            default:
+                throw new Error(`Gasless approval kind ${kind} is not implemented yet`);
+        }
+    }
+
+    /**
+     * Generates calldata for permit and call.
+     *
+     * @param token The address of the token to approve.
+     * @param approval The Approval object, which consists of 'kind' and eip712 object.
+     * @param approvalSignature The gasless approval transaction signed by taker.
+     * @param calldata The calldata for the call after approval.
+     *
+     * @returns Generated calldata.
+     */
+    public async generatePermitAndCallCalldataAsync(
+        token: string,
+        approval: Approval,
+        approvalSignature: Signature,
+        calldata: string,
+    ): Promise<string> {
+        const { kind, eip712 } = approval;
+        const permitAndCall = new Contract(token, abis.permitAndCall, this._ethersProvider);
+        switch (kind) {
+            case GaslessApprovalTypes.ExecuteMetaTransaction: {
+                const { data } = await permitAndCall.populateTransaction[
+                    PERMIT_AND_CALL_FUNCTION_SELECTORS.ExecuteMetaTransaction
+                ](
+                    token,
+                    eip712.message.from,
+                    constants.MaxUint256,
+                    approvalSignature.v,
+                    approvalSignature.r,
+                    approvalSignature.s,
+                    calldata,
+                );
+                if (!data) {
+                    throw new Error(`Cannot generate permitAndCall calldata`);
+                }
+
+                return data;
+            }
+            case GaslessApprovalTypes.Permit: {
+                const { data } = await permitAndCall.populateTransaction[PERMIT_AND_CALL_FUNCTION_SELECTORS.Permit](
+                    token,
+                    eip712.message.owner,
+                    eip712.message.value,
+                    eip712.message.deadline,
+                    approvalSignature.v,
+                    approvalSignature.r,
+                    approvalSignature.s,
+                    calldata,
                 );
                 if (!data) {
                     throw new Error(`Cannot generate approval submission calldata for ${kind}`);

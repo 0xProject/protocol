@@ -22,6 +22,7 @@ import {
     DEFAULT_MIN_EXPIRY_DURATION_MS,
     DEFAULT_WORKER_TRANSACTION_WATCHER_SLEEP_TIME_MS,
     KEEP_ALIVE_TTL,
+    PERMIT_AND_CALL_DEFAULT_ADDRESSES,
 } from '../core/constants';
 import { artifacts } from '../generated-artifacts/artifacts';
 import { ERC20BridgeSamplerContract } from '../generated-wrappers/erc20_bridge_sampler';
@@ -145,6 +146,11 @@ export async function buildRfqmServiceAsync(
         throw new Error(`RFQm Service for chain ${chainId} does not exist`);
     }
 
+    const permitAndCallAddress = PERMIT_AND_CALL_DEFAULT_ADDRESSES[chainId];
+    if (permitAndCallAddress === undefined) {
+        throw new Error(`Permit and call address for chain ${chainId} does not exist`);
+    }
+
     // ether.js Provider coexists with web3 provider during migration away from 0x/web3-wrapper.
     const ethersProvider = new providers.JsonRpcProvider(chain.rpcUrl, chainId);
 
@@ -159,6 +165,7 @@ export async function buildRfqmServiceAsync(
     const rfqBlockchainUtils = new RfqBlockchainUtils(
         provider,
         contractAddresses.exchangeProxy,
+        permitAndCallAddress,
         balanceChecker,
         ethersProvider,
     );
@@ -261,10 +268,16 @@ export async function buildWorkerServiceAsync(
     const contractAddresses = await getContractAddressesForNetworkOrThrowAsync(provider, chain);
     const axiosInstance = Axios.create(getAxiosRequestConfigWithProxy());
 
+    const permitAndCallAddress = PERMIT_AND_CALL_DEFAULT_ADDRESSES[chainId];
+    if (permitAndCallAddress === undefined) {
+        throw new Error(`Permit and call address for chain ${chainId} does not exist`);
+    }
+
     const balanceChecker = new BalanceChecker(provider);
     const rfqBlockchainUtils = new RfqBlockchainUtils(
         provider,
         contractAddresses.exchangeProxy,
+        permitAndCallAddress,
         balanceChecker,
         ethersProvider,
         ethersWallet,

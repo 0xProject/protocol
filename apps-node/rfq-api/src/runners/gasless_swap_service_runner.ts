@@ -23,7 +23,7 @@ import {
     SENTRY_TRACES_SAMPLE_RATE,
     TOKEN_PRICE_ORACLE_TIMEOUT,
 } from '../config';
-import { TX_RELAY_V1_PATH, ZERO_G_ALIAS_PATH, ZERO_G_PATH } from '../core/constants';
+import { PERMIT_AND_CALL_DEFAULT_ADDRESSES, TX_RELAY_V1_PATH, ZERO_G_ALIAS_PATH, ZERO_G_PATH } from '../core/constants';
 import { getDbDataSourceAsync } from '../getDbDataSourceAsync';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
@@ -110,6 +110,11 @@ if (require.main === module) {
                 if (!rfqmService) {
                     throw new Error(`RFQm Service for chain ${chainId} does not exist`);
                 }
+                const permitAndCallAddress = PERMIT_AND_CALL_DEFAULT_ADDRESSES[chainId];
+                if (permitAndCallAddress === undefined) {
+                    throw new Error(`Permit and call address for chain ${chainId} does not exist`);
+                }
+
                 const rpcProvider = providerUtils.createWeb3Provider(chainConfiguration.rpcUrl);
                 const ethersProvider = new providers.JsonRpcProvider(
                     chainConfiguration.rpcUrl,
@@ -123,6 +128,7 @@ if (require.main === module) {
                 const rfqBlockchainUtils = new RfqBlockchainUtils(
                     rpcProvider,
                     contractAddresses.exchangeProxy,
+                    permitAndCallAddress,
                     balanceChecker,
                     ethersProvider,
                 );

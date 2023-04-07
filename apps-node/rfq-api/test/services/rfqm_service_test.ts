@@ -11,7 +11,7 @@ import { BigNumber } from '@0x/utils';
 import { expect } from 'chai';
 import { constants } from 'ethersv5';
 import { Producer } from 'sqs-producer';
-import { anything, capture, instance, mock, spy, verify, when } from 'ts-mockito';
+import { anything, capture, deepEqual, instance, mock, spy, verify, when } from 'ts-mockito';
 
 import { Integrator } from '../../src/config';
 import {
@@ -2144,6 +2144,7 @@ describe('RfqmService HTTP Logic', () => {
                 const newJob = BASE_JOB; // BASE_JOB has a valid expiry
                 const dbUtilsMock = mock(RfqmDbUtils);
                 when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(newJob);
+                when(dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(anything(), anything())).thenResolve([]);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
                 const jobStatus = await service.getStatusAsync('0x00');
@@ -2159,6 +2160,7 @@ describe('RfqmService HTTP Logic', () => {
                 const job = new RfqmV2JobEntity({ ...BASE_JOB, status: RfqmJobStatus.PendingProcessing });
                 const dbUtilsMock = mock(RfqmDbUtils);
                 when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(job);
+                when(dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(anything(), anything())).thenResolve([]);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
                 const jobStatus = await service.getStatusAsync('0x00');
@@ -2204,7 +2206,74 @@ describe('RfqmService HTTP Logic', () => {
                 when(
                     dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
                         job.orderHash,
-                        RfqmTransactionSubmissionType.Trade,
+                        deepEqual([
+                            RfqmTransactionSubmissionType.Trade,
+                            RfqmTransactionSubmissionType.ApprovalAndTrade,
+                        ]),
+                    ),
+                ).thenResolve([submission1, submission2]);
+                const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
+
+                const jobStatus = await service.getStatusAsync('0x00');
+
+                if (jobStatus === null) {
+                    expect.fail('Status should exist');
+                    throw new Error();
+                }
+
+                if (jobStatus.status !== 'submitted') {
+                    expect.fail('Status should be submitted');
+                    throw new Error();
+                }
+                expect(jobStatus.transactions).to.have.length(2);
+                expect(jobStatus.transactions).to.deep.include({
+                    hash: '0x01',
+                    timestamp: +transaction1Time.valueOf(),
+                });
+                expect(jobStatus.transactions).to.deep.include({
+                    hash: '0x02',
+                    timestamp: +transaction2Time.valueOf(),
+                });
+            });
+
+            it('[ApprovalAndTrade] should return submitted with transaction submissions for submitted jobs', async () => {
+                const now = Date.now();
+                const transaction1Time = now + 10;
+                const transaction2Time = now + 20;
+
+                const job = new RfqmV2JobEntity({
+                    ...BASE_JOB,
+                    status: RfqmJobStatus.PendingSubmitted,
+                });
+
+                const submission1 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(transaction1Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x01',
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.ApprovalAndTrade,
+                    nonce: 0,
+                });
+                const submission2 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(transaction2Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x02',
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.ApprovalAndTrade,
+                    nonce: 1,
+                });
+
+                const dbUtilsMock = mock(RfqmDbUtils);
+                when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(job);
+                when(
+                    dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
+                        job.orderHash,
+                        deepEqual([
+                            RfqmTransactionSubmissionType.Trade,
+                            RfqmTransactionSubmissionType.ApprovalAndTrade,
+                        ]),
                     ),
                 ).thenResolve([submission1, submission2]);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
@@ -2267,7 +2336,10 @@ describe('RfqmService HTTP Logic', () => {
                 when(
                     dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
                         job.orderHash,
-                        RfqmTransactionSubmissionType.Trade,
+                        deepEqual([
+                            RfqmTransactionSubmissionType.Trade,
+                            RfqmTransactionSubmissionType.ApprovalAndTrade,
+                        ]),
                     ),
                 ).thenResolve([submission1, submission2]);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
@@ -2322,7 +2394,10 @@ describe('RfqmService HTTP Logic', () => {
                 when(
                     dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
                         job.orderHash,
-                        RfqmTransactionSubmissionType.Trade,
+                        deepEqual([
+                            RfqmTransactionSubmissionType.Trade,
+                            RfqmTransactionSubmissionType.ApprovalAndTrade,
+                        ]),
                     ),
                 ).thenResolve([submission1, submission2]);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
@@ -2377,7 +2452,10 @@ describe('RfqmService HTTP Logic', () => {
                 when(
                     dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
                         job.orderHash,
-                        RfqmTransactionSubmissionType.Trade,
+                        deepEqual([
+                            RfqmTransactionSubmissionType.Trade,
+                            RfqmTransactionSubmissionType.ApprovalAndTrade,
+                        ]),
                     ),
                 ).thenResolve([submission1, submission2]);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
@@ -2426,7 +2504,10 @@ describe('RfqmService HTTP Logic', () => {
                 when(
                     dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
                         job.orderHash,
-                        RfqmTransactionSubmissionType.Trade,
+                        deepEqual([
+                            RfqmTransactionSubmissionType.Trade,
+                            RfqmTransactionSubmissionType.ApprovalAndTrade,
+                        ]),
                     ),
                 ).thenResolve([submission1, submission2]);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
@@ -2494,13 +2575,16 @@ describe('RfqmService HTTP Logic', () => {
                 when(
                     dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
                         job.orderHash,
-                        RfqmTransactionSubmissionType.Approval,
+                        deepEqual([RfqmTransactionSubmissionType.Approval]),
                     ),
                 ).thenResolve([approvalSubmission1, approvalSubmission2]);
                 when(
                     dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
                         job.orderHash,
-                        RfqmTransactionSubmissionType.Trade,
+                        deepEqual([
+                            RfqmTransactionSubmissionType.Trade,
+                            RfqmTransactionSubmissionType.ApprovalAndTrade,
+                        ]),
                     ),
                 ).thenResolve([tradeSubmission1, tradeSubmission2]);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
@@ -2591,13 +2675,16 @@ describe('RfqmService HTTP Logic', () => {
                 when(
                     dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
                         job.orderHash,
-                        RfqmTransactionSubmissionType.Approval,
+                        deepEqual([RfqmTransactionSubmissionType.Approval]),
                     ),
                 ).thenResolve([approvalSubmission1, approvalSubmission2]);
                 when(
                     dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
                         job.orderHash,
-                        RfqmTransactionSubmissionType.Trade,
+                        deepEqual([
+                            RfqmTransactionSubmissionType.Trade,
+                            RfqmTransactionSubmissionType.ApprovalAndTrade,
+                        ]),
                     ),
                 ).thenResolve([tradeSubmission1, tradeSubmission2]);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
@@ -2646,7 +2733,10 @@ describe('RfqmService HTTP Logic', () => {
                 when(
                     dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
                         job.orderHash,
-                        RfqmTransactionSubmissionType.Trade,
+                        deepEqual([
+                            RfqmTransactionSubmissionType.Trade,
+                            RfqmTransactionSubmissionType.ApprovalAndTrade,
+                        ]),
                     ),
                 ).thenResolve([]);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
@@ -2723,13 +2813,16 @@ describe('RfqmService HTTP Logic', () => {
                 when(
                     dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
                         job.orderHash,
-                        RfqmTransactionSubmissionType.Approval,
+                        deepEqual([RfqmTransactionSubmissionType.Approval]),
                     ),
                 ).thenResolve([approvalSubmission1, approvalSubmission2]);
                 when(
                     dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
                         job.orderHash,
-                        RfqmTransactionSubmissionType.Trade,
+                        deepEqual([
+                            RfqmTransactionSubmissionType.Trade,
+                            RfqmTransactionSubmissionType.ApprovalAndTrade,
+                        ]),
                     ),
                 ).thenResolve([tradeSubmission1, tradeSubmission2]);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
@@ -2755,6 +2848,76 @@ describe('RfqmService HTTP Logic', () => {
                     hash: '0x02',
                     timestamp: +approvalTransaction2Time.valueOf(),
                 });
+                expect(orderStatus.transactions[0]).to.contain({
+                    hash: '0x04',
+                    timestamp: +tradeTransaction2Time.valueOf(),
+                });
+            });
+
+            it('[ApproveAndTrade] should return confirmed for a successful confirmed job and include correct `transactions` and no `approvalTransactions`', async () => {
+                const now = Date.now();
+                const tradeTransaction1Time = now + 10;
+                const tradeTransaction2Time = now + 20;
+
+                const job = new RfqmV2JobEntity({
+                    ...BASE_JOB,
+                    approval: MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
+                    status: RfqmJobStatus.SucceededConfirmed,
+                });
+
+                const tradeSubmission1 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(tradeTransaction1Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x03',
+                    status: RfqmTransactionSubmissionStatus.DroppedAndReplaced,
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.ApprovalAndTrade,
+                    nonce: 2,
+                });
+                const tradeSubmission2 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(tradeTransaction2Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x04',
+                    status: RfqmTransactionSubmissionStatus.SucceededConfirmed,
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.ApprovalAndTrade,
+                    nonce: 3,
+                });
+
+                const dbUtilsMock = mock(RfqmDbUtils);
+                when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(job);
+                when(
+                    dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
+                        job.orderHash,
+                        deepEqual([RfqmTransactionSubmissionType.Approval]),
+                    ),
+                ).thenResolve([]);
+                when(
+                    dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
+                        job.orderHash,
+                        deepEqual([
+                            RfqmTransactionSubmissionType.Trade,
+                            RfqmTransactionSubmissionType.ApprovalAndTrade,
+                        ]),
+                    ),
+                ).thenResolve([tradeSubmission1, tradeSubmission2]);
+                const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
+
+                const orderStatus = await service.getStatusAsync('0x00');
+
+                if (orderStatus === null) {
+                    expect.fail('Status should exist');
+                    throw new Error();
+                }
+
+                if (orderStatus.status !== 'confirmed') {
+                    expect.fail('Status should be confirmed');
+                    throw new Error();
+                }
+
+                expect(orderStatus.approvalTransactions).to.be.undefined;
                 expect(orderStatus.transactions[0]).to.contain({
                     hash: '0x04',
                     timestamp: +tradeTransaction2Time.valueOf(),
@@ -2820,13 +2983,16 @@ describe('RfqmService HTTP Logic', () => {
                 when(
                     dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
                         job.orderHash,
-                        RfqmTransactionSubmissionType.Approval,
+                        deepEqual([RfqmTransactionSubmissionType.Approval]),
                     ),
                 ).thenResolve([approvalSubmission1, approvalSubmission2]);
                 when(
                     dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
                         job.orderHash,
-                        RfqmTransactionSubmissionType.Trade,
+                        deepEqual([
+                            RfqmTransactionSubmissionType.Trade,
+                            RfqmTransactionSubmissionType.ApprovalAndTrade,
+                        ]),
                     ),
                 ).thenResolve([tradeSubmission1, tradeSubmission2]);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
@@ -2917,13 +3083,16 @@ describe('RfqmService HTTP Logic', () => {
                 when(
                     dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
                         job.orderHash,
-                        RfqmTransactionSubmissionType.Approval,
+                        deepEqual([RfqmTransactionSubmissionType.Approval]),
                     ),
                 ).thenResolve([approvalSubmission1, approvalSubmission2]);
                 when(
                     dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
                         job.orderHash,
-                        RfqmTransactionSubmissionType.Trade,
+                        deepEqual([
+                            RfqmTransactionSubmissionType.Trade,
+                            RfqmTransactionSubmissionType.ApprovalAndTrade,
+                        ]),
                     ),
                 ).thenResolve([tradeSubmission1, tradeSubmission2]);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
@@ -2995,13 +3164,16 @@ describe('RfqmService HTTP Logic', () => {
                 when(
                     dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
                         job.orderHash,
-                        RfqmTransactionSubmissionType.Approval,
+                        deepEqual([RfqmTransactionSubmissionType.Approval]),
                     ),
                 ).thenResolve([approvalSubmission1, approvalSubmission2]);
                 when(
                     dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
                         job.orderHash,
-                        RfqmTransactionSubmissionType.Trade,
+                        deepEqual([
+                            RfqmTransactionSubmissionType.Trade,
+                            RfqmTransactionSubmissionType.ApprovalAndTrade,
+                        ]),
                     ),
                 ).thenResolve([tradeSubmission1, tradeSubmission2]);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
@@ -3073,13 +3245,16 @@ describe('RfqmService HTTP Logic', () => {
                 when(
                     dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
                         job.orderHash,
-                        RfqmTransactionSubmissionType.Approval,
+                        deepEqual([RfqmTransactionSubmissionType.Approval]),
                     ),
                 ).thenResolve([approvalSubmission1, approvalSubmission2]);
                 when(
                     dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
                         job.orderHash,
-                        RfqmTransactionSubmissionType.Trade,
+                        deepEqual([
+                            RfqmTransactionSubmissionType.Trade,
+                            RfqmTransactionSubmissionType.ApprovalAndTrade,
+                        ]),
                     ),
                 ).thenResolve([tradeSubmission1, tradeSubmission2]);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });

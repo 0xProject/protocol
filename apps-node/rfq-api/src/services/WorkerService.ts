@@ -1,5 +1,6 @@
 import { OtcOrder, Signature } from '@0x/protocol-utils';
 import { MarketOperation } from '@0x/types';
+import { NULL_ADDRESS } from '@0x/utils';
 import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import { retry } from '@lifeomic/attempt';
@@ -7,6 +8,7 @@ import delay from 'delay';
 import { Counter, Gauge, Summary } from 'prom-client';
 
 import {
+    ATOMIC_APPROVE_AND_SWAP_ROLLOUT_PERCENT,
     ENABLE_LLR_COOLDOWN,
     Integrator,
     LLR_COOLDOWN_DURATION_SECONDS,
@@ -19,6 +21,7 @@ import {
     LLR_COOLDOWN_WINDOW_SECONDS,
     ONE_MINUTE_S,
     ONE_SECOND_MS,
+    PERMIT_AND_CALL_DEFAULT_ADDRESSES,
 } from '../core/constants';
 import { storedFeeToFee } from '../core/fee_utils';
 import { Approval } from '../core/types';
@@ -40,6 +43,7 @@ import { logger } from '../logger';
 import { SignRequest } from '../quote-server/types';
 import { CacheClient } from '../utils/cache_client';
 import { GasStationAttendant } from '../utils/GasStationAttendant';
+import { isHashSmallEnough } from '../utils/HashUtils';
 import { QuoteServerClient } from '../utils/quote_server_client';
 import { RfqmDbUtils, storedOtcOrderToOtcOrder } from '../utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
@@ -395,8 +399,19 @@ export class WorkerService {
             job.workerAddress = workerAddress;
             await this._dbUtils.updateRfqmJobAsync(job);
             if (job.approval) {
-                // approval and trade workflow
-                await this.processApprovalAndTradeAsync(job, workerAddress);
+                // approval and trade workflows
+                const isAtomicAvailable =
+                    PERMIT_AND_CALL_DEFAULT_ADDRESSES[this._chainId] !== NULL_ADDRESS &&
+                    isHashSmallEnough({
+                        message: job.getHash(),
+                        threshold: ATOMIC_APPROVE_AND_SWAP_ROLLOUT_PERCENT / 100,
+                    });
+
+                if (isAtomicAvailable) {
+                    await this.processAtomicApprovalAndTradeAsync(job, workerAddress);
+                } else {
+                    await this.processApprovalAndTradeAsync(job, workerAddress);
+                }
             } else {
                 // trade only workflow
                 await this.processTradeAsync(job, workerAddress);
@@ -412,6 +427,10 @@ export class WorkerService {
     }
 
     /**
+     * TODO: This function is kept for gradual rollout purpose.
+     *       Remove this function once all the approval and trade workflow are directed to atomic approval and trade.
+     *
+     *
      * Process approval (gasless approval) and trade (swap with the 0x exchange proxy) submissions. For the first version,
      * they will be processed SEQUENTIALLY. In the future, we want to send the two transaction in parallel.
      * The reason we can't parallelize the submissions is both function would modify job.status.
@@ -485,11 +504,17 @@ export class WorkerService {
             let tradeCalldata;
             switch (kind) {
                 case 'rfqm_v2_job':
-                    tradeCalldata = await this.prepareRfqmV2TradeAsync(job, workerAddress, false);
+                    tradeCalldata = await this.prepareRfqmV2TradeAsync(job, workerAddress, {
+                        shouldSimulate: true,
+                        shouldCheckLastLook: false,
+                    });
                     break;
                 case 'meta_transaction_job':
                 case 'meta_transaction_v2_job':
-                    tradeCalldata = await this.prepareMetaTransactionTradeAsync(job, workerAddress, false);
+                    tradeCalldata = await this.prepareMetaTransactionTradeAsync(job, workerAddress, {
+                        shouldSimulate: true,
+                        shouldValidateJob: false,
+                    });
                     break;
                 default:
                     ((_x: never) => {
@@ -514,6 +539,49 @@ export class WorkerService {
     }
 
     /**
+     * Process atomic approval (gasless approval) and trade (swap with the 0x exchange proxy) submissions.
+     */
+    public async processAtomicApprovalAndTradeAsync(
+        job: RfqmV2JobEntity | MetaTransactionJobEntity | MetaTransactionV2JobEntity,
+        workerAddress: string,
+    ): Promise<void> {
+        const { kind, approval, approvalSignature } = job;
+        if (!approval || !approvalSignature) {
+            throw new Error('Non-approval job should not be processed by `processAtomicApprovalAndTradeAsync`');
+        }
+
+        let identifier;
+        switch (kind) {
+            case 'rfqm_v2_job':
+                identifier = job.orderHash;
+                break;
+            case 'meta_transaction_job':
+            case 'meta_transaction_v2_job':
+                identifier = job.id;
+                break;
+            default:
+                ((_x: never) => {
+                    throw new Error('unreachable');
+                })(kind);
+        }
+
+        const permitAndCallCalldata = await this.prepareAtomicApprovalAndTradeAsync(job, workerAddress);
+        await this.submitToChainAsync({
+            kind: job.kind,
+            to: this._blockchainUtils.getPermitAndCallAddress(),
+            from: workerAddress,
+            calldata: permitAndCallCalldata,
+            expiry: job.expiry,
+            identifier,
+            submissionType: RfqmTransactionSubmissionType.ApprovalAndTrade,
+            onSubmissionContextStatusUpdate: this._getOnSubmissionContextStatusUpdateCallback(
+                job,
+                RfqmTransactionSubmissionType.ApprovalAndTrade,
+            ),
+        });
+    }
+
+    /**
      * Process trade (swap with the 0x exchange proxy) submissions. The method would prepare trade calldata
      * and submit the trade to the blockchain. Note that job status would be updated to the corresponding state.
      */
@@ -528,12 +596,18 @@ export class WorkerService {
         switch (kind) {
             case 'rfqm_v2_job':
                 identifier = job.orderHash;
-                calldata = await this.prepareRfqmV2TradeAsync(job, workerAddress);
+                calldata = await this.prepareRfqmV2TradeAsync(job, workerAddress, {
+                    shouldSimulate: true,
+                    shouldCheckLastLook: true,
+                });
                 break;
             case 'meta_transaction_job':
             case 'meta_transaction_v2_job':
                 identifier = job.id;
-                calldata = await this.prepareMetaTransactionTradeAsync(job, workerAddress);
+                calldata = await this.prepareMetaTransactionTradeAsync(job, workerAddress, {
+                    shouldSimulate: true,
+                    shouldValidateJob: true,
+                });
                 break;
             default:
                 ((_x: never) => {
@@ -643,24 +717,21 @@ export class WorkerService {
         switch (kind) {
             case 'rfqm_v2_job':
                 identifier = job.orderHash;
-                transactionSubmissions = await this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(
-                    identifier,
+                transactionSubmissions = await this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(identifier, [
                     RfqmTransactionSubmissionType.Approval,
-                );
+                ]);
                 break;
             case 'meta_transaction_job':
                 identifier = job.id;
-                transactionSubmissions = await this._dbUtils.findMetaTransactionSubmissionsByJobIdAsync(
-                    identifier,
+                transactionSubmissions = await this._dbUtils.findMetaTransactionSubmissionsByJobIdAsync(identifier, [
                     RfqmTransactionSubmissionType.Approval,
-                );
+                ]);
                 break;
             case 'meta_transaction_v2_job':
                 identifier = job.id;
-                transactionSubmissions = await this._dbUtils.findMetaTransactionV2SubmissionsByJobIdAsync(
-                    identifier,
+                transactionSubmissions = await this._dbUtils.findMetaTransactionV2SubmissionsByJobIdAsync(identifier, [
                     RfqmTransactionSubmissionType.Approval,
-                );
+                ]);
                 break;
             default:
                 ((_x: never) => {
@@ -742,9 +813,10 @@ export class WorkerService {
     public async prepareRfqmV2TradeAsync(
         job: RfqmV2JobEntity,
         workerAddress: string,
-        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-        // eslint-disable-next-line @typescript-eslint/no-inferrable-types
-        shouldCheckLastLook: boolean = true,
+        options: {
+            shouldSimulate: boolean;
+            shouldCheckLastLook: boolean;
+        },
         now: Date = new Date(),
     ): Promise<string> {
         /**
@@ -754,6 +826,7 @@ export class WorkerService {
          * if you don't like this change.
          */
         const { makerUri, order, orderHash } = job;
+        const { shouldSimulate, shouldCheckLastLook } = options;
         const otcOrder = storedOtcOrderToOtcOrder(order);
 
         // Check to see if we have already submitted a transaction for this job.
@@ -820,36 +893,37 @@ export class WorkerService {
         // With the Market Maker signature, execute a full eth_call to validate the
         // transaction via `estimateGasForAsync`
         try {
-            await retry(
-                async () => {
-                    // Maker signature must already be defined here -- refine the type
-                    if (!job.makerSignature) {
-                        throw new Error('Maker signature does not exist');
-                    }
-                    // Taker signature must already be defined here -- refine the type
-                    if (!job.takerSignature) {
-                        throw new Error('Taker signature does not exist');
-                    }
+            shouldSimulate &&
+                (await retry(
+                    async () => {
+                        // Maker signature must already be defined here -- refine the type
+                        if (!job.makerSignature) {
+                            throw new Error('Maker signature does not exist');
+                        }
+                        // Taker signature must already be defined here -- refine the type
+                        if (!job.takerSignature) {
+                            throw new Error('Taker signature does not exist');
+                        }
 
-                    return this._blockchainUtils.estimateGasForAsync({
-                        from: workerAddress,
-                        to: this._blockchainUtils.getExchangeProxyAddress(),
-                        data: calldata,
-                    });
-                },
-                {
-                    delay: ONE_SECOND_MS,
-                    factor: 1,
-                    maxAttempts: 3,
-                    handleError: (error, context, _options) => {
-                        const { attemptNum: attemptNumber, attemptsRemaining } = context;
-                        logger.warn(
-                            { orderHash, makerUri, attemptNumber, attemptsRemaining, error: error.message },
-                            'Error during eth_call validation when preparing otc order trade. Retrying',
-                        );
+                        return this._blockchainUtils.estimateGasForAsync({
+                            from: workerAddress,
+                            to: this._blockchainUtils.getExchangeProxyAddress(),
+                            data: calldata,
+                        });
                     },
-                },
-            );
+                    {
+                        delay: ONE_SECOND_MS,
+                        factor: 1,
+                        maxAttempts: 3,
+                        handleError: (error, context, _options) => {
+                            const { attemptNum: attemptNumber, attemptsRemaining } = context;
+                            logger.warn(
+                                { orderHash, makerUri, attemptNumber, attemptsRemaining, error: error.message },
+                                'Error during eth_call validation when preparing otc order trade. Retrying',
+                            );
+                        },
+                    },
+                ));
         } catch (error) {
             job.status = RfqmJobStatus.FailedEthCallFailed;
             await this._dbUtils.updateRfqmJobAsync(job);
@@ -912,14 +986,16 @@ export class WorkerService {
     public async prepareMetaTransactionTradeAsync(
         job: MetaTransactionJobEntity | MetaTransactionV2JobEntity,
         workerAddress: string,
-        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-        // eslint-disable-next-line @typescript-eslint/no-inferrable-types
-        shouldValidateJob: boolean = true,
+        options: {
+            shouldSimulate: boolean;
+            shouldValidateJob: boolean;
+        },
         now: Date = new Date(),
     ): Promise<string> {
         // ASK: What's the difference bewtween `metaTransaction.signer` vs `metaTransaction.sender`?
         //      Which one is the taker address?
         const { affiliateAddress, id: jobId, inputToken, metaTransaction, takerAddress, takerSignature } = job;
+        const { shouldSimulate, shouldValidateJob } = options;
 
         // Check to see if we have already submitted a transaction for this job.
         // If we have, the job is already prepared and we can skip ahead.
@@ -976,27 +1052,28 @@ export class WorkerService {
         // execute a full eth_call to validate the
         // transaction via `estimateGasForAsync`
         try {
-            await retry(
-                async () => {
-                    return this._blockchainUtils.estimateGasForAsync({
-                        from: workerAddress,
-                        to: this._blockchainUtils.getExchangeProxyAddress(),
-                        data: calldata,
-                    });
-                },
-                {
-                    delay: ONE_SECOND_MS,
-                    factor: 1,
-                    maxAttempts: 3,
-                    handleError: (error, context, _options) => {
-                        const { attemptNum: attemptNumber, attemptsRemaining } = context;
-                        logger.warn(
-                            { jobId, attemptNumber, attemptsRemaining, error: error.message },
-                            'Error during eth_call validation when preparing meta-transaction trade. Retrying',
-                        );
+            shouldSimulate &&
+                (await retry(
+                    async () => {
+                        return this._blockchainUtils.estimateGasForAsync({
+                            from: workerAddress,
+                            to: this._blockchainUtils.getExchangeProxyAddress(),
+                            data: calldata,
+                        });
                     },
-                },
-            );
+                    {
+                        delay: ONE_SECOND_MS,
+                        factor: 1,
+                        maxAttempts: 3,
+                        handleError: (error, context, _options) => {
+                            const { attemptNum: attemptNumber, attemptsRemaining } = context;
+                            logger.warn(
+                                { jobId, attemptNumber, attemptsRemaining, error: error.message },
+                                'Error during eth_call validation when preparing meta-transaction trade. Retrying',
+                            );
+                        },
+                    },
+                ));
         } catch (error) {
             job.status = RfqmJobStatus.FailedEthCallFailed;
             await this._dbUtils.updateRfqmJobAsync(job);
@@ -1032,6 +1109,173 @@ export class WorkerService {
         }
 
         return calldata;
+    }
+
+    /**
+     * Prepares an atomic approval and trade by validatidating the job and constructing the calldata.
+     *
+     * The method would:
+     * 1. Perform preliminary check on the job object (and updates job status to `PendingProcessing`)
+     * 2. Getting the market maker signature if the job is a RFQm job
+     * 3. Prepare trade
+     * 4. Generate atomic approval and trade calldata
+     * 5. Submit txn
+     *
+     * Note that `job.status` would be modified to corresponding status. For example, if the job expires,
+     * `job.status` would be set to `FailedFailedExpired`.
+     *
+     * Handles retries of retryable errors. Throws for unretriable errors, and logs
+     * ONLY IF the log needs more information than the orderHash and workerAddress,
+     * which are logged by the `processJobAsync` routine.
+     * Updates job in database.
+     *
+     * @returns The generated calldata for trade submission type.
+     * @throws If the trade cannot be submitted (e.g. it is expired).
+     */
+    public async prepareAtomicApprovalAndTradeAsync(
+        job: RfqmV2JobEntity | MetaTransactionJobEntity | MetaTransactionV2JobEntity,
+        workerAddress: string,
+    ): Promise<string> {
+        const { approval, approvalSignature, kind } = job;
+        if (!approval || !approvalSignature) {
+            throw new Error('Non-approval job should not be processed by `prepareApprovalAndTradeAsync`');
+        }
+
+        // Perform preliminary check
+        await this.checkJobPreprocessingAsync(job);
+        if (kind === 'rfqm_v2_job') {
+            // Perform last look for rfqm v2 job
+            await this.checkLastLookAsync(job, workerAddress, false);
+        }
+
+        let token: string;
+        let identifier: string;
+        let tradeCalldata: string;
+        switch (kind) {
+            case 'rfqm_v2_job':
+                token = job.order.order.takerToken;
+                identifier = job.orderHash;
+                // Skip txn simulation as it will be performed later
+                tradeCalldata = await this.prepareRfqmV2TradeAsync(job, workerAddress, {
+                    shouldSimulate: false,
+                    shouldCheckLastLook: false,
+                });
+                break;
+            case 'meta_transaction_job':
+            case 'meta_transaction_v2_job':
+                token = job.inputToken;
+                identifier = job.id;
+                // Skip txn simulation as it will be performed later
+                tradeCalldata = await this.prepareMetaTransactionTradeAsync(job, workerAddress, {
+                    shouldSimulate: false,
+                    shouldValidateJob: false,
+                });
+                break;
+            default:
+                ((_x: never) => {
+                    throw new Error('unreachable');
+                })(kind);
+        }
+
+        const permitAndCallcalldata = await this._blockchainUtils.generatePermitAndCallCalldataAsync(
+            token,
+            approval,
+            approvalSignature,
+            tradeCalldata,
+        );
+
+        try {
+            // Simulate atomic approval and trade txn
+            await retry(
+                async () => {
+                    return this._blockchainUtils.estimateGasForAsync({
+                        from: workerAddress,
+                        to: this._blockchainUtils.getPermitAndCallAddress(),
+                        data: permitAndCallcalldata,
+                    });
+                },
+                {
+                    delay: ONE_SECOND_MS,
+                    factor: 1,
+                    maxAttempts: 3,
+                    handleError: (error, context, _options) => {
+                        const { attemptNum: attemptNumber, attemptsRemaining } = context;
+                        logger.warn(
+                            { kind, identifier, attemptNumber, attemptsRemaining, error: error.message },
+                            'Error during eth_call validation when preparing meta-transaction trade. Retrying',
+                        );
+                    },
+                },
+            );
+        } catch (error) {
+            job.status = RfqmJobStatus.FailedEthCallFailed;
+            await this._dbUtils.updateRfqmJobAsync(job);
+
+            logger.error(
+                { kind, identifier, error: error.message, stack: error.stack },
+                'eth_call validation failed when preparing meta-transaction trade',
+            );
+
+            // Attempt to gather extra context upon eth_call failure
+            try {
+                const blockNumber = await this._blockchainUtils.getCurrentBlockAsync();
+                let makerBalance: BigNumber | undefined;
+                let takerBalance: BigNumber;
+
+                switch (kind) {
+                    case 'rfqm_v2_job': {
+                        const otcOrder = storedOtcOrderToOtcOrder(job.order);
+                        [makerBalance] = await this._rfqMakerBalanceCacheService.getERC20OwnerBalancesAsync(
+                            this._chainId,
+                            { owner: otcOrder.maker, token: otcOrder.makerToken },
+                        );
+                        [takerBalance] = await this._blockchainUtils.getMinOfBalancesAndAllowancesAsync({
+                            owner: otcOrder.taker,
+                            token: otcOrder.takerToken,
+                        });
+                        logger.info(
+                            {
+                                blockNumber,
+                                calldata: permitAndCallcalldata,
+                                identifier,
+                                kind,
+                                makerBalance,
+                                order: otcOrder,
+                                takerBalance,
+                            },
+                            'Extra context after eth_call validation failed when preparing permitAndCall for otc order trade',
+                        );
+                        break;
+                    }
+                    case 'meta_transaction_job':
+                    case 'meta_transaction_v2_job': {
+                        [takerBalance] = await this._blockchainUtils.getMinOfBalancesAndAllowancesAsync([
+                            { owner: job.takerAddress, token: job.inputToken },
+                        ]);
+                        logger.info(
+                            {
+                                blockNumber,
+                                calldata: permitAndCallcalldata,
+                                identifier,
+                                kind,
+                                metaTransaction: job.metaTransaction,
+                                takerBalance,
+                            },
+                            'Extra context after eth_call validation failed when preparing permitAndCall for meta-transaction trade',
+                        );
+                        break;
+                    }
+                }
+            } catch (error) {
+                logger.warn(
+                    { kind, identifier },
+                    'Failed to get extra context after eth_call validation failed when preparing trade',
+                );
+            }
+            throw new Error(`Eth call validation failed when preparing permitAndCall for ${kind} trade`);
+        }
+
+        return permitAndCallcalldata;
     }
 
     /**
@@ -1411,19 +1655,19 @@ export class WorkerService {
             case 'rfqm_v2_job':
                 previousSubmissionsWithPresubmits = await this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(
                     identifier,
-                    submissionType,
+                    [submissionType],
                 );
                 break;
             case 'meta_transaction_job':
                 previousSubmissionsWithPresubmits = await this._dbUtils.findMetaTransactionSubmissionsByJobIdAsync(
                     identifier,
-                    submissionType,
+                    [submissionType],
                 );
                 break;
             case 'meta_transaction_v2_job':
                 previousSubmissionsWithPresubmits = await this._dbUtils.findMetaTransactionV2SubmissionsByJobIdAsync(
                     identifier,
-                    submissionType,
+                    [submissionType],
                 );
                 break;
             default:
@@ -1758,6 +2002,7 @@ export class WorkerService {
                             SubmissionContext.approvalSubmissionContextStatusToJobStatus(newSubmissionContextStatus);
                         break;
                     case RfqmTransactionSubmissionType.Trade:
+                    case RfqmTransactionSubmissionType.ApprovalAndTrade:
                         newJobStatus =
                             SubmissionContext.tradeSubmissionContextStatusToJobStatus(newSubmissionContextStatus);
                         break;

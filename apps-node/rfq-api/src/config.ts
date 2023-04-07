@@ -774,6 +774,13 @@ export const RFQT_V2_SAMPLING_STRATEGY = _.isEmpty(process.env.RFQT_V2_SAMPLING_
     ? 'SLIPPAGE_AWARE'
     : assertEnvVarType('RFQT_V2_SAMPLING_STRATEGY', process.env.RFQT_V2_SAMPLING_STRATEGY, EnvVarType.NonEmptyString);
 
+// PERCENT: 100 means 100%
+export const ATOMIC_APPROVE_AND_SWAP_ROLLOUT_PERCENT = resolveEnvVar(
+    'ATOMIC_APPROVE_AND_SWAP_ROLLOUT_PERCENT',
+    EnvVarType.Integer,
+    0,
+);
+
 export const defaultHttpServiceConfig: HttpServiceConfig = {
     httpPort: HTTP_PORT,
     healthcheckHttpPort: HEALTHCHECK_HTTP_PORT,

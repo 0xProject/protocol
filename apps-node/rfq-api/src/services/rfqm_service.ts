@@ -197,13 +197,12 @@ export class RfqmService {
      */
     private static _getSuccessfulTransactionSubmissionDetails(opts: {
         hash: string;
-        type: RfqmTransactionSubmissionType;
         transactionSubmssions: Pick<
             RfqmV2TransactionSubmissionEntity | MetaTransactionSubmissionEntity,
             'createdAt' | 'status' | 'transactionHash'
         >[];
     }): TransactionDetails {
-        const { hash, type, transactionSubmssions } = opts;
+        const { hash, transactionSubmssions } = opts;
         const successfulTransactionSubmissions = transactionSubmssions.filter(
             (s) =>
                 s.status === RfqmTransactionSubmissionStatus.SucceededUnconfirmed ||
@@ -211,7 +210,7 @@ export class RfqmService {
         );
         if (successfulTransactionSubmissions.length !== 1) {
             throw new Error(
-                `Expected exactly one successful transaction submission of type ${type} for hash ${hash}; found ${successfulTransactionSubmissions.length}`,
+                `Expected exactly one successful transaction submission for hash ${hash}; found ${successfulTransactionSubmissions.length}`,
             );
         }
         const successfulTransactionSubmission = successfulTransactionSubmissions[0];
@@ -219,7 +218,7 @@ export class RfqmService {
             successfulTransactionSubmission,
         );
         if (!successfulTransactionSubmissionDetails) {
-            throw new Error(`Successful transaction of type ${type} does not have a hash ${hash}`);
+            throw new Error(`Successful transaction does not have a hash ${hash}`);
         }
 
         return successfulTransactionSubmissionDetails;
@@ -756,28 +755,33 @@ export class RfqmService {
 
         const tradeTransactionSubmissions =
             job.kind === 'rfqm_v2_job'
-                ? await this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(
-                      job.orderHash,
+                ? await this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(job.orderHash, [
                       RfqmTransactionSubmissionType.Trade,
-                  )
-                : await this._dbUtils.findMetaTransactionSubmissionsByJobIdAsync(
-                      job.id,
+                      RfqmTransactionSubmissionType.ApprovalAndTrade,
+                  ])
+                : await this._dbUtils.findMetaTransactionSubmissionsByJobIdAsync(job.id, [
                       RfqmTransactionSubmissionType.Trade,
-                  );
-        const shouldIncludeApproval = !!job.approval;
+                      RfqmTransactionSubmissionType.ApprovalAndTrade,
+                  ]);
+
+        const hasApprovalAndTradeTx = tradeTransactionSubmissions.some(
+            (s) => s.type === RfqmTransactionSubmissionType.ApprovalAndTrade,
+        );
+
+        // We consider ApprovalAndTrade txs to be Trade txs, so we don't want to
+        // include them in the approvalTransactions field
+        const shouldIncludeApproval = !!job.approval && !hasApprovalAndTradeTx;
         let approvalTransactionSubmissions: RfqmV2TransactionSubmissionEntity[] | MetaTransactionSubmissionEntity[] =
             [];
         if (shouldIncludeApproval) {
             approvalTransactionSubmissions =
                 job.kind === 'rfqm_v2_job'
-                    ? await this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(
-                          job.orderHash,
+                    ? await this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(job.orderHash, [
                           RfqmTransactionSubmissionType.Approval,
-                      )
-                    : await this._dbUtils.findMetaTransactionSubmissionsByJobIdAsync(
-                          job.id,
+                      ])
+                    : await this._dbUtils.findMetaTransactionSubmissionsByJobIdAsync(job.id, [
                           RfqmTransactionSubmissionType.Approval,
-                      );
+                      ]);
         }
 
         switch (status) {
@@ -824,7 +828,6 @@ export class RfqmService {
                     transactions: [
                         RfqmService._getSuccessfulTransactionSubmissionDetails({
                             hash: job.getHash(),
-                            type: RfqmTransactionSubmissionType.Trade,
                             transactionSubmssions: tradeTransactionSubmissions,
                         }),
                     ],
@@ -832,7 +835,6 @@ export class RfqmService {
                         approvalTransactions: [
                             RfqmService._getSuccessfulTransactionSubmissionDetails({
                                 hash: job.getHash(),
-                                type: RfqmTransactionSubmissionType.Approval,
                                 transactionSubmssions: approvalTransactionSubmissions,
                             }),
                         ],

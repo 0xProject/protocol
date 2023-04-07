@@ -112,6 +112,7 @@ export const UnresolvedRfqmJobStatuses = Object.values(RfqmJobStatus).filter((v)
 export enum RfqmTransactionSubmissionType {
     Trade = 'trade',
     Approval = 'approval',
+    ApprovalAndTrade = 'approvalAndTrade',
 }
 
 export enum RfqmTransactionSubmissionStatus {
