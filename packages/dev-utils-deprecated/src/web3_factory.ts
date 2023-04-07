@@ -5,7 +5,7 @@ import * as fs from 'fs';
 import { constants } from './constants';
 import { env, EnvVars } from './env';
 
-export interface Web3Config {
+interface Web3Config {
     total_accounts?: number; // default: 10
     shouldUseInProcessGanache?: boolean; // default: false
     shouldThrowErrorsOnGanacheRPCResponse?: boolean; // default: true

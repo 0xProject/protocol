@@ -1,5 +1,5 @@
-import { Web3Wrapper } from '@0x/dev-utils';
 import { BigNumber } from '@0x/utils';
+import { Web3Wrapper } from '@0x/web3-wrapper';
 import { AxiosInstance, CancelToken } from 'axios';
 
 import { logger } from '../logger';

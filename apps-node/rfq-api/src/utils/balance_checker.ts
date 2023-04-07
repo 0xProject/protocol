@@ -1,5 +1,6 @@
-import { BlockParamLiteral, SupportedProvider } from '@0x/dev-utils';
+import { SupportedProvider } from '@0x/subproviders';
 import { BigNumber } from '@0x/utils';
+import { BlockParamLiteral } from 'ethereum-types';
 import { artifacts } from '../generated-artifacts/artifacts';
 import { BalanceCheckerContract } from '../generated-wrappers/balance_checker';
 

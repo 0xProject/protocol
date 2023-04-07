@@ -1,5 +1,5 @@
 import { ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
-import { web3Factory, Web3ProviderEngine } from '@0x/dev-utils';
+import { web3Factory } from 'dev-utils-deprecated';
 import { ETH_TOKEN_ADDRESS, MetaTransaction, MetaTransactionV2 } from '@0x/protocol-utils';
 import { ObjectMap } from '@0x/types';
 import { BigNumber } from '@0x/utils';
@@ -48,13 +48,13 @@ export const WORKER_TEST_ADDRESS = '0xE834EC434DABA538cd1b9Fe1582052B880BD7e63';
 export const WORKER_TEST_PRIVATE_KEY = '0xff12e391b79415e941a94de3bf3a9aee577aed0731e297d5cfa0b8a1e02fa1d0';
 
 const ganacheConfigs = {
-    shouldUseInProcessGanache: false,
+    rpcUrl: RPC_URL,
     shouldAllowUnlimitedContractSize: true,
     shouldUseFakeGasEstimate: false,
-    rpcUrl: RPC_URL,
+    shouldUseInProcessGanache: false,
 };
 
-export const getProvider = (): Web3ProviderEngine => {
+export const getProvider = () => {
     return web3Factory.getRpcProvider(ganacheConfigs);
 };
 export const TEST_RFQ_ORDER_FILLED_EVENT_LOG: providers.Log = {

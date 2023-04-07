@@ -1,5 +1,5 @@
 import { assert } from '@0x/assert';
-import { Callback, ErrorCallback, JSONRPCRequestPayloadWithMethod, Subprovider } from '@0x/subproviders';
+import { Subprovider } from '@0x/subproviders';
 import { StatusCodes } from '@0x/types';
 import { JSONRPCRequestPayload } from 'ethereum-types';
 import * as http from 'http';
@@ -79,7 +79,11 @@ export class RPCSubprovider extends Subprovider {
      * @param _next Callback to call if this subprovider decides not to handle the request
      * @param end Callback to call if subprovider handled the request and wants to pass back the request.
      */
-    public async handleRequest(payload: JSONRPCRequestPayload, _next: Callback, end: ErrorCallback): Promise<void> {
+    public async handleRequest(
+        payload: JSONRPCRequestPayload,
+        _next: () => void,
+        end: (err: Error | null, data?: any) => void,
+    ): Promise<void> {
         const finalPayload = Subprovider._createFinalPayload(payload);
         const headers = new Headers({
             Accept: 'application/json',
@@ -161,7 +165,9 @@ export class RPCSubprovider extends Subprovider {
         end(null, data.result);
     }
 
-    private async _encodeRequestPayloadAsync(finalPayload: Partial<JSONRPCRequestPayloadWithMethod>): Promise<Buffer> {
+    private async _encodeRequestPayloadAsync(
+        finalPayload: Partial<JSONRPCRequestPayload & { method: string }>,
+    ): Promise<Buffer> {
         const body = Buffer.from(JSON.stringify(finalPayload));
         if (!this._shouldCompressRequest) {
             return body;

@@ -1,7 +1,7 @@
 import { artifacts as erc20Artifacts, DummyERC20TokenContract } from '@0x/contracts-erc20';
 import { artifacts as zeroExArtifacts, fullMigrateAsync, IZeroExContract } from '@0x/contracts-zero-ex';
-import { Web3ProviderEngine } from '@0x/dev-utils';
 import { Signature } from '@0x/protocol-utils';
+import { Web3ProviderEngine } from '@0x/subproviders';
 import { NULL_ADDRESS } from '@0x/utils';
 import { BigNumber } from '@0x/utils';
 import { TxData, Web3Wrapper } from '@0x/web3-wrapper';

@@ -1,4 +1,3 @@
-import { Web3Wrapper } from '@0x/dev-utils';
 import { S3 } from 'aws-sdk';
 import axios from 'axios';
 import { Kafka } from 'kafkajs';
@@ -32,6 +31,7 @@ import { NoOpOrderbook } from '../orderbook/no_op_orderbook';
 import { RfqClient } from '../utils/rfq_client';
 import { S3Client } from '../utils/s3_client';
 import { SlippageModelManager } from '../utils/slippage_model_manager';
+import { Web3Wrapper } from '@0x/web3-wrapper';
 
 /**
  * Pass this callback into the default server to ensure all dependencies shut down correctly

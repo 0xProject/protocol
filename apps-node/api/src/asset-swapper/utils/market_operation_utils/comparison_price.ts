@@ -1,4 +1,3 @@
-import { Web3Wrapper } from '@0x/dev-utils';
 import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber, logUtils } from '@0x/utils';
 
@@ -7,6 +6,7 @@ import { MarketOperation } from '../../types';
 import { COMPARISON_PRICE_DECIMALS, SOURCE_FLAGS } from './constants';
 import { ComparisonPrice, MarketSideLiquidity } from './types';
 import { ExchangeProxyOverhead, FeeEstimateFn } from '../../types';
+import { Web3Wrapper } from '@0x/web3-wrapper';
 
 /**
  * Takes in an optimizer response and returns a price for RFQT MMs to beat

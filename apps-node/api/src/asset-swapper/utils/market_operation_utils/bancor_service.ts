@@ -1,7 +1,7 @@
-import { SupportedProvider } from '@0x/dev-utils';
 import { SDK } from '@bancor/sdk';
 import { Ethereum } from '@bancor/sdk/dist/blockchains/ethereum';
 import { BlockchainType } from '@bancor/sdk/dist/types';
+import { SupportedProvider } from 'ethereum-types';
 
 import { MAINNET_TOKENS } from './constants';
 

@@ -1,4 +1,3 @@
-import { tokenUtils } from '@0x/dev-utils';
 import { FillQuoteTransformerOrderType, SignatureType } from '@0x/protocol-utils';
 import { MarketOperation, StatusCodes } from '@0x/types';
 import { BigNumber, logUtils } from '@0x/utils';
@@ -42,8 +41,18 @@ function makeThreeMinuteExpiry(): BigNumber {
     return new BigNumber(Math.round(expiry.valueOf() / ONE_SECOND_MS));
 }
 
+function getDummyERC20TokenAddresses(): string[] {
+    return [
+        '0x34d402f14d58e001d8efbe6585051bf9706aa064',
+        '0x25b8fe1de9daf8ba351890744ff28cf7dfa8f5e3',
+        '0xcdb594a32b1cc3479d8746279712c39d18a07fc0',
+        '0x1e2f9e10d02a6b8f8f69fcbf515e75039d2ea30d',
+        '0xbe0037eaf2d64fe5529bca93c18c9702d3930376',
+    ];
+}
+
 describe('QuoteRequestor', () => {
-    const [makerToken, takerToken, otherToken1] = tokenUtils.getDummyERC20TokenAddresses();
+    const [makerToken, takerToken, otherToken1] = getDummyERC20TokenAddresses();
     const validSignature = { v: 28, r: '0x', s: '0x', signatureType: SignatureType.EthSign };
 
     const altRfqAssetOfferings: AltRfqMakerAssetOfferings = {

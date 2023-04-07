@@ -3,8 +3,8 @@
     "version": "0.0.0",
     "description": "Migrated from 0xProject/tools at version 5.0.1",
     "license": "UNLICENSED",
-    "main": "__build__/index.js",
-    "types": "__build__/index.d.ts",
+    "main": "__build__/src/index.js",
+    "types": "__build__/src/index.d.ts",
     "scripts": {
         "build": "tsc",
         "fix": "prettier --write .",
@@ -28,8 +28,6 @@
         "web3-provider-engine": "16.0.4"
     },
     "devDependencies": {
-        "@0x/ts-doc-gen": "^0.0.28",
-        "@types/lodash": "4.14.104",
         "@types/mocha": "^5.2.7",
         "eslint-config-common": "*",
         "make-promises-safe": "^1.1.0",

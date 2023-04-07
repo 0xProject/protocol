@@ -1,4 +1,4 @@
-import { web3Factory, Web3ProviderEngine } from '@0x/dev-utils';
+import { web3Factory } from 'dev-utils-deprecated';
 import { ETH_TOKEN_ADDRESS } from '@0x/protocol-utils';
 import { ObjectMap } from '@0x/types';
 import { BigNumber } from '@0x/utils';
@@ -26,12 +26,12 @@ export const MATCHA_AFFILIATE_ENCODED_PARTIAL_ORDER_DATA =
     '869584cd00000000000000000000000086003b044f70dac0abc80ac8957305b6370893ed0000000000000000000000000000000000000000000000';
 
 const ganacheConfigs = {
-    shouldUseInProcessGanache: false,
-    shouldAllowUnlimitedContractSize: true,
     rpcUrl: ETHEREUM_RPC_URL, // set in docker-compose-test.yml
+    shouldAllowUnlimitedContractSize: true,
     shouldUseFakeGasEstimate: false,
+    shouldUseInProcessGanache: false,
 };
 
-export const getProvider = (): Web3ProviderEngine => {
+export const getProvider = () => {
     return web3Factory.getRpcProvider(ganacheConfigs);
 };

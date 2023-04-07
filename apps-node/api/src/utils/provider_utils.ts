@@ -1,5 +1,6 @@
-import { SupportedProvider, Web3ProviderEngine } from '@0x/subproviders';
+import { Web3ProviderEngine } from '@0x/subproviders';
 import { providerUtils as ZeroExProviderUtils } from '@0x/utils';
+import { SupportedProvider } from 'ethereum-types';
 
 import { RPCSubprovider } from '../rpc_subprovider';
 

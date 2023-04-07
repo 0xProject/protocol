@@ -1,7 +1,7 @@
 import { WETH9Contract } from '@0x/contract-wrappers';
 import { DummyERC20TokenContract } from '@0x/contracts-erc20';
-import { assertRoughlyEquals, expect, randomAddress } from '@0x/contracts-test-utils';
-import { BlockchainLifecycle, Web3ProviderEngine, Web3Wrapper } from '@0x/dev-utils';
+import { assertRoughlyEquals, expect, randomAddress, Web3ProviderEngine } from '@0x/contracts-test-utils';
+import { BlockchainLifecycle } from 'dev-utils-deprecated';
 import { isNativeSymbolOrAddress } from '@0x/token-metadata';
 import { BigNumber } from '@0x/utils';
 import { Server } from 'http';
@@ -38,6 +38,7 @@ import { getRandomSignedLimitOrderAsync } from './utils/orders';
 import { StatusCodes } from 'http-status-codes';
 import { decodeTransformERC20 } from './asset-swapper/test_utils/decoders';
 import { decodeAffiliateFeeTransformerData } from '@0x/protocol-utils';
+import { Web3Wrapper } from '@0x/web3-wrapper';
 
 // Force reload of the app avoid variables being polluted between test suites
 // Warning: You probably don't want to move this

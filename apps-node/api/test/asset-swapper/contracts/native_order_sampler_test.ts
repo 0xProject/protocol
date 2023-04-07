@@ -7,9 +7,9 @@ import {
     getRandomInteger,
     randomAddress,
 } from '@0x/contracts-test-utils';
-import { Web3Wrapper } from '@0x/dev-utils';
 import { SignatureType } from '@0x/protocol-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
+import { Web3Wrapper } from '@0x/web3-wrapper';
 
 import { LimitOrderFields } from '../../../src/asset-swapper';
 import { NULL_ADDRESS } from '../../../src/asset-swapper/utils/market_operation_utils/constants';

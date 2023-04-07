@@ -1,6 +1,6 @@
 import { ErrorBody, GeneralErrorCodes, generalErrorCodeToReason, ValidationErrorCodes } from '@0x/api-utils';
-import { expect } from '@0x/contracts-test-utils';
-import { BlockchainLifecycle, Web3ProviderEngine, Web3Wrapper } from '@0x/dev-utils';
+import { expect, Web3ProviderEngine } from '@0x/contracts-test-utils';
+import { BlockchainLifecycle } from 'dev-utils-deprecated';
 import { BigNumber } from '@0x/utils';
 import axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
@@ -30,6 +30,7 @@ import {
 import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deployment';
 import { constructRoute, httpGetAsync, httpPostAsync } from './utils/http_utils';
 import { getRandomSignedLimitOrderAsync } from './utils/orders';
+import { Web3Wrapper } from '@0x/web3-wrapper';
 
 // Force reload of the app avoid variables being polluted between test suites
 delete require.cache[require.resolve('../src/app')];
