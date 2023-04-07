@@ -1,6 +1,6 @@
 import { WETH9Contract } from '@0x/contract-wrappers';
 import { DummyERC20TokenContract } from '@0x/contracts-erc20';
-import { assertRoughlyEquals, expect, randomAddress, Web3ProviderEngine } from '@0x/contracts-test-utils';
+import { expect, randomAddress, Web3ProviderEngine } from '@0x/contracts-test-utils';
 import { BlockchainLifecycle } from 'dev-utils-deprecated';
 import { isNativeSymbolOrAddress } from '@0x/token-metadata';
 import { BigNumber } from '@0x/utils';
@@ -16,8 +16,9 @@ import { LimitOrderFields } from '../src/asset-swapper';
 import * as config from '../src/config';
 import { META_TRANSACTION_V1_PATH, META_TRANSACTION_V2_PATH, ZERO } from '../src/constants';
 import { getDBConnectionOrThrow } from '../src/db_connection';
-import { ValidationErrorCodes, ValidationErrorItem, ValidationErrorReasons } from '../src/errors';
-import { GetSwapQuoteResponse, SignedLimitOrder } from '../src/types';
+import { ValidationErrorCodes, ValidationErrorReasons } from '../src/errors';
+import { SignedLimitOrder } from '../src/types';
+import { expectCorrectQuoteResponse, expectSwapError } from './test_utils';
 
 import {
     CHAIN_ID,
@@ -35,7 +36,6 @@ import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deplo
 import { httpPostAsync } from './utils/http_utils';
 import { MockOrderWatcher } from './utils/mock_order_watcher';
 import { getRandomSignedLimitOrderAsync } from './utils/orders';
-import { StatusCodes } from 'http-status-codes';
 import { decodeTransformERC20 } from './asset-swapper/test_utils/decoders';
 import { decodeAffiliateFeeTransformerData } from '@0x/protocol-utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
@@ -1202,12 +1202,6 @@ describe(SUITE_NAME, () => {
     });
 });
 
-interface SwapErrors {
-    validationErrors?: ValidationErrorItem[];
-    revertErrorReason?: string;
-    generalUserError?: boolean;
-}
-
 async function requestSwap(
     app: Express.Application,
     endpoint: 'price' | 'quote',
@@ -1254,55 +1248,4 @@ async function requestSwap(
     const route = `${metaTransactionPath}/${endpoint}`;
 
     return await httpPostAsync({ app, route, body });
-}
-
-async function expectSwapError(swapResponse: supertest.Response, swapErrors: SwapErrors) {
-    expect(swapResponse.type).to.be.eq('application/json');
-    expect(swapResponse.statusCode).not.eq(StatusCodes.OK);
-
-    if (swapErrors.revertErrorReason) {
-        expect(swapResponse.status).to.be.eq(StatusCodes.BAD_REQUEST);
-        expect(swapResponse.body.code).to.eq(105);
-        expect(swapResponse.body.reason).to.be.eql(swapErrors.revertErrorReason);
-        return swapResponse;
-    }
-    if (swapErrors.validationErrors) {
-        expect(swapResponse.status).to.be.eq(StatusCodes.BAD_REQUEST);
-        expect(swapResponse.body.code).to.eq(100);
-        expect(swapResponse.body.validationErrors).to.be.eql(swapErrors.validationErrors);
-        return swapResponse;
-    }
-    if (swapErrors.generalUserError) {
-        expect(swapResponse.status).to.be.eq(StatusCodes.BAD_REQUEST);
-        return swapResponse;
-    }
-}
-
-const PRECISION = 2;
-function expectCorrectQuoteResponse(
-    response: supertest.Response,
-    expectedResponse: Partial<GetSwapQuoteResponse>,
-): void {
-    expect(response.type).to.be.eq('application/json');
-    expect(response.statusCode).eq(StatusCodes.OK);
-    const quoteResponse = response.body as GetSwapQuoteResponse;
-
-    for (const prop of Object.keys(expectedResponse)) {
-        const property = prop as keyof GetSwapQuoteResponse;
-        if (BigNumber.isBigNumber(expectedResponse[property])) {
-            assertRoughlyEquals(quoteResponse[property], expectedResponse[property], PRECISION);
-            continue;
-        }
-
-        if (prop === 'sources' && expectedResponse.sources !== undefined) {
-            const expectedSources = expectedResponse.sources.map((source) => ({
-                ...source,
-                proportion: source.proportion.toString(),
-            }));
-            expect(quoteResponse.sources).to.deep.include.members(expectedSources);
-            continue;
-        }
-
-        expect(quoteResponse[property], property).to.eql(expectedResponse[property]);
-    }
 }
