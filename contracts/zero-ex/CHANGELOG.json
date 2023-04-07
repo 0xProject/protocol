@@ -1,11 +1,11 @@
 [
     {
+        "version": "0.39.2",
         "changes": [
             {
                 "note": "Uprgade dependencies"
             }
-        ],
-        "timestamp": 1680893079
+        ]
     },
     {
         "version": "0.39.1",
