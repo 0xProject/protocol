@@ -236,6 +236,7 @@ export class SlippageModelManager {
 
             // If the file does not exist, reset the in-memory cache
             if (!doesFileExist) {
+                logger.warn({ bucket, fileName, refreshTime }, `Slippage model file does not exist.`);
                 SLIPPAGE_MODEL_LOAD_STATUS.labels('error', CHAIN_ID.toString()).inc();
                 this._resetCache();
                 return;
