@@ -1963,7 +1963,7 @@ const UNSAFE_GAS_SCHEDULE: GasSchedule = {
                 // Should never hit a Bridge order, but if it does, set it to the same as RfqOrder to preserve old logic
                 return 100e3;
             case FillQuoteTransformerOrderType.Otc:
-                return 85e3;
+                return 80e3;
             default:
                 ((_: never) => {
                     throw new Error('unreachable');

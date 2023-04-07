@@ -36,7 +36,7 @@ describe('DEFAULT_GAS_SCHEDULE', () => {
     it('ERC20BridgeSource.Native OtcOrder', () => {
         const fillData = { type: FillQuoteTransformerOrderType.Otc };
         const gasSchedule = DEFAULT_GAS_SCHEDULE[ERC20BridgeSource.Native](fillData);
-        expect(gasSchedule).to.eq(85e3);
+        expect(gasSchedule).to.eq(80e3);
     });
 
     it('ERC20BridgeSource.Native BridgeOrder', () => {
