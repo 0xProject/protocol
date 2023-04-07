@@ -32,6 +32,6 @@
             "$ref": "/addressSchema"
         }
     },
-    "required": ["label", "integratorId", "apiKeys", "rfqt", "rfqm"],
+    "required": ["label", "integratorId", "apiKeys", "rfqm"],
     "type": "object"
 }
