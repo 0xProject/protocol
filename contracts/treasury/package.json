@@ -45,11 +45,11 @@
     },
     "homepage": "https://github.com/0xProject/protocol/tree/main/contracts/treasury",
     "devDependencies": {
-        "@0x/abi-gen": "^5.8.1",
+        "@0x/abi-gen": "^5.8.5",
         "@0x/contract-addresses": "^8.2.0",
         "@0x/contracts-asset-proxy": "^3.7.19",
         "@0x/contracts-erc20": "3.3.57",
-        "@0x/contracts-gen": "^2.0.48",
+        "@0x/contracts-gen": "^2.0.50",
         "@0x/contracts-staking": "^2.0.45",
         "@0x/contracts-test-utils": "^5.4.49",
         "@0x/sol-compiler": "^4.8.2",
@@ -74,11 +74,11 @@
     "dependencies": {
         "@0x/base-contract": "^7.0.0",
         "@0x/protocol-utils": "^11.18.1",
-        "@0x/subproviders": "^7.0.0",
-        "@0x/types": "^3.3.6",
+        "@0x/subproviders": "^8.0.1",
+        "@0x/types": "^3.3.7",
         "@0x/typescript-typings": "^5.3.1",
         "@0x/utils": "^7.0.0",
-        "@0x/web3-wrapper": "^8.0.0",
+        "@0x/web3-wrapper": "^8.0.1",
         "ethereum-types": "^3.7.1",
         "ethereumjs-util": "^7.0.10"
     },

@@ -1,4 +1,4 @@
-import { SupportedProvider } from '@0x/subproviders';
+import { SupportedProvider } from 'ethereum-types';
 import { EIP712TypedData } from '@0x/types';
 import { hexUtils, providerUtils, signTypedDataUtils } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';

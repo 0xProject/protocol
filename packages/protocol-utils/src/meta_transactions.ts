@@ -1,5 +1,5 @@
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
-import { SupportedProvider } from '@0x/subproviders';
+import { SupportedProvider } from 'ethereum-types';
 import { EIP712TypedData } from '@0x/types';
 import { BigNumber, hexUtils, NULL_ADDRESS } from '@0x/utils';
 
