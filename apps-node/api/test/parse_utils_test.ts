@@ -1,4 +1,4 @@
-import { expect } from '@0x/contracts-test-utils';
+import { expect } from 'chai';
 import { NULL_ADDRESS } from '@0x/utils';
 import 'mocha';
 

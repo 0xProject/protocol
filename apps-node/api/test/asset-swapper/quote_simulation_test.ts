@@ -1,4 +1,3 @@
-import { constants, expect, getRandomInteger, randomAddress } from '@0x/contracts-test-utils';
 import { FillQuoteTransformerOrderType, SignatureType } from '@0x/protocol-utils';
 import { BigNumber, hexUtils, NULL_BYTES } from '@0x/utils';
 import * as _ from 'lodash';
@@ -17,9 +16,11 @@ import {
     simulateBestCaseFill,
     simulateWorstCaseFill,
 } from '../../src/asset-swapper/utils/quote_simulation';
+import { getRandomInteger, randomAddress } from '../utils/random';
+import { expect } from 'chai';
+import { NULL_ADDRESS } from '../constants';
 
 describe('quote_simulation tests', async () => {
-    const { NULL_ADDRESS } = constants;
     const ZERO = new BigNumber(0);
     const ONE = new BigNumber(1);
     const MAKER_TOKEN = randomAddress();

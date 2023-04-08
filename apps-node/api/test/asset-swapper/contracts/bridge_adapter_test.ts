@@ -1,5 +1,5 @@
 import { ChainId } from '@0x/contract-addresses';
-import { blockchainTests, constants, describe, expect } from '@0x/contracts-test-utils';
+import { blockchainTests } from '@0x/contracts-test-utils';
 import {
     artifacts as zeroExArtifacts,
     AvalancheBridgeAdapterContract,
@@ -17,6 +17,8 @@ import {
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
 } from '../../../src/asset-swapper';
 import { getErc20BridgeSourceToBridgeSource } from '../../../src/asset-swapper/utils/market_operation_utils/orders';
+import { constants } from '../../../src/asset-swapper/constants';
+import { expect } from 'chai';
 
 blockchainTests('Bridge adapter source compatibility tests', (env) => {
     describe('Avalanche', () => {
@@ -40,7 +42,7 @@ blockchainTests('Bridge adapter source compatibility tests', (env) => {
                     const isSupported = await adapter
                         .isSupportedSource(getErc20BridgeSourceToBridgeSource(source))
                         .callAsync();
-                    expect(isSupported, `${source} is not supported`).to.be.true();
+                    expect(isSupported).to.be.true;
                 }),
             );
         });
@@ -54,7 +56,7 @@ blockchainTests('Bridge adapter source compatibility tests', (env) => {
                     const isSupported = await adapter
                         .isSupportedSource(getErc20BridgeSourceToBridgeSource(source))
                         .callAsync();
-                    expect(isSupported, `${source} is not supported`).to.be.true();
+                    expect(isSupported).to.be.true;
                 }),
             );
         });
@@ -80,7 +82,7 @@ blockchainTests('Bridge adapter source compatibility tests', (env) => {
                     const isSupported = await adapter
                         .isSupportedSource(getErc20BridgeSourceToBridgeSource(source))
                         .callAsync();
-                    expect(isSupported, `${source} is not supported`).to.be.true();
+                    expect(isSupported).to.be.true;
                 }),
             );
         });
@@ -94,7 +96,7 @@ blockchainTests('Bridge adapter source compatibility tests', (env) => {
                     const isSupported = await adapter
                         .isSupportedSource(getErc20BridgeSourceToBridgeSource(source))
                         .callAsync();
-                    expect(isSupported, `${source} is not supported`).to.be.true();
+                    expect(isSupported).to.be.true;
                 }),
             );
         });
@@ -120,7 +122,7 @@ blockchainTests('Bridge adapter source compatibility tests', (env) => {
                     const isSupported = await adapter
                         .isSupportedSource(getErc20BridgeSourceToBridgeSource(source))
                         .callAsync();
-                    expect(isSupported, `${source} is not supported`).to.be.true();
+                    expect(isSupported).to.be.true;
                 }),
             );
         });
@@ -134,7 +136,7 @@ blockchainTests('Bridge adapter source compatibility tests', (env) => {
                     const isSupported = await adapter
                         .isSupportedSource(getErc20BridgeSourceToBridgeSource(source))
                         .callAsync();
-                    expect(isSupported, `${source} is not supported`).to.be.true();
+                    expect(isSupported).to.be.true;
                 }),
             );
         });
@@ -160,7 +162,7 @@ blockchainTests('Bridge adapter source compatibility tests', (env) => {
                     const isSupported = await adapter
                         .isSupportedSource(getErc20BridgeSourceToBridgeSource(source))
                         .callAsync();
-                    expect(isSupported, `${source} is not supported`).to.be.true();
+                    expect(isSupported).to.be.true;
                 }),
             );
         });
@@ -174,7 +176,7 @@ blockchainTests('Bridge adapter source compatibility tests', (env) => {
                     const isSupported = await adapter
                         .isSupportedSource(getErc20BridgeSourceToBridgeSource(source))
                         .callAsync();
-                    expect(isSupported, `${source} is not supported`).to.be.true();
+                    expect(isSupported).to.be.true;
                 }),
             );
         });
@@ -200,7 +202,7 @@ blockchainTests('Bridge adapter source compatibility tests', (env) => {
                     const isSupported = await adapter
                         .isSupportedSource(getErc20BridgeSourceToBridgeSource(source))
                         .callAsync();
-                    expect(isSupported, `${source} is not supported`).to.be.true();
+                    expect(isSupported).to.be.true;
                 }),
             );
         });
@@ -214,7 +216,7 @@ blockchainTests('Bridge adapter source compatibility tests', (env) => {
                     const isSupported = await adapter
                         .isSupportedSource(getErc20BridgeSourceToBridgeSource(source))
                         .callAsync();
-                    expect(isSupported, `${source} is not supported`).to.be.true();
+                    expect(isSupported).to.be.true;
                 }),
             );
         });
@@ -240,7 +242,7 @@ blockchainTests('Bridge adapter source compatibility tests', (env) => {
                     const isSupported = await adapter
                         .isSupportedSource(getErc20BridgeSourceToBridgeSource(source))
                         .callAsync();
-                    expect(isSupported, `${source} is not supported`).to.be.true();
+                    expect(isSupported).to.be.true;
                 }),
             );
         });
@@ -254,7 +256,7 @@ blockchainTests('Bridge adapter source compatibility tests', (env) => {
                     const isSupported = await adapter
                         .isSupportedSource(getErc20BridgeSourceToBridgeSource(source))
                         .callAsync();
-                    expect(isSupported, `${source} is not supported`).to.be.true();
+                    expect(isSupported).to.be.true;
                 }),
             );
         });
@@ -280,7 +282,7 @@ blockchainTests('Bridge adapter source compatibility tests', (env) => {
                     const isSupported = await adapter
                         .isSupportedSource(getErc20BridgeSourceToBridgeSource(source))
                         .callAsync();
-                    expect(isSupported, `${source} is not supported`).to.be.true();
+                    expect(isSupported).to.be.true;
                 }),
             );
         });
@@ -294,7 +296,7 @@ blockchainTests('Bridge adapter source compatibility tests', (env) => {
                     const isSupported = await adapter
                         .isSupportedSource(getErc20BridgeSourceToBridgeSource(source))
                         .callAsync();
-                    expect(isSupported, `${source} is not supported`).to.be.true();
+                    expect(isSupported).to.be.true;
                 }),
             );
         });

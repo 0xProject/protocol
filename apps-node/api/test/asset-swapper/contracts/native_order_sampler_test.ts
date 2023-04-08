@@ -1,22 +1,17 @@
 import { artifacts as erc20Artifacts, DummyERC20TokenContract } from '@0x/contracts-erc20';
-import {
-    assertIntegerRoughlyEquals,
-    blockchainTests,
-    constants,
-    expect,
-    getRandomInteger,
-    randomAddress,
-} from '@0x/contracts-test-utils';
+import { blockchainTests } from '@0x/contracts-test-utils';
+import { expect } from 'chai';
 import { SignatureType } from '@0x/protocol-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 
 import { LimitOrderFields } from '../../../src/asset-swapper';
-import { NULL_ADDRESS } from '../../../src/asset-swapper/utils/market_operation_utils/constants';
+import { NULL_ADDRESS, ZERO_AMOUNT } from '../../../src/asset-swapper/utils/market_operation_utils/constants';
 import { artifacts } from '../../artifacts';
 import { TestNativeOrderSamplerContract } from '../../wrappers';
-
-const { NULL_BYTES, ZERO_AMOUNT } = constants;
+import { getRandomInteger, randomAddress } from '../../utils/random';
+import { NULL_BYTES } from '../../../src/constants';
+import { assertIntegerRoughlyEquals } from '../../utils/assert_roughly_equals';
 
 blockchainTests.resets('NativeOrderSampler contract', (env) => {
     let testContract: TestNativeOrderSamplerContract;
@@ -116,20 +111,20 @@ blockchainTests.resets('NativeOrderSampler contract', (env) => {
                 env.provider,
                 env.txDefaults,
                 artifacts,
-                constants.DUMMY_TOKEN_NAME,
-                constants.DUMMY_TOKEN_SYMBOL,
+                'dummy token',
+                'DUMMY',
                 new BigNumber(18),
-                constants.DUMMY_TOKEN_TOTAL_SUPPLY,
+                /* total supply */ new BigNumber(0),
             );
             const newTakerToken = await DummyERC20TokenContract.deployFrom0xArtifactAsync(
                 erc20Artifacts.DummyERC20Token,
                 env.provider,
                 env.txDefaults,
                 artifacts,
-                constants.DUMMY_TOKEN_NAME,
-                constants.DUMMY_TOKEN_SYMBOL,
+                'dummy token',
+                'DUMMY',
                 new BigNumber(6),
-                constants.DUMMY_TOKEN_TOTAL_SUPPLY,
+                /* total supply */ new BigNumber(0),
             );
             const [makerDecimals, takerDecimals] = await testContract
                 .getTokenDecimals([newMakerToken.address, newTakerToken.address])

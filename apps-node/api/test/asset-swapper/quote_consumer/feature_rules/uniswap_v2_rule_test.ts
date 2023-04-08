@@ -4,10 +4,10 @@ import { chaiSetup } from '../../utils/chai_setup';
 import { UniswapV2Rule } from '../../../../src/asset-swapper/quote_consumers/feature_rules/uniswap_v2_rule';
 import { ChainId } from '@0x/contract-addresses';
 import { createExchangeProxyWithoutProvider } from '../../../../src/asset-swapper/quote_consumers/quote_consumer_utils';
-import { randomAddress } from '@0x/contracts-test-utils';
 import { createSimpleSellSwapQuoteWithBridgeOrder, NO_AFFILIATE_FEE, ONE_ETHER } from '../../test_utils/test_data';
 import { AffiliateFeeType, ERC20BridgeSource } from '../../../../src/asset-swapper';
 import { AbiEncoder, BigNumber, NULL_ADDRESS } from '@0x/utils';
+import { randomAddress } from '../../../utils/random';
 
 chaiSetup.configure();
 const expect = chai.expect;
@@ -59,7 +59,7 @@ describe('UniswapV2Rule', () => {
                 shouldSellEntireBalance: false,
             });
 
-            expect(isCompatible).to.be.false();
+            expect(isCompatible).to.be.false;
         });
 
         it('Returns false when there is an affiliate fee', () => {
@@ -81,7 +81,7 @@ describe('UniswapV2Rule', () => {
                 shouldSellEntireBalance: false,
             });
 
-            expect(isCompatible).to.be.false();
+            expect(isCompatible).to.be.false;
         });
 
         it('Returns false when selling entire balance', () => {
@@ -96,7 +96,7 @@ describe('UniswapV2Rule', () => {
                 shouldSellEntireBalance: true,
             });
 
-            expect(isCompatible).to.be.false();
+            expect(isCompatible).to.be.false;
         });
 
         it('Returns false on non-mainnet (Ethereum)', () => {
@@ -111,7 +111,7 @@ describe('UniswapV2Rule', () => {
                 shouldSellEntireBalance: true,
             });
 
-            expect(isCompatible).to.be.false();
+            expect(isCompatible).to.be.false;
         });
 
         it('Returns true for a UniswapV2 order on mainnet', () => {
@@ -126,7 +126,7 @@ describe('UniswapV2Rule', () => {
                 shouldSellEntireBalance: false,
             });
 
-            expect(isCompatible).to.be.true();
+            expect(isCompatible).to.be.true;
         });
 
         it('Returns true for a SushiSwap order on mainnet', () => {
@@ -141,7 +141,7 @@ describe('UniswapV2Rule', () => {
                 shouldSellEntireBalance: false,
             });
 
-            expect(isCompatible).to.be.true();
+            expect(isCompatible).to.be.true;
         });
 
         it('Returns false for non-compatible liquidity source', () => {
@@ -165,7 +165,7 @@ describe('UniswapV2Rule', () => {
                 shouldSellEntireBalance: false,
             });
 
-            expect(isCompatible).to.be.false();
+            expect(isCompatible).to.be.false;
         });
 
         // TODO: returns false on multiple orders.

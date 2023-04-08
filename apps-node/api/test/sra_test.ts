@@ -1,5 +1,6 @@
 import { ErrorBody, GeneralErrorCodes, generalErrorCodeToReason, ValidationErrorCodes } from '@0x/api-utils';
-import { expect, Web3ProviderEngine } from '@0x/contracts-test-utils';
+import { expect } from 'chai';
+import Web3ProviderEngine from 'web3-provider-engine';
 import { BlockchainLifecycle } from 'dev-utils-deprecated';
 import { BigNumber } from '@0x/utils';
 import axios from 'axios';

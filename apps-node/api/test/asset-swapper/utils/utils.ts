@@ -1,6 +1,6 @@
-import { getRandomInteger } from '@0x/contracts-test-utils';
 import { Signature, SignatureType } from '@0x/protocol-utils';
 import { BigNumber, generatePseudoRandom256BitNumber, hexUtils, Numberish } from '@0x/utils';
+import { getRandomInteger } from '../../utils/random';
 
 export function generatePseudoRandomSalt(): BigNumber {
     const salt = generatePseudoRandom256BitNumber();

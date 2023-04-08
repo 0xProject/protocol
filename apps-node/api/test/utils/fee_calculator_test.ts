@@ -1,4 +1,4 @@
-import { expect } from '@0x/contracts-test-utils';
+import { expect } from 'chai';
 import { BigNumber } from '@0x/utils';
 import { TRANSFER_FROM_GAS, TRANSFER_GAS, ZERO } from '../../src/constants';
 import { calculateFees } from '../../src/utils/fee_calculator';

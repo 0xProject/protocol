@@ -117,7 +117,7 @@ describe('Path', () => {
                 },
             );
 
-            expect(path.hasTwoHop()).to.be.false();
+            expect(path.hasTwoHop()).to.be.false;
         });
 
         it('Returns true when the path includes a two hop', () => {
@@ -139,7 +139,7 @@ describe('Path', () => {
                 },
             );
 
-            expect(path.hasTwoHop()).to.be.true();
+            expect(path.hasTwoHop()).to.be.true;
         });
     });
 

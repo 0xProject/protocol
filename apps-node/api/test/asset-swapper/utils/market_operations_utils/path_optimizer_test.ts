@@ -68,7 +68,7 @@ describe('PathOptimizer', () => {
             );
 
             if (path === undefined) {
-                expect(path).to.be.not.undefined();
+                expect(path).to.be.not.undefined;
                 return;
             }
 
@@ -116,7 +116,7 @@ describe('PathOptimizer', () => {
             );
 
             if (path === undefined) {
-                expect(path).to.be.not.undefined();
+                expect(path).to.be.not.undefined;
                 return;
             }
 
@@ -169,7 +169,7 @@ describe('PathOptimizer', () => {
             );
 
             if (path === undefined) {
-                expect(path).to.be.not.undefined();
+                expect(path).to.be.not.undefined;
                 return;
             }
 
@@ -217,7 +217,7 @@ describe('PathOptimizer', () => {
             );
 
             if (path === undefined) {
-                expect(path).to.be.not.undefined();
+                expect(path).to.be.not.undefined;
                 return;
             }
 
@@ -273,7 +273,7 @@ describe('PathOptimizer', () => {
             );
 
             if (path === undefined) {
-                expect(path).to.be.not.undefined();
+                expect(path).to.be.not.undefined;
                 return;
             }
 
@@ -324,7 +324,7 @@ describe('PathOptimizer', () => {
             );
 
             if (path === undefined) {
-                expect(path).to.be.not.undefined();
+                expect(path).to.be.not.undefined;
                 return;
             }
 
@@ -377,7 +377,7 @@ describe('PathOptimizer', () => {
             );
 
             if (path === undefined) {
-                expect(path).to.be.not.undefined();
+                expect(path).to.be.not.undefined;
                 return;
             }
 

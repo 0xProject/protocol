@@ -1,4 +1,3 @@
-import { randomAddress } from '@0x/contracts-test-utils';
 import {
     BigNumber,
     ERC20BridgeSource,
@@ -22,6 +21,7 @@ import {
 import { MAX_UINT256 } from '../../../src/asset-swapper/utils/market_operation_utils/constants';
 import { DODOFillData, VelodromeFillData } from '../../../src/asset-swapper/utils/market_operation_utils/types';
 import { NULL_ADDRESS } from '../../constants';
+import { randomAddress } from '../../utils/random';
 
 export const ONE_ETHER = new BigNumber(1e18);
 

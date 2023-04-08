@@ -1,4 +1,4 @@
-import { expect } from '@0x/contracts-test-utils';
+import { expect } from 'chai';
 import { SubmitRequest } from '@0x/quote-server';
 import { BigNumber } from '@0x/utils';
 import Axios from 'axios';

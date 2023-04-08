@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ContractTxFunctionObj } from '@0x/base-contract';
-import { constants } from '@0x/contracts-test-utils';
 import { LimitOrderFields, Signature } from '@0x/protocol-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
 
 import { ERC20BridgeSamplerContract } from '../../../src/asset-swapper/../wrappers';
 import { SamplerCallResult } from '../../../src/asset-swapper/types';
+import { constants } from '../../../src/asset-swapper/constants';
 
 type GetOrderFillableAssetAmountResult = BigNumber[];
 type GetOrderFillableAssetAmountHandler = (

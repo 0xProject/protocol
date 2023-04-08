@@ -1,4 +1,4 @@
-import { expect } from '@0x/contracts-test-utils';
+import { expect } from 'chai';
 import { BigNumber } from '@0x/utils';
 import { anything, instance, mock, when } from 'ts-mockito';
 

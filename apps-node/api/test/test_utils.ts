@@ -1,9 +1,10 @@
-import { assertRoughlyEquals, expect } from '@0x/contracts-test-utils';
+import { assertRoughlyEquals } from './utils/assert_roughly_equals';
 import { BigNumber } from '@0x/utils';
-import { StatusCodes } from 'http-status-codes';
-import supertest from 'supertest';
-import { ValidationErrorItem } from '../src/errors';
+import { expect } from 'chai';
 import { GetSwapQuoteResponse } from '../src/types';
+import { StatusCodes } from 'http-status-codes';
+import { ValidationErrorItem } from '../src/errors';
+import supertest from 'supertest';
 
 interface SwapErrors {
     validationErrors?: ValidationErrorItem[];

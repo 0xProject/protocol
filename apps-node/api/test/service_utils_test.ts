@@ -1,4 +1,4 @@
-import { expect, randomAddress } from '@0x/contracts-test-utils';
+import { expect } from 'chai';
 import { BigNumber } from '@0x/utils';
 import 'mocha';
 
@@ -8,6 +8,7 @@ import { serviceUtils } from '../src/utils/service_utils';
 
 import { AFFILIATE_DATA_SELECTOR } from './constants';
 import { randomSellQuote } from './utils/mocks';
+import { randomAddress } from './utils/random';
 
 const SUITE_NAME = 'serviceUtils';
 

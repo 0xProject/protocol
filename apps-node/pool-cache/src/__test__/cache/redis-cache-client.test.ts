@@ -28,6 +28,8 @@ const POOL_C_D_500: UniswapV3Pool = {
     score: 42,
 };
 
+jest.setTimeout(1000 * 60);
+
 describe('RedisCacheClient', () => {
     let teardownDependenciesFn: TeardownDependenciesFn;
     let redis: Redis;

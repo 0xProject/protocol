@@ -1,9 +1,12 @@
-import { blockchainTests, describe, expect, toBaseUnitAmount, Web3ProviderEngine } from '@0x/contracts-test-utils';
+import { blockchainTests } from '@0x/contracts-test-utils';
+import { expect } from 'chai';
+import Web3ProviderEngine from 'web3-provider-engine';
 import { RPCSubprovider } from '@0x/subproviders';
 import { BigNumber, providerUtils } from '@0x/utils';
 
 import { artifacts } from '../../artifacts';
 import { ERC20BridgeSamplerContract } from '../../wrappers';
+import toBaseUnitAmount from '../../utils/to_base_unit_amount';
 
 const VB = '0x6cc5f688a315f3dc28a7781717a9a798a59fda7b';
 

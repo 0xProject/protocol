@@ -1,5 +1,5 @@
 import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
-import { constants, expect, getRandomFloat, getRandomInteger, randomAddress } from '@0x/contracts-test-utils';
+import { expect } from 'chai';
 import { FillQuoteTransformerOrderType, LimitOrderFields, SignatureType } from '@0x/protocol-utils';
 import { BigNumber, hexUtils, NULL_ADDRESS } from '@0x/utils';
 import * as _ from 'lodash';
@@ -11,6 +11,8 @@ import { UniswapV3Sampler } from '../../src/samplers/uniswapv3_sampler';
 
 import { MockSamplerContract } from './utils/mock_sampler_contract';
 import { generatePseudoRandomSalt } from './utils/utils';
+import { getRandomFloat, getRandomInteger, randomAddress } from '../utils/random';
+import { ZERO_AMOUNT } from '../../src/asset-swapper';
 
 const CHAIN_ID = 1;
 const EMPTY_BYTES32 = '0x0000000000000000000000000000000000000000000000000000000000000000';
@@ -68,7 +70,7 @@ describe('DexSampler tests', () => {
                 takerToken: TAKER_TOKEN,
                 makerAmount: getRandomInteger(1, 1e18),
                 takerAmount: getRandomInteger(1, 1e18),
-                takerTokenFeeAmount: constants.ZERO_AMOUNT,
+                takerTokenFeeAmount: ZERO_AMOUNT,
                 chainId: CHAIN_ID,
                 pool: EMPTY_BYTES32,
                 feeRecipient: NULL_ADDRESS,

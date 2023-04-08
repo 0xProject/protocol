@@ -1,4 +1,4 @@
-import { expect } from '@0x/contracts-test-utils';
+import { expect } from 'chai';
 import 'mocha';
 
 import { getIntegratorByIdOrThrow, getIntegratorIdForApiKey } from '../src/config';

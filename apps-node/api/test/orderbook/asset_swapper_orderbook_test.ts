@@ -1,4 +1,4 @@
-import { expect } from '@0x/contracts-test-utils';
+import { expect } from 'chai';
 import 'mocha';
 import { AssetSwapperOrderbook } from '../../src/orderbook/asset_swapper_orderbook';
 import { OrderBookService } from '../../src/services/orderbook_service';

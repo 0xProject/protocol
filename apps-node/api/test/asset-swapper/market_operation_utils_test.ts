@@ -1,16 +1,9 @@
 import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
-import {
-    assertRoughlyEquals,
-    constants,
-    expect,
-    getRandomFloat,
-    Numberish,
-    randomAddress,
-} from '@0x/contracts-test-utils';
 import { FillQuoteTransformerOrderType, LimitOrder, OtcOrder, SignatureType } from '@0x/protocol-utils';
 import { BigNumber, hexUtils, NULL_BYTES } from '@0x/utils';
 import { Pool } from 'balancer-labs-sor-v1/dist/types';
 import * as _ from 'lodash';
+import { expect } from 'chai';
 import * as TypeMoq from 'typemoq';
 
 import { MarketOperation, QuoteRequestor, SignedNativeOrder, TokenAdjacencyGraph } from '../../src/asset-swapper';
@@ -40,6 +33,11 @@ import {
 } from '../../src/asset-swapper/utils/market_operation_utils/types';
 import { RfqtV2Price, RfqtV2Quote } from '../../src/types';
 import { RfqClient } from '../../src/utils/rfq_client';
+import { getRandomFloat, randomAddress } from '../utils/random';
+import { assertRoughlyEquals } from '../utils/assert_roughly_equals';
+import { constants } from '../../src/asset-swapper/constants';
+
+type Numberish = BigNumber | string | number;
 
 const MAKER_TOKEN = randomAddress();
 const TAKER_TOKEN = randomAddress();

@@ -1,5 +1,4 @@
 import { ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
-import { constants as contractConstants, randomAddress } from '@0x/contracts-test-utils';
 import {
     BridgeProtocol,
     decodeAffiliateFeeTransformerData,
@@ -14,7 +13,7 @@ import {
     ZERO,
 } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
-import * as chai from 'chai';
+import { expect } from 'chai';
 import 'mocha';
 
 import { constants, POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS } from '../../../../src/asset-swapper/constants';
@@ -30,11 +29,10 @@ import {
 } from '../../test_utils/test_data';
 
 import { chaiSetup } from '../../utils/chai_setup';
+import { randomAddress } from '../../../utils/random';
+import { MAX_UINT256, ZERO_AMOUNT } from '../../../../src/asset-swapper/utils/market_operation_utils/constants';
 
 chaiSetup.configure();
-const expect = chai.expect;
-
-const { MAX_UINT256, ZERO_AMOUNT } = contractConstants;
 
 describe('TransformERC20Rule', () => {
     const CHAIN_ID = 1;
