@@ -361,11 +361,24 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
     // HACK typescript typing does not allow this valid json-schema
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
     schemaUtils.validateSchema(req.query, schemas.swapQuoteRequestSchema as any);
-    const apiKey: string | undefined = req.header('0x-api-key');
     const origin: string | undefined = req.header('origin');
+
+    // With zippo and the developer dashboard, we'll get:
+    // - 0x-App-Id (instead of an integrator id)
+    // - 0x-Affiliate-Address
+    // For now, we'll use the app id in place of the integrator id, as long as the
+    // app ID exists.
+    // Also, we'll prefer the zippo affiliate address over any passed in the header.
     let integratorId: string | undefined;
-    if (apiKey) {
-        integratorId = getIntegratorIdForApiKey(apiKey);
+    const zippoAppId = req.header('0x-App-Id');
+    const zippoAffiliateAddress = req.header('0x-Affiliate-Address');
+    if (zippoAppId) {
+        integratorId = zippoAppId;
+    } else {
+        const apiKey: string | undefined = req.header('0x-api-key');
+        if (apiKey) {
+            integratorId = getIntegratorIdForApiKey(apiKey);
+        }
     }
 
     // Parse string params
@@ -475,7 +488,6 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
             includedSources: req.query.includedSources as string | undefined,
             intentOnFilling: req.query.intentOnFilling as string | undefined,
             takerAddress: takerAddress as string,
-            apiKey,
         },
         endpoint,
     );
@@ -492,7 +504,7 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
     }
 
     const rfqt: Pick<RfqRequestOpts, 'intentOnFilling' | 'isIndicative' | 'nativeExclusivelyRFQ'> | undefined = (() => {
-        if (apiKey) {
+        if (integratorId !== undefined) {
             if (endpoint === 'quote' && takerAddress) {
                 return {
                     intentOnFilling: req.query.intentOnFilling === 'true',
@@ -528,7 +540,6 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
         apiKey: integratorId || 'N/A',
         integratorId: integratorId || 'N/A',
         integratorLabel: integrator?.label || 'N/A',
-        rawApiKey: apiKey || 'N/A',
         enableSlippageProtection,
         priceImpactProtectionPercentage,
     });
@@ -536,7 +547,6 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
     return {
         affiliateAddress: affiliateAddress as string,
         affiliateFee,
-        apiKey,
         buyAmount,
         buyToken,
         endpoint,

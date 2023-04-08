@@ -46,7 +46,6 @@ describe(SUITE_NAME, () => {
             {
                 includedSources: 'RFQT',
                 takerAddress: NULL_ADDRESS,
-                apiKey: 'ipsum',
             },
             'price',
         );
@@ -60,7 +59,6 @@ describe(SUITE_NAME, () => {
             {
                 includedSources: 'RFQT,Native',
                 takerAddress: NULL_ADDRESS,
-                apiKey: 'ipsum',
             },
             'price',
         );
@@ -87,7 +85,6 @@ describe(SUITE_NAME, () => {
                 {
                     includedSources: 'RFQT',
                     takerAddress: NULL_ADDRESS,
-                    apiKey: 'ipsum',
                 },
                 'quote',
             );

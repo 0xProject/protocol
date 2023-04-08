@@ -10,7 +10,6 @@ interface ParseRequestForExcludedSourcesParams {
     excludedSources?: string;
     includedSources?: string;
     intentOnFilling?: string;
-    apiKey?: string;
 }
 
 interface ParseRequestForExcludedSourcesResult {
@@ -64,17 +63,6 @@ export const parseUtils = {
                         field: 'takerAddress',
                         code: ValidationErrorCodes.RequiredField,
                         reason: ValidationErrorReasons.TakerAddressInvalid,
-                    },
-                ]);
-            }
-
-            // We enforce a valid API key - we don't want to fail silently.
-            if (request.apiKey === undefined) {
-                throw new ValidationError([
-                    {
-                        field: '0x-api-key',
-                        code: ValidationErrorCodes.RequiredField,
-                        reason: ValidationErrorReasons.InvalidApiKey,
                     },
                 ]);
             }
