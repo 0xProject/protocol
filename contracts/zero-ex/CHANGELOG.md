@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.39.2 - _April 10, 2023_
+
+    * Uprgade dependencies
+
 ## v0.39.1 - _March 10, 2023_
 
     * Add KyberElastic mixin for Optimism and BSC
