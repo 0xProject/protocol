@@ -53,10 +53,10 @@ contract ContractScript is Script {
                 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270, // wmatic address
                 0x4Dd97080aDf36103bD3db822f9d3c0e44890fd69, // LP sandbox
                 0x1F98431c8aD98523631AE4a59f267346ea31F984, // uniswapv3
-                0xc35DADB65012eC5796536bD9864eD8773aBc74C4, // sushiswap (there is no uniswapv2 on polygon)
+                address(0), // there is no uniswapv2 on polygon
                 0xc35DADB65012eC5796536bD9864eD8773aBc74C4, // sushiswap
                 bytes32(0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54),
-                bytes32(0xe18a34eb0e04b04f7a0ac29a6e80748dca96319b42c54d679cb821dca90c6303),
+                bytes32(0), // there is no uniswapv2 on polygon
                 bytes32(0xe18a34eb0e04b04f7a0ac29a6e80748dca96319b42c54d679cb821dca90c6303)
             );
             return chainConfig;
