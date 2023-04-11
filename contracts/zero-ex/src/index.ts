@@ -1,34 +1,3 @@
-export { ZeroExRevertErrors } from '@0x/utils';
-export {
-    AbiDefinition,
-    CompilerOpts,
-    CompilerSettings,
-    CompilerSettingsMetadata,
-    ConstructorAbi,
-    ConstructorStateMutability,
-    ContractAbi,
-    ContractArtifact,
-    ContractChainData,
-    ContractChains,
-    DataItem,
-    DevdocOutput,
-    EventAbi,
-    EventParameter,
-    EvmBytecodeOutput,
-    EvmBytecodeOutputLinkReferences,
-    EvmOutput,
-    FallbackAbi,
-    FunctionAbi,
-    MethodAbi,
-    OptimizerSettings,
-    OutputField,
-    ParamDescription,
-    RevertErrorAbi,
-    StandardContractOutput,
-    StateMutability,
-    SupportedProvider,
-    TupleDataItem,
-} from 'ethereum-types';
 export { artifacts } from './artifacts';
 export * from './migration';
 export * from './nonce_utils';
@@ -58,4 +27,3 @@ export {
     WethTransformerContract,
     ZeroExContract,
 } from './wrappers';
-export { EIP712TypedData } from '@0x/types';
