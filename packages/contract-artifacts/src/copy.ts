@@ -6,7 +6,6 @@ import * as artifacts from './index';
 
 const MONOREPO_ROOT = path.join(__dirname, '../../../..');
 
-// HACK (xianny): can't import the root package.json normally because it is outside rootDir of this project
 const pkgJson = JSON.parse(fs.readFileSync(path.join(MONOREPO_ROOT, 'package.json')).toString());
 const pkgNames = pkgJson.config.contractsPackages.split(' ');
 
