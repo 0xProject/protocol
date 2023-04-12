@@ -26,6 +26,7 @@ export {
     RevertErrorAbi,
     StandardContractOutput,
     StateMutability,
+    SupportedProvider,
     TupleDataItem,
 } from 'ethereum-types';
 export { artifacts } from './artifacts';
@@ -58,4 +59,3 @@ export {
     ZeroExContract,
 } from './wrappers';
 export { EIP712TypedData } from '@0x/types';
-export { SupportedProvider } from '@0x/subproviders';

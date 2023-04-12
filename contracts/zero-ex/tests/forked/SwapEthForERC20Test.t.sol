@@ -33,7 +33,7 @@ contract SwapEthForERC20Test is Test, ForkUtils, TestUtils {
         _setup();
     }
 
-    function test_swapEthForERC20OnUniswap() public {
+    function swapEthForERC20OnUniswap() public {
         log_string("SwapEthForERC20OnUniswap");
         for (uint256 i = 0; i < chains.length; i++) {
             //skip fantom/avax failing test

@@ -63,7 +63,16 @@ typings/
 .env
 
 # built library using in commonjs module syntax
-lib/
+contracts/erc20/lib/
+contracts/test-utils/lib/
+contracts/treasury/lib/
+contracts/utils/lib/
+contracts/zero-ex/lib/
+packages/contract-addresses/lib/
+packages/contract-artifacts/lib/
+packages/contract-wrappers/lib/
+packages/protocol-utils/lib/
+
 # UMD bundles that export the global variable
 _bundles
 
@@ -97,10 +106,17 @@ out/
 # typechain wrappers
 contracts/zero-ex/typechain-wrappers/
 
+# foundry packages
+contracts/governance/cache
+contracts/governance/out
+
 # Doc README copy
 packages/*/docs/README.md
 
 .DS_Store
+*~
+\#*\#
+.\#*
 
 # the snapshot that gets built for migrations sure does have a ton of files
 packages/migrations/0x_ganache_snapshot*
