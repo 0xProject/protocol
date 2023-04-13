@@ -1,5 +1,13 @@
 [
     {
+        "version": "0.40.0",
+        "changes": [
+            {
+                "note": "Add Barter support on Ethereum"
+            }
+        ]
+    },
+    {
         "version": "0.39.2",
         "changes": [
             {
