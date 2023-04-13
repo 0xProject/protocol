@@ -1,5 +1,13 @@
 [
 	{
+		"version": "11.19.0",
+		"changes": [
+			{
+				"note": "Add Barter support"
+			}
+		]
+	},
+	{
 		"version": "11.18.2",
 		"changes": [
 			{

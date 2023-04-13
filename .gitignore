@@ -99,6 +99,7 @@ foundry-artifacts/
 
 # foundry cache
 cache/
+foundry-cache/
 
 #foundry output artifacts
 out/

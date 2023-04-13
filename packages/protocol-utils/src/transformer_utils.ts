@@ -164,6 +164,7 @@ export enum BridgeProtocol {
     WOOFi,
     AaveV3,
     KyberElastic,
+    Barter,
 }
 
 /**
