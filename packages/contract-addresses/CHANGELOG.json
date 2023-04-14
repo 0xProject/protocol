@@ -1,5 +1,13 @@
 [
 	{
+		"version": "8.3.0",
+		"changes": [
+			{
+				"note": "Add Barter support in Ethereum FillQuoteTransformer"
+			}
+		]
+	},
+	{
 		"version": "8.2.0",
 		"changes": [
 			{
