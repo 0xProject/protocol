@@ -30,6 +30,7 @@ export * from '../generated-wrappers/initial_migration';
 export * from '../generated-wrappers/liquidity_provider_feature';
 export * from '../generated-wrappers/log_metadata_transformer';
 export * from '../generated-wrappers/meta_transactions_feature';
+export * from '../generated-wrappers/meta_transactions_feature_v2';
 export * from '../generated-wrappers/multiplex_feature';
 export * from '../generated-wrappers/native_orders_feature';
 export * from '../generated-wrappers/optimism_bridge_adapter';
