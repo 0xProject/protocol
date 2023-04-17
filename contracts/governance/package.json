@@ -20,5 +20,8 @@
     "type": "git",
     "url": "https://github.com/0xProject/protocol.git"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "license": "Apache-2.0"
 }
