@@ -1,6 +1,6 @@
 {
   "name": "@0x/governance",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Governance implementation for the 0x protocol and treasury",
   "main": "index.js",
   "directories": {
