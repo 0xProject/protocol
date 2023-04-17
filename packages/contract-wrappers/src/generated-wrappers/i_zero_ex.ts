@@ -2330,7 +2330,7 @@ export class IZeroExContract extends BaseContract {
                         type: 'bytes[]',
                     },
                 ],
-                stateMutability: 'payable',
+                stateMutability: 'nonpayable',
                 type: 'function',
             },
             {
@@ -3670,7 +3670,7 @@ export class IZeroExContract extends BaseContract {
                         type: 'bytes',
                     },
                 ],
-                stateMutability: 'payable',
+                stateMutability: 'nonpayable',
                 type: 'function',
             },
             {
@@ -12677,7 +12677,7 @@ export class IZeroExContract extends BaseContract {
     }
     /**
      * Get the block at which a meta-transaction hash has been executed.
-     * @param mtxHash The meta-transaction hash.
+     * @param mtxHash The EIP712 hash of the MetaTransactionDataV2 struct.
      */
     public getMetaTransactionV2HashExecutedBlock(mtxHash: string): ContractTxFunctionObj<BigNumber> {
         const self = this as any as IZeroExContract;

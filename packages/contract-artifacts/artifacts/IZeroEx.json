@@ -1009,7 +1009,7 @@
                 ],
                 "name": "batchExecuteMetaTransactionsV2",
                 "outputs": [{ "internalType": "bytes[]", "name": "returnResults", "type": "bytes[]" }],
-                "stateMutability": "payable",
+                "stateMutability": "nonpayable",
                 "type": "function"
             },
             {
@@ -1714,7 +1714,7 @@
                 ],
                 "name": "executeMetaTransactionV2",
                 "outputs": [{ "internalType": "bytes", "name": "returnResult", "type": "bytes" }],
-                "stateMutability": "payable",
+                "stateMutability": "nonpayable",
                 "type": "function"
             },
             {
@@ -4264,7 +4264,7 @@
                 },
                 "getMetaTransactionV2HashExecutedBlock(bytes32)": {
                     "details": "Get the block at which a meta-transaction hash has been executed.",
-                    "params": { "mtxHash": "The meta-transaction hash." },
+                    "params": { "mtxHash": "The EIP712 hash of the MetaTransactionDataV2 struct." },
                     "returns": { "blockNumber": "The block height when the meta-transactioin was executed." }
                 },
                 "getOtcOrderHash((address,address,uint128,uint128,address,address,address,uint256))": {
