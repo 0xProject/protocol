@@ -5,10 +5,6 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
-## v0.40.0 - _April 16, 2023_
-
-    * Add Barter support on Ethereum
-
 ## v0.39.2 - _April 10, 2023_
 
     * Uprgade dependencies
