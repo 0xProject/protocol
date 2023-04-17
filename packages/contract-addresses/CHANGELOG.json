@@ -5,7 +5,8 @@
 			{
 				"note": "Add Barter support in Ethereum FillQuoteTransformer"
 			}
-		]
+		],
+		"timestamp": 1681700943
 	},
 	{
 		"version": "8.3.0",

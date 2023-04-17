@@ -6,6 +6,9 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v8.4.0 - _April 17, 2023_
+
+    * Add Barter support in Ethereum FillQuoteTransformer
 ## v8.3.0 - _April 17, 2023_
 
     * Add Barter support in Ethereum FillQuoteTransformer
