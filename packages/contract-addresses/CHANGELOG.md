@@ -6,9 +6,6 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
-## v8.3.0 - _April 16, 2023_
-
-    * Add Barter support in Ethereum FillQuoteTransformer
 ## v8.2.0 - _March 10, 2023_
 
     * Upgrade Polygon, Avalanche, Arbitrum, and Optimism FillQuoteTransformers to remove Aave V3 L2 Encoding and support KyberElastic (#678)
