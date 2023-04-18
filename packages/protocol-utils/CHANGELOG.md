@@ -6,6 +6,15 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v11.20.0 - _April 17, 2023_
+
+    * Add Barter support
+## v11.19.0 - _April 17, 2023_
+
+    * Add Barter support
+## v11.18.2 - _April 10, 2023_
+
+    * Dependencies updated
 ## v11.18.1 - _March 10, 2023_
 
     * Dependencies updated

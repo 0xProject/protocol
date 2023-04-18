@@ -1,9 +1,9 @@
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { constants } from '@0x/contracts-test-utils';
-import { RPCSubprovider, SupportedProvider, Web3ProviderEngine } from '@0x/subproviders';
+import { RPCSubprovider, Web3ProviderEngine } from '@0x/subproviders';
 import { AbiEncoder, BigNumber, logUtils, providerUtils } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
-import { MethodAbi } from 'ethereum-types';
+import { MethodAbi, SupportedProvider } from 'ethereum-types';
 import * as fetch from 'isomorphic-fetch';
 import * as _ from 'lodash';
 import * as prompts from 'prompts';

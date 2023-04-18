@@ -47,6 +47,7 @@ contract ZeroExTimelock is TimelockController {
         bytes32 predecessor,
         bytes32 salt
     ) public payable onlyRoleOrOpenRole(EXECUTOR_ROLE) {
+        require(targets.length > 0, "ZeroExTimelock: empty targets");
         require(targets.length == values.length, "ZeroExTimelock: length mismatch");
         require(targets.length == payloads.length, "ZeroExTimelock: length mismatch");
 

@@ -19,18 +19,20 @@
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/token/ERC20/ERC20.sol";
-import "./BaseTest.t.sol";
-import "./ZeroExVotesMalicious.sol";
-import "./ZeroExVotesMigration.sol";
-import "../src/ZRXWrappedToken.sol";
+import "../BaseTest.t.sol";
+import "../mocks/ZeroExVotesMalicious.sol";
+import "../mocks/ZeroExVotesMigration.sol";
+import "../../src/ZRXWrappedToken.sol";
+import "../../src/ZeroExVotes.sol";
 
 contract ZeroExVotesTest is BaseTest {
-    IERC20 private token;
-    ZRXWrappedToken private wToken;
-    ZeroExVotes private votes;
+    IERC20 internal token;
+    ZRXWrappedToken internal wToken;
+    ZeroExVotes internal votes;
 
     function setUp() public {
-        (token, wToken, votes) = setupZRXWrappedToken();
+        token = mockZRXToken();
+        (wToken, votes) = setupZRXWrappedToken(token);
         vm.startPrank(account1);
         token.transfer(account2, 1700000e18);
         token.transfer(account3, 1600000e18);

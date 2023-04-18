@@ -5,6 +5,18 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.41.0 - _April 17, 2023_
+
+    * Add Barter support on Ethereum
+
+## v0.40.0 - _April 17, 2023_
+
+    * Add Barter support on Ethereum
+
+## v0.39.2 - _April 10, 2023_
+
+    * Uprgade dependencies
+
 ## v0.39.1 - _March 10, 2023_
 
     * Add KyberElastic mixin for Optimism and BSC

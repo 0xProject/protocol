@@ -1,5 +1,32 @@
 [
     {
+        "version": "0.41.0",
+        "changes": [
+            {
+                "note": "Add Barter support on Ethereum"
+            }
+        ],
+        "timestamp": 1681756154
+    },
+    {
+        "version": "0.40.0",
+        "changes": [
+            {
+                "note": "Add Barter support on Ethereum"
+            }
+        ],
+        "timestamp": 1681697326
+    },
+    {
+        "version": "0.39.2",
+        "changes": [
+            {
+                "note": "Uprgade dependencies"
+            }
+        ],
+        "timestamp": 1681157139
+    },
+    {
         "version": "0.39.1",
         "changes": [
             {

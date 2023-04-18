@@ -1,5 +1,32 @@
 [
 	{
+		"version": "11.20.0",
+		"changes": [
+			{
+				"note": "Add Barter support"
+			}
+		],
+		"timestamp": 1681756154
+	},
+	{
+		"version": "11.19.0",
+		"changes": [
+			{
+				"note": "Add Barter support"
+			}
+		],
+		"timestamp": 1681697326
+	},
+	{
+		"version": "11.18.2",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		],
+		"timestamp": 1681157139
+	},
+	{
 		"timestamp": 1678410794,
 		"version": "11.18.1",
 		"changes": [

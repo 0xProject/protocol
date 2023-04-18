@@ -1,6 +1,6 @@
 {
     "name": "@0x/protocol-utils",
-    "version": "11.18.1",
+    "version": "11.20.0",
     "engines": {
         "node": ">=6.12"
     },
@@ -38,9 +38,9 @@
     },
     "homepage": "https://github.com/0xProject/protocol/tree/main/packages/protocol-utils",
     "devDependencies": {
-        "@0x/dev-utils": "^5.0.0",
+        "@0x/dev-utils": "^5.0.2",
         "@0x/ts-doc-gen": "^0.0.28",
-        "@0x/types": "^3.3.6",
+        "@0x/types": "^3.3.7",
         "@0x/typescript-typings": "^5.3.1",
         "@types/bn.js": "^4.11.0",
         "@types/lodash": "4.14.104",
@@ -61,13 +61,13 @@
         "web3-provider-engine": "14.0.6"
     },
     "dependencies": {
-        "@0x/assert": "^3.0.35",
-        "@0x/contract-addresses": "^8.2.0",
-        "@0x/contract-wrappers": "^13.22.18",
+        "@0x/assert": "^3.0.36",
+        "@0x/contract-addresses": "^8.4.0",
+        "@0x/contract-wrappers": "^13.22.20",
         "@0x/json-schemas": "^6.4.4",
-        "@0x/subproviders": "^7.0.0",
+        "@0x/subproviders": "^8.0.1",
         "@0x/utils": "^7.0.0",
-        "@0x/web3-wrapper": "^8.0.0",
+        "@0x/web3-wrapper": "^8.0.1",
         "@typescript-eslint/parser": "^5.38.0",
         "chai": "^4.0.1",
         "ethereumjs-util": "^7.0.10",

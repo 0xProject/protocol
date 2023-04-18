@@ -22,6 +22,10 @@ jobs:
                   | jq .state)
                   [[ "${REF_STATUS}" == '"${{ github.event.inputs.ci_status }}"' ]] || \
                   (echo "::error ::${{ github.ref }} does not have a successful CI status" && false)
+            - name: Add foundry
+              uses: foundry-rs/foundry-toolchain@v1
+              with:
+                  version: nightly
             - uses: actions/checkout@v2
               with:
                 ref: ${{ github.ref }}

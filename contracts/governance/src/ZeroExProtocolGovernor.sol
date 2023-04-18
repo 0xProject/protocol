@@ -95,9 +95,7 @@ contract ZeroExProtocolGovernor is
         uint256[] memory values,
         bytes[] memory calldatas,
         bytes32 descriptionHash
-    ) public {
-        require(msg.sender == securityCouncil, "ZeroExProtocolGovernor: only security council allowed");
-
+    ) public onlySecurityCouncil {
         // Execute the batch of rollbacks via the timelock controller
         ZeroExTimelock timelockController = ZeroExTimelock(payable(timelock()));
         timelockController.executeRollbackBatch(targets, values, calldatas, 0, descriptionHash);

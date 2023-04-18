@@ -19,8 +19,8 @@
 pragma solidity ^0.8.19;
 
 import "./ZeroExGovernorBaseTest.t.sol";
-import "./ZeroExMock.sol";
-import "../src/ZeroExProtocolGovernor.sol";
+import "../mocks/ZeroExMock.sol";
+import "../../src/ZeroExProtocolGovernor.sol";
 
 contract ZeroExProtocolGovernorTest is ZeroExGovernorBaseTest {
     ZeroExProtocolGovernor internal protocolGovernor;
@@ -35,7 +35,9 @@ contract ZeroExProtocolGovernorTest is ZeroExGovernorBaseTest {
         quorum = 10000000e18;
 
         address governorAddress;
-        (token, wToken, votes, timelock, , governorAddress, ) = setupGovernance();
+
+        token = mockZRXToken();
+        (wToken, votes, timelock, , governorAddress, ) = setupGovernance(token);
         governor = IZeroExGovernor(governorAddress);
         protocolGovernor = ZeroExProtocolGovernor(payable(governorAddress));
         zeroExMock = new ZeroExMock();
@@ -161,7 +163,7 @@ contract ZeroExProtocolGovernorTest is ZeroExGovernorBaseTest {
         calldatas[0] = abi.encodeWithSignature("rollback(bytes4,address)", testFunctionSig, testFunctionImpl);
 
         vm.startPrank(account2);
-        vm.expectRevert("ZeroExProtocolGovernor: only security council allowed");
+        vm.expectRevert("SecurityCouncil: only security council allowed");
         protocolGovernor.executeRollback(targets, values, calldatas, keccak256(bytes("Emergency rollback")));
     }
 }
