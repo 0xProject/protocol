@@ -295,9 +295,9 @@ In both cases, the ``@0x/protocol-utils`` package simplifies generating these si
 
 The Orderbook
 =======================
-Orders are shared through a decentralized and permissionless network, called `0x Mesh <https://0x.org/mesh>`_. The simplest way to post and discover orders is through `0x API <https://0x.org/api>`_. See `this guide <https://0x.org/docs/guides/market-making-on-0x>`_ tailored for Market Makers.
+Orders can be hosted by any server and are usually represented as a JSON object off-chain. For example, one off-chain way to post and discover orders is through `0x API <https://0x.org/api>`_.
 
-Orders are usually represented as a JSON object off-chain. Below is a table represention and example of how orders should be formatted off-chain.
+Below is a table represention and example of how orders should be formatted off-chain.
 
 JSON representation of RFQ Orders
 *********************************

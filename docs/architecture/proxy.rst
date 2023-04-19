@@ -2,37 +2,22 @@
 Proxy
 ###############################
 
-The `ZeroEx <https://github.com/0xProject/protocol/blob/development/contracts/zero-ex/contracts/src/ZeroEx.sol>`_ contract implements a per-function proxy pattern. Every function registered to the proxy contract can have a distinct implementation contract. Implementation contracts are called “features” and can expose multiple, related functions. Since features can be upgraded independently, there will no longer be a collective “version” of the API, defaulting to a rolling release model. The ZeroEx contract’s only responsibility is to route (delegate) calls to per-function implementation contracts through its fallback.
+The `ZeroEx <https://github.com/0xProject/protocol/blob/development/contracts/zero-ex/contracts/src/ZeroEx.sol>`_ contract (also called Exchange Proxy or EP) is the main contract that manages the process and performs the exchange of assets. It implements a per-function proxy pattern where each function can have a distinct implementation contract, also known as "features". The `ZeroEx` contract's sole responsibility is to maintain a mapping of "features" to implementation contracts and route (delegate) calls to per-function implementation contracts through its fallback mechanism. 
 
 .. image:: ../_static/img/proxy.png
     :align: center
     :scale: 100%
 
-View the code for the Proxy `here <https://github.com/0xProject/protocol/blob/development/contracts/zero-ex/contracts/src/ZeroEx.sol>`_. There is also a `gas-optimized implementation <https://github.com/0xProject/protocol/blob/development/contracts/zero-ex/contracts/src/ZeroExOptimized.sol>`_ that may be put into production in the future (there is a lot of overhead for our integrators when redeploying this contract).
+View the code for the Proxy `here <https://github.com/0xProject/protocol/blob/development/contracts/zero-ex/contracts/src/ZeroEx.sol>`_. The deployed contract address for each network can be found in `here <https://github.com/0xProject/protocol/blob/development/packages/contract-addresses/addresses.json>`_.
 
-Bootstrapping
-=============
-The ZeroEx contract comes pre-loaded with only one Feature: `Bootstrap <https://github.com/0xProject/protocol/blob/development/contracts/zero-ex/contracts/src/features/BootstrapFeature.sol>`_. This exposes a ``bootstrap()`` function that can only be called by the deployer. This function does a few things:
-
-1. De-register the bootstrap() function, which prevents it being called again.
-2. Self-destruct.
-3. Delegatecall the bootstrapper target contract and call data.
-
-.. code-block:: solidity
-
-    // Execute a bootstrapper in the context of the proxy.
-    function bootstrap(address target, bytes callData) external
-
-Below is the bootstrap workflow (click to enlarge).
-
-.. image:: ../_static/img/bootstrap.png
-    :align: center
-    :scale: 70%
+Deployment
+==========
+At deployment, the ``ZeroEx`` contract goes through an ``InitialMigration`` that bootstraps two core features to the proxy pattern: Function Registry and Ownership.
 
 Function Registry
 =================
 
-One of the initial features InitialMigration bootstraps into the ZeroEx contract is the function registry feature, SimpleFunctionRegistry. This feature exposes the following function registry management features: ``extend()`` and ``rollback()``.
+``SimpleFunctionRegistry`` is one of the initial and core features of the `ZeroEx` contract boostrapped in during the ``InitialMigration``. This feature exposes the following function registry management features: ``extend()`` and ``rollback()``.
 
 Call ``extend()`` to register a new function (selector) and implementation (address). This also maintains a history of past implementations so we can roll back to one, if needed.
 
@@ -54,7 +39,7 @@ Call ``rollback()`` to revert a function implementation to a prior version in it
 
 Ownership
 =========
-Another Feature, ``InitialMigration``, bootstraps into the proxy is the Ownable feature. This exposes ownership management functions: ``transferOwnership()`` and ``owner()``. This feature also enables ubiquitous modifiers such as onlyOwner, so it is an implicit dependency of nearly every other feature.
+``Ownable`` is another initial and core feature of the `ZeroEx` contract that is bootstrapped into the proxy during the ``InitialMigration``. This exposes ownership management functions: ``transferOwnership()`` and ``getOwner()``. This feature also enables ubiquitous modifiers such as onlyOwner, so it is an implicit dependency of nearly every other feature.
 
 .. code-block:: solidity
 
@@ -256,3 +241,24 @@ Functions can be re-entered by default; those secured by the ``nonReentrant`` mo
 **Colliding Function Selectors**
 
 We manually ensure that function selectors do not collide during PR's. See the `Feature Checklist <./features.html#best-practices>`_ for a complete list of our best practices on Feature Development.
+
+Initial Bootstrapping
+=====================
+
+The way that the initial bootstrapping is accomplished is through the ``bootstrap()`` function that can only be called by the deployer. Check `here <https://github.com/0xProject/protocol/blob/development/contracts/zero-ex/contracts/src/features/BootstrapFeature.sol>`_ to see the full boostrapping feature.
+
+This function does a few things:
+1. De-register the bootstrap() function, which prevents it being called again.
+2. Self-destruct.
+3. Delegatecall the bootstrapper target contract and call data.
+
+.. code-block:: solidity
+
+    // Execute a bootstrapper in the context of the proxy.
+    function bootstrap(address target, bytes callData) external
+
+Below is the bootstrap workflow (click to enlarge).
+
+.. image:: ../_static/img/bootstrap.png
+    :align: center
+    :scale: 70%
