@@ -34,7 +34,8 @@ library LibStorage {
         NativeOrders,
         OtcOrders,
         ERC721Orders,
-        ERC1155Orders
+        ERC1155Orders,
+        MetaTransactionsV2
     }
 
     /// @dev Get the storage slot given a storage ID. We assign unique, well-spaced slots to storage bucket variables

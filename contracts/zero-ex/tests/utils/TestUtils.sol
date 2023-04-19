@@ -20,6 +20,8 @@ import "forge-std/Test.sol";
 import "src/transformers/LibERC20Transformer.sol";
 
 contract TestUtils is Test {
+    address private constant ZERO_ADDRESS = 0x0000000000000000000000000000000000000000;
+
     function _findTransformerNonce(address transformer, address deployer) internal pure returns (uint32) {
         address current;
         for (uint32 i = 0; i < 1024; i++) {

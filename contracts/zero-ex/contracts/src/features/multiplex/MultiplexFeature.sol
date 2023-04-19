@@ -80,9 +80,11 @@ contract MultiplexFeature is
         _registerFeatureFunction(this.multiplexBatchSellEthForToken.selector);
         _registerFeatureFunction(this.multiplexBatchSellTokenForEth.selector);
         _registerFeatureFunction(this.multiplexBatchSellTokenForToken.selector);
+        _registerFeatureFunction(this._multiplexBatchSell.selector);
         _registerFeatureFunction(this.multiplexMultiHopSellEthForToken.selector);
         _registerFeatureFunction(this.multiplexMultiHopSellTokenForEth.selector);
         _registerFeatureFunction(this.multiplexMultiHopSellTokenForToken.selector);
+        _registerFeatureFunction(this._multiplexMultiHopSell.selector);
         return LibMigrate.MIGRATE_SUCCESS;
     }
 
@@ -103,14 +105,15 @@ contract MultiplexFeature is
         // WETH is now held by this contract,
         // so `useSelfBalance` is true.
         return
-            _multiplexBatchSell(
+            _multiplexBatchSellPrivate(
                 BatchSellParams({
                     inputToken: WETH,
                     outputToken: outputToken,
                     sellAmount: msg.value,
                     calls: calls,
                     useSelfBalance: true,
-                    recipient: msg.sender
+                    recipient: msg.sender,
+                    payer: msg.sender
                 }),
                 minBuyAmount
             );
@@ -133,14 +136,15 @@ contract MultiplexFeature is
         // The outputToken is implicitly WETH. The `recipient`
         // of the WETH is set to  this contract, since we
         // must unwrap the WETH and transfer the resulting ETH.
-        boughtAmount = _multiplexBatchSell(
+        boughtAmount = _multiplexBatchSellPrivate(
             BatchSellParams({
                 inputToken: inputToken,
                 outputToken: WETH,
                 sellAmount: sellAmount,
                 calls: calls,
                 useSelfBalance: false,
-                recipient: address(this)
+                recipient: address(this),
+                payer: msg.sender
             }),
             minBuyAmount
         );
@@ -167,17 +171,31 @@ contract MultiplexFeature is
         uint256 minBuyAmount
     ) public override returns (uint256 boughtAmount) {
         return
-            _multiplexBatchSell(
+            _multiplexBatchSellPrivate(
                 BatchSellParams({
                     inputToken: inputToken,
                     outputToken: outputToken,
                     sellAmount: sellAmount,
                     calls: calls,
                     useSelfBalance: false,
-                    recipient: msg.sender
+                    recipient: msg.sender,
+                    payer: msg.sender
                 }),
                 minBuyAmount
             );
+    }
+
+    /// @dev Executes a batch sell and checks that at least
+    ///      `minBuyAmount` of `outputToken` was bought. Internal variant.
+    /// @param params Batch sell parameters.
+    /// @param minBuyAmount The minimum amount of `outputToken` that
+    ///        must be bought for this function to not revert.
+    /// @return boughtAmount The amount of `outputToken` bought.
+    function _multiplexBatchSell(
+        BatchSellParams memory params,
+        uint256 minBuyAmount
+    ) public override onlySelf returns (uint256 boughtAmount) {
+        return _multiplexBatchSellPrivate(params, minBuyAmount);
     }
 
     /// @dev Executes a batch sell and checks that at least
@@ -186,7 +204,7 @@ contract MultiplexFeature is
     /// @param minBuyAmount The minimum amount of `outputToken` that
     ///        must be bought for this function to not revert.
     /// @return boughtAmount The amount of `outputToken` bought.
-    function _multiplexBatchSell(
+    function _multiplexBatchSellPrivate(
         BatchSellParams memory params,
         uint256 minBuyAmount
     ) private returns (uint256 boughtAmount) {
@@ -226,13 +244,14 @@ contract MultiplexFeature is
         // WETH is now held by this contract,
         // so `useSelfBalance` is true.
         return
-            _multiplexMultiHopSell(
+            _multiplexMultiHopSellPrivate(
                 MultiHopSellParams({
                     tokens: tokens,
                     sellAmount: msg.value,
                     calls: calls,
                     useSelfBalance: true,
-                    recipient: msg.sender
+                    recipient: msg.sender,
+                    payer: msg.sender
                 }),
                 minBuyAmount
             );
@@ -262,13 +281,14 @@ contract MultiplexFeature is
         );
         // The `recipient of the WETH is set to  this contract, since
         // we must unwrap the WETH and transfer the resulting ETH.
-        boughtAmount = _multiplexMultiHopSell(
+        boughtAmount = _multiplexMultiHopSellPrivate(
             MultiHopSellParams({
                 tokens: tokens,
                 sellAmount: sellAmount,
                 calls: calls,
                 useSelfBalance: false,
-                recipient: address(this)
+                recipient: address(this),
+                payer: msg.sender
             }),
             minBuyAmount
         );
@@ -297,16 +317,29 @@ contract MultiplexFeature is
         uint256 minBuyAmount
     ) public override returns (uint256 boughtAmount) {
         return
-            _multiplexMultiHopSell(
+            _multiplexMultiHopSellPrivate(
                 MultiHopSellParams({
                     tokens: tokens,
                     sellAmount: sellAmount,
                     calls: calls,
                     useSelfBalance: false,
-                    recipient: msg.sender
+                    recipient: msg.sender,
+                    payer: msg.sender
                 }),
                 minBuyAmount
             );
+    }
+
+    /// @dev Executes a multi-hop sell. Internal variant.
+    /// @param params Multi-hop sell parameters.
+    /// @param minBuyAmount The minimum amount of output tokens that
+    ///        must be bought for this function to not revert.
+    /// @return boughtAmount The amount of output tokens bought.
+    function _multiplexMultiHopSell(
+        MultiHopSellParams memory params,
+        uint256 minBuyAmount
+    ) public override onlySelf returns (uint256 boughtAmount) {
+        return _multiplexMultiHopSellPrivate(params, minBuyAmount);
     }
 
     /// @dev Executes a multi-hop sell and checks that at least
@@ -315,7 +348,7 @@ contract MultiplexFeature is
     /// @param minBuyAmount The minimum amount of output tokens that
     ///        must be bought for this function to not revert.
     /// @return boughtAmount The amount of output tokens bought.
-    function _multiplexMultiHopSell(
+    function _multiplexMultiHopSellPrivate(
         MultiHopSellParams memory params,
         uint256 minBuyAmount
     ) private returns (uint256 boughtAmount) {
@@ -387,14 +420,14 @@ contract MultiplexFeature is
         // amount of the multi-hop fill.
         state.outputTokenAmount = params.sellAmount;
         // The first call may expect the input tokens to be held by
-        // `msg.sender`, `address(this)`, or some other address.
+        // `payer`, `address(this)`, or some other address.
         // Compute the expected address and transfer the input tokens
         // there if necessary.
         state.from = _computeHopTarget(params, 0);
-        // If the input tokens are currently held by `msg.sender` but
+        // If the input tokens are currently held by `payer` but
         // the first hop expects them elsewhere, perform a `transferFrom`.
-        if (!params.useSelfBalance && state.from != msg.sender) {
-            _transferERC20TokensFrom(IERC20Token(params.tokens[0]), msg.sender, state.from, params.sellAmount);
+        if (!params.useSelfBalance && state.from != params.payer) {
+            _transferERC20TokensFrom(IERC20Token(params.tokens[0]), params.payer, state.from, params.sellAmount);
         }
         // If the input tokens are currently held by `address(this)` but
         // the first hop expects them elsewhere, perform a `transfer`.
@@ -411,11 +444,13 @@ contract MultiplexFeature is
             if (subcall.id == MultiplexSubcall.UniswapV2) {
                 _multiHopSellUniswapV2(state, params, subcall.data);
             } else if (subcall.id == MultiplexSubcall.UniswapV3) {
-                _multiHopSellUniswapV3(state, subcall.data);
+                _multiHopSellUniswapV3(state, params, subcall.data);
             } else if (subcall.id == MultiplexSubcall.LiquidityProvider) {
                 _multiHopSellLiquidityProvider(state, params, subcall.data);
             } else if (subcall.id == MultiplexSubcall.BatchSell) {
                 _nestedBatchSell(state, params, subcall.data);
+            } else if (subcall.id == MultiplexSubcall.OTC) {
+                _multiHopSellOtcOrder(state, params, subcall.data);
             } else {
                 revert("MultiplexFeature::_executeMultiHopSell/INVALID_SUBCALL");
             }
@@ -443,6 +478,8 @@ contract MultiplexFeature is
         // Likewise, the recipient of the multi-hop sell is
         // equal to the recipient of its containing batch sell.
         multiHopParams.recipient = params.recipient;
+        // The payer is the same too.
+        multiHopParams.payer = params.payer;
         // Execute the nested multi-hop sell.
         uint256 outputTokenAmount = _executeMultiHopSell(multiHopParams).outputTokenAmount;
         // Increment the sold and bought amounts.
@@ -469,7 +506,7 @@ contract MultiplexFeature is
         // If the nested batch sell is the first hop
         // and `useSelfBalance` for the containing multi-
         // hop sell is false, the nested batch sell should
-        // pull tokens from `msg.sender` (so  `batchSellParams.useSelfBalance`
+        // pull tokens from `payer` (so  `batchSellParams.useSelfBalance`
         // should be false). Otherwise `batchSellParams.useSelfBalance`
         // should be true.
         batchSellParams.useSelfBalance = state.hopIndex > 0 || params.useSelfBalance;
@@ -477,6 +514,8 @@ contract MultiplexFeature is
         // that should receive the output tokens of the
         // batch sell.
         batchSellParams.recipient = state.to;
+        // payer shound be the same too.
+        batchSellParams.payer = params.payer;
         // Execute the nested batch sell.
         state.outputTokenAmount = _executeBatchSell(batchSellParams).boughtAmount;
     }
@@ -505,29 +544,33 @@ contract MultiplexFeature is
                 // is executed, so we the target is the address encoded
                 // in the subcall data.
                 (target, ) = abi.decode(subcall.data, (address, bytes));
-            } else if (subcall.id == MultiplexSubcall.UniswapV3 || subcall.id == MultiplexSubcall.BatchSell) {
+            } else if (
+                subcall.id == MultiplexSubcall.UniswapV3 ||
+                subcall.id == MultiplexSubcall.BatchSell ||
+                subcall.id == MultiplexSubcall.OTC
+            ) {
                 // UniswapV3 uses a callback to pull in the tokens being
                 // sold to it. The callback implemented in `UniswapV3Feature`
                 // can either:
-                // - call `transferFrom` to move tokens from `msg.sender` to the
+                // - call `transferFrom` to move tokens from `payer` to the
                 //   UniswapV3 pool, or
                 // - call `transfer` to move tokens from `address(this)` to the
                 //   UniswapV3 pool.
                 // A nested batch sell is similar, in that it can either:
-                // - use tokens from `msg.sender`, or
+                // - use tokens from `payer`, or
                 // - use tokens held by `address(this)`.
 
                 // Suppose UniswapV3/BatchSell is the first call in the multi-hop
-                // path. The input tokens are either held by `msg.sender`,
+                // path. The input tokens are either held by `payer`,
                 // or in the case of `multiplexMultiHopSellEthForToken` WETH is
                 // held by `address(this)`. The target is set accordingly.
 
                 // If this is _not_ the first call in the multi-hop path, we
                 // are dealing with an "intermediate" token in the multi-hop path,
-                // which `msg.sender` may not have an allowance set for. Thus
+                // which `payer` may not have an allowance set for. Thus
                 // target must be set to `address(this)` for `i > 0`.
                 if (i == 0 && !params.useSelfBalance) {
-                    target = msg.sender;
+                    target = params.payer;
                 } else {
                     target = address(this);
                 }

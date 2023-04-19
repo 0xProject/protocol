@@ -51,6 +51,7 @@ import * as ILiquidityProvider from '../test/generated-artifacts/ILiquidityProvi
 import * as ILiquidityProviderFeature from '../test/generated-artifacts/ILiquidityProviderFeature.json';
 import * as ILiquidityProviderSandbox from '../test/generated-artifacts/ILiquidityProviderSandbox.json';
 import * as IMetaTransactionsFeature from '../test/generated-artifacts/IMetaTransactionsFeature.json';
+import * as IMetaTransactionsFeatureV2 from '../test/generated-artifacts/IMetaTransactionsFeatureV2.json';
 import * as IMooniswapPool from '../test/generated-artifacts/IMooniswapPool.json';
 import * as IMultiplexFeature from '../test/generated-artifacts/IMultiplexFeature.json';
 import * as INativeOrdersEvents from '../test/generated-artifacts/INativeOrdersEvents.json';
@@ -104,6 +105,7 @@ import * as LiquidityProviderFeature from '../test/generated-artifacts/Liquidity
 import * as LiquidityProviderSandbox from '../test/generated-artifacts/LiquidityProviderSandbox.json';
 import * as LogMetadataTransformer from '../test/generated-artifacts/LogMetadataTransformer.json';
 import * as MetaTransactionsFeature from '../test/generated-artifacts/MetaTransactionsFeature.json';
+import * as MetaTransactionsFeatureV2 from '../test/generated-artifacts/MetaTransactionsFeatureV2.json';
 import * as MixinAaveV2 from '../test/generated-artifacts/MixinAaveV2.json';
 import * as MixinBalancer from '../test/generated-artifacts/MixinBalancer.json';
 import * as MixinBalancerV2Batch from '../test/generated-artifacts/MixinBalancerV2Batch.json';
@@ -236,6 +238,7 @@ export const artifacts = {
     FundRecoveryFeature: FundRecoveryFeature as ContractArtifact,
     LiquidityProviderFeature: LiquidityProviderFeature as ContractArtifact,
     MetaTransactionsFeature: MetaTransactionsFeature as ContractArtifact,
+    MetaTransactionsFeatureV2: MetaTransactionsFeatureV2 as ContractArtifact,
     NativeOrdersFeature: NativeOrdersFeature as ContractArtifact,
     OtcOrdersFeature: OtcOrdersFeature as ContractArtifact,
     OwnableFeature: OwnableFeature as ContractArtifact,
@@ -253,6 +256,7 @@ export const artifacts = {
     IFundRecoveryFeature: IFundRecoveryFeature as ContractArtifact,
     ILiquidityProviderFeature: ILiquidityProviderFeature as ContractArtifact,
     IMetaTransactionsFeature: IMetaTransactionsFeature as ContractArtifact,
+    IMetaTransactionsFeatureV2: IMetaTransactionsFeatureV2 as ContractArtifact,
     IMultiplexFeature: IMultiplexFeature as ContractArtifact,
     INativeOrdersEvents: INativeOrdersEvents as ContractArtifact,
     INativeOrdersFeature: INativeOrdersFeature as ContractArtifact,

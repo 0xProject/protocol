@@ -20,6 +20,7 @@ import "./features/interfaces/ISimpleFunctionRegistryFeature.sol";
 import "./features/interfaces/ITokenSpenderFeature.sol";
 import "./features/interfaces/ITransformERC20Feature.sol";
 import "./features/interfaces/IMetaTransactionsFeature.sol";
+import "./features/interfaces/IMetaTransactionsFeatureV2.sol";
 import "./features/interfaces/IUniswapFeature.sol";
 import "./features/interfaces/IUniswapV3Feature.sol";
 import "./features/interfaces/IPancakeSwapFeature.sol";
@@ -39,6 +40,7 @@ interface IZeroEx is
     ISimpleFunctionRegistryFeature,
     ITransformERC20Feature,
     IMetaTransactionsFeature,
+    IMetaTransactionsFeatureV2,
     IUniswapFeature,
     IUniswapV3Feature,
     IPancakeSwapFeature,

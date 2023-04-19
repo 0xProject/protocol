@@ -32,6 +32,7 @@ import * as IZeroEx from '../generated-artifacts/IZeroEx.json';
 import * as LiquidityProviderFeature from '../generated-artifacts/LiquidityProviderFeature.json';
 import * as LogMetadataTransformer from '../generated-artifacts/LogMetadataTransformer.json';
 import * as MetaTransactionsFeature from '../generated-artifacts/MetaTransactionsFeature.json';
+import * as MetaTransactionsFeatureV2 from '../generated-artifacts/MetaTransactionsFeatureV2.json';
 import * as MultiplexFeature from '../generated-artifacts/MultiplexFeature.json';
 import * as NativeOrdersFeature from '../generated-artifacts/NativeOrdersFeature.json';
 import * as OptimismBridgeAdapter from '../generated-artifacts/OptimismBridgeAdapter.json';
@@ -84,4 +85,5 @@ export const artifacts = {
     FantomBridgeAdapter: FantomBridgeAdapter as ContractArtifact,
     OptimismBridgeAdapter: OptimismBridgeAdapter as ContractArtifact,
     PolygonBridgeAdapter: PolygonBridgeAdapter as ContractArtifact,
+    MetaTransactionsFeatureV2: MetaTransactionsFeatureV2 as ContractArtifact,
 };
