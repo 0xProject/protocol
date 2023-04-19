@@ -1,7 +1,7 @@
 0x Protocol
 ===========
 
-0x Protocol is the trusted open source settlement layer for the permiossionless global exchange of value.
+0x Protocol is the trusted open source settlement layer for the permissionless global exchange of value.
 
 This documentation is aimed to serve as the canonical technical documentation for 0x Protocol and the system of smart contracts that make up its full functionality. The structure of this documentation is as follows: 
 - Architectural Overview of the whole system of smart contracts that 0x Protocol is comprised of.
