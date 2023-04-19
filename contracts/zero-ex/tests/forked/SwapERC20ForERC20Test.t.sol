@@ -36,7 +36,7 @@ contract SwapERC20ForERC20Test is Test, ForkUtils, TestUtils {
         }
     }
 
-    function test_swapERC20ForERC20OnKyberElastic() public onlyForked {
+    function test_swapERC20ForERC20OnKyberElastic() public {
         for (uint256 i = 0; i < chains.length; i++) {
             // kyberelastic mixin not added to fantom yet
             if (i == 4) {
@@ -54,7 +54,7 @@ contract SwapERC20ForERC20Test is Test, ForkUtils, TestUtils {
         }
     }
 
-    function test_swapERC20ForERC20OnTraderJoeV2() public onlyForked {
+    function test_swapERC20ForERC20OnTraderJoeV2() public {
         for (uint256 i = 0; i < chains.length; i++) {
             // TraderJoeV2 mixin only enabled on Avalanche
             if (i != 3) {
@@ -76,7 +76,7 @@ contract SwapERC20ForERC20Test is Test, ForkUtils, TestUtils {
         TokenAddresses memory tokens,
         ContractAddresses memory addresses,
         LiquiditySources memory sources
-    ) private {
+    ) public onlyForked {
         if (sources.TraderJoeV2Router == address(0)) {
             emit log_string("TraderJoeV2Router not available on this chain");
             return;
@@ -127,7 +127,7 @@ contract SwapERC20ForERC20Test is Test, ForkUtils, TestUtils {
         TokenAddresses memory tokens,
         ContractAddresses memory addresses,
         LiquiditySources memory sources
-    ) private {
+    ) public onlyForked {
         if (sources.KyberElasticQuoter == address(0)) {
             emit log_string("KyberElasticQuoter not available on this chain");
             return;
