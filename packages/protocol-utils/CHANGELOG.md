@@ -6,6 +6,9 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v11.21.0 - _April 20, 2023_
+
+    * Add Trader Joe V2 support on Avalanche
 ## v11.20.0 - _April 17, 2023_
 
     * Add Barter support
