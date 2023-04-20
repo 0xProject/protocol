@@ -9,7 +9,7 @@ This documentation is aimed to serve as the canonical technical documentation fo
 - Subsections will provide a deep dive into each contracts
 - Tutorial and tools to get started building with/on top of 0x Protocol
 
-To learn more about why 0x Protocol was created, read the whitepaper `here <https://github.com/0xProject/whitepaper/blob/master/0x_white_paper.pdf>`_ and at `0xProtocol.org <httpsL//0xProtocol.org>`_.
+To learn more about why 0x Protocol was created, read the whitepaper `here <https://github.com/0xProject/whitepaper/blob/master/0x_white_paper.pdf>`_ and at `0xProtocol.org <https://0xProtocol.org>`_.
 
 All code is open sourced on `GitHub <https://github.com/0xProject/protocol>`_.
 
