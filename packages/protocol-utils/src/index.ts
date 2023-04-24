@@ -12,6 +12,7 @@ export const NFTOrder = {
 export * from './eip712_utils';
 export * from './orders';
 export * from './meta_transactions';
+export * from './meta_transactions_v2';
 export * from './signature_utils';
 export * from './transformer_utils';
 export * from './constants';

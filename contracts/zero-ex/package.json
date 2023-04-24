@@ -1,6 +1,6 @@
 {
     "name": "@0x/contracts-zero-ex",
-    "version": "0.42.0",
+    "version": "0.42.1",
     "engines": {
         "node": ">=6.12"
     },
@@ -80,7 +80,7 @@
     },
     "dependencies": {
         "@0x/base-contract": "^7.0.0",
-        "@0x/protocol-utils": "^11.21.0",
+        "@0x/protocol-utils": "^11.22.0",
         "@0x/subproviders": "^8.0.1",
         "@0x/types": "^3.3.7",
         "@0x/typescript-typings": "^5.3.1",

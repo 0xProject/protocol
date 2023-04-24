@@ -26,7 +26,7 @@
                     { "indexed": false, "internalType": "uint256", "name": "nonce", "type": "uint256" },
                     {
                         "indexed": false,
-                        "internalType": "contract IERC20TokenV06",
+                        "internalType": "contract IERC20Token",
                         "name": "erc20Token",
                         "type": "address"
                     },
@@ -59,7 +59,7 @@
                     { "indexed": false, "internalType": "uint256", "name": "nonce", "type": "uint256" },
                     {
                         "indexed": false,
-                        "internalType": "contract IERC20TokenV06",
+                        "internalType": "contract IERC20Token",
                         "name": "erc20Token",
                         "type": "address"
                     },
@@ -124,7 +124,7 @@
                     { "indexed": false, "internalType": "uint256", "name": "nonce", "type": "uint256" },
                     {
                         "indexed": false,
-                        "internalType": "contract IERC20TokenV06",
+                        "internalType": "contract IERC20Token",
                         "name": "erc20Token",
                         "type": "address"
                     },
@@ -156,7 +156,7 @@
                     { "indexed": false, "internalType": "uint256", "name": "nonce", "type": "uint256" },
                     {
                         "indexed": false,
-                        "internalType": "contract IERC20TokenV06",
+                        "internalType": "contract IERC20Token",
                         "name": "erc20Token",
                         "type": "address"
                     },
@@ -235,13 +235,13 @@
                 "inputs": [
                     {
                         "indexed": false,
-                        "internalType": "contract IERC20TokenV06",
+                        "internalType": "contract IERC20Token",
                         "name": "inputToken",
                         "type": "address"
                     },
                     {
                         "indexed": false,
-                        "internalType": "contract IERC20TokenV06",
+                        "internalType": "contract IERC20Token",
                         "name": "outputToken",
                         "type": "address"
                     },
@@ -423,8 +423,8 @@
                 "inputs": [
                     {
                         "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                             { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerTokenFeeAmount", "type": "uint128" },
@@ -471,8 +471,8 @@
                 "inputs": [
                     {
                         "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                             { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
                             { "internalType": "address", "name": "maker", "type": "address" },
@@ -516,8 +516,8 @@
                 "inputs": [
                     {
                         "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                             { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
                             { "internalType": "address", "name": "maker", "type": "address" },
@@ -561,6 +561,76 @@
             },
             {
                 "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "contract IERC20Token", "name": "inputToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "outputToken", "type": "address" },
+                            { "internalType": "uint256", "name": "sellAmount", "type": "uint256" },
+                            {
+                                "components": [
+                                    {
+                                        "internalType": "enum IMultiplexFeature.MultiplexSubcall",
+                                        "name": "id",
+                                        "type": "uint8"
+                                    },
+                                    { "internalType": "uint256", "name": "sellAmount", "type": "uint256" },
+                                    { "internalType": "bytes", "name": "data", "type": "bytes" }
+                                ],
+                                "internalType": "struct IMultiplexFeature.BatchSellSubcall[]",
+                                "name": "calls",
+                                "type": "tuple[]"
+                            },
+                            { "internalType": "bool", "name": "useSelfBalance", "type": "bool" },
+                            { "internalType": "address", "name": "recipient", "type": "address" },
+                            { "internalType": "address", "name": "payer", "type": "address" }
+                        ],
+                        "internalType": "struct IMultiplexFeature.BatchSellParams",
+                        "name": "params",
+                        "type": "tuple"
+                    },
+                    { "internalType": "uint256", "name": "minBuyAmount", "type": "uint256" }
+                ],
+                "name": "_multiplexBatchSell",
+                "outputs": [{ "internalType": "uint256", "name": "boughtAmount", "type": "uint256" }],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "address[]", "name": "tokens", "type": "address[]" },
+                            { "internalType": "uint256", "name": "sellAmount", "type": "uint256" },
+                            {
+                                "components": [
+                                    {
+                                        "internalType": "enum IMultiplexFeature.MultiplexSubcall",
+                                        "name": "id",
+                                        "type": "uint8"
+                                    },
+                                    { "internalType": "bytes", "name": "data", "type": "bytes" }
+                                ],
+                                "internalType": "struct IMultiplexFeature.MultiHopSellSubcall[]",
+                                "name": "calls",
+                                "type": "tuple[]"
+                            },
+                            { "internalType": "bool", "name": "useSelfBalance", "type": "bool" },
+                            { "internalType": "address", "name": "recipient", "type": "address" },
+                            { "internalType": "address", "name": "payer", "type": "address" }
+                        ],
+                        "internalType": "struct IMultiplexFeature.MultiHopSellParams",
+                        "name": "params",
+                        "type": "tuple"
+                    },
+                    { "internalType": "uint256", "name": "minBuyAmount", "type": "uint256" }
+                ],
+                "name": "_multiplexMultiHopSell",
+                "outputs": [{ "internalType": "uint256", "name": "boughtAmount", "type": "uint256" }],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
                     { "internalType": "bytes", "name": "encodedPath", "type": "bytes" },
                     { "internalType": "uint256", "name": "sellAmount", "type": "uint256" },
                     { "internalType": "uint256", "name": "minBuyAmount", "type": "uint256" },
@@ -573,11 +643,24 @@
             },
             {
                 "inputs": [
+                    { "internalType": "bytes", "name": "encodedPath", "type": "bytes" },
+                    { "internalType": "uint256", "name": "sellAmount", "type": "uint256" },
+                    { "internalType": "uint256", "name": "minBuyAmount", "type": "uint256" },
+                    { "internalType": "address", "name": "recipient", "type": "address" },
+                    { "internalType": "address", "name": "payer", "type": "address" }
+                ],
+                "name": "_sellTokenForTokenToUniswapV3",
+                "outputs": [{ "internalType": "uint256", "name": "buyAmount", "type": "uint256" }],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
                     {
                         "components": [
                             { "internalType": "address payable", "name": "taker", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "inputToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "outputToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "inputToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "outputToken", "type": "address" },
                             { "internalType": "uint256", "name": "inputTokenAmount", "type": "uint256" },
                             { "internalType": "uint256", "name": "minOutputTokenAmount", "type": "uint256" },
                             {
@@ -611,7 +694,7 @@
                             { "internalType": "address", "name": "taker", "type": "address" },
                             { "internalType": "uint256", "name": "expiry", "type": "uint256" },
                             { "internalType": "uint256", "name": "nonce", "type": "uint256" },
-                            { "internalType": "contract IERC20TokenV06", "name": "erc20Token", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "erc20Token", "type": "address" },
                             { "internalType": "uint256", "name": "erc20TokenAmount", "type": "uint256" },
                             {
                                 "components": [
@@ -677,7 +760,7 @@
                             { "internalType": "address", "name": "taker", "type": "address" },
                             { "internalType": "uint256", "name": "expiry", "type": "uint256" },
                             { "internalType": "uint256", "name": "nonce", "type": "uint256" },
-                            { "internalType": "contract IERC20TokenV06", "name": "erc20Token", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "erc20Token", "type": "address" },
                             { "internalType": "uint256", "name": "erc20TokenAmount", "type": "uint256" },
                             {
                                 "components": [
@@ -750,8 +833,8 @@
                 "inputs": [
                     {
                         "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                             { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerTokenFeeAmount", "type": "uint128" },
@@ -775,8 +858,8 @@
             },
             {
                 "inputs": [
-                    { "internalType": "contract IERC20TokenV06[]", "name": "makerTokens", "type": "address[]" },
-                    { "internalType": "contract IERC20TokenV06[]", "name": "takerTokens", "type": "address[]" },
+                    { "internalType": "contract IERC20Token[]", "name": "makerTokens", "type": "address[]" },
+                    { "internalType": "contract IERC20Token[]", "name": "takerTokens", "type": "address[]" },
                     { "internalType": "uint256[]", "name": "minValidSalts", "type": "uint256[]" }
                 ],
                 "name": "batchCancelPairLimitOrders",
@@ -787,8 +870,8 @@
             {
                 "inputs": [
                     { "internalType": "address", "name": "maker", "type": "address" },
-                    { "internalType": "contract IERC20TokenV06[]", "name": "makerTokens", "type": "address[]" },
-                    { "internalType": "contract IERC20TokenV06[]", "name": "takerTokens", "type": "address[]" },
+                    { "internalType": "contract IERC20Token[]", "name": "makerTokens", "type": "address[]" },
+                    { "internalType": "contract IERC20Token[]", "name": "takerTokens", "type": "address[]" },
                     { "internalType": "uint256[]", "name": "minValidSalts", "type": "uint256[]" }
                 ],
                 "name": "batchCancelPairLimitOrdersWithSigner",
@@ -798,8 +881,8 @@
             },
             {
                 "inputs": [
-                    { "internalType": "contract IERC20TokenV06[]", "name": "makerTokens", "type": "address[]" },
-                    { "internalType": "contract IERC20TokenV06[]", "name": "takerTokens", "type": "address[]" },
+                    { "internalType": "contract IERC20Token[]", "name": "makerTokens", "type": "address[]" },
+                    { "internalType": "contract IERC20Token[]", "name": "takerTokens", "type": "address[]" },
                     { "internalType": "uint256[]", "name": "minValidSalts", "type": "uint256[]" }
                 ],
                 "name": "batchCancelPairRfqOrders",
@@ -810,8 +893,8 @@
             {
                 "inputs": [
                     { "internalType": "address", "name": "maker", "type": "address" },
-                    { "internalType": "contract IERC20TokenV06[]", "name": "makerTokens", "type": "address[]" },
-                    { "internalType": "contract IERC20TokenV06[]", "name": "takerTokens", "type": "address[]" },
+                    { "internalType": "contract IERC20Token[]", "name": "makerTokens", "type": "address[]" },
+                    { "internalType": "contract IERC20Token[]", "name": "takerTokens", "type": "address[]" },
                     { "internalType": "uint256[]", "name": "minValidSalts", "type": "uint256[]" }
                 ],
                 "name": "batchCancelPairRfqOrdersWithSigner",
@@ -823,8 +906,8 @@
                 "inputs": [
                     {
                         "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                             { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
                             { "internalType": "address", "name": "maker", "type": "address" },
@@ -856,7 +939,7 @@
                             { "internalType": "uint256", "name": "salt", "type": "uint256" },
                             { "internalType": "bytes", "name": "callData", "type": "bytes" },
                             { "internalType": "uint256", "name": "value", "type": "uint256" },
-                            { "internalType": "contract IERC20TokenV06", "name": "feeToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "feeToken", "type": "address" },
                             { "internalType": "uint256", "name": "feeAmount", "type": "uint256" }
                         ],
                         "internalType": "struct IMetaTransactionsFeature.MetaTransactionData[]",
@@ -888,8 +971,53 @@
                 "inputs": [
                     {
                         "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "address payable", "name": "signer", "type": "address" },
+                            { "internalType": "address", "name": "sender", "type": "address" },
+                            { "internalType": "uint256", "name": "expirationTimeSeconds", "type": "uint256" },
+                            { "internalType": "uint256", "name": "salt", "type": "uint256" },
+                            { "internalType": "bytes", "name": "callData", "type": "bytes" },
+                            { "internalType": "contract IERC20Token", "name": "feeToken", "type": "address" },
+                            {
+                                "components": [
+                                    { "internalType": "address", "name": "recipient", "type": "address" },
+                                    { "internalType": "uint256", "name": "amount", "type": "uint256" }
+                                ],
+                                "internalType": "struct IMetaTransactionsFeatureV2.MetaTransactionFeeData[]",
+                                "name": "fees",
+                                "type": "tuple[]"
+                            }
+                        ],
+                        "internalType": "struct IMetaTransactionsFeatureV2.MetaTransactionDataV2[]",
+                        "name": "mtxs",
+                        "type": "tuple[]"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "enum LibSignature.SignatureType",
+                                "name": "signatureType",
+                                "type": "uint8"
+                            },
+                            { "internalType": "uint8", "name": "v", "type": "uint8" },
+                            { "internalType": "bytes32", "name": "r", "type": "bytes32" },
+                            { "internalType": "bytes32", "name": "s", "type": "bytes32" }
+                        ],
+                        "internalType": "struct LibSignature.Signature[]",
+                        "name": "signatures",
+                        "type": "tuple[]"
+                    }
+                ],
+                "name": "batchExecuteMetaTransactionsV2",
+                "outputs": [{ "internalType": "bytes[]", "name": "returnResults", "type": "bytes[]" }],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                             { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerTokenFeeAmount", "type": "uint128" },
@@ -935,8 +1063,8 @@
                 "inputs": [
                     {
                         "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                             { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
                             { "internalType": "address", "name": "maker", "type": "address" },
@@ -980,8 +1108,8 @@
                 "inputs": [
                     {
                         "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                             { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
                             { "internalType": "address", "name": "maker", "type": "address" },
@@ -1034,8 +1162,8 @@
                 "inputs": [
                     {
                         "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                             { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerTokenFeeAmount", "type": "uint128" },
@@ -1089,8 +1217,8 @@
                 "inputs": [
                     {
                         "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                             { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
                             { "internalType": "address", "name": "maker", "type": "address" },
@@ -1147,7 +1275,7 @@
                             { "internalType": "address", "name": "taker", "type": "address" },
                             { "internalType": "uint256", "name": "expiry", "type": "uint256" },
                             { "internalType": "uint256", "name": "nonce", "type": "uint256" },
-                            { "internalType": "contract IERC20TokenV06", "name": "erc20Token", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "erc20Token", "type": "address" },
                             { "internalType": "uint256", "name": "erc20TokenAmount", "type": "uint256" },
                             {
                                 "components": [
@@ -1186,7 +1314,7 @@
                             { "internalType": "address", "name": "taker", "type": "address" },
                             { "internalType": "uint256", "name": "expiry", "type": "uint256" },
                             { "internalType": "uint256", "name": "nonce", "type": "uint256" },
-                            { "internalType": "contract IERC20TokenV06", "name": "erc20Token", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "erc20Token", "type": "address" },
                             { "internalType": "uint256", "name": "erc20TokenAmount", "type": "uint256" },
                             {
                                 "components": [
@@ -1266,7 +1394,7 @@
                             { "internalType": "address", "name": "taker", "type": "address" },
                             { "internalType": "uint256", "name": "expiry", "type": "uint256" },
                             { "internalType": "uint256", "name": "nonce", "type": "uint256" },
-                            { "internalType": "contract IERC20TokenV06", "name": "erc20Token", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "erc20Token", "type": "address" },
                             { "internalType": "uint256", "name": "erc20TokenAmount", "type": "uint256" },
                             {
                                 "components": [
@@ -1331,7 +1459,7 @@
                             { "internalType": "address", "name": "taker", "type": "address" },
                             { "internalType": "uint256", "name": "expiry", "type": "uint256" },
                             { "internalType": "uint256", "name": "nonce", "type": "uint256" },
-                            { "internalType": "contract IERC20TokenV06", "name": "erc20Token", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "erc20Token", "type": "address" },
                             { "internalType": "uint256", "name": "erc20TokenAmount", "type": "uint256" },
                             {
                                 "components": [
@@ -1403,8 +1531,8 @@
                 "inputs": [
                     {
                         "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                             { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerTokenFeeAmount", "type": "uint128" },
@@ -1428,8 +1556,8 @@
             },
             {
                 "inputs": [
-                    { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                    { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                    { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                    { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                     { "internalType": "uint256", "name": "minValidSalt", "type": "uint256" }
                 ],
                 "name": "cancelPairLimitOrders",
@@ -1440,8 +1568,8 @@
             {
                 "inputs": [
                     { "internalType": "address", "name": "maker", "type": "address" },
-                    { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                    { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                    { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                    { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                     { "internalType": "uint256", "name": "minValidSalt", "type": "uint256" }
                 ],
                 "name": "cancelPairLimitOrdersWithSigner",
@@ -1451,8 +1579,8 @@
             },
             {
                 "inputs": [
-                    { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                    { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                    { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                    { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                     { "internalType": "uint256", "name": "minValidSalt", "type": "uint256" }
                 ],
                 "name": "cancelPairRfqOrders",
@@ -1463,8 +1591,8 @@
             {
                 "inputs": [
                     { "internalType": "address", "name": "maker", "type": "address" },
-                    { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                    { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                    { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                    { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                     { "internalType": "uint256", "name": "minValidSalt", "type": "uint256" }
                 ],
                 "name": "cancelPairRfqOrdersWithSigner",
@@ -1476,8 +1604,8 @@
                 "inputs": [
                     {
                         "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                             { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
                             { "internalType": "address", "name": "maker", "type": "address" },
@@ -1516,7 +1644,7 @@
                             { "internalType": "uint256", "name": "salt", "type": "uint256" },
                             { "internalType": "bytes", "name": "callData", "type": "bytes" },
                             { "internalType": "uint256", "name": "value", "type": "uint256" },
-                            { "internalType": "contract IERC20TokenV06", "name": "feeToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "feeToken", "type": "address" },
                             { "internalType": "uint256", "name": "feeAmount", "type": "uint256" }
                         ],
                         "internalType": "struct IMetaTransactionsFeature.MetaTransactionData",
@@ -1546,6 +1674,51 @@
             },
             {
                 "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "address payable", "name": "signer", "type": "address" },
+                            { "internalType": "address", "name": "sender", "type": "address" },
+                            { "internalType": "uint256", "name": "expirationTimeSeconds", "type": "uint256" },
+                            { "internalType": "uint256", "name": "salt", "type": "uint256" },
+                            { "internalType": "bytes", "name": "callData", "type": "bytes" },
+                            { "internalType": "contract IERC20Token", "name": "feeToken", "type": "address" },
+                            {
+                                "components": [
+                                    { "internalType": "address", "name": "recipient", "type": "address" },
+                                    { "internalType": "uint256", "name": "amount", "type": "uint256" }
+                                ],
+                                "internalType": "struct IMetaTransactionsFeatureV2.MetaTransactionFeeData[]",
+                                "name": "fees",
+                                "type": "tuple[]"
+                            }
+                        ],
+                        "internalType": "struct IMetaTransactionsFeatureV2.MetaTransactionDataV2",
+                        "name": "mtx",
+                        "type": "tuple"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "enum LibSignature.SignatureType",
+                                "name": "signatureType",
+                                "type": "uint8"
+                            },
+                            { "internalType": "uint8", "name": "v", "type": "uint8" },
+                            { "internalType": "bytes32", "name": "r", "type": "bytes32" },
+                            { "internalType": "bytes32", "name": "s", "type": "bytes32" }
+                        ],
+                        "internalType": "struct LibSignature.Signature",
+                        "name": "signature",
+                        "type": "tuple"
+                    }
+                ],
+                "name": "executeMetaTransactionV2",
+                "outputs": [{ "internalType": "bytes", "name": "returnResult", "type": "bytes" }],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
                     { "internalType": "bytes4", "name": "selector", "type": "bytes4" },
                     { "internalType": "address", "name": "impl", "type": "address" }
                 ],
@@ -1558,8 +1731,8 @@
                 "inputs": [
                     {
                         "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                             { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerTokenFeeAmount", "type": "uint128" },
@@ -1604,8 +1777,8 @@
                 "inputs": [
                     {
                         "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                             { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerTokenFeeAmount", "type": "uint128" },
@@ -1647,8 +1820,8 @@
                 "inputs": [
                     {
                         "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                             { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
                             { "internalType": "address", "name": "maker", "type": "address" },
@@ -1688,8 +1861,8 @@
                 "inputs": [
                     {
                         "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                             { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
                             { "internalType": "address", "name": "maker", "type": "address" },
@@ -1730,8 +1903,8 @@
                 "inputs": [
                     {
                         "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                             { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
                             { "internalType": "address", "name": "maker", "type": "address" },
@@ -1772,8 +1945,8 @@
                 "inputs": [
                     {
                         "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                             { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
                             { "internalType": "address", "name": "maker", "type": "address" },
@@ -1813,8 +1986,8 @@
                 "inputs": [
                     {
                         "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                             { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
                             { "internalType": "address", "name": "maker", "type": "address" },
@@ -1857,8 +2030,8 @@
                 "inputs": [
                     {
                         "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                             { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
                             { "internalType": "address", "name": "maker", "type": "address" },
@@ -1910,8 +2083,8 @@
                 "inputs": [
                     {
                         "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                             { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
                             { "internalType": "address", "name": "maker", "type": "address" },
@@ -1968,7 +2141,7 @@
                             { "internalType": "address", "name": "taker", "type": "address" },
                             { "internalType": "uint256", "name": "expiry", "type": "uint256" },
                             { "internalType": "uint256", "name": "nonce", "type": "uint256" },
-                            { "internalType": "contract IERC20TokenV06", "name": "erc20Token", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "erc20Token", "type": "address" },
                             { "internalType": "uint256", "name": "erc20TokenAmount", "type": "uint256" },
                             {
                                 "components": [
@@ -2016,7 +2189,7 @@
                             { "internalType": "address", "name": "taker", "type": "address" },
                             { "internalType": "uint256", "name": "expiry", "type": "uint256" },
                             { "internalType": "uint256", "name": "nonce", "type": "uint256" },
-                            { "internalType": "contract IERC20TokenV06", "name": "erc20Token", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "erc20Token", "type": "address" },
                             { "internalType": "uint256", "name": "erc20TokenAmount", "type": "uint256" },
                             {
                                 "components": [
@@ -2076,7 +2249,7 @@
                             { "internalType": "address", "name": "taker", "type": "address" },
                             { "internalType": "uint256", "name": "expiry", "type": "uint256" },
                             { "internalType": "uint256", "name": "nonce", "type": "uint256" },
-                            { "internalType": "contract IERC20TokenV06", "name": "erc20Token", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "erc20Token", "type": "address" },
                             { "internalType": "uint256", "name": "erc20TokenAmount", "type": "uint256" },
                             {
                                 "components": [
@@ -2123,7 +2296,7 @@
                             { "internalType": "address", "name": "taker", "type": "address" },
                             { "internalType": "uint256", "name": "expiry", "type": "uint256" },
                             { "internalType": "uint256", "name": "nonce", "type": "uint256" },
-                            { "internalType": "contract IERC20TokenV06", "name": "erc20Token", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "erc20Token", "type": "address" },
                             { "internalType": "uint256", "name": "erc20TokenAmount", "type": "uint256" },
                             {
                                 "components": [
@@ -2175,8 +2348,8 @@
                 "inputs": [
                     {
                         "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                             { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerTokenFeeAmount", "type": "uint128" },
@@ -2202,8 +2375,8 @@
                 "inputs": [
                     {
                         "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                             { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerTokenFeeAmount", "type": "uint128" },
@@ -2240,8 +2413,8 @@
                 "inputs": [
                     {
                         "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                             { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerTokenFeeAmount", "type": "uint128" },
@@ -2303,7 +2476,7 @@
                             { "internalType": "uint256", "name": "salt", "type": "uint256" },
                             { "internalType": "bytes", "name": "callData", "type": "bytes" },
                             { "internalType": "uint256", "name": "value", "type": "uint256" },
-                            { "internalType": "contract IERC20TokenV06", "name": "feeToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "feeToken", "type": "address" },
                             { "internalType": "uint256", "name": "feeAmount", "type": "uint256" }
                         ],
                         "internalType": "struct IMetaTransactionsFeature.MetaTransactionData",
@@ -2328,7 +2501,7 @@
                             { "internalType": "uint256", "name": "salt", "type": "uint256" },
                             { "internalType": "bytes", "name": "callData", "type": "bytes" },
                             { "internalType": "uint256", "name": "value", "type": "uint256" },
-                            { "internalType": "contract IERC20TokenV06", "name": "feeToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "feeToken", "type": "address" },
                             { "internalType": "uint256", "name": "feeAmount", "type": "uint256" }
                         ],
                         "internalType": "struct IMetaTransactionsFeature.MetaTransactionData",
@@ -2352,8 +2525,75 @@
                 "inputs": [
                     {
                         "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "address payable", "name": "signer", "type": "address" },
+                            { "internalType": "address", "name": "sender", "type": "address" },
+                            { "internalType": "uint256", "name": "expirationTimeSeconds", "type": "uint256" },
+                            { "internalType": "uint256", "name": "salt", "type": "uint256" },
+                            { "internalType": "bytes", "name": "callData", "type": "bytes" },
+                            { "internalType": "contract IERC20Token", "name": "feeToken", "type": "address" },
+                            {
+                                "components": [
+                                    { "internalType": "address", "name": "recipient", "type": "address" },
+                                    { "internalType": "uint256", "name": "amount", "type": "uint256" }
+                                ],
+                                "internalType": "struct IMetaTransactionsFeatureV2.MetaTransactionFeeData[]",
+                                "name": "fees",
+                                "type": "tuple[]"
+                            }
+                        ],
+                        "internalType": "struct IMetaTransactionsFeatureV2.MetaTransactionDataV2",
+                        "name": "mtx",
+                        "type": "tuple"
+                    }
+                ],
+                "name": "getMetaTransactionV2ExecutedBlock",
+                "outputs": [{ "internalType": "uint256", "name": "blockNumber", "type": "uint256" }],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "address payable", "name": "signer", "type": "address" },
+                            { "internalType": "address", "name": "sender", "type": "address" },
+                            { "internalType": "uint256", "name": "expirationTimeSeconds", "type": "uint256" },
+                            { "internalType": "uint256", "name": "salt", "type": "uint256" },
+                            { "internalType": "bytes", "name": "callData", "type": "bytes" },
+                            { "internalType": "contract IERC20Token", "name": "feeToken", "type": "address" },
+                            {
+                                "components": [
+                                    { "internalType": "address", "name": "recipient", "type": "address" },
+                                    { "internalType": "uint256", "name": "amount", "type": "uint256" }
+                                ],
+                                "internalType": "struct IMetaTransactionsFeatureV2.MetaTransactionFeeData[]",
+                                "name": "fees",
+                                "type": "tuple[]"
+                            }
+                        ],
+                        "internalType": "struct IMetaTransactionsFeatureV2.MetaTransactionDataV2",
+                        "name": "mtx",
+                        "type": "tuple"
+                    }
+                ],
+                "name": "getMetaTransactionV2Hash",
+                "outputs": [{ "internalType": "bytes32", "name": "mtxHash", "type": "bytes32" }],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{ "internalType": "bytes32", "name": "mtxHash", "type": "bytes32" }],
+                "name": "getMetaTransactionV2HashExecutedBlock",
+                "outputs": [{ "internalType": "uint256", "name": "blockNumber", "type": "uint256" }],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                             { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
                             { "internalType": "address", "name": "maker", "type": "address" },
@@ -2375,8 +2615,8 @@
                 "inputs": [
                     {
                         "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                             { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
                             { "internalType": "address", "name": "maker", "type": "address" },
@@ -2422,8 +2662,8 @@
                 "inputs": [
                     {
                         "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                             { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
                             { "internalType": "address", "name": "maker", "type": "address" },
@@ -2447,8 +2687,8 @@
                 "inputs": [
                     {
                         "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                             { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
                             { "internalType": "address", "name": "maker", "type": "address" },
@@ -2483,8 +2723,8 @@
                 "inputs": [
                     {
                         "components": [
-                            { "internalType": "contract IERC20TokenV06", "name": "makerToken", "type": "address" },
-                            { "internalType": "contract IERC20TokenV06", "name": "takerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "makerToken", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "takerToken", "type": "address" },
                             { "internalType": "uint128", "name": "makerAmount", "type": "uint128" },
                             { "internalType": "uint128", "name": "takerAmount", "type": "uint128" },
                             { "internalType": "address", "name": "maker", "type": "address" },
@@ -2592,7 +2832,7 @@
                             { "internalType": "address", "name": "taker", "type": "address" },
                             { "internalType": "uint256", "name": "expiry", "type": "uint256" },
                             { "internalType": "uint256", "name": "nonce", "type": "uint256" },
-                            { "internalType": "contract IERC20TokenV06", "name": "erc20Token", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "erc20Token", "type": "address" },
                             { "internalType": "uint256", "name": "erc20TokenAmount", "type": "uint256" },
                             {
                                 "components": [
@@ -2631,7 +2871,7 @@
                             { "internalType": "address", "name": "taker", "type": "address" },
                             { "internalType": "uint256", "name": "expiry", "type": "uint256" },
                             { "internalType": "uint256", "name": "nonce", "type": "uint256" },
-                            { "internalType": "contract IERC20TokenV06", "name": "erc20Token", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "erc20Token", "type": "address" },
                             { "internalType": "uint256", "name": "erc20TokenAmount", "type": "uint256" },
                             {
                                 "components": [
@@ -2712,7 +2952,7 @@
             },
             {
                 "inputs": [
-                    { "internalType": "contract IERC20TokenV06", "name": "outputToken", "type": "address" },
+                    { "internalType": "contract IERC20Token", "name": "outputToken", "type": "address" },
                     {
                         "components": [
                             {
@@ -2736,7 +2976,7 @@
             },
             {
                 "inputs": [
-                    { "internalType": "contract IERC20TokenV06", "name": "inputToken", "type": "address" },
+                    { "internalType": "contract IERC20Token", "name": "inputToken", "type": "address" },
                     {
                         "components": [
                             {
@@ -2761,8 +3001,8 @@
             },
             {
                 "inputs": [
-                    { "internalType": "contract IERC20TokenV06", "name": "inputToken", "type": "address" },
-                    { "internalType": "contract IERC20TokenV06", "name": "outputToken", "type": "address" },
+                    { "internalType": "contract IERC20Token", "name": "inputToken", "type": "address" },
+                    { "internalType": "contract IERC20Token", "name": "outputToken", "type": "address" },
                     {
                         "components": [
                             {
@@ -2897,7 +3137,7 @@
                             { "internalType": "address", "name": "taker", "type": "address" },
                             { "internalType": "uint256", "name": "expiry", "type": "uint256" },
                             { "internalType": "uint256", "name": "nonce", "type": "uint256" },
-                            { "internalType": "contract IERC20TokenV06", "name": "erc20Token", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "erc20Token", "type": "address" },
                             { "internalType": "uint256", "name": "erc20TokenAmount", "type": "uint256" },
                             {
                                 "components": [
@@ -2945,7 +3185,7 @@
                             { "internalType": "address", "name": "taker", "type": "address" },
                             { "internalType": "uint256", "name": "expiry", "type": "uint256" },
                             { "internalType": "uint256", "name": "nonce", "type": "uint256" },
-                            { "internalType": "contract IERC20TokenV06", "name": "erc20Token", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "erc20Token", "type": "address" },
                             { "internalType": "uint256", "name": "erc20TokenAmount", "type": "uint256" },
                             {
                                 "components": [
@@ -3022,7 +3262,7 @@
                             { "internalType": "address", "name": "taker", "type": "address" },
                             { "internalType": "uint256", "name": "expiry", "type": "uint256" },
                             { "internalType": "uint256", "name": "nonce", "type": "uint256" },
-                            { "internalType": "contract IERC20TokenV06", "name": "erc20Token", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "erc20Token", "type": "address" },
                             { "internalType": "uint256", "name": "erc20TokenAmount", "type": "uint256" },
                             {
                                 "components": [
@@ -3089,7 +3329,7 @@
                             { "internalType": "address", "name": "taker", "type": "address" },
                             { "internalType": "uint256", "name": "expiry", "type": "uint256" },
                             { "internalType": "uint256", "name": "nonce", "type": "uint256" },
-                            { "internalType": "contract IERC20TokenV06", "name": "erc20Token", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "erc20Token", "type": "address" },
                             { "internalType": "uint256", "name": "erc20TokenAmount", "type": "uint256" },
                             {
                                 "components": [
@@ -3158,8 +3398,8 @@
             },
             {
                 "inputs": [
-                    { "internalType": "contract IERC20TokenV06", "name": "inputToken", "type": "address" },
-                    { "internalType": "contract IERC20TokenV06", "name": "outputToken", "type": "address" },
+                    { "internalType": "contract IERC20Token", "name": "inputToken", "type": "address" },
+                    { "internalType": "contract IERC20Token", "name": "outputToken", "type": "address" },
                     { "internalType": "contract ILiquidityProvider", "name": "provider", "type": "address" },
                     { "internalType": "address", "name": "recipient", "type": "address" },
                     { "internalType": "uint256", "name": "sellAmount", "type": "uint256" },
@@ -3173,7 +3413,7 @@
             },
             {
                 "inputs": [
-                    { "internalType": "contract IERC20TokenV06[]", "name": "tokens", "type": "address[]" },
+                    { "internalType": "contract IERC20Token[]", "name": "tokens", "type": "address[]" },
                     { "internalType": "uint256", "name": "sellAmount", "type": "uint256" },
                     { "internalType": "uint256", "name": "minBuyAmount", "type": "uint256" },
                     { "internalType": "enum IPancakeSwapFeature.ProtocolFork", "name": "fork", "type": "uint8" }
@@ -3185,7 +3425,7 @@
             },
             {
                 "inputs": [
-                    { "internalType": "contract IERC20TokenV06[]", "name": "tokens", "type": "address[]" },
+                    { "internalType": "contract IERC20Token[]", "name": "tokens", "type": "address[]" },
                     { "internalType": "uint256", "name": "sellAmount", "type": "uint256" },
                     { "internalType": "uint256", "name": "minBuyAmount", "type": "uint256" },
                     { "internalType": "bool", "name": "isSushi", "type": "bool" }
@@ -3256,7 +3496,7 @@
             },
             {
                 "inputs": [
-                    { "internalType": "contract IERC20TokenV06", "name": "erc20", "type": "address" },
+                    { "internalType": "contract IERC20Token", "name": "erc20", "type": "address" },
                     { "internalType": "uint256", "name": "amountOut", "type": "uint256" },
                     { "internalType": "address payable", "name": "recipientWallet", "type": "address" }
                 ],
@@ -3267,8 +3507,8 @@
             },
             {
                 "inputs": [
-                    { "internalType": "contract IERC20TokenV06", "name": "inputToken", "type": "address" },
-                    { "internalType": "contract IERC20TokenV06", "name": "outputToken", "type": "address" },
+                    { "internalType": "contract IERC20Token", "name": "inputToken", "type": "address" },
+                    { "internalType": "contract IERC20Token", "name": "outputToken", "type": "address" },
                     { "internalType": "uint256", "name": "inputTokenAmount", "type": "uint256" },
                     { "internalType": "uint256", "name": "minOutputTokenAmount", "type": "uint256" },
                     {
@@ -3306,7 +3546,7 @@
                             { "internalType": "address", "name": "taker", "type": "address" },
                             { "internalType": "uint256", "name": "expiry", "type": "uint256" },
                             { "internalType": "uint256", "name": "nonce", "type": "uint256" },
-                            { "internalType": "contract IERC20TokenV06", "name": "erc20Token", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "erc20Token", "type": "address" },
                             { "internalType": "uint256", "name": "erc20TokenAmount", "type": "uint256" },
                             {
                                 "components": [
@@ -3355,7 +3595,7 @@
                             { "internalType": "address", "name": "taker", "type": "address" },
                             { "internalType": "uint256", "name": "expiry", "type": "uint256" },
                             { "internalType": "uint256", "name": "nonce", "type": "uint256" },
-                            { "internalType": "contract IERC20TokenV06", "name": "erc20Token", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "erc20Token", "type": "address" },
                             { "internalType": "uint256", "name": "erc20TokenAmount", "type": "uint256" },
                             {
                                 "components": [
@@ -3418,7 +3658,7 @@
                             { "internalType": "address", "name": "taker", "type": "address" },
                             { "internalType": "uint256", "name": "expiry", "type": "uint256" },
                             { "internalType": "uint256", "name": "nonce", "type": "uint256" },
-                            { "internalType": "contract IERC20TokenV06", "name": "erc20Token", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "erc20Token", "type": "address" },
                             { "internalType": "uint256", "name": "erc20TokenAmount", "type": "uint256" },
                             {
                                 "components": [
@@ -3466,7 +3706,7 @@
                             { "internalType": "address", "name": "taker", "type": "address" },
                             { "internalType": "uint256", "name": "expiry", "type": "uint256" },
                             { "internalType": "uint256", "name": "nonce", "type": "uint256" },
-                            { "internalType": "contract IERC20TokenV06", "name": "erc20Token", "type": "address" },
+                            { "internalType": "contract IERC20Token", "name": "erc20Token", "type": "address" },
                             { "internalType": "uint256", "name": "erc20TokenAmount", "type": "uint256" },
                             {
                                 "components": [
@@ -3568,12 +3808,39 @@
                         "takerTokenFilledAmount": "How much maker token was filled."
                     }
                 },
+                "_multiplexBatchSell((address,address,uint256,(uint8,uint256,bytes)[],bool,address,address),uint256)": {
+                    "details": "Executes a multiplex BatchSell using the given      parameters. Internal only.",
+                    "params": {
+                        "minBuyAmount": "The minimum amount of `params.outputToken`        that must be bought for this function to not revert.",
+                        "params": "The parameters for the BatchSell."
+                    },
+                    "returns": { "boughtAmount": "The amount of `params.outputToken` bought." }
+                },
+                "_multiplexMultiHopSell((address[],uint256,(uint8,bytes)[],bool,address,address),uint256)": {
+                    "details": "Executes a multiplex MultiHopSell using the given      parameters. Internal only.",
+                    "params": {
+                        "minBuyAmount": "The minimum amount of the output token        that must be bought for this function to not revert.",
+                        "params": "The parameters for the MultiHopSell."
+                    },
+                    "returns": { "boughtAmount": "The amount of the output token bought." }
+                },
                 "_sellHeldTokenForTokenToUniswapV3(bytes,uint256,uint256,address)": {
                     "details": "Sell a token for another token directly against uniswap v3.      Private variant, uses tokens held by `address(this)`.",
                     "params": {
                         "encodedPath": "Uniswap-encoded path.",
                         "minBuyAmount": "Minimum amount of the last token in the path to buy.",
                         "recipient": "The recipient of the bought tokens. Can be zero for sender.",
+                        "sellAmount": "amount of the first token in the path to sell."
+                    },
+                    "returns": { "buyAmount": "Amount of the last token in the path bought." }
+                },
+                "_sellTokenForTokenToUniswapV3(bytes,uint256,uint256,address,address)": {
+                    "details": "Sell a token for another token directly against uniswap v3. Internal variant.",
+                    "params": {
+                        "encodedPath": "Uniswap-encoded path.",
+                        "minBuyAmount": "Minimum amount of the last token in the path to buy.",
+                        "payer": "The address to pull the sold tokens from.",
+                        "recipient": "The recipient of the bought tokens. Can be zero for payer.",
                         "sellAmount": "amount of the first token in the path to sell."
                     },
                     "returns": { "buyAmount": "Amount of the last token in the path bought." }
@@ -3666,6 +3933,14 @@
                     },
                     "returns": { "returnResults": "The ABI-encoded results of the underlying calls." }
                 },
+                "batchExecuteMetaTransactionsV2((address,address,uint256,uint256,bytes,address,(address,uint256)[])[],(uint8,uint8,bytes32,bytes32)[])": {
+                    "details": "Execute multiple meta-transactions.",
+                    "params": {
+                        "mtxs": "The meta-transactions.",
+                        "signatures": "The signature by each respective `mtx.signer`."
+                    },
+                    "returns": { "returnResults": "The ABI-encoded results of the underlying calls." }
+                },
                 "batchFillLimitOrders((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256)[],(uint8,uint8,bytes32,bytes32)[],uint128[],bool)": {
                     "details": "Fills multiple limit orders.",
                     "params": {
@@ -3698,7 +3973,7 @@
                         "makerSignatures": "Array of maker signatures for each order.",
                         "orders": "Array of OTC orders.",
                         "takerSignatures": "Array of taker signatures for each order.",
-                        "unwrapWeth": "Array of booleans representing whether or not         to unwrap bought WETH into ETH for each order. Should be set         to false if the maker token is not WETH."
+                        "unwrapWeth": "Array of booleans representing whether or not        to unwrap bought WETH into ETH for each order. Should be set        to false if the maker token is not WETH."
                     },
                     "returns": {
                         "successes": "Array of booleans representing whether or not         each order in `orders` was filled successfully."
@@ -3811,6 +4086,11 @@
                     "params": { "mtx": "The meta-transaction.", "signature": "The signature by `mtx.signer`." },
                     "returns": { "returnResult": "The ABI-encoded result of the underlying call." }
                 },
+                "executeMetaTransactionV2((address,address,uint256,uint256,bytes,address,(address,uint256)[]),(uint8,uint8,bytes32,bytes32))": {
+                    "details": "Execute a single meta-transaction.",
+                    "params": { "mtx": "The meta-transaction.", "signature": "The signature by `mtx.signer`." },
+                    "returns": { "returnResult": "The ABI-encoded result of the underlying call." }
+                },
                 "extend(bytes4,address)": {
                     "details": "Register or replace a function.",
                     "params": {
@@ -3861,7 +4141,7 @@
                     }
                 },
                 "fillOtcOrderForEth((address,address,uint128,uint128,address,address,address,uint256),(uint8,uint8,bytes32,bytes32),uint128)": {
-                    "details": "Fill an OTC order for up to `takerTokenFillAmount` taker tokens.      Unwraps bought WETH into ETH before sending it to       the taker.",
+                    "details": "Fill an OTC order for up to `takerTokenFillAmount` taker tokens.      Unwraps bought WETH into ETH before sending it to      the taker.",
                     "params": {
                         "makerSignature": "The order signature from the maker.",
                         "order": "The OTC order.",
@@ -3901,7 +4181,7 @@
                     }
                 },
                 "fillTakerSignedOtcOrderForEth((address,address,uint128,uint128,address,address,address,uint256),(uint8,uint8,bytes32,bytes32),(uint8,uint8,bytes32,bytes32))": {
-                    "details": "Fully fill an OTC order. \"Meta-transaction\" variant,      requires order to be signed by both maker and taker.      Unwraps bought WETH into ETH before sending it to       the taker.",
+                    "details": "Fully fill an OTC order. \"Meta-transaction\" variant,      requires order to be signed by both maker and taker.      Unwraps bought WETH into ETH before sending it to      the taker.",
                     "params": {
                         "makerSignature": "The order signature from the maker.",
                         "order": "The OTC order.",
@@ -3970,6 +4250,21 @@
                 "getMetaTransactionHashExecutedBlock(bytes32)": {
                     "details": "Get the block at which a meta-transaction hash has been executed.",
                     "params": { "mtxHash": "The meta-transaction hash." },
+                    "returns": { "blockNumber": "The block height when the meta-transactioin was executed." }
+                },
+                "getMetaTransactionV2ExecutedBlock((address,address,uint256,uint256,bytes,address,(address,uint256)[]))": {
+                    "details": "Get the block at which a meta-transaction has been executed.",
+                    "params": { "mtx": "The meta-transaction." },
+                    "returns": { "blockNumber": "The block height when the meta-transactioin was executed." }
+                },
+                "getMetaTransactionV2Hash((address,address,uint256,uint256,bytes,address,(address,uint256)[]))": {
+                    "details": "Get the EIP712 hash of a meta-transaction.",
+                    "params": { "mtx": "The meta-transaction." },
+                    "returns": { "mtxHash": "The EIP712 hash of `mtx`." }
+                },
+                "getMetaTransactionV2HashExecutedBlock(bytes32)": {
+                    "details": "Get the block at which a meta-transaction hash has been executed.",
+                    "params": { "mtxHash": "The EIP712 hash of the MetaTransactionDataV2 struct." },
                     "returns": { "blockNumber": "The block height when the meta-transactioin was executed." }
                 },
                 "getOtcOrderHash((address,address,uint128,uint128,address,address,address,uint256))": {

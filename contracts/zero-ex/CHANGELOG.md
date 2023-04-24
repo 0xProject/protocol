@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.42.1 - _April 24, 2023_
+
+    * Dependencies updated
+
 ## v0.42.0 - _April 20, 2023_
 
     * Add Trader Joe V2 support on Avalanche

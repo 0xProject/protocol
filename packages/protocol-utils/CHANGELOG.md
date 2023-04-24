@@ -6,6 +6,9 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v11.22.0 - _April 24, 2023_
+
+    * Add MetaTransactionV2 utilities
 ## v11.21.0 - _April 20, 2023_
 
     * Add Trader Joe V2 support on Avalanche

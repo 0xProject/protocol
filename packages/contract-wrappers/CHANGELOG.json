@@ -1,5 +1,14 @@
 [
 	{
+		"version": "13.23.0",
+		"changes": [
+			{
+				"note": "Regenerate IZeroEx wrapper"
+			}
+		],
+		"timestamp": 1682334742
+	},
+	{
 		"timestamp": 1681969282,
 		"version": "13.22.21",
 		"changes": [
