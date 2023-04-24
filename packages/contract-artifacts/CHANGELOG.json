@@ -1,5 +1,13 @@
 [
 	{
+		"version": "3.19.0",
+		"changes": [
+			{
+				"note": "Regenerate IZeroEx artifact"
+			}
+		]
+	},
+	{
 		"timestamp": 1674517560,
 		"version": "3.18.3",
 		"changes": [

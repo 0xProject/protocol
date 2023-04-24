@@ -1,5 +1,13 @@
 [
 	{
+		"version": "11.22.0",
+		"changes": [
+			{
+				"note": "Add MetaTransactionV2 utilities"
+			}
+		]
+	},
+	{
 		"version": "11.21.0",
 		"changes": [
 			{
