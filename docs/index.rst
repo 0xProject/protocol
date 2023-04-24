@@ -1,39 +1,28 @@
 0x Protocol
 ===========
 
-0x is an open protocol that facilitates trustless, low friction exchange of Ethereum-based assets. 
-Learn more about 0x Labs at `0x.org <https://0x.org>`_. Check out our code on `GitHub <https://github.com/0xProject/protocol>`_.
-Connect with the community on our `Forum <https://forum.0x.org/>`_ and `Reddit <https://www.reddit.com/r/0xProject/>`_. 
-Chat with our team privately on `Discord <https://discord.com/invite/d3FTX3M>`_ or publicly on `Twitter <https://twitter.com/0xproject>`_.
+0x Protocol is the trusted open source settlement layer for the permissionless global exchange of value.
+
+This documentation is aimed to serve as the canonical technical documentation for 0x Protocol and the system of smart contracts that make up its full functionality. The structure of this documentation is as follows: 
+
+- Architectural Overview of the whole system of smart contracts that 0x Protocol is comprised of.
+- Subsections will provide a deep dive into each contracts
+- Tutorial and tools to get started building with/on top of 0x Protocol
+
+To learn more about why 0x Protocol was created, read the whitepaper `here <https://github.com/0xProject/whitepaper/blob/master/0x_white_paper.pdf>`_ and at `0xProtocol.org <https://0xProtocol.org>`_.
+
+All code is open sourced on `GitHub <https://github.com/0xProject/protocol>`_.
+
+Connect with the community on our `Forum <https://forum.0xProtocol.org/>`_, `Discord <https://discord.com/invite/official0x>`_, `Reddit <https://www.reddit.com/r/0xProject/>`_, and `Twitter <https://twitter.com/zeroexprotocol>`_.
 
 
-.. image:: ./_static/img/logo.svg
-    :width: 20%
+.. image:: ./_static/img/logo.png
+    :width: 60%
     :alt: 0x Protocol logo
     :align: center
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Basics
-
-   basics/orders.rst
-   basics/functions.rst
-   basics/events.rst
-   basics/allowances.rst
-   basics/protocol_fees.rst
-   basics/addresses.rst
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Advanced
-
-   advanced/mtx.rst
-   advanced/erc20_transformations.rst
-   advanced/plp.rst
-   advanced/uniswap.rst
-
-.. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Architecture
 
    architecture/overview.rst
@@ -45,19 +34,36 @@ Chat with our team privately on `Discord <https://discord.com/invite/d3FTX3M>`_ 
    architecture/transformer_deployer.rst
    architecture/fee_collectors.rst
    architecture/plp_sandbox.rst
-   
 
 .. toctree::
-   :maxdepth: 2
-   :caption: ZRX Tokenomics
+   :maxdepth: 1
+   :caption: Basics
 
-   tokenomics/research.rst
-   tokenomics/staking.md
-   tokenomics/staking_reward_formula.rst
-   tokenomics/governance.rst
+   basics/orders.rst
+   basics/functions.rst
+   basics/events.rst
+   basics/allowances.rst
+   basics/protocol_fees.rst
+   basics/addresses.rst
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
+   :caption: Advanced
+
+   advanced/mtx.rst
+   advanced/erc20_transformations.rst
+   advanced/plp.rst
+   advanced/uniswap.rst
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Guide
+
+   guides/nft_guide.rst
+   guides/smart_nonce.rst
+
+.. toctree::
+   :maxdepth: 1
    :caption: Additional Material
 
    additional/audits.rst
@@ -71,9 +77,9 @@ Chat with our team privately on `Discord <https://discord.com/invite/d3FTX3M>`_ 
    :maxdepth: 1
    :caption: Connect
 
-   0x Labs <https://0x.org>
+   0x Protocol <https://0xProtocol.org>
    GitHub <https://github.com/0xProject/protocol>
-   Forum <https://forum.0x.org/>
+   Forum <https://forum.0xProtocol.org/>
    Reddit <https://www.reddit.com/r/0xProject/>
-   Discord <https://discord.com/invite/d3FTX3M>
-   Twitter <https://twitter.com/0xproject>
+   Discord <https://discord.com/invite/official0x>
+   Twitter <https://twitter.com/zeroexprotocol>

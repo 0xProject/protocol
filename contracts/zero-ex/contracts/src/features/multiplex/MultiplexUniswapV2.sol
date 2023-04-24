@@ -77,7 +77,7 @@ abstract contract MultiplexUniswapV2 is FixinCommon, FixinTokenSpender {
         if (params.useSelfBalance) {
             _transferERC20Tokens(IERC20Token(tokens[0]), firstPairAddress, sellAmount);
         } else {
-            _transferERC20TokensFrom(IERC20Token(tokens[0]), msg.sender, firstPairAddress, sellAmount);
+            _transferERC20TokensFrom(IERC20Token(tokens[0]), params.payer, firstPairAddress, sellAmount);
         }
         // Execute the Uniswap/Sushiswap trade.
         return _sellToUniswapV2(tokens, sellAmount, isSushi, firstPairAddress, params.recipient);

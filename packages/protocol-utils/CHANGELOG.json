@@ -1,5 +1,23 @@
 [
 	{
+		"version": "11.21.0",
+		"changes": [
+			{
+				"note": "Add Trader Joe V2 support on Avalanche"
+			}
+		],
+		"timestamp": 1681969282
+	},
+	{
+		"version": "11.20.0",
+		"changes": [
+			{
+				"note": "Add Barter support"
+			}
+		],
+		"timestamp": 1681756154
+	},
+	{
 		"version": "11.19.0",
 		"changes": [
 			{

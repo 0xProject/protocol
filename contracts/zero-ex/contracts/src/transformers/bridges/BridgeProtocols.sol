@@ -56,4 +56,5 @@ library BridgeProtocols {
     uint128 internal constant AAVEV3 = 32;
     uint128 internal constant KYBERELASTIC = 33;
     uint128 internal constant BARTER = 34;
+    uint128 internal constant TRADERJOEV2 = 35;
 }
