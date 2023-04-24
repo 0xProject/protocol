@@ -6,6 +6,9 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v13.23.0 - _April 24, 2023_
+
+    * Regenerate IZeroEx wrapper
 ## v13.22.21 - _April 20, 2023_
 
     * Dependencies updated
