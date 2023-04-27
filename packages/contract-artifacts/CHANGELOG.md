@@ -6,6 +6,9 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v3.19.0 - _April 24, 2023_
+
+    * Regenerate IZeroEx artifact
 ## v3.18.3 - _January 23, 2023_
 
     * Dependencies updated
