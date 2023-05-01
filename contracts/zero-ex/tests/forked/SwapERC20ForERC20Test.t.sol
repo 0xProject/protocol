@@ -81,8 +81,8 @@ contract SwapERC20ForERC20Test is Test, ForkUtils, TestUtils {
             emit log_string("TraderJoeV2Router not available on this chain");
             return;
         }
-        if (sources.TraderJoeV2Pool == address(0)) {
-            emit log_string("TraderJoeV2Pool not available on this chain");
+        if (sources.TraderJoeV2Quoter == address(0)) {
+            emit log_string("TraderJoeV2Quoter not available on this chain");
             return;
         }
 
@@ -94,12 +94,11 @@ contract SwapERC20ForERC20Test is Test, ForkUtils, TestUtils {
         fqtData.fillSequence[0] = FillQuoteTransformer.OrderType.Bridge;
         fqtData.fillAmount = 1e6;
 
-        (uint256 amountOut, uint256 binStep) = sampleTraderJoeV2(
+        (uint256 amountOut, uint256 binStep, uint256 version) = sampleTraderJoeV2(
             fqtData.fillAmount,
             address(fqtData.sellToken),
             address(fqtData.buyToken),
-            sources.TraderJoeV2Router,
-            sources.TraderJoeV2Pool
+            sources.TraderJoeV2Quoter
         );
         log_named_uint("amountOut", amountOut);
 
@@ -110,7 +109,9 @@ contract SwapERC20ForERC20Test is Test, ForkUtils, TestUtils {
             tokenPath[1] = address(fqtData.buyToken);
             uint256[] memory binSteps = new uint256[](1);
             binSteps[0] = binStep;
-            order.bridgeData = abi.encode(address(sources.TraderJoeV2Router), tokenPath, binSteps);
+            uint256[] memory versions = new uint256[](1);
+            versions[0] = version;
+            order.bridgeData = abi.encode(address(sources.TraderJoeV2Router), tokenPath, binSteps, versions);
         }
 
         order.source = bytes32(uint256(BridgeProtocols.TRADERJOEV2) << 128);
@@ -198,20 +199,23 @@ contract SwapERC20ForERC20Test is Test, ForkUtils, TestUtils {
         uint256 amount,
         address takerToken,
         address makerToken,
-        address router,
-        address pool
-    ) private returns (uint256 makerTokenAmount, uint256 binStep) {
+        address quoter
+    ) private returns (uint256 makerTokenAmount, uint256 binStep, uint256 version) {
         log_string("Sampling TraderJoeV2");
         log_named_address("takerToken", takerToken);
         log_named_address("makerToken", makerToken);
-        log_named_address("router", router);
-        log_named_address("pool", pool);
+        log_named_address("quoter", quoter);
 
-        bool swapForY = ITraderJoeV2Pool(pool).tokenY() == makerToken;
+        address[] memory tokenPath = new address[](2);
+        tokenPath[0] = takerToken;
+        tokenPath[1] = makerToken;
 
-        (makerTokenAmount, ) = ITraderJoeV2Router(router).getSwapOut(pool, amount, swapForY);
+        ITraderJoeV2Quoter.Quote memory quote = ITraderJoeV2Quoter(quoter).findBestPathFromAmountIn(
+            tokenPath,
+            uint128(amount)
+        );
 
-        binStep = ITraderJoeV2Pool(pool).feeParameters().binStep;
+        return (quote.amounts[1], quote.binSteps[0], uint256(quote.versions[0]));
     }
 
     function deployFQTAndGetDeploymentNonce(

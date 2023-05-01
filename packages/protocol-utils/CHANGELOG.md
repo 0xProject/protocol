@@ -6,6 +6,9 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v11.22.1 - _May 1, 2023_
+
+    * Dependencies updated
 ## v11.22.0 - _April 24, 2023_
 
     * Add MetaTransactionV2 utilities

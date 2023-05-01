@@ -66,13 +66,12 @@ contract ZeroExTreasuryGovernorTest is ZeroExGovernorBaseTest {
         // Vote
         vm.prank(account2);
         governor.castVote(proposalId, 1); // Vote "for"
-        vm.stopPrank();
+
         vm.prank(account3);
         governor.castVote(proposalId, 0); // Vote "against"
-        vm.stopPrank();
+
         vm.prank(account4);
         governor.castVote(proposalId, 2); // Vote "abstain"
-        vm.stopPrank();
 
         // Fast forward to vote end
         vm.roll(governor.proposalDeadline(proposalId) + 1);
