@@ -39,7 +39,6 @@ contract WETH9V06Test is Test {
     function testShouldConvertDepositedETHToWrappedETH() public {
         vm.prank(user);
         etherToken.deposit{value: 1e20}();
-        vm.stopPrank();
 
         assertEq(etherToken.balanceOf(user), 1e20);
         assertEq(address(etherToken).balance, 1e20);
@@ -58,7 +57,6 @@ contract WETH9V06Test is Test {
         etherToken.deposit{value: 1e20}();
         vm.prank(user);
         etherToken.withdraw(100);
-        vm.stopPrank();
 
         assertEq(etherToken.balanceOf(user), 1e20 - 100);
         assertEq(address(etherToken).balance, 1e20 - 100);
@@ -68,7 +66,6 @@ contract WETH9V06Test is Test {
     function testShouldConvertSentETHToWrappedETH() public {
         vm.prank(user);
         address(etherToken).call{value: 1e20}(new bytes(0));
-        vm.stopPrank();
 
         assertEq(etherToken.balanceOf(user), 1e20);
         assertEq(address(etherToken).balance, 1e20);
