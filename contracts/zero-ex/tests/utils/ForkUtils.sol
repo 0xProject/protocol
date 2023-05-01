@@ -93,7 +93,7 @@ struct LiquiditySources {
     address KyberElasticPool;
     address KyberElasticQuoter;
     address KyberElasticRouter;
-    address TraderJoeV2Pool;
+    address TraderJoeV2Quoter;
     address TraderJoeV2Router;
     address UniswapV2Router;
     address UniswapV3Router;
@@ -103,35 +103,27 @@ interface IFQT {
     function bridgeAdapter() external returns (address);
 }
 
-interface ITraderJoeV2Pool {
-    struct FeeParameters {
-        // 144 lowest bits in slot
-        uint16 binStep;
-        uint16 baseFactor;
-        uint16 filterPeriod;
-        uint16 decayPeriod;
-        uint16 reductionFactor;
-        uint24 variableFeeControl;
-        uint16 protocolShare;
-        uint24 maxVolatilityAccumulated;
-        // 112 highest bits in slot
-        uint24 volatilityAccumulated;
-        uint24 volatilityReference;
-        uint24 indexRef;
-        uint40 time;
+interface ITraderJoeV2Quoter {
+    enum Version {
+        V1,
+        V2,
+        V2_1
     }
 
-    function feeParameters() external view returns (FeeParameters memory);
+    struct Quote {
+        address[] route;
+        address[] pairs;
+        uint256[] binSteps;
+        Version[] versions;
+        uint128[] amounts;
+        uint128[] virtualAmountsWithoutSlippage;
+        uint128[] fees;
+    }
 
-    function tokenY() external view returns (address);
-}
-
-interface ITraderJoeV2Router {
-    function getSwapOut(
-        address pool,
-        uint256 amountIn,
-        bool swapForY
-    ) external view returns (uint256 amountOut, uint256 feesIn);
+    function findBestPathFromAmountIn(
+        address[] calldata route,
+        uint128 amountIn
+    ) external view returns (Quote memory quote);
 }
 
 interface IKyberElasticQuoter {

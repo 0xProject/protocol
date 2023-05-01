@@ -20,19 +20,43 @@ import "@0x/contracts-erc20/src/IERC20Token.sol";
 import "../IBridgeAdapter.sol";
 
 interface ILBRouter {
-    /// @notice Swaps exact tokens for tokens while performing safety checks
-    /// @param amountIn The amount of token to send
-    /// @param amountOutMin The min amount of token to receive
-    /// @param pairBinSteps The bin step of the pairs (0: V1, other values will use V2)
-    /// @param tokenPath The swap path using the binSteps following `_pairBinSteps`
-    /// @param to The address of the recipient
-    /// @param deadline The deadline of the tx
-    /// @return amountOut Output amount of the swap
+    /**
+     * @dev This enum represents the version of the pair requested
+     * - V1: Joe V1 pair
+     * - V2: LB pair V2. Also called legacyPair
+     * - V2_1: LB pair V2.1 (current version)
+     */
+    enum Version {
+        V1,
+        V2,
+        V2_1
+    }
+
+    /**
+     * @dev The path parameters, such as:
+     * - pairBinSteps: The list of bin steps of the pairs to go through
+     * - versions: The list of versions of the pairs to go through
+     * - tokenPath: The list of tokens in the path to go through
+     */
+    struct Path {
+        uint256[] pairBinSteps;
+        Version[] versions;
+        IERC20Token[] tokenPath;
+    }
+
+    /**
+     * @notice Swaps exact tokens for tokens while performing safety checks
+     * @param amountIn The amount of token to send
+     * @param amountOutMin The min amount of token to receive
+     * @param path The path of the swap
+     * @param to The address of the recipient
+     * @param deadline The deadline of the tx
+     * @return amountOut Output amount of the swap
+     */
     function swapExactTokensForTokens(
         uint256 amountIn,
         uint256 amountOutMin,
-        uint256[] memory pairBinSteps,
-        IERC20Token[] memory tokenPath,
+        Path memory path,
         address to,
         uint256 deadline
     ) external returns (uint256 amountOut);
@@ -49,12 +73,16 @@ contract MixinTraderJoeV2 {
         ILBRouter router;
         IERC20Token[] memory tokenPath;
         uint256[] memory pairBinSteps;
+        ILBRouter.Version[] memory versions;
         {
-            address[] memory _path;
-            (router, _path, pairBinSteps) = abi.decode(bridgeData, (ILBRouter, address[], uint256[]));
+            address[] memory _tokenPath;
+            (router, _tokenPath, pairBinSteps, versions) = abi.decode(
+                bridgeData,
+                (ILBRouter, address[], uint256[], ILBRouter.Version[])
+            );
             // To get around `abi.decode()` not supporting interface array types.
             assembly {
-                tokenPath := _path
+                tokenPath := _tokenPath
             }
         }
 
@@ -64,19 +92,21 @@ contract MixinTraderJoeV2 {
             "MixinTraderJoeV2/PAIR_BIN_STEPS_LENGTH_MUST_BE_ONE_LESS_THAN_TOKEN_PATH_LENGTH"
         );
         require(
+            versions.length == pairBinSteps.length,
+            "MixinTraderJoeV2/VERSIONS_LENGTH_MUST_BE_EQUAL_TO_PAIR_BIN_STEPS_LENGTH"
+        );
+        require(
             tokenPath[tokenPath.length - 1] == buyToken,
             "MixinTraderJoeV2/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
         );
         // Grant the Trader Joe V2 router an allowance to sell the first token.
         tokenPath[0].approveIfBelow(address(router), sellAmount);
 
-        boughtAmount = router.swapExactTokensForTokens(
-            sellAmount,
-            1,
-            pairBinSteps,
-            tokenPath,
-            address(this),
-            block.timestamp
-        );
+        ILBRouter.Path memory path = ILBRouter.Path({
+            pairBinSteps: pairBinSteps,
+            versions: versions,
+            tokenPath: tokenPath
+        });
+        boughtAmount = router.swapExactTokensForTokens(sellAmount, 1, path, address(this), block.timestamp);
     }
 }
