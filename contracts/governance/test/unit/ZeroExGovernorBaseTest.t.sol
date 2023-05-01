@@ -90,7 +90,6 @@ abstract contract ZeroExGovernorBaseTest is BaseTest {
         // Vote
         vm.prank(account2);
         governor.castVote(proposalId, 1); // Vote "for"
-        vm.stopPrank();
 
         // Fast forward to vote end
         vm.roll(governor.proposalDeadline(proposalId) + 1);
@@ -155,7 +154,6 @@ abstract contract ZeroExGovernorBaseTest is BaseTest {
         // Vote
         vm.prank(account2);
         governor.castVote(proposalId, 1); // Vote "for"
-        vm.stopPrank();
 
         // Fast forward to vote end
         vm.roll(governor.proposalDeadline(proposalId) + 1);
@@ -266,7 +264,6 @@ abstract contract ZeroExGovernorBaseTest is BaseTest {
         // Vote
         vm.prank(account2);
         governor.castVote(proposalId, 1); // Vote "for"
-        vm.stopPrank();
 
         // Fast forward to vote end
         vm.roll(governor.proposalDeadline(proposalId) + 1);
@@ -330,7 +327,6 @@ abstract contract ZeroExGovernorBaseTest is BaseTest {
         // Vote
         vm.prank(account2);
         governor.castVote(proposalId, 1); // Vote "for"
-        vm.stopPrank();
 
         // Fast forward to vote end
         vm.roll(governor.proposalDeadline(proposalId) + 1);
@@ -366,7 +362,6 @@ abstract contract ZeroExGovernorBaseTest is BaseTest {
         // Vote
         vm.prank(account2);
         governor.castVote(proposalId, 1); // Vote "for"
-        vm.stopPrank();
 
         // Fast forward to vote end
         vm.roll(governor.proposalDeadline(proposalId) + 1);
@@ -402,7 +397,6 @@ abstract contract ZeroExGovernorBaseTest is BaseTest {
         // Vote
         vm.prank(account2);
         governor.castVote(proposalId, 1); // Vote "for"
-        vm.stopPrank();
 
         // Fast forward to vote end
         vm.roll(governor.proposalDeadline(proposalId) + 1);
@@ -438,7 +432,6 @@ abstract contract ZeroExGovernorBaseTest is BaseTest {
         // Vote
         vm.prank(account2);
         governor.castVote(proposalId, 1); // Vote "for"
-        vm.stopPrank();
 
         // Fast forward to vote end
         vm.roll(governor.proposalDeadline(proposalId) + 1);
