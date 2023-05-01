@@ -1,6 +1,6 @@
 {
     "name": "@0x/contracts-erc20",
-    "version": "4.0.6",
+    "version": "4.0.7",
     "engines": {
         "node": ">=6.12"
     },
@@ -24,7 +24,7 @@
     },
     "homepage": "https://github.com/0xProject/protocol",
     "devDependencies": {
-        "@0x/contracts-utils": "^4.8.44",
+        "@0x/contracts-utils": "^4.8.45",
         "@0x/ts-doc-gen": "^0.0.28",
         "typedoc": "~0.16.11"
     },
