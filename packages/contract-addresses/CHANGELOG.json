@@ -1,12 +1,13 @@
 [
 	{
-        "version": "8.6.0",
-        "changes": [
-            {
-                "note": "Add Trader Joe V2.1 Router Support for MixIn"
-            }
-        ]
-    },
+		"version": "8.6.0",
+		"changes": [
+			{
+				"note": "Add Trader Joe V2.1 Router Support for MixIn"
+			}
+		],
+		"timestamp": 1682976338
+	},
 	{
 		"version": "8.5.0",
 		"changes": [

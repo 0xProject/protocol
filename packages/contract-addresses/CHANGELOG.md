@@ -6,6 +6,9 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v8.6.0 - _May 1, 2023_
+
+    * Add Trader Joe V2.1 Router Support for MixIn
 ## v8.5.0 - _April 20, 2023_
 
     * Add Trader Joe V2 support on Avalanche

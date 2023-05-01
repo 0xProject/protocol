@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.43.0 - _May 1, 2023_
+
+    * Add Trader Joe V2.1 Router Support for MixIn
+
 ## v0.42.1 - _April 24, 2023_
 
     * Dependencies updated
