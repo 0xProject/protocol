@@ -295,7 +295,7 @@ In both cases, the ``@0x/protocol-utils`` package simplifies generating these si
 
 The Orderbook
 =======================
-Orders can be hosted by any server and are usually represented as a JSON object off-chain. For example, one off-chain way to post and discover orders is through `0x API <https://0x.org/api>`_.
+Orders can be hosted by any server and are usually represented as a JSON object off-chain. For example, one off-chain way to post and discover orders is through `0x Orderbook API <https://0x.org/docs/category/orderbook-api>`_.
 
 Below is a table represention and example of how orders should be formatted off-chain.
 
