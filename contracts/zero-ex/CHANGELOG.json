@@ -1,5 +1,13 @@
 [
     {
+        "version": "0.44.0",
+        "changes": [
+            {
+                "note": "Add Trader Joe V2 MixIn to Arbitrum"
+            }
+        ]
+    },
+    {
         "version": "0.43.0",
         "changes": [
             {
