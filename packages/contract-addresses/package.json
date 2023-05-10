@@ -1,6 +1,6 @@
 {
     "name": "@0x/contract-addresses",
-    "version": "8.6.0",
+    "version": "8.7.0",
     "engines": {
         "node": ">=6.12"
     },
