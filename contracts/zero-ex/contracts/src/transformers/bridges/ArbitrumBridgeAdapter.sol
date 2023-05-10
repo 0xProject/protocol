@@ -26,6 +26,7 @@ import "./mixins/MixinKyberDmm.sol";
 import "./mixins/MixinKyberElastic.sol";
 import "./mixins/MixinGMX.sol";
 import "./mixins/MixinNerve.sol";
+import "./mixins/MixinTraderJoeV2.sol";
 import "./mixins/MixinUniswapV3.sol";
 import "./mixins/MixinUniswapV2.sol";
 import "./mixins/MixinWOOFi.sol";
@@ -42,6 +43,7 @@ contract ArbitrumBridgeAdapter is
     MixinKyberElastic,
     MixinGMX,
     MixinNerve,
+    MixinTraderJoeV2,
     MixinUniswapV3,
     MixinUniswapV2,
     MixinWOOFi,
@@ -97,6 +99,11 @@ contract ArbitrumBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeUniswapV2(buyToken, sellAmount, order.bridgeData);
+        } else if (protocolId == BridgeProtocols.TRADERJOEV2) {
+            if (dryRun) {
+                return (0, true);
+            }
+            boughtAmount = _tradeTraderJoeV2(buyToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.GMX) {
             if (dryRun) {
                 return (0, true);
