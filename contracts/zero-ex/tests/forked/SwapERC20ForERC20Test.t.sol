@@ -56,8 +56,8 @@ contract SwapERC20ForERC20Test is Test, ForkUtils, TestUtils {
 
     function test_swapERC20ForERC20OnTraderJoeV2() public {
         for (uint256 i = 0; i < chains.length; i++) {
-            // TraderJoeV2 mixin only enabled on Avalanche
-            if (i != 3) {
+            // TraderJoeV2 mixin only enabled on Avalanche and Arbitrum
+            if (i != 3 && i != 6) {
                 continue;
             }
             vm.selectFork(forkIds[chains[i]]);

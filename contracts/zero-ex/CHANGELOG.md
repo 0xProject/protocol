@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.44.0 - _May 10, 2023_
+
+    * Add Trader Joe V2 MixIn to Arbitrum
+
 ## v0.43.0 - _May 1, 2023_
 
     * Add Trader Joe V2.1 Router Support for MixIn

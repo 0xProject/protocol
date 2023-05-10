@@ -32,7 +32,7 @@
         "KyberElasticQuoter": "0x0d125c15d54ca1f8a813c74a81aee34ebb508c1f",
         "KyberElasticRouter": "0xc1e7dfe73e1598e3910ef4c7845b68a9ab6f4c83",
         "KyberElasticPool": "0x6038373de7f64da99b2a31951628b7d778b2c3cf",
-        "TraderJoeV2Quoter": "0x3660268Ed43583a2cdd09e3fC7079ff07DBD4Caa",
+        "TraderJoeV2Quoter": "0x64b57F4249aA99a812212cee7DAEFEDC40B203cD",
         "TraderJoeV2Router": "0xb4315e873dBcf96Ffd0acd8EA43f689D8c20fB30"
     },
     "250": {
@@ -59,7 +59,7 @@
         "KyberElasticQuoter": "0x0d125c15d54ca1f8a813c74a81aee34ebb508c1f",
         "KyberElasticRouter": "0xc1e7dfe73e1598e3910ef4c7845b68a9ab6f4c83",
         "KyberElasticPool": "0x087abaab9cd85025a8b3916948c69fe173c837ea",
-        "TraderJoeV2Quoter": "0x0000000000000000000000000000000000000000",
-        "TraderJoeV2Router": "0x0000000000000000000000000000000000000000"
+        "TraderJoeV2Quoter": "0x64b57F4249aA99a812212cee7DAEFEDC40B203cD",
+        "TraderJoeV2Router": "0xb4315e873dBcf96Ffd0acd8EA43f689D8c20fB30"
     }
 }
