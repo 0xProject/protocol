@@ -5,7 +5,8 @@
             {
                 "note": "Add Trader Joe V2 MixIn to Arbitrum"
             }
-        ]
+        ],
+        "timestamp": 1683749017
     },
     {
         "version": "0.43.0",
