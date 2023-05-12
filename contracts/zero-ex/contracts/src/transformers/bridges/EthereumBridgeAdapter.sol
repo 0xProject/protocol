@@ -20,7 +20,6 @@ import "./BridgeProtocols.sol";
 import "./mixins/MixinAaveV2.sol";
 import "./mixins/MixinBalancer.sol";
 import "./mixins/MixinBalancerV2Batch.sol";
-import "./mixins/MixinBancor.sol";
 import "./mixins/MixinBancorV3.sol";
 import "./mixins/MixinBarter.sol";
 import "./mixins/MixinCompound.sol";
@@ -47,7 +46,6 @@ contract EthereumBridgeAdapter is
     MixinAaveV2,
     MixinBalancer,
     MixinBalancerV2Batch,
-    MixinBancor,
     MixinBancorV3,
     MixinBarter,
     MixinCompound,
@@ -71,15 +69,7 @@ contract EthereumBridgeAdapter is
 {
     constructor(
         IEtherToken weth
-    )
-        public
-        MixinBancor(weth)
-        MixinBancorV3(weth)
-        MixinCompound(weth)
-        MixinCurve(weth)
-        MixinLido(weth)
-        MixinUniswap(weth)
-    {}
+    ) public MixinBancorV3(weth) MixinCompound(weth) MixinCurve(weth) MixinLido(weth) MixinUniswap(weth) {}
 
     function _trade(
         BridgeOrder memory order,
@@ -154,11 +144,6 @@ contract EthereumBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeCryptoCom(buyToken, sellAmount, order.bridgeData);
-        } else if (protocolId == BridgeProtocols.BANCOR) {
-            if (dryRun) {
-                return (0, true);
-            }
-            boughtAmount = _tradeBancor(buyToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.NERVE) {
             if (dryRun) {
                 return (0, true);
