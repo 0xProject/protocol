@@ -1,5 +1,13 @@
 [
     {
+        "version": "0.45.0",
+        "changes": [
+            {
+                "note": "Remove Bancor V1 support"
+            }
+        ]
+    },
+    {
         "version": "0.44.0",
         "changes": [
             {
