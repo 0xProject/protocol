@@ -29,6 +29,7 @@ import "src/features/TransformERC20Feature.sol";
 import "src/features/OtcOrdersFeature.sol";
 import "src/features/MetaTransactionsFeature.sol";
 import "src/features/MetaTransactionsFeatureV2.sol";
+import "src/features/DCAFeature.sol";
 import "src/features/nft_orders/ERC1155OrdersFeature.sol";
 import "src/features/nft_orders/ERC721OrdersFeature.sol";
 import "src/features/UniswapFeature.sol";
@@ -70,6 +71,7 @@ contract DeployZeroEx is Test {
         TransformERC20Feature transformERC20Feature;
         MetaTransactionsFeature metaTransactionsFeature;
         MetaTransactionsFeatureV2 metaTransactionsFeatureV2;
+        DCAFeature dcaFeature;
         ERC1155OrdersFeature erc1155OrdersFeature;
         ERC721OrdersFeature erc721OrdersFeature;
         MultiplexFeature multiplexFeature;
@@ -139,6 +141,7 @@ contract DeployZeroEx is Test {
             "MetaTransactionsFeatureV2",
             address(ZERO_EX_DEPLOYED.features.metaTransactionsFeatureV2)
         );
+        emit log_named_address("DCAFeature", address(ZERO_EX_DEPLOYED.features.dcaFeature));
         emit log_named_address("ERC1155OrdersFeature", address(ZERO_EX_DEPLOYED.features.erc1155OrdersFeature));
         emit log_named_address("ERC721OrdersFeature", address(ZERO_EX_DEPLOYED.features.erc721OrdersFeature));
         emit log_named_address("TransformERC20Feature", address(ZERO_EX_DEPLOYED.features.transformERC20Feature));
@@ -229,6 +232,8 @@ contract DeployZeroEx is Test {
             ZERO_EX_DEPLOY_CONFIG.sushiswapPairInitCodeHash
         );
 
+        ZERO_EX_DEPLOYED.features.dcaFeature = new DCAFeature(address(ZERO_EX));
+
         initialMigration.initializeZeroEx(
             payable(address(this)),
             ZERO_EX,
@@ -283,6 +288,11 @@ contract DeployZeroEx is Test {
         IZERO_EX.migrate(
             address(ZERO_EX_DEPLOYED.features.metaTransactionsFeatureV2),
             abi.encodeWithSelector(MetaTransactionsFeatureV2.migrate.selector),
+            address(this)
+        );
+        IZERO_EX.migrate(
+            address(ZERO_EX_DEPLOYED.features.dcaFeature),
+            abi.encodeWithSelector(DCAFeature.migrate.selector),
             address(this)
         );
         IZERO_EX.migrate(
