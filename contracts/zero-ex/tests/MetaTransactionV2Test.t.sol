@@ -263,6 +263,7 @@ contract MetaTransactionTest is LocalTest {
     function test_transformERC20() external {
         bytes memory transformCallData = _transformERC20Call(zrx, dai, USER_ADDRESS);
         IMetaTransactionsFeatureV2.MetaTransactionDataV2 memory mtxData = _getMetaTransaction(transformCallData);
+        LibSignature.Signature memory sig = _mtxSignature(mtxData);
 
         assertEq(dai.balanceOf(USER_ADDRESS), 1e18);
         vm.expectEmit(true, false, false, true);
@@ -275,7 +276,7 @@ contract MetaTransactionTest is LocalTest {
 
         IMetaTransactionsFeatureV2(address(zeroExDeployed.zeroEx)).executeMetaTransactionV2(
             mtxData,
-            _mtxSignature(mtxData)
+            sig
         );
         assertEq(zrx.balanceOf(USER_ADDRESS), 1e18);
         assertEq(dai.balanceOf(USER_ADDRESS), 0);
@@ -285,6 +286,7 @@ contract MetaTransactionTest is LocalTest {
     function test_rfqOrder() external {
         bytes memory callData = _makeTestRfqOrder(zrx, dai, signerAddress, USER_ADDRESS, signerKey);
         IMetaTransactionsFeatureV2.MetaTransactionDataV2 memory mtxData = _getMetaTransaction(callData);
+        LibSignature.Signature memory sig = _mtxSignature(mtxData);
 
         assertEq(dai.balanceOf(USER_ADDRESS), 1e18);
         vm.expectEmit(true, false, false, true);
@@ -297,7 +299,7 @@ contract MetaTransactionTest is LocalTest {
 
         IMetaTransactionsFeatureV2(address(zeroExDeployed.zeroEx)).executeMetaTransactionV2(
             mtxData,
-            _mtxSignature(mtxData)
+            sig
         );
 
         assertEq(zrx.balanceOf(signerAddress), 0);
@@ -310,6 +312,7 @@ contract MetaTransactionTest is LocalTest {
     function test_fillLimitOrder() external {
         bytes memory callData = _makeTestLimitOrder(zrx, dai, signerAddress, USER_ADDRESS, signerKey);
         IMetaTransactionsFeatureV2.MetaTransactionDataV2 memory mtxData = _getMetaTransaction(callData);
+        LibSignature.Signature memory sig = _mtxSignature(mtxData);
 
         assertEq(dai.balanceOf(USER_ADDRESS), 1e18);
         vm.expectEmit(true, false, false, true);
@@ -322,7 +325,7 @@ contract MetaTransactionTest is LocalTest {
 
         IMetaTransactionsFeatureV2(address(zeroExDeployed.zeroEx)).executeMetaTransactionV2(
             mtxData,
-            _mtxSignature(mtxData)
+            sig
         );
 
         assertEq(zrx.balanceOf(signerAddress), 0);
