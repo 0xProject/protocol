@@ -274,10 +274,8 @@ contract MetaTransactionTest is LocalTest {
             address(this)
         );
 
-        IMetaTransactionsFeatureV2(address(zeroExDeployed.zeroEx)).executeMetaTransactionV2(
-            mtxData,
-            sig
-        );
+        IMetaTransactionsFeatureV2(address(zeroExDeployed.zeroEx)).executeMetaTransactionV2(mtxData, sig);
+
         assertEq(zrx.balanceOf(USER_ADDRESS), 1e18);
         assertEq(dai.balanceOf(USER_ADDRESS), 0);
         assertEq(weth.balanceOf(address(this)), 1);
@@ -297,10 +295,7 @@ contract MetaTransactionTest is LocalTest {
             address(this)
         );
 
-        IMetaTransactionsFeatureV2(address(zeroExDeployed.zeroEx)).executeMetaTransactionV2(
-            mtxData,
-            sig
-        );
+        IMetaTransactionsFeatureV2(address(zeroExDeployed.zeroEx)).executeMetaTransactionV2(mtxData, sig);
 
         assertEq(zrx.balanceOf(signerAddress), 0);
         assertEq(zrx.balanceOf(USER_ADDRESS), 1e18);
@@ -323,10 +318,7 @@ contract MetaTransactionTest is LocalTest {
             address(this)
         );
 
-        IMetaTransactionsFeatureV2(address(zeroExDeployed.zeroEx)).executeMetaTransactionV2(
-            mtxData,
-            sig
-        );
+        IMetaTransactionsFeatureV2(address(zeroExDeployed.zeroEx)).executeMetaTransactionV2(mtxData, sig);
 
         assertEq(zrx.balanceOf(signerAddress), 0);
         assertEq(zrx.balanceOf(USER_ADDRESS), 1e18);
