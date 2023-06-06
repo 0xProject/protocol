@@ -4,6 +4,9 @@
         "changes": [
             {
                 "note": "Remove Bancor V1 support"
+            },
+            {
+                "note": "Remove Shell and MStable support"
             }
         ]
     },
