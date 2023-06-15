@@ -228,7 +228,7 @@ Features should also be careful that ``selfdestruct`` is never executed in the c
 
 **Allowances**
 
-Although the proxy will not have access to the V3 asset proxies initially, early features will require taker allowances to be accessible to the proxy somehow. Instead of having the proxy contract itself be the allowance target, we intend on using a separate “Puppet” contract, callable only by the proxy contract. This creates a layer of separation between the proxy contract and allowances, so moving user funds is a much more deliberate action. In the event of a major vulnerability, the owner can simply detach the puppet contract from the proxy. This also avoids the situation where the proxy has lingering allowances if we decide grant it asset proxy authorization.
+Although the proxy will not have access to the V3 asset proxies initially, early features will require taker allowances to be accessible to the proxy somehow. Instead of having the proxy contract itself be the allowance target, we intend on using a separate “Puppet” contract, callable only by the proxy contract. This creates a layer of separation between the proxy contract and allowances, so moving user funds is a much more deliberate action. In the event of a major vulnerability, the owner can simply detach the puppet contract from the proxy. This also avoids the situation where the proxy has lingering allowances if we decide to grant it asset proxy authorization.
 
 **Balances**
 
@@ -245,7 +245,7 @@ We manually ensure that function selectors do not collide during PR's. See the `
 Initial Bootstrapping
 =====================
 
-The way that the initial bootstrapping is accomplished is through the ``bootstrap()`` function that can only be called by the deployer. Check `here <https://github.com/0xProject/protocol/blob/development/contracts/zero-ex/contracts/src/features/BootstrapFeature.sol>`_ to see the full boostrapping feature.
+The way that the initial bootstrapping is accomplished is through the ``bootstrap()`` function that can only be called by the deployer. Check `here <https://github.com/0xProject/protocol/blob/development/contracts/zero-ex/contracts/src/features/BootstrapFeature.sol>`_ to see the full bootstrapping feature.
 
 This function does a few things:
 1. De-register the bootstrap() function, which prevents it being called again.
