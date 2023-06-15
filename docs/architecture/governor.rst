@@ -4,7 +4,7 @@ Governor
 
 .. note::
 
-    This page is tailored for Exchange V4. For information on governance over past exhcange versions, see `this specification <https://github.com/0xProject/0x-protocol-specification/blob/master/v3/zero-ex-governor.md>`_.
+    This page is tailored for Exchange V4. For information on governance over past exchange versions, see `this specification <https://github.com/0xProject/0x-protocol-specification/blob/master/v3/zero-ex-governor.md>`_.
 
 The ``ZeroExGovernor`` is a time-locked multi-signature wallet that has permission to perform administrative functions within the protocol. Functions are timelocked (see below). Many functions that can be used to mitigate damage in case of emergencies (for example, if a vulnerability is discovered that puts user funds at risk) do not have a timelock.
 
@@ -34,12 +34,12 @@ The ``ZeroExGovernor`` can also manage authorizations all permissioned contracts
     function addAuthorizedAddress(address target)
         external;
 
-    /// @dev Removes authorizion of an address.
+    /// @dev Removes authorization of an address.
     /// @param target Address to remove authorization from.
     function removeAuthorizedAddress(address target)
         external;
 
-    /// @dev Removes authorizion of an address.
+    /// @dev Removes authorization of an address.
     /// @param target Address to remove authorization from.
     /// @param index Index of target in authorities array.
     function removeAuthorizedAddressAtIndex(
