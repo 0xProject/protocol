@@ -3,7 +3,7 @@ ERC20 Transformations
 ###############################
 
 
-The 0x Protocol is able to perform a variety of atomic transformations on ERC20 tokens, in addition to simply executing trades. This is made possible through composable smart contracts, called `Transformers <../architecture/transformers.html>`_. These trustless modules extend the core Exchange logic, enabling workflows like converting between ETH<>WETH or aggregating liquidity across DEX's. These operations can be combined with trade exeuction to create a seamlesss trading experience.
+The 0x Protocol is able to perform a variety of atomic transformations on ERC20 tokens, in addition to simply executing trades. This is made possible through composable smart contracts, called `Transformers <../architecture/transformers.html>`_. These trustless modules extend the core Exchange logic, enabling workflows like converting between ETH<>WETH or aggregating liquidity across DEX's. These operations can be combined with trade execution to create a seamless trading experience.
 
 Anyone can run transformations using the ``transformERC20`` Exchange function.
 
@@ -50,7 +50,7 @@ A Transformation is defined by a ``deploymentNonce`` (which identifies the contr
         bytes data;
     }
 
-The transaction will revert if a transformation fails; the `inputTokenAmount` cannot be transferred from the sender; or the ``minOutputTokenAmount`` is not transferred to the sender. A single `TransformedERC20 <../basics/events.html#transformederc20>`_ event is be emitted upon successful execution of all transformations.
+The transaction will revert if a transformation fails; the `inputTokenAmount` cannot be transferred from the sender; or the ``minOutputTokenAmount`` is not transferred to the sender. A single `TransformedERC20 <../basics/events.html#transformederc20>`_ event is emitted upon successful execution of all transformations.
 
 Liquidity Aggregation
 ---------------------
