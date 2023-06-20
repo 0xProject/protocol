@@ -15,6 +15,7 @@ Create an ERC721Order
 The following code snippet shows how to construct a basic ERC721 sell order in JavaScript. In the following example, the seller indicates that they would like to receive ether by providing the sentinel value `0xeee...`` as the `erc20Token`.
 
 .. code-block:: javascript
+
     const { ERC721Order, NFTOrder } = require("@0x/protocol-utils");
     const utils = require("@0x/utils");
 
@@ -48,6 +49,7 @@ The following code snippet shows how to construct a basic ERC721 sell order in J
 An ERC721 sell order can be created similarly. Note that buy orders must use WETH instead of ether, because the ERC20 `transferFrom` functionality is needed to execute a buy order. 
 
 .. code-block:: javascript
+
     const { ERC721Order, NFTOrder } = require("@0x/protocol-utils");
     const utils = require("@0x/utils");
 
@@ -97,6 +99,7 @@ Fees are paid by the **buyer**, denominated in the asset paid by the buyer, and 
 The following code snippet shows how to create an ERC721 order with a single fee. Multiple fees can be specified by providing multiple fee objects in the order fees field.
 
 .. code-block:: javascript
+
     const { ERC721Order, NFTOrder } = require("@0x/protocol-utils");
     const utils = require("@0x/utils");
 
@@ -130,6 +133,7 @@ The following code snippet shows how to create an ERC721 order with a single fee
 In 0x V4, it is possible to create a bid for any NFT in a particular collection. The following code snippet shows how to create an order to buy any CryptoCoven $WITCH. 
 
 .. code-block:: javascript
+
     const { ERC721Order, NFTOrder } = require("@0x/protocol-utils");
     const utils = require("@0x/utils");
 
@@ -169,6 +173,7 @@ Off-chain orders must be signed by the order maker to be filled. For on-chain or
 Signing an order with a private key is easy: the `ERC721Order` and `ERC1155Order` classes from `@0x/protocol-utils` expose a `getSignatureWithKey` function that take a 0x-prefixed private key string.
 
 .. code-block:: javascript
+
     const { ERC721Order, NFTOrder, SignatureType } = require("@0x/protocol-utils");
     const utils = require("@0x/utils");
 
@@ -196,6 +201,7 @@ Signing an order with a private key is easy: the `ERC721Order` and `ERC1155Order
 **Signing with ethers**
 
 .. code-block:: javascript
+
     const { ERC721Order, NFTOrder, SignatureType } = require("@0x/protocol-utils");
     const utils = require("@0x/utils");
     const { ethers } = require("ethers");
@@ -243,6 +249,7 @@ Signing an order with a private key is easy: the `ERC721Order` and `ERC1155Order
 Orders can be simultaneously "signed" and listed on-chain using the `preSignERC721Order` or `preSignERC1155Order` functions. Orders can only be signed by the maker address specified in the order. 
 
 .. code-block:: solidity
+
     /// @dev Approves an ERC721 order on-chain. After pre-signing
     ///      the order, the `PRESIGNED` signature type will become
     ///      valid for that order and signer.
@@ -260,6 +267,7 @@ Orders can be simultaneously "signed" and listed on-chain using the `preSignERC7
 If an order has been pre-signed, it can be filled by providing a “null” signature with the PRESIGNED signature type (see `LibSignature.sol <https://github.com/0xProject/protocol/blob/refactor/nft-orders/contracts/zero-ex/contracts/src/features/libs/LibSignature.sol#L42-L61>`_):
 
 .. code-block:: solidity
+
     LibSignature.Signature({
     signatureType: LibSignature.SignatureType.PRESIGNED,
     v: uint8(0),
@@ -270,6 +278,7 @@ If an order has been pre-signed, it can be filled by providing a “null” sign
 The pre-sign functions emit the entire order as an event, so that the order is easily indexable by subgraphs and thus easily indexable by subgraphs and thus easily discoverable without the need for an off-chain database.
 
 .. code-block:: solidity
+
     /// @dev Emitted when an `ERC721Order` is pre-signed.
     ///      Contains all the fields of the order.
     event ERC721OrderPreSigned(
@@ -311,6 +320,7 @@ Filling an ERC721 Order
 The basic functions used for filling NFT orders are the following:
 
 .. code-block:: solidity
+
     /// @dev Sells an ERC721 asset to fill the given order.
     /// @param buyOrder The ERC721 buy order.
     /// @param signature The order signature from the maker.
@@ -407,6 +417,7 @@ Cancelling an ERC721 Order
 All orders, whether off-chain or on-chain, can only be cancelled on-chain. The following contract functions are used to cancel individual ERC721 and ERC1155 orders. 
 
 .. code-block:: solidity
+
     /// @dev Cancel a single ERC721 order by its nonce. The caller
     ///      should be the maker of the order. Silently succeeds if
     ///      an order with the same nonce has already been filled or
@@ -427,6 +438,7 @@ Note that if there are multiple outstanding orders with the same nonce, calling 
 The following functions can be used to cancel multiple orders.
 
 .. code-block:: solidity
+    
     /// @dev Cancel multiple ERC721 orders by their nonces. The caller
     ///      should be the maker of the orders. Silently succeeds if
     ///      an order with the same nonce has already been filled or
