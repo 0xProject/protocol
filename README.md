@@ -1,4 +1,4 @@
-<img src="https://github.com/0xProject/branding/blob/master/0x%20Logo/PNG/0x-Logo-Black.png" width="150px" >
+![0xProtocol logo](https://github.com/0xProject/branding/blob/master/0x%20Logo/PNG/0x_Protocol_Logo_Black.png?raw=true)
 
 ---
 
