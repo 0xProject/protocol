@@ -26,7 +26,6 @@ import "./mixins/MixinDodo.sol";
 import "./mixins/MixinDodoV2.sol";
 import "./mixins/MixinKyberDmm.sol";
 import "./mixins/MixinKyberElastic.sol";
-import "./mixins/MixinMStable.sol";
 import "./mixins/MixinNerve.sol";
 import "./mixins/MixinSolidly.sol";
 import "./mixins/MixinUniswapV2.sol";
@@ -45,7 +44,6 @@ contract PolygonBridgeAdapter is
     MixinDodoV2,
     MixinKyberDmm,
     MixinKyberElastic,
-    MixinMStable,
     MixinNerve,
     MixinUniswapV2,
     MixinUniswapV3,
@@ -88,11 +86,6 @@ contract PolygonBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeBalancerV2Batch(sellAmount, order.bridgeData);
-        } else if (protocolId == BridgeProtocols.MSTABLE) {
-            if (dryRun) {
-                return (0, true);
-            }
-            boughtAmount = _tradeMStable(sellToken, buyToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.DODO) {
             if (dryRun) {
                 return (0, true);
