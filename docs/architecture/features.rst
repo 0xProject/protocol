@@ -2,7 +2,7 @@
 Features
 ###############################
 
-Features implement the core feature set of the 0x Protocol. They are trusted with user allowances and permissioned by the `0x Governor <./governor.html>`_. Features are run in the context of the `Proxy <../proxy.html>`_, via a ``delegatecall``.
+Features implement the core feature set of the 0x Protocol. They are trusted with user allowances and permissioned by the `0x Governor <./governor.html>`_. Features are run in the context of the `Proxy <./proxy.html>`_, via a ``delegatecall``.
 
 Below is a catalog of Features.
 
