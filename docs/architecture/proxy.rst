@@ -201,7 +201,7 @@ Every time we develop a new feature, an entry is appended to the ``LibStorage.St
     }
 
 
-Given Solidity’s `storage layout rules <https://solidity.readthedocs.io/en/v0.6.6/miscellaneous.html)>`_, subsequent storage buckets should always be 2^128 slots apart, which means buckets can have 2^128 flattened inline fields before overlapping. While it’s not impossible for buckets to overlap with this pattern, it should be extremely unlikely if we follow it closely. Maps and arrays are not stored sequentially but should also be affected by their base slot value to make collisions unlikely.
+Given Solidity’s `storage layout rules <https://solidity.readthedocs.io/en/v0.6.6/miscellaneous.html>`_, subsequent storage buckets should always be 2^128 slots apart, which means buckets can have 2^128 flattened inline fields before overlapping. While it’s not impossible for buckets to overlap with this pattern, it should be extremely unlikely if we follow it closely. Maps and arrays are not stored sequentially but should also be affected by their base slot value to make collisions unlikely.
 
 **Inherited Storage**
 
