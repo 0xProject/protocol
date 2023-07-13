@@ -7,6 +7,7 @@ import { ContractArtifact } from 'ethereum-types';
 
 import * as AffiliateFeeTransformer from '../generated-artifacts/AffiliateFeeTransformer.json';
 import * as AvalancheBridgeAdapter from '../generated-artifacts/AvalancheBridgeAdapter.json';
+import * as BaseBridgeAdapter from '../generated-artifacts/BaseBridgeAdapter.json';
 import * as BaseGoerliBridgeAdapter from '../generated-artifacts/BaseGoerliBridgeAdapter.json';
 import * as BatchFillNativeOrdersFeature from '../generated-artifacts/BatchFillNativeOrdersFeature.json';
 import * as BSCBridgeAdapter from '../generated-artifacts/BSCBridgeAdapter.json';
@@ -81,6 +82,7 @@ export const artifacts = {
     IOtcOrdersFeature: IOtcOrdersFeature as ContractArtifact,
     AvalancheBridgeAdapter: AvalancheBridgeAdapter as ContractArtifact,
     BaseGoerliBridgeAdapter: BaseGoerliBridgeAdapter as ContractArtifact,
+    BaseBridgeAdapter: BaseBridgeAdapter as ContractArtifact,
     BSCBridgeAdapter: BSCBridgeAdapter as ContractArtifact,
     CeloBridgeAdapter: CeloBridgeAdapter as ContractArtifact,
     EthereumBridgeAdapter: EthereumBridgeAdapter as ContractArtifact,

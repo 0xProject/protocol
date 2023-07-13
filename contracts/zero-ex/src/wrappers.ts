@@ -6,6 +6,7 @@
 export * from '../generated-wrappers/affiliate_fee_transformer';
 export * from '../generated-wrappers/avalanche_bridge_adapter';
 export * from '../generated-wrappers/b_s_c_bridge_adapter';
+export * from '../generated-wrappers/base_bridge_adapter';
 export * from '../generated-wrappers/base_goerli_bridge_adapter';
 export * from '../generated-wrappers/batch_fill_native_orders_feature';
 export * from '../generated-wrappers/celo_bridge_adapter';

@@ -19,19 +19,19 @@ import "./AbstractBridgeAdapter.sol";
 import "./BridgeProtocols.sol";
 import "./mixins/MixinUniswapV3.sol";
 import "./mixins/MixinUniswapV2.sol";
-import "./mixins/MixinBalancer.sol";
 import "./mixins/MixinBalancerV2Batch.sol";
 import "./mixins/MixinCurve.sol";
 import "./mixins/MixinCurveV2.sol";
+import "./mixins/MixinSolidly.sol";
 
 contract BaseBridgeAdapter is
     AbstractBridgeAdapter(8453, "Base"),
     MixinUniswapV3,
     MixinUniswapV2,
-    MixinBalancer,
     MixinBalancerV2Batch,
     MixinCurve,
-    MixinCurveV2
+    MixinCurveV2,
+    MixinSolidly
 {
     function _trade(
         BridgeOrder memory order,
@@ -61,11 +61,11 @@ contract BaseBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeUniswapV2(buyToken, sellAmount, order.bridgeData);
-        } else if (protocolId == BridgeProtocols.BALANCER) {
+        } else if (protocolId == BridgeProtocols.SOLIDLY) {
             if (dryRun) {
                 return (0, true);
             }
-            boughtAmount = _tradeBalancer(sellToken, buyToken, sellAmount, order.bridgeData);
+            boughtAmount = _tradeSolidly(sellToken, buyToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.BALANCERV2BATCH) {
             if (dryRun) {
                 return (0, true);
