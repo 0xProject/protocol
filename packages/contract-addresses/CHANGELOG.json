@@ -1,5 +1,13 @@
 [
 	{
+		"version": "8.8.0",
+		"changes": [
+			{
+				"note": "Add Base mainnet addresses"
+			}
+		]
+	}
+	{
 		"version": "8.7.0",
 		"changes": [
 			{

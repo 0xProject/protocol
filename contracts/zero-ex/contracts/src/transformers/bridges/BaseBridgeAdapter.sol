@@ -33,7 +33,7 @@ contract BaseBridgeAdapter is
     MixinCurveV2,
     MixinSolidly
 {
-    constructor(IEtherToken weth) MixinCurve(weth) public {}
+    constructor(IEtherToken weth) public MixinCurve(weth) {}
 
     function _trade(
         BridgeOrder memory order,

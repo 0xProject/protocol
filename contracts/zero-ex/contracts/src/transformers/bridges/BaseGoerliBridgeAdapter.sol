@@ -20,11 +20,7 @@ import "./BridgeProtocols.sol";
 import "./mixins/MixinUniswapV3.sol";
 import "./mixins/MixinUniswapV2.sol";
 
-contract BaseGoerliBridgeAdapter is
-    AbstractBridgeAdapter(84531, "Base Goerli"),
-    MixinUniswapV3,
-    MixinUniswapV2
-{
+contract BaseGoerliBridgeAdapter is AbstractBridgeAdapter(84531, "Base Goerli"), MixinUniswapV3, MixinUniswapV2 {
     function _trade(
         BridgeOrder memory order,
         IERC20Token sellToken,

@@ -255,24 +255,24 @@
     "8453": {
         "zrxToken": "0x0000000000000000000000000000000000000000",
         "etherToken": "0x4200000000000000000000000000000000000006",
-        "zeroExGovernor": "0xECC4F2a8e0fD933623B2EA4Ad84BFfd12CB1286c",
+        "zeroExGovernor": "0xecc4f2a8e0fd933623b2ea4ad84bffd12cb1286c",
         "zrxVault": "0x0000000000000000000000000000000000000000",
         "staking": "0x0000000000000000000000000000000000000000",
         "stakingProxy": "0x0000000000000000000000000000000000000000",
         "erc20BridgeProxy": "0x0000000000000000000000000000000000000000",
         "erc20BridgeSampler": "0x0000000000000000000000000000000000000000",
-        "exchangeProxyGovernor": "0xECC4F2a8e0fD933623B2EA4Ad84BFfd12CB1286c",
-        "exchangeProxy": "0xDef1C0ded9bec7F1a1670819833240f027b25EfF",
-        "exchangeProxyTransformerDeployer": "0x58bcA53ebba1AAf25F0EDCd8DaD6421872fe20B2",
-        "exchangeProxyFlashWallet": "0xdB6f1920A889355780aF7570773609Bd8Cb1f498",
+        "exchangeProxyGovernor": "0xecc4f2a8e0fd933623b2ea4ad84bffd12cb1286c",
+        "exchangeProxy": "0xdef1c0ded9bec7f1a1670819833240f027b25eff",
+        "exchangeProxyTransformerDeployer": "0x58bca53ebba1aaf25f0edcd8dad6421872fe20b2",
+        "exchangeProxyFlashWallet": "0xdb6f1920a889355780af7570773609bd8cb1f498",
         "exchangeProxyLiquidityProviderSandbox": "0x0000000000000000000000000000000000000000",
         "zrxTreasury": "0x0000000000000000000000000000000000000000",
         "transformers": {
-            "wethTransformer": "0x63186EA36E78ECBF0128e448362F1B81e9bF7412",
-            "payTakerTransformer": "0x5Cc22A0E06Ea11097C612A962E63674B90E96099",
-            "affiliateFeeTransformer": "0x9e52D8b32d835206D09810c310593bcC77264066",
-            "fillQuoteTransformer": "0x44e0f3975E95387F3866dd7CAb1f51050394a3d1",
-            "positiveSlippageFeeTransformer": "0xf98a130d3B4029c70E6d93098Cb82A003421341e"
+            "wethTransformer": "0x63186ea36e78ecbf0128e448362f1b81e9bf7412",
+            "payTakerTransformer": "0x5cc22a0e06ea11097c612a962e63674b90e96099",
+            "affiliateFeeTransformer": "0x9e52d8b32d835206d09810c310593bcc77264066",
+            "fillQuoteTransformer": "0x44e0f3975e95387f3866dd7cab1f51050394a3d1",
+            "positiveSlippageFeeTransformer": "0xf98a130d3b4029c70e6d93098cb82a003421341e"
         }
     }
 }
