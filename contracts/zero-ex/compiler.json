@@ -115,6 +115,8 @@
         "./contracts/src/transformers/bridges/ArbitrumBridgeAdapter.sol",
         "./contracts/src/transformers/bridges/AvalancheBridgeAdapter.sol",
         "./contracts/src/transformers/bridges/BSCBridgeAdapter.sol",
+        "./contracts/src/transformers/bridges/BaseBridgeAdapter.sol",
+        "./contracts/src/transformers/bridges/BaseGoerliBridgeAdapter.sol",
         "./contracts/src/transformers/bridges/BridgeProtocols.sol",
         "./contracts/src/transformers/bridges/CeloBridgeAdapter.sol",
         "./contracts/src/transformers/bridges/EthereumBridgeAdapter.sol",
