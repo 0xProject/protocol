@@ -31,6 +31,18 @@ interface IUniswapV3Router {
     function exactInput(ExactInputParams memory params) external payable returns (uint256 amountOut);
 }
 
+// https://github.com/Uniswap/swap-router-contracts/blob/main/contracts/interfaces/IV3SwapRouter.sol
+interface IUniswapV3Router2 {
+    struct ExactInputParams {
+        bytes path;
+        address recipient;
+        uint256 amountIn;
+        uint256 amountOutMinimum;
+    }
+
+    function exactInput(ExactInputParams memory params) external payable returns (uint256 amountOut);
+}
+
 contract MixinUniswapV3 {
     using LibERC20TokenV06 for IERC20Token;
 
@@ -39,19 +51,30 @@ contract MixinUniswapV3 {
         uint256 sellAmount,
         bytes memory bridgeData
     ) internal returns (uint256 boughtAmount) {
-        (IUniswapV3Router router, bytes memory path) = abi.decode(bridgeData, (IUniswapV3Router, bytes));
+        (address router, bytes memory path, uint256 routerVersion) = abi.decode(bridgeData, (address, bytes, uint256));
 
         // Grant the Uniswap router an allowance to sell the sell token.
-        sellToken.approveIfBelow(address(router), sellAmount);
+        sellToken.approveIfBelow(router, sellAmount);
 
-        boughtAmount = router.exactInput(
-            IUniswapV3Router.ExactInputParams({
-                path: path,
-                recipient: address(this),
-                deadline: block.timestamp,
-                amountIn: sellAmount,
-                amountOutMinimum: 1
-            })
-        );
+        if (routerVersion != 2) {
+            boughtAmount = IUniswapV3Router(router).exactInput(
+                IUniswapV3Router.ExactInputParams({
+                    path: path,
+                    recipient: address(this),
+                    deadline: block.timestamp,
+                    amountIn: sellAmount,
+                    amountOutMinimum: 1
+                })
+            );
+        } else {
+            boughtAmount = IUniswapV3Router2(router).exactInput(
+                IUniswapV3Router2.ExactInputParams({
+                    path: path,
+                    recipient: address(this),
+                    amountIn: sellAmount,
+                    amountOutMinimum: 1
+                })
+            );
+        }
     }
 }

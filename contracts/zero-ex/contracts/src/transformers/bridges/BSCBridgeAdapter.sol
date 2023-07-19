@@ -25,6 +25,7 @@ import "./mixins/MixinKyberElastic.sol";
 import "./mixins/MixinMooniswap.sol";
 import "./mixins/MixinNerve.sol";
 import "./mixins/MixinUniswapV2.sol";
+import "./mixins/MixinUniswapV3.sol";
 import "./mixins/MixinWOOFi.sol";
 import "./mixins/MixinZeroExBridge.sol";
 
@@ -38,6 +39,7 @@ contract BSCBridgeAdapter is
     MixinMooniswap,
     MixinNerve,
     MixinUniswapV2,
+    MixinUniswapV3,
     MixinWOOFi,
     MixinZeroExBridge
 {
@@ -61,6 +63,11 @@ contract BSCBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeUniswapV2(buyToken, sellAmount, order.bridgeData);
+        } else if (protocolId == BridgeProtocols.UNISWAPV3) {
+            if (dryRun) {
+                return (0, true);
+            }
+            boughtAmount = _tradeUniswapV3(sellToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.MOONISWAP) {
             if (dryRun) {
                 return (0, true);

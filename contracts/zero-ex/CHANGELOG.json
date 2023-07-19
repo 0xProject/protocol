@@ -10,6 +10,9 @@
             },
             {
                 "note": "Add Base Mainnet and Goerli BridgeAdapters"
+            },
+            {
+                "note": "Add Uniswap V3 support on Avalanche and BSC"
             }
         ]
     },
