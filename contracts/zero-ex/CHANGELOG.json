@@ -14,7 +14,8 @@
             {
                 "note": "Add Uniswap V3 support on Avalanche and BSC"
             }
-        ]
+        ],
+        "timestamp": 1689791426
     },
     {
         "version": "0.44.0",
