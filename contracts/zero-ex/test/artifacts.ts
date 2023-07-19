@@ -9,6 +9,8 @@ import * as AbstractBridgeAdapter from '../test/generated-artifacts/AbstractBrid
 import * as AffiliateFeeTransformer from '../test/generated-artifacts/AffiliateFeeTransformer.json';
 import * as ArbitrumBridgeAdapter from '../test/generated-artifacts/ArbitrumBridgeAdapter.json';
 import * as AvalancheBridgeAdapter from '../test/generated-artifacts/AvalancheBridgeAdapter.json';
+import * as BaseBridgeAdapter from '../test/generated-artifacts/BaseBridgeAdapter.json';
+import * as BaseGoerliBridgeAdapter from '../test/generated-artifacts/BaseGoerliBridgeAdapter.json';
 import * as BatchFillNativeOrdersFeature from '../test/generated-artifacts/BatchFillNativeOrdersFeature.json';
 import * as BootstrapFeature from '../test/generated-artifacts/BootstrapFeature.json';
 import * as BridgeProtocols from '../test/generated-artifacts/BridgeProtocols.json';
@@ -109,7 +111,6 @@ import * as MetaTransactionsFeatureV2 from '../test/generated-artifacts/MetaTran
 import * as MixinAaveV2 from '../test/generated-artifacts/MixinAaveV2.json';
 import * as MixinBalancer from '../test/generated-artifacts/MixinBalancer.json';
 import * as MixinBalancerV2Batch from '../test/generated-artifacts/MixinBalancerV2Batch.json';
-import * as MixinBancor from '../test/generated-artifacts/MixinBancor.json';
 import * as MixinBancorV3 from '../test/generated-artifacts/MixinBancorV3.json';
 import * as MixinCompound from '../test/generated-artifacts/MixinCompound.json';
 import * as MixinCryptoCom from '../test/generated-artifacts/MixinCryptoCom.json';
@@ -122,10 +123,8 @@ import * as MixinKyberDmm from '../test/generated-artifacts/MixinKyberDmm.json';
 import * as MixinLido from '../test/generated-artifacts/MixinLido.json';
 import * as MixinMakerPSM from '../test/generated-artifacts/MixinMakerPSM.json';
 import * as MixinMooniswap from '../test/generated-artifacts/MixinMooniswap.json';
-import * as MixinMStable from '../test/generated-artifacts/MixinMStable.json';
 import * as MixinNerve from '../test/generated-artifacts/MixinNerve.json';
 import * as MixinPlatypus from '../test/generated-artifacts/MixinPlatypus.json';
-import * as MixinShell from '../test/generated-artifacts/MixinShell.json';
 import * as MixinSolidly from '../test/generated-artifacts/MixinSolidly.json';
 import * as MixinSynthetix from '../test/generated-artifacts/MixinSynthetix.json';
 import * as MixinUniswap from '../test/generated-artifacts/MixinUniswap.json';
@@ -322,6 +321,8 @@ export const artifacts = {
     ArbitrumBridgeAdapter: ArbitrumBridgeAdapter as ContractArtifact,
     AvalancheBridgeAdapter: AvalancheBridgeAdapter as ContractArtifact,
     BSCBridgeAdapter: BSCBridgeAdapter as ContractArtifact,
+    BaseBridgeAdapter: BaseBridgeAdapter as ContractArtifact,
+    BaseGoerliBridgeAdapter: BaseGoerliBridgeAdapter as ContractArtifact,
     BridgeProtocols: BridgeProtocols as ContractArtifact,
     CeloBridgeAdapter: CeloBridgeAdapter as ContractArtifact,
     EthereumBridgeAdapter: EthereumBridgeAdapter as ContractArtifact,
@@ -332,7 +333,6 @@ export const artifacts = {
     MixinAaveV2: MixinAaveV2 as ContractArtifact,
     MixinBalancer: MixinBalancer as ContractArtifact,
     MixinBalancerV2Batch: MixinBalancerV2Batch as ContractArtifact,
-    MixinBancor: MixinBancor as ContractArtifact,
     MixinBancorV3: MixinBancorV3 as ContractArtifact,
     MixinCompound: MixinCompound as ContractArtifact,
     MixinCryptoCom: MixinCryptoCom as ContractArtifact,
@@ -343,12 +343,10 @@ export const artifacts = {
     MixinGMX: MixinGMX as ContractArtifact,
     MixinKyberDmm: MixinKyberDmm as ContractArtifact,
     MixinLido: MixinLido as ContractArtifact,
-    MixinMStable: MixinMStable as ContractArtifact,
     MixinMakerPSM: MixinMakerPSM as ContractArtifact,
     MixinMooniswap: MixinMooniswap as ContractArtifact,
     MixinNerve: MixinNerve as ContractArtifact,
     MixinPlatypus: MixinPlatypus as ContractArtifact,
-    MixinShell: MixinShell as ContractArtifact,
     MixinSolidly: MixinSolidly as ContractArtifact,
     MixinSynthetix: MixinSynthetix as ContractArtifact,
     MixinUniswap: MixinUniswap as ContractArtifact,

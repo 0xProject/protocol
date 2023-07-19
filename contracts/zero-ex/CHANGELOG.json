@@ -1,5 +1,23 @@
 [
     {
+        "version": "0.45.0",
+        "changes": [
+            {
+                "note": "Remove Bancor V1 support"
+            },
+            {
+                "note": "Remove Shell and MStable support"
+            },
+            {
+                "note": "Add Base Mainnet and Goerli BridgeAdapters"
+            },
+            {
+                "note": "Add Uniswap V3 support on Avalanche and BSC"
+            }
+        ],
+        "timestamp": 1689791426
+    },
+    {
         "version": "0.44.0",
         "changes": [
             {

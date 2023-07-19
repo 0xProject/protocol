@@ -6,6 +6,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v8.8.0 - _July 19, 2023_
+
+    * Add Base mainnet addresses
+    * Add UniswapV3 support in Avalanche and BSC FillQuoteTransformers
 ## v8.7.0 - _May 10, 2023_
 
     * Add Trader Joe V2 MixIn to Arbitrum

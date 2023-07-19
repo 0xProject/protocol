@@ -1,5 +1,17 @@
 [
 	{
+		"version": "8.8.0",
+		"changes": [
+			{
+				"note": "Add Base mainnet addresses"
+			},
+			{
+				"note": "Add UniswapV3 support in Avalanche and BSC FillQuoteTransformers"
+			}
+		],
+		"timestamp": 1689791426
+	},
+	{
 		"version": "8.7.0",
 		"changes": [
 			{

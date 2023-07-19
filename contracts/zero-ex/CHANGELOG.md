@@ -5,6 +5,13 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.45.0 - _July 19, 2023_
+
+    * Remove Bancor V1 support
+    * Remove Shell and MStable support
+    * Add Base Mainnet and Goerli BridgeAdapters
+    * Add Uniswap V3 support on Avalanche and BSC
+
 ## v0.44.0 - _May 10, 2023_
 
     * Add Trader Joe V2 MixIn to Arbitrum

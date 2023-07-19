@@ -20,7 +20,6 @@ import "./BridgeProtocols.sol";
 import "./mixins/MixinAaveV2.sol";
 import "./mixins/MixinBalancer.sol";
 import "./mixins/MixinBalancerV2Batch.sol";
-import "./mixins/MixinBancor.sol";
 import "./mixins/MixinBancorV3.sol";
 import "./mixins/MixinBarter.sol";
 import "./mixins/MixinCompound.sol";
@@ -33,9 +32,7 @@ import "./mixins/MixinKyberDmm.sol";
 import "./mixins/MixinKyberElastic.sol";
 import "./mixins/MixinLido.sol";
 import "./mixins/MixinMakerPSM.sol";
-import "./mixins/MixinMStable.sol";
 import "./mixins/MixinNerve.sol";
-import "./mixins/MixinShell.sol";
 import "./mixins/MixinSynthetix.sol";
 import "./mixins/MixinUniswap.sol";
 import "./mixins/MixinUniswapV2.sol";
@@ -47,7 +44,6 @@ contract EthereumBridgeAdapter is
     MixinAaveV2,
     MixinBalancer,
     MixinBalancerV2Batch,
-    MixinBancor,
     MixinBancorV3,
     MixinBarter,
     MixinCompound,
@@ -60,9 +56,7 @@ contract EthereumBridgeAdapter is
     MixinKyberElastic,
     MixinLido,
     MixinMakerPSM,
-    MixinMStable,
     MixinNerve,
-    MixinShell,
     MixinSynthetix,
     MixinUniswap,
     MixinUniswapV2,
@@ -71,15 +65,7 @@ contract EthereumBridgeAdapter is
 {
     constructor(
         IEtherToken weth
-    )
-        public
-        MixinBancor(weth)
-        MixinBancorV3(weth)
-        MixinCompound(weth)
-        MixinCurve(weth)
-        MixinLido(weth)
-        MixinUniswap(weth)
-    {}
+    ) public MixinBancorV3(weth) MixinCompound(weth) MixinCurve(weth) MixinLido(weth) MixinUniswap(weth) {}
 
     function _trade(
         BridgeOrder memory order,
@@ -129,16 +115,6 @@ contract EthereumBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeMakerPsm(sellToken, buyToken, sellAmount, order.bridgeData);
-        } else if (protocolId == BridgeProtocols.MSTABLE) {
-            if (dryRun) {
-                return (0, true);
-            }
-            boughtAmount = _tradeMStable(sellToken, buyToken, sellAmount, order.bridgeData);
-        } else if (protocolId == BridgeProtocols.SHELL) {
-            if (dryRun) {
-                return (0, true);
-            }
-            boughtAmount = _tradeShell(sellToken, buyToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.DODO) {
             if (dryRun) {
                 return (0, true);
@@ -154,11 +130,6 @@ contract EthereumBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeCryptoCom(buyToken, sellAmount, order.bridgeData);
-        } else if (protocolId == BridgeProtocols.BANCOR) {
-            if (dryRun) {
-                return (0, true);
-            }
-            boughtAmount = _tradeBancor(buyToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.NERVE) {
             if (dryRun) {
                 return (0, true);
