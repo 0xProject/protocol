@@ -4,6 +4,9 @@
 		"changes": [
 			{
 				"note": "Add Base mainnet addresses"
+			},
+			{
+				"note": "Add UniswapV3 support in Avalanche and BSC FillQuoteTransformers"
 			}
 		]
 	},
