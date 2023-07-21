@@ -5,7 +5,8 @@
 			{
 				"note": "Add Uniswap V3 router v2 support in Base FillQuoteTransformer"
 			}
-		]
+		],
+		"timestamp": 1689974915
 	},
 	{
 		"version": "8.8.0",

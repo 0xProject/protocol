@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.45.1 - _July 21, 2023_
+
+    * Dependencies updated
+
 ## v0.45.0 - _July 19, 2023_
 
     * Remove Bancor V1 support

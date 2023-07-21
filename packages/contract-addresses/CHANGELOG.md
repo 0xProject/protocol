@@ -6,6 +6,9 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v8.9.0 - _July 21, 2023_
+
+    * Add Uniswap V3 router v2 support in Base FillQuoteTransformer
 ## v8.8.0 - _July 19, 2023_
 
     * Add Base mainnet addresses
