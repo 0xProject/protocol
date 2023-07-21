@@ -1,5 +1,13 @@
 [
 	{
+		"version": "8.9.0",
+		"changes": [
+			{
+				"note": "Add Uniswap V3 router v2 support in Base FillQuoteTransformer"
+			}
+		]
+	},
+	{
 		"version": "8.8.0",
 		"changes": [
 			{
