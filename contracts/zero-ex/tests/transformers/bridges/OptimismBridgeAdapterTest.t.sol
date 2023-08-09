@@ -19,14 +19,14 @@ import "forge-std/Test.sol";
 import "../../../contracts/src/transformers/bridges/OptimismBridgeAdapter.sol";
 import "../../../contracts/src/transformers/bridges/BridgeProtocols.sol";
 
-contract AvalancheBridgeAdapterTest is Test {
+contract OptimismBridgeAdapterTest is Test {
     address constant WETH = 0x4200000000000000000000000000000000000006;
 
     OptimismBridgeAdapter private adapter;
 
     function setUp() public {
         vm.chainId(10);
-        adapter = new AvalancheBridgeAdapter(IEtherToken(WETH));
+        adapter = new OptimismBridgeAdapter(IEtherToken(WETH));
     }
 
     function testSupportVelodromeV2() public {
