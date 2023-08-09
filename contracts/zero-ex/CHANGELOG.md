@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.46.0 - _August 9, 2023_
+
+    * Add VelodromeV2 support on Optimism
+
 ## v0.45.1 - _July 21, 2023_
 
     * Dependencies updated

@@ -6,6 +6,9 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v8.10.0 - _August 9, 2023_
+
+    * Add VelodromeV2 support on Optimism
 ## v8.9.0 - _July 21, 2023_
 
     * Add Uniswap V3 router v2 support in Base FillQuoteTransformer

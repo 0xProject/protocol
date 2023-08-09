@@ -1,5 +1,14 @@
 [
 	{
+		"version": "8.10.0",
+		"changes": [
+			{
+				"note": "Add VelodromeV2 support on Optimism"
+			}
+		],
+		"timestamp": 1691617396
+	},
+	{
 		"version": "8.9.0",
 		"changes": [
 			{
