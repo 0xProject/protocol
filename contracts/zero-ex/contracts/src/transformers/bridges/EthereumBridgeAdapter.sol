@@ -177,7 +177,7 @@ contract EthereumBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeBarter(sellToken, sellAmount, order.bridgeData);
-        } else if (protocolId == BridgeProtocols.MAVERICK) {
+        } else if (protocolId == BridgeProtocols.MAVERICKV1) {
             if (dryRun) {
                 return (0, true);
             }
