@@ -167,6 +167,7 @@ export enum BridgeProtocol {
     Barter,
     TraderJoeV2,
     VelodromeV2,
+    MaverickV1,
 }
 
 /**

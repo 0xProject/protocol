@@ -1,5 +1,13 @@
 [
 	{
+		"version": "8.11.0",
+		"changes": [
+			{
+				"note": "Add MaverickV1 support on Ethereum, BSC, and Base"
+			}
+		]
+	},
+	{
 		"version": "8.10.0",
 		"changes": [
 			{

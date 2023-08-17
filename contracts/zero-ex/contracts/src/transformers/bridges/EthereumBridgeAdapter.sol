@@ -32,6 +32,7 @@ import "./mixins/MixinKyberDmm.sol";
 import "./mixins/MixinKyberElastic.sol";
 import "./mixins/MixinLido.sol";
 import "./mixins/MixinMakerPSM.sol";
+import "./mixins/MixinMaverickV1.sol";
 import "./mixins/MixinNerve.sol";
 import "./mixins/MixinSynthetix.sol";
 import "./mixins/MixinUniswap.sol";
@@ -56,6 +57,7 @@ contract EthereumBridgeAdapter is
     MixinKyberElastic,
     MixinLido,
     MixinMakerPSM,
+    MixinMaverickV1,
     MixinNerve,
     MixinSynthetix,
     MixinUniswap,
@@ -175,6 +177,11 @@ contract EthereumBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeBarter(sellToken, sellAmount, order.bridgeData);
+        } else if (protocolId == BridgeProtocols.MAVERICK) {
+            if (dryRun) {
+                return (0, true);
+            }
+            boughtAmount = _tradeMaverickV1(sellToken, buyToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.UNKNOWN) {
             if (dryRun) {
                 return (0, true);
