@@ -58,5 +58,5 @@ library BridgeProtocols {
     uint128 internal constant BARTER = 34;
     uint128 internal constant TRADERJOEV2 = 35;
     uint128 internal constant VELODROMEV2 = 36;
-    uint128 internal constant MAVERICK = 37;
+    uint128 internal constant MAVERICKV1 = 37;
 }

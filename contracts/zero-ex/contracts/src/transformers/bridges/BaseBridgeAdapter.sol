@@ -75,7 +75,7 @@ contract BaseBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeBalancerV2Batch(sellAmount, order.bridgeData);
-        } else if (protocolId == BridgeProtocols.MAVERICK) {
+        } else if (protocolId == BridgeProtocols.MAVERICKV1) {
             if (dryRun) {
                 return (0, true);
             }

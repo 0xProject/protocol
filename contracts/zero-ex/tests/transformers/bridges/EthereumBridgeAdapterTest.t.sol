@@ -16,17 +16,17 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "forge-std/Test.sol";
-import "../../../contracts/src/transformers/bridges/BSCBridgeAdapter.sol";
+import "../../../contracts/src/transformers/bridges/EthereumBridgeAdapter.sol";
 import "../../../contracts/src/transformers/bridges/BridgeProtocols.sol";
 
-contract BSCBridgeAdapterTest is Test {
-    address constant WBNB = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
+contract EthereumBridgeAdapterTest is Test {
+    address constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 
-    BSCBridgeAdapter private adapter;
+    EthereumBridgeAdapter private adapter;
 
     function setUp() public {
-        vm.chainId(56);
-        adapter = new BSCBridgeAdapter(IEtherToken(WBNB));
+        vm.chainId(1);
+        adapter = new EthereumBridgeAdapter(IEtherToken(WETH));
     }
 
     function testSupportsUniswapV3() public {

@@ -105,7 +105,7 @@ contract BSCBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeWOOFi(sellToken, buyToken, sellAmount, order.bridgeData);
-        } else if (protocolId == BridgeProtocols.MAVERICK) {
+        } else if (protocolId == BridgeProtocols.MAVERICKV1) {
             if (dryRun) {
                 return (0, true);
             }
