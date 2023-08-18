@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.47.0 - _August 18, 2023_
+
+    * Add MaverickV1 support on Ethereum, BSC, and Base
+
 ## v0.46.0 - _August 9, 2023_
 
     * Add VelodromeV2 support on Optimism

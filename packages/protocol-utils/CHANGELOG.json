@@ -5,7 +5,8 @@
 			{
 				"note": "Add MaverickV1 support on Ethereum, BSC, and Base"
 			}
-		]
+		],
+		"timestamp": 1692368658
 	},
 	{
 		"version": "11.23.0",
