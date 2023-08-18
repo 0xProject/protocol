@@ -22,6 +22,7 @@ import "./mixins/MixinUniswapV2.sol";
 import "./mixins/MixinBalancerV2Batch.sol";
 import "./mixins/MixinCurve.sol";
 import "./mixins/MixinCurveV2.sol";
+import "./mixins/MixinMaverickV1.sol";
 import "./mixins/MixinSolidly.sol";
 
 contract BaseBridgeAdapter is
@@ -31,6 +32,7 @@ contract BaseBridgeAdapter is
     MixinBalancerV2Batch,
     MixinCurve,
     MixinCurveV2,
+    MixinMaverickV1,
     MixinSolidly
 {
     constructor(IEtherToken weth) public MixinCurve(weth) {}
@@ -73,6 +75,11 @@ contract BaseBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeBalancerV2Batch(sellAmount, order.bridgeData);
+        } else if (protocolId == BridgeProtocols.MAVERICKV1) {
+            if (dryRun) {
+                return (0, true);
+            }
+            boughtAmount = _tradeMaverickV1(sellToken, buyToken, sellAmount, order.bridgeData);
         }
         emit BridgeFill(order.source, sellToken, buyToken, sellAmount, boughtAmount);
     }

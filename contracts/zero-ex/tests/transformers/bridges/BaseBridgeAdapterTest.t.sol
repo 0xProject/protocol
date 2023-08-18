@@ -16,17 +16,17 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "forge-std/Test.sol";
-import "../../../contracts/src/transformers/bridges/BSCBridgeAdapter.sol";
+import "../../../contracts/src/transformers/bridges/BaseBridgeAdapter.sol";
 import "../../../contracts/src/transformers/bridges/BridgeProtocols.sol";
 
-contract BSCBridgeAdapterTest is Test {
-    address constant WBNB = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
+contract BaseBridgeAdapterTest is Test {
+    address constant WETH = 0x4200000000000000000000000000000000000006;
 
-    BSCBridgeAdapter private adapter;
+    BaseBridgeAdapter private adapter;
 
     function setUp() public {
-        vm.chainId(56);
-        adapter = new BSCBridgeAdapter(IEtherToken(WBNB));
+        vm.chainId(8453);
+        adapter = new BaseBridgeAdapter(IEtherToken(WETH));
     }
 
     function testSupportsUniswapV3() public {
