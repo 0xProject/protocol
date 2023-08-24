@@ -40,7 +40,7 @@ jobs:
                   git config --global user.name "Github Actions"
             - name: 'Checkout new branch'
               run: /
-                  git checkout -b testpublish/${{ github.ref }}-${{ github.run_id }}-${{ github.run_number }
+                  git checkout -b testpublish/${{ github.ref }}-${{ github.run_id }}-${{ github.run_number }}
                   git push -u origin testpublish/${{ github.ref }}-${{ github.run_id }}-${{ github.run_number }}
             - name: 'install dependencies'
               run: |
