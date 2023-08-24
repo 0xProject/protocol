@@ -45,14 +45,20 @@ jobs:
             - name: 'install dependencies'
               run: |
                   yarn -D
-            - name: 'build and publish'
-              run: |
-                  echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > .npmrc
-                  npm run run:publish:gha
-              env:
-                  NPM_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
-                  GITHUB_TOKEN: ${{ github.token }}
-                  PUBLISH_PRERELEASE: ${{ github.event.inputs.prerelease }}
+            - name: 'Test Commits'
+              run: /
+                  echo "Dummy File" > dummy.txt
+                  git add . --all
+                  git commit -m "Updated CHANGELOGS & MD docs"
+                  git push
+            # - name: 'build and publish'
+            #   run: |
+            #       echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > .npmrc
+            #       npm run run:publish:gha
+            #   env:
+            #       NPM_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+            #       GITHUB_TOKEN: ${{ github.token }}
+            #       PUBLISH_PRERELEASE: ${{ github.event.inputs.prerelease }}
             - name: 'Create PR to merge into ref branch'
               uses: peter-evans/create-pull-request@v5
               with:
