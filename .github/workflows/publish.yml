@@ -47,26 +47,20 @@ jobs:
             - name: 'install dependencies'
               run: |
                   yarn -D
-            - name: 'Test Commits'
+            - name: 'build and publish'
               run: |
-                  echo "Dummy File" > dummy.txt
-                  git add . --all
-                  git commit -m "Updated CHANGELOGS & MD docs"
-                  git push
-            # - name: 'build and publish'
-            #   run: |
-            #       echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > .npmrc
-            #       npm run run:publish:gha
-            #   env:
-            #       NPM_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
-            #       GITHUB_TOKEN: ${{ github.token }}
-            #       PUBLISH_PRERELEASE: ${{ github.event.inputs.prerelease }}
+                  echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > .npmrc
+                  npm run run:publish:gha
+              env:
+                  NPM_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+                  GITHUB_TOKEN: ${{ github.token }}
+                  PUBLISH_PRERELEASE: ${{ github.event.inputs.prerelease }}
             - name: 'Create PR to merge into ref branch'
               run: |
                   gh pr create \
                     -B ${{ github.ref_name }} \
                     -H $PublishBranch \
-                    --title "Published ${{ github.ref_name }}" \
+                    --title "Publish: CHANGELOG and Package Version Updates into ${{ github.ref_name }}" \
                     --body "Syncing CHANGELOG and package version updates from publish action ${{github.run_id}}-${{github.run_number}} into ${{ github.ref_name}} branch" \
                     --reviewer ${{ github.actor }}
               env:
@@ -76,26 +70,8 @@ jobs:
                   gh pr create \
                     -B main \
                     -H ${{ github.ref_name }} \
-                    --title "Published ${{ github.ref_name }}" \
-                    --body "Syncing CHANGELOG and package version updates from publish action ${{github.run_id}}-${{github.run_number}} into main branch" \
+                    --title "Publish: Sync ${{ github.ref_name }} into main " \
+                    --body "Syncing ${{ github.ref_name }} back into main after publish action. NOTE: this PR should be merged after CHANGELOG and package version updates have been merged into ${{ github.ref_name }}" \
                     --reviewer ${{ github.actor }}
               env:
                   GITHUB_TOKEN: ${{ github.token }}
-
-              # uses: peter-evans/create-pull-request@v5
-              # with:
-              #     token: ${{ github.token }}
-              #     base: ${{ github.ref_name }}
-              #     branch: 'publish/${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_number }}'
-              #     title: 'Published ${{ github.ref_name }}'
-              #     body: 'Syncing CHANGELOG and package version updates from publish action ${{github.run_id}}-${{github.run_number}} into ${{ github.ref_name}} branch'
-              #     reviewers: ${{ github.actor }}
-            # - name: 'Create PR to merge ref branch into main'
-            #   uses: peter-evans/create-pull-request@v5
-            #   with:
-            #       token: ${{ github.token }}
-            #       base: main
-            #       branch: ${{ github.ref_name }}
-            #       title: 'Published ${{ github.ref_name }}'
-            #       body: 'Syncing CHANGELOG and package version updates from published ${{ github.ref_name }} branch into main branch'
-            #       reviewers: ${{ github.actor }}
