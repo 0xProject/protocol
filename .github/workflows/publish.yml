@@ -71,3 +71,4 @@ jobs:
                 title: 'Published {{ github.ref }}'
                 body: 'Syncing CHANGELOG and package version updates from published ${{ github.ref }} branch into main branch'
                 reviewers: ${{ github.actor }}
+                
