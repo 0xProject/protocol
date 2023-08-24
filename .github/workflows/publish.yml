@@ -14,6 +14,8 @@ on:
 jobs:
     publish:
         runs-on: ubuntu-latest
+        env:
+            PublishBranch: publish/${{github.ref_name }}-${{ github.run_id }}-${{ github.run_number }}
         steps:
             - name: 'check successful status'
               run: |
@@ -40,8 +42,8 @@ jobs:
                   git config --global user.name "Github Actions"
             - name: 'Checkout new branch'
               run: |
-                  git checkout -b publish/${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_number }}
-                  git push -u origin publish/${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_number }}
+                  git checkout -b $PublishBranch
+                  git push -u origin $PublishBranch
             - name: 'install dependencies'
               run: |
                   yarn -D
@@ -60,20 +62,36 @@ jobs:
             #       GITHUB_TOKEN: ${{ github.token }}
             #       PUBLISH_PRERELEASE: ${{ github.event.inputs.prerelease }}
             - name: 'Create PR to merge into ref branch'
-              uses: peter-evans/create-pull-request@v5
-              with:
-                  token: ${{ github.token }}
-                  base: ${{ github.ref_name }}
-                  branch: 'publish/${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_number }}'
-                  title: 'Published ${{ github.ref_name }}'
-                  body: 'Syncing CHANGELOG and package version updates from publish action ${{github.run_id}}-${{github.run_number}} into ${{ github.ref_name}} branch'
-                  reviewers: ${{ github.actor }}
+              run: |
+                  gh pr create \
+                    -B ${{ github.ref_name }} \
+                    -H $PublishBranch \
+                    --title "Published ${{ github.ref_name }}" \
+                    --body "Syncing CHANGELOG and package version updates from publish action ${{github.run_id}}-${{github.run_number}} into ${{ github.ref_name}} branch" \
+                    --reviewer ${{ github.actor }}
             - name: 'Create PR to merge ref branch into main'
-              uses: peter-evans/create-pull-request@v5
-              with:
-                  token: ${{ github.token }}
-                  base: main
-                  branch: ${{ github.ref_name }}
-                  title: 'Published ${{ github.ref_name }}'
-                  body: 'Syncing CHANGELOG and package version updates from published ${{ github.ref_name }} branch into main branch'
-                  reviewers: ${{ github.actor }}
+              run: |
+                  gh pr create \
+                    -B main \
+                    -H ${{ github.ref_name }} \
+                    --title "Published ${{ github.ref_name }}" \
+                    --body "Syncing CHANGELOG and package version updates from publish action ${{github.run_id}}-${{github.run_number}} into main branch" \
+                    --reviewer ${{ github.actor }}
+
+              # uses: peter-evans/create-pull-request@v5
+              # with:
+              #     token: ${{ github.token }}
+              #     base: ${{ github.ref_name }}
+              #     branch: 'publish/${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_number }}'
+              #     title: 'Published ${{ github.ref_name }}'
+              #     body: 'Syncing CHANGELOG and package version updates from publish action ${{github.run_id}}-${{github.run_number}} into ${{ github.ref_name}} branch'
+              #     reviewers: ${{ github.actor }}
+            # - name: 'Create PR to merge ref branch into main'
+            #   uses: peter-evans/create-pull-request@v5
+            #   with:
+            #       token: ${{ github.token }}
+            #       base: main
+            #       branch: ${{ github.ref_name }}
+            #       title: 'Published ${{ github.ref_name }}'
+            #       body: 'Syncing CHANGELOG and package version updates from published ${{ github.ref_name }} branch into main branch'
+            #       reviewers: ${{ github.actor }}
