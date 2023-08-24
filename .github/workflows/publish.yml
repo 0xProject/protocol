@@ -69,6 +69,8 @@ jobs:
                     --title "Published ${{ github.ref_name }}" \
                     --body "Syncing CHANGELOG and package version updates from publish action ${{github.run_id}}-${{github.run_number}} into ${{ github.ref_name}} branch" \
                     --reviewer ${{ github.actor }}
+              env:
+                  GITHUB_TOKEN: ${{ github.token }}
             - name: 'Create PR to merge ref branch into main'
               run: |
                   gh pr create \
@@ -77,6 +79,8 @@ jobs:
                     --title "Published ${{ github.ref_name }}" \
                     --body "Syncing CHANGELOG and package version updates from publish action ${{github.run_id}}-${{github.run_number}} into main branch" \
                     --reviewer ${{ github.actor }}
+              env:
+                  GITHUB_TOKEN: ${{ github.token }}
 
               # uses: peter-evans/create-pull-request@v5
               # with:
