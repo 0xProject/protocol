@@ -1,15 +1,15 @@
 name: publish
 
 on:
-  workflow_dispatch:
-      inputs:
-          ci_status:
-              description: 'required CI status'
-              default: 'success'
-              required: true
-          prerelease:
-              description: 'prerelease name'
-              required: false
+    workflow_dispatch:
+        inputs:
+            ci_status:
+                description: 'required CI status'
+                default: 'success'
+                required: true
+            prerelease:
+                description: 'prerelease name'
+                required: false
 
 jobs:
     publish:
@@ -28,11 +28,11 @@ jobs:
                   version: nightly
             - uses: actions/checkout@v2
               with:
-                ref: ${{ github.ref }}
-                fetch-depth: 0
+                  ref: ${{ github.ref }}
+                  fetch-depth: 0
             - uses: actions/setup-node@v1
               with:
-                node-version: 16
+                  node-version: 16
             - uses: actions/setup-python@v2
             - name: 'configure git'
               run: |
@@ -56,20 +56,19 @@ jobs:
             - name: 'Create PR to merge into ref branch'
               uses: peter-evans/create-pull-request@v5
               with:
-                token: ${{ github.token }}
-                base: ${{ github.ref }}
-                branch: 'publish/${{ github.ref }}-${{ github.run_id }}-${{ github.run_number }}'
-                title: 'Published ${{ github.ref }}'
-                body: 'Syncing CHANGELOG and package version updates from publish action ${{github.run_id}}-${{github.run_number}} into ${{ github.ref}} branch'
-                reviewers: ${{ github.actor }}
+                  token: ${{ github.token }}
+                  base: ${{ github.ref }}
+                  branch: 'publish/${{ github.ref }}-${{ github.run_id }}-${{ github.run_number }}'
+                  title: 'Published ${{ github.ref }}'
+                  body: 'Syncing CHANGELOG and package version updates from publish action ${{github.run_id}}-${{github.run_number}} into ${{ github.ref}} branch'
+                  reviewers: ${{ github.actor }}
                   delete-branch: true
             - name: 'Create PR to merge ref branch into main'
               uses: peter-evans/create-pull-request@v5
               with:
-                token: ${{ github.token }}
-                base: main
-                branch: ${{ github.ref }}
-                title: 'Published {{ github.ref }}'
-                body: 'Syncing CHANGELOG and package version updates from published ${{ github.ref }} branch into main branch'
-                reviewers: ${{ github.actor }}
-              
+                  token: ${{ github.token }}
+                  base: main
+                  branch: ${{ github.ref }}
+                  title: 'Published {{ github.ref }}'
+                  body: 'Syncing CHANGELOG and package version updates from published ${{ github.ref }} branch into main branch'
+                  reviewers: ${{ github.actor }}
