@@ -39,14 +39,14 @@ jobs:
                   git config --global user.email "github-actions@github.com"
                   git config --global user.name "Github Actions"
             - name: 'Checkout new branch'
-              run: /
-                  git checkout -b testpublish/${{ github.ref }}-${{ github.run_id }}-${{ github.run_number }}
-                  git push -u origin testpublish/${{ github.ref }}-${{ github.run_id }}-${{ github.run_number }}
+              run: |
+                  git checkout -b publish/${{ github.ref }}-${{ github.run_id }}-${{ github.run_number }}
+                  git push -u origin publish/${{ github.ref }}-${{ github.run_id }}-${{ github.run_number }}
             - name: 'install dependencies'
               run: |
                   yarn -D
             - name: 'Test Commits'
-              run: /
+              run: |
                   echo "Dummy File" > dummy.txt
                   git add . --all
                   git commit -m "Updated CHANGELOGS & MD docs"
