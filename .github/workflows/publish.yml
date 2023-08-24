@@ -68,7 +68,6 @@ jobs:
                   title: 'Published ${{ github.ref }}'
                   body: 'Syncing CHANGELOG and package version updates from publish action ${{github.run_id}}-${{github.run_number}} into ${{ github.ref}} branch'
                   reviewers: ${{ github.actor }}
-                  delete-branch: true
             - name: 'Create PR to merge ref branch into main'
               uses: peter-evans/create-pull-request@v5
               with:
