@@ -40,7 +40,8 @@ jobs:
                   git config --global user.name "Github Actions"
             - name: 'Checkout new branch'
               run: /
-                  git checkout -b publish/${{ github.ref }}-${{ github.run_id }}-${{ github.run_number }
+                  git checkout -b testpublish/${{ github.ref }}-${{ github.run_id }}-${{ github.run_number }
+                  git push -u origin testpublish/${{ github.ref }}-${{ github.run_id }}-${{ github.run_number }}
             - name: 'install dependencies'
               run: |
                   yarn -D
@@ -54,21 +55,21 @@ jobs:
                   PUBLISH_PRERELEASE: ${{ github.event.inputs.prerelease }}
             - name: 'Create PR to merge into ref branch'
               uses: peter-evans/create-pull-request@v5
-                with:
-                  token: ${{ github.token }}
-                  base: ${{ github.ref }}
-                  branch: 'publish/${{ github.ref }}-${{ github.run_id }}-${{ github.run_number }}'
-                  title: 'Published ${{ github.ref }}'
-                  body: 'Syncing CHANGELOG and package version updates from publish action ${{github.run_id}}-${{github.run_number}} into ${{ github.ref}} branch'
-                  reviewers: ${{ github.actor }}
+              with:
+                token: ${{ github.token }}
+                base: ${{ github.ref }}
+                branch: 'publish/${{ github.ref }}-${{ github.run_id }}-${{ github.run_number }}'
+                title: 'Published ${{ github.ref }}'
+                body: 'Syncing CHANGELOG and package version updates from publish action ${{github.run_id}}-${{github.run_number}} into ${{ github.ref}} branch'
+                reviewers: ${{ github.actor }}
                   delete-branch: true
           - name: 'Create PR to merge ref branch into main'
             uses: peter-evans/create-pull-request@v5
-              with:
-                token: ${{ github.token }}
-                base: main
-                branch: ${{ github.ref }}
-                title: 'Published {{ github.ref }}'
-                body: 'Syncing CHANGELOG and package version updates from published ${{ github.ref }} branch into main branch'
-                reviewers: ${{ github.actor }}
+            with:
+              token: ${{ github.token }}
+              base: main
+              branch: ${{ github.ref }}
+              title: 'Published {{ github.ref }}'
+              body: 'Syncing CHANGELOG and package version updates from published ${{ github.ref }} branch into main branch'
+              reviewers: ${{ github.actor }}
                 
