@@ -6,6 +6,9 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v11.24.1 - _August 29, 2023_
+
+    * Dependencies updated
 ## v11.24.0 - _August 18, 2023_
 
     * Add MaverickV1 support on Ethereum, BSC, and Base

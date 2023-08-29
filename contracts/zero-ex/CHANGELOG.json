@@ -5,7 +5,8 @@
             {
                 "note": "Add VelodromeV2 support on Base"
             }
-        ]
+        ],
+        "timestamp": 1693346928
     },
     {
         "version": "0.47.0",
