@@ -36,4 +36,12 @@ contract BaseBridgeAdapterTest is Test {
     function testSupportMaverickV1() public {
         assertTrue(adapter.isSupportedSource(bytes32(uint256(BridgeProtocols.MAVERICKV1) << 128)));
     }
+
+    function testSupportSolidly() public {
+        assertTrue(adapter.isSupportedSource(bytes32(uint256(BridgeProtocols.SOLIDLY) << 128)));
+    }
+
+    function testSupportVelodromeV2() public {
+        assertTrue(adapter.isSupportedSource(bytes32(uint256(BridgeProtocols.VELODROMEV2) << 128)));
+    }
 }
