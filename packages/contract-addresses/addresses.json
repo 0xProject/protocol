@@ -18,7 +18,7 @@
             "wethTransformer": "0xb2bc06a4efb20fc6553a69dbfa49b7be938034a7",
             "payTakerTransformer": "0xea500d073652336a58846ada15c25f2c6d2d241f",
             "affiliateFeeTransformer": "0x8146cbbe327364b13d0699f2ced39c637f92501a",
-            "fillQuoteTransformer": "0x21c3bee93fad436dedd29f971dc4fdf82f3e3a3a",
+            "fillQuoteTransformer": "0x2fd08c1f9fc8406c1d7e3a799a13883a7e7949f0",
             "positiveSlippageFeeTransformer": "0x818a4a855bfeb16c305cb65e8d4fb239a308bc48"
         }
     },
@@ -64,7 +64,7 @@
             "wethTransformer": "0xac3d95668c092e895cd83a9cbafe9c7d9906471f",
             "payTakerTransformer": "0x7e788f3a3e39cdd1944ba111fafc5fb7e59b5e90",
             "affiliateFeeTransformer": "0x043300d113de0c64684ab89c56a45cd94c7ef54c",
-            "fillQuoteTransformer": "0x43d10801db01c28093265ef9b77d532e553fa578",
+            "fillQuoteTransformer": "0x6073f12fc63bcc64bd4fed5d44aa1035e37d68ee",
             "positiveSlippageFeeTransformer": "0x6ff35e8cbaf56d8a8f6bf9963b902a4576243030"
         }
     },
@@ -156,7 +156,7 @@
             "wethTransformer": "0x9b8b52391071d71cd4ad1e61d7f273268fa34c6c",
             "payTakerTransformer": "0xb9a4c32547bc3cdc2ee2fb13cc1a0717dac9888f",
             "affiliateFeeTransformer": "0x105679f99d668001370b4621ad8648ac570c860f",
-            "fillQuoteTransformer": "0x886e4f97d7e06ab66dba574a7a861046dcf7ae4f",
+            "fillQuoteTransformer": "0x463fe1a80acb62ce1e4f0a4f7b83df674c2cce2c",
             "positiveSlippageFeeTransformer": "0xadbfdc58a24b6dbc16f21541800f43dd6e282250"
         }
     },
@@ -225,7 +225,7 @@
             "wethTransformer": "0x02ce7af6520e2862f961f5d7eda746642865179c",
             "payTakerTransformer": "0xa6c3ca183a67fcb4299fb4199c12ca74874ca489",
             "affiliateFeeTransformer": "0x3102aea537ecb6f164550b094663c82a8c53a972",
-            "fillQuoteTransformer": "0xd140adb61d4e3e3978d4f32ac6b92240ff6e3a6e",
+            "fillQuoteTransformer": "0x521f3184ab27abde4a34e744a908b1a08dc8ef91",
             "positiveSlippageFeeTransformer": "0x9a4947d3fb77a7afc2c9cd6714bbae96dddde059"
         }
     },
@@ -250,6 +250,29 @@
             "affiliateFeeTransformer": "0x970e318b8f074c20bf0cee06970f01dc7a761e50",
             "fillQuoteTransformer": "0x4a8815c2fc605e3b01aee52aade4d096c4e862c6",
             "positiveSlippageFeeTransformer": "0x20f935b037e8490d8027f2751f9452725eee01ad"
+        }
+    },
+    "8453": {
+        "zrxToken": "0x0000000000000000000000000000000000000000",
+        "etherToken": "0x4200000000000000000000000000000000000006",
+        "zeroExGovernor": "0xecc4f2a8e0fd933623b2ea4ad84bffd12cb1286c",
+        "zrxVault": "0x0000000000000000000000000000000000000000",
+        "staking": "0x0000000000000000000000000000000000000000",
+        "stakingProxy": "0x0000000000000000000000000000000000000000",
+        "erc20BridgeProxy": "0x0000000000000000000000000000000000000000",
+        "erc20BridgeSampler": "0x0000000000000000000000000000000000000000",
+        "exchangeProxyGovernor": "0xecc4f2a8e0fd933623b2ea4ad84bffd12cb1286c",
+        "exchangeProxy": "0xdef1c0ded9bec7f1a1670819833240f027b25eff",
+        "exchangeProxyTransformerDeployer": "0x58bca53ebba1aaf25f0edcd8dad6421872fe20b2",
+        "exchangeProxyFlashWallet": "0xdb6f1920a889355780af7570773609bd8cb1f498",
+        "exchangeProxyLiquidityProviderSandbox": "0x0000000000000000000000000000000000000000",
+        "zrxTreasury": "0x0000000000000000000000000000000000000000",
+        "transformers": {
+            "wethTransformer": "0x63186ea36e78ecbf0128e448362f1b81e9bf7412",
+            "payTakerTransformer": "0x5cc22a0e06ea11097c612a962e63674b90e96099",
+            "affiliateFeeTransformer": "0x9e52d8b32d835206d09810c310593bcc77264066",
+            "fillQuoteTransformer": "0x2c46d57bb5af87a13a51dd5b62ba7d3bc7e12e9c",
+            "positiveSlippageFeeTransformer": "0xf98a130d3b4029c70e6d93098cb82a003421341e"
         }
     }
 }

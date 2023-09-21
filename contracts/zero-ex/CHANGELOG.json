@@ -1,5 +1,41 @@
 [
     {
+        "version": "0.48.0",
+        "changes": [
+            {
+                "note": "Add VelodromeV2 support on Base"
+            }
+        ],
+        "timestamp": 1693346928
+    },
+    {
+        "version": "0.47.0",
+        "changes": [
+            {
+                "note": "Add MaverickV1 support on Ethereum, BSC, and Base"
+            }
+        ],
+        "timestamp": 1692368658
+    },
+    {
+        "version": "0.46.0",
+        "changes": [
+            {
+                "note": "Add VelodromeV2 support on Optimism"
+            }
+        ],
+        "timestamp": 1691617396
+    },
+    {
+        "timestamp": 1689974915,
+        "version": "0.45.1",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
         "version": "0.45.0",
         "changes": [
             {
@@ -7,8 +43,15 @@
             },
             {
                 "note": "Remove Shell and MStable support"
+            },
+            {
+                "note": "Add Base Mainnet and Goerli BridgeAdapters"
+            },
+            {
+                "note": "Add Uniswap V3 support on Avalanche and BSC"
             }
-        ]
+        ],
+        "timestamp": 1689791426
     },
     {
         "version": "0.44.0",

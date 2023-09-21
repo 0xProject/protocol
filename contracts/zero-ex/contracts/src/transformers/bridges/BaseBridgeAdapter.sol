@@ -17,37 +17,28 @@ pragma experimental ABIEncoderV2;
 
 import "./AbstractBridgeAdapter.sol";
 import "./BridgeProtocols.sol";
-import "./mixins/MixinAaveV3.sol";
+import "./mixins/MixinUniswapV3.sol";
+import "./mixins/MixinUniswapV2.sol";
 import "./mixins/MixinBalancerV2Batch.sol";
 import "./mixins/MixinCurve.sol";
 import "./mixins/MixinCurveV2.sol";
-import "./mixins/MixinKyberElastic.sol";
-import "./mixins/MixinNerve.sol";
+import "./mixins/MixinMaverickV1.sol";
 import "./mixins/MixinSolidly.sol";
-import "./mixins/MixinSynthetix.sol";
-import "./mixins/MixinUniswapV3.sol";
 import "./mixins/MixinVelodromeV2.sol";
-import "./mixins/MixinWOOFi.sol";
-import "./mixins/MixinZeroExBridge.sol";
 
-contract OptimismBridgeAdapter is
-    AbstractBridgeAdapter(10, "Optimism"),
-    MixinAaveV3,
+contract BaseBridgeAdapter is
+    AbstractBridgeAdapter(8453, "Base"),
+    MixinUniswapV3,
+    MixinUniswapV2,
     MixinBalancerV2Batch,
     MixinCurve,
     MixinCurveV2,
-    MixinKyberElastic,
-    MixinNerve,
-    MixinSynthetix,
-    MixinUniswapV3,
-    MixinVelodromeV2,
+    MixinMaverickV1,
     MixinSolidly,
-    MixinWOOFi,
-    MixinZeroExBridge
+    MixinVelodromeV2
 {
     constructor(IEtherToken weth) public MixinCurve(weth) {}
 
-    /* solhint-disable function-max-lines */
     function _trade(
         BridgeOrder memory order,
         IERC20Token sellToken,
@@ -71,54 +62,32 @@ contract OptimismBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeUniswapV3(sellToken, sellAmount, order.bridgeData);
-        } else if (protocolId == BridgeProtocols.NERVE) {
+        } else if (protocolId == BridgeProtocols.UNISWAPV2) {
             if (dryRun) {
                 return (0, true);
             }
-            boughtAmount = _tradeNerve(sellToken, sellAmount, order.bridgeData);
+            boughtAmount = _tradeUniswapV2(buyToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.SOLIDLY) {
             if (dryRun) {
                 return (0, true);
             }
             boughtAmount = _tradeSolidly(sellToken, buyToken, sellAmount, order.bridgeData);
-        } else if (protocolId == BridgeProtocols.SYNTHETIX) {
-            if (dryRun) {
-                return (0, true);
-            }
-            boughtAmount = _tradeSynthetix(sellAmount, order.bridgeData);
-        } else if (protocolId == BridgeProtocols.UNKNOWN) {
-            if (dryRun) {
-                return (0, true);
-            }
-            boughtAmount = _tradeZeroExBridge(sellToken, buyToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.BALANCERV2BATCH) {
             if (dryRun) {
                 return (0, true);
             }
             boughtAmount = _tradeBalancerV2Batch(sellAmount, order.bridgeData);
-        } else if (protocolId == BridgeProtocols.AAVEV3) {
+        } else if (protocolId == BridgeProtocols.MAVERICKV1) {
             if (dryRun) {
                 return (0, true);
             }
-            boughtAmount = _tradeAaveV3(sellToken, buyToken, sellAmount, order.bridgeData);
-        } else if (protocolId == BridgeProtocols.WOOFI) {
-            if (dryRun) {
-                return (0, true);
-            }
-            boughtAmount = _tradeWOOFi(sellToken, buyToken, sellAmount, order.bridgeData);
-        } else if (protocolId == BridgeProtocols.KYBERELASTIC) {
-            if (dryRun) {
-                return (0, true);
-            }
-            boughtAmount = _tradeKyberElastic(sellToken, sellAmount, order.bridgeData);
+            boughtAmount = _tradeMaverickV1(sellToken, buyToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.VELODROMEV2) {
             if (dryRun) {
                 return (0, true);
             }
             boughtAmount = _tradeVelodromeV2(sellToken, sellAmount, order.bridgeData);
         }
-
         emit BridgeFill(order.source, sellToken, buyToken, sellAmount, boughtAmount);
     }
-    /* solhint-enable function-max-lines */
 }

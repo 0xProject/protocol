@@ -9,6 +9,8 @@ import * as AbstractBridgeAdapter from '../test/generated-artifacts/AbstractBrid
 import * as AffiliateFeeTransformer from '../test/generated-artifacts/AffiliateFeeTransformer.json';
 import * as ArbitrumBridgeAdapter from '../test/generated-artifacts/ArbitrumBridgeAdapter.json';
 import * as AvalancheBridgeAdapter from '../test/generated-artifacts/AvalancheBridgeAdapter.json';
+import * as BaseBridgeAdapter from '../test/generated-artifacts/BaseBridgeAdapter.json';
+import * as BaseGoerliBridgeAdapter from '../test/generated-artifacts/BaseGoerliBridgeAdapter.json';
 import * as BatchFillNativeOrdersFeature from '../test/generated-artifacts/BatchFillNativeOrdersFeature.json';
 import * as BootstrapFeature from '../test/generated-artifacts/BootstrapFeature.json';
 import * as BridgeProtocols from '../test/generated-artifacts/BridgeProtocols.json';
@@ -319,6 +321,8 @@ export const artifacts = {
     ArbitrumBridgeAdapter: ArbitrumBridgeAdapter as ContractArtifact,
     AvalancheBridgeAdapter: AvalancheBridgeAdapter as ContractArtifact,
     BSCBridgeAdapter: BSCBridgeAdapter as ContractArtifact,
+    BaseBridgeAdapter: BaseBridgeAdapter as ContractArtifact,
+    BaseGoerliBridgeAdapter: BaseGoerliBridgeAdapter as ContractArtifact,
     BridgeProtocols: BridgeProtocols as ContractArtifact,
     CeloBridgeAdapter: CeloBridgeAdapter as ContractArtifact,
     EthereumBridgeAdapter: EthereumBridgeAdapter as ContractArtifact,

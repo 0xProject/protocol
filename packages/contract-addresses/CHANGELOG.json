@@ -1,5 +1,53 @@
 [
 	{
+		"version": "8.12.0",
+		"changes": [
+			{
+				"note": "Add VelodromeV2 support on Base"
+			}
+		],
+		"timestamp": 1693346928
+	},
+	{
+		"version": "8.11.0",
+		"changes": [
+			{
+				"note": "Add MaverickV1 support on Ethereum, BSC, and Base"
+			}
+		],
+		"timestamp": 1692368658
+	},
+	{
+		"version": "8.10.0",
+		"changes": [
+			{
+				"note": "Add VelodromeV2 support on Optimism"
+			}
+		],
+		"timestamp": 1691617396
+	},
+	{
+		"version": "8.9.0",
+		"changes": [
+			{
+				"note": "Add Uniswap V3 router v2 support in Base FillQuoteTransformer"
+			}
+		],
+		"timestamp": 1689974915
+	},
+	{
+		"version": "8.8.0",
+		"changes": [
+			{
+				"note": "Add Base mainnet addresses"
+			},
+			{
+				"note": "Add UniswapV3 support in Avalanche and BSC FillQuoteTransformers"
+			}
+		],
+		"timestamp": 1689791426
+	},
+	{
 		"version": "8.7.0",
 		"changes": [
 			{
