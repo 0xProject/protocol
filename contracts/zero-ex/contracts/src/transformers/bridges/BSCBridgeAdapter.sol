@@ -22,9 +22,11 @@ import "./mixins/MixinDodo.sol";
 import "./mixins/MixinDodoV2.sol";
 import "./mixins/MixinKyberDmm.sol";
 import "./mixins/MixinKyberElastic.sol";
+import "./mixins/MixinMaverickV1.sol";
 import "./mixins/MixinMooniswap.sol";
 import "./mixins/MixinNerve.sol";
 import "./mixins/MixinUniswapV2.sol";
+import "./mixins/MixinUniswapV3.sol";
 import "./mixins/MixinWOOFi.sol";
 import "./mixins/MixinZeroExBridge.sol";
 
@@ -35,9 +37,11 @@ contract BSCBridgeAdapter is
     MixinDodoV2,
     MixinKyberDmm,
     MixinKyberElastic,
+    MixinMaverickV1,
     MixinMooniswap,
     MixinNerve,
     MixinUniswapV2,
+    MixinUniswapV3,
     MixinWOOFi,
     MixinZeroExBridge
 {
@@ -61,6 +65,11 @@ contract BSCBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeUniswapV2(buyToken, sellAmount, order.bridgeData);
+        } else if (protocolId == BridgeProtocols.UNISWAPV3) {
+            if (dryRun) {
+                return (0, true);
+            }
+            boughtAmount = _tradeUniswapV3(sellToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.MOONISWAP) {
             if (dryRun) {
                 return (0, true);
@@ -96,6 +105,11 @@ contract BSCBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeWOOFi(sellToken, buyToken, sellAmount, order.bridgeData);
+        } else if (protocolId == BridgeProtocols.MAVERICKV1) {
+            if (dryRun) {
+                return (0, true);
+            }
+            boughtAmount = _tradeMaverickV1(sellToken, buyToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.UNKNOWN) {
             if (dryRun) {
                 return (0, true);

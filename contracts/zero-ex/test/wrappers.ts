@@ -8,6 +8,8 @@ export * from '../test/generated-wrappers/affiliate_fee_transformer';
 export * from '../test/generated-wrappers/arbitrum_bridge_adapter';
 export * from '../test/generated-wrappers/avalanche_bridge_adapter';
 export * from '../test/generated-wrappers/b_s_c_bridge_adapter';
+export * from '../test/generated-wrappers/base_bridge_adapter';
+export * from '../test/generated-wrappers/base_goerli_bridge_adapter';
 export * from '../test/generated-wrappers/batch_fill_native_orders_feature';
 export * from '../test/generated-wrappers/bootstrap_feature';
 export * from '../test/generated-wrappers/bridge_protocols';

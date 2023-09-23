@@ -1,5 +1,50 @@
 [
 	{
+		"timestamp": 1693346928,
+		"version": "11.24.1",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"version": "11.24.0",
+		"changes": [
+			{
+				"note": "Add MaverickV1 support on Ethereum, BSC, and Base"
+			}
+		],
+		"timestamp": 1692368658
+	},
+	{
+		"version": "11.23.0",
+		"changes": [
+			{
+				"note": "Add VelodromeV2 support on Optimism"
+			}
+		],
+		"timestamp": 1691617396
+	},
+	{
+		"timestamp": 1689974915,
+		"version": "11.22.4",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"timestamp": 1689791426,
+		"version": "11.22.3",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
 		"timestamp": 1683749017,
 		"version": "11.22.2",
 		"changes": [
