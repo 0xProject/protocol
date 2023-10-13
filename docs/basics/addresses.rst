@@ -25,10 +25,10 @@ Transformers
 .. csv-table::
 
     wethTransformer, `0xb2bc06a4efb20fc6553a69dbfa49b7be938034a7 <https://etherscan.io/address/0xb2bc06a4efb20fc6553a69dbfa49b7be938034a7>`__
-    payTakerTransformer, `0x4638a7ebe75b911b995d0ec73a81e4f85f41f24e <https://etherscan.io/address/0x4638a7ebe75b911b995d0ec73a81e4f85f41f24e>`__
-    affiliateFeeTransformer, `0xda6d9fc5998f550a094585cf9171f0e8ee3ac59f <https://etherscan.io/address/0xda6d9fc5998f550a094585cf9171f0e8ee3ac59f>`__
-    fillQuoteTransformer, `0xb4fa284689c9784a60d840eb136bb16c5246191f <https://etherscan.io/address/0xb4fa284689c9784a60d840eb136bb16c5246191f>`__
-    positiveSlippageFeeTransformer, `0xa9416ce1dbde8d331210c07b5c253d94ee4cc3fd <https://etherscan.io/address/0xa9416ce1dbde8d331210c07b5c253d94ee4cc3fd>`__
+    payTakerTransformer, `0xea500d073652336a58846ada15c25f2c6d2d241f <https://etherscan.io/address/0xea500d073652336a58846ada15c25f2c6d2d241f>`__
+    affiliateFeeTransformer, `0x8146cbbe327364b13d0699f2ced39c637f92501a <https://etherscan.io/address/0x8146cbbe327364b13d0699f2ced39c637f92501a>`__
+    fillQuoteTransformer, `0x2fd08c1f9fc8406c1d7e3a799a13883a7e7949f0 <https://etherscan.io/address/0x2fd08c1f9fc8406c1d7e3a799a13883a7e7949f0>`__
+    positiveSlippageFeeTransformer, `0x818a4a855bfeb16c305cb65e8d4fb239a308bc48 <https://etherscan.io/address/0x818a4a855bfeb16c305cb65e8d4fb239a308bc48>`__
 
 
 
@@ -47,7 +47,6 @@ Miscellaneous
 ===================
 .. csv-table::
 
-    devUtils, `0x74134cf88b21383713e096a5ecf59e297dc7f547 <https://etherscan.io/address/0x74134cf88b21383713e096a5ecf59e297dc7f547>`__
     etherToken, `0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2 <https://etherscan.io/address/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2>`__
     erc20BridgeSampler, `0xd8c38704c9937ea3312de29f824b4ad3450a5e61 <https://etherscan.io/address/0xd8c38704c9937ea3312de29f824b4ad3450a5e61>`__
 

@@ -42,7 +42,6 @@ sections = [
     {
         "name": "Miscellaneous",
         "contracts": [
-            'devUtils',
             'etherToken',
             'erc20BridgeSampler'
         ]
