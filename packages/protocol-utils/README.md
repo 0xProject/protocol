@@ -8,7 +8,7 @@
 -   Signatures
 -   EIP712 hashing
 
-### Read the [Documentation](https://0x.org/docs/protocol/protocol-utils).
+### Read the [Documentation](https://docs.0xprotocol.org/en/latest/basics/orders.html).
 
 ## Installation
 
