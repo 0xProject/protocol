@@ -1,20 +1,16 @@
 import addresses from '../addresses.json';
 
 export interface ContractAddresses {
-    zrxToken: string;
-    etherToken: string;
-    zeroExGovernor: string;
-    zrxVault: string;
-    staking: string;
-    stakingProxy: string;
     erc20BridgeProxy: string;
     erc20BridgeSampler: string;
-    exchangeProxyGovernor: string;
+    etherToken: string;
     exchangeProxy: string;
-    exchangeProxyTransformerDeployer: string;
     exchangeProxyFlashWallet: string;
+    exchangeProxyGovernor: string;
     exchangeProxyLiquidityProviderSandbox: string;
-    zrxTreasury: string;
+    exchangeProxyTransformerDeployer: string;
+    staking: string;
+    stakingProxy: string;
     transformers: {
         wethTransformer: string;
         payTakerTransformer: string;
@@ -22,21 +18,32 @@ export interface ContractAddresses {
         affiliateFeeTransformer: string;
         positiveSlippageFeeTransformer: string;
     };
+    zeroExGovernor: string;
+    zrxToken: string;
+    zrxTreasury: string;
+    zrxVault: string;
 }
 
 export enum ChainId {
     Mainnet = 1,
     Goerli = 5,
-    Ganache = 1337,
+    Optimism = 10,
     BSC = 56,
     Polygon = 137,
-    PolygonMumbai = 80001,
-    Avalanche = 43114,
     Fantom = 250,
-    Celo = 42220,
-    Optimism = 10,
-    Arbitrum = 42161,
+    Ganache = 1337,
     Base = 8453,
+    Arbitrum = 42161,
+    Avalanche = 43114,
+    Celo = 42220,
+    PolygonMumbai = 80001,
+}
+
+/**
+ * Narrow a JavaScript number to a Chain ID.
+ */
+export function isChainId(chainId: number): chainId is ChainId {
+    return Object.values(ChainId).includes(chainId);
 }
 
 /**

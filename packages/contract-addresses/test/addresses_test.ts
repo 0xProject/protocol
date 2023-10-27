@@ -2,7 +2,7 @@ import * as chai from 'chai';
 import { bufferToHex, rlphash } from 'ethereumjs-util';
 import 'mocha';
 
-import { ChainId, getContractAddressesForChainOrThrow } from '../src';
+import { ChainId, getContractAddressesForChainOrThrow, isChainId } from '../src';
 
 const expect = chai.expect;
 
@@ -66,5 +66,14 @@ describe('addresses.json sanity test', () => {
                 });
             });
         });
+    });
+});
+
+describe("isChainId", () => {
+    it("should return true for existing chain ids", () => {
+      expect(isChainId(1)).to.be.true;
+    });
+    it("should return false for non-existing chain ids", () => {
+      expect(isChainId(666)).to.be.false;
     });
 });
