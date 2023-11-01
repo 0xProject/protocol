@@ -152,6 +152,7 @@ import * as PancakeSwapFeature from '../test/generated-artifacts/PancakeSwapFeat
 import * as PayTakerTransformer from '../test/generated-artifacts/PayTakerTransformer.json';
 import * as PermissionlessTransformerDeployer from '../test/generated-artifacts/PermissionlessTransformerDeployer.json';
 import * as PolygonBridgeAdapter from '../test/generated-artifacts/PolygonBridgeAdapter.json';
+import * as PolygonZkevmBridgeAdapter from '../test/generated-artifacts/PolygonZkevmBridgeAdapter.json';
 import * as PositiveSlippageFeeTransformer from '../test/generated-artifacts/PositiveSlippageFeeTransformer.json';
 import * as SimpleFunctionRegistryFeature from '../test/generated-artifacts/SimpleFunctionRegistryFeature.json';
 import * as TestCurve from '../test/generated-artifacts/TestCurve.json';
@@ -330,6 +331,7 @@ export const artifacts = {
     IBridgeAdapter: IBridgeAdapter as ContractArtifact,
     OptimismBridgeAdapter: OptimismBridgeAdapter as ContractArtifact,
     PolygonBridgeAdapter: PolygonBridgeAdapter as ContractArtifact,
+    PolygonZkevmBridgeAdapter: PolygonZkevmBridgeAdapter as ContractArtifact,
     MixinAaveV2: MixinAaveV2 as ContractArtifact,
     MixinBalancer: MixinBalancer as ContractArtifact,
     MixinBalancerV2Batch: MixinBalancerV2Batch as ContractArtifact,

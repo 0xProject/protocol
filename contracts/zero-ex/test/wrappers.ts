@@ -150,6 +150,7 @@ export * from '../test/generated-wrappers/pancake_swap_feature';
 export * from '../test/generated-wrappers/pay_taker_transformer';
 export * from '../test/generated-wrappers/permissionless_transformer_deployer';
 export * from '../test/generated-wrappers/polygon_bridge_adapter';
+export * from '../test/generated-wrappers/polygon_zkevm_bridge_adapter';
 export * from '../test/generated-wrappers/positive_slippage_fee_transformer';
 export * from '../test/generated-wrappers/simple_function_registry_feature';
 export * from '../test/generated-wrappers/test_curve';

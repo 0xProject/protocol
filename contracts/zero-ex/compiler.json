@@ -124,6 +124,7 @@
         "./contracts/src/transformers/bridges/IBridgeAdapter.sol",
         "./contracts/src/transformers/bridges/OptimismBridgeAdapter.sol",
         "./contracts/src/transformers/bridges/PolygonBridgeAdapter.sol",
+        "./contracts/src/transformers/bridges/PolygonZkevmBridgeAdapter.sol",
         "./contracts/src/transformers/bridges/mixins/MixinAaveV2.sol",
         "./contracts/src/transformers/bridges/mixins/MixinBalancer.sol",
         "./contracts/src/transformers/bridges/mixins/MixinBalancerV2Batch.sol",

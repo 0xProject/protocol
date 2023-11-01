@@ -42,6 +42,7 @@ import * as OtcOrdersFeature from '../generated-artifacts/OtcOrdersFeature.json'
 import * as OwnableFeature from '../generated-artifacts/OwnableFeature.json';
 import * as PayTakerTransformer from '../generated-artifacts/PayTakerTransformer.json';
 import * as PolygonBridgeAdapter from '../generated-artifacts/PolygonBridgeAdapter.json';
+import * as PolygonZkevmBridgeAdapter from '../generated-artifacts/PolygonZkevmBridgeAdapter.json';
 import * as PositiveSlippageFeeTransformer from '../generated-artifacts/PositiveSlippageFeeTransformer.json';
 import * as SimpleFunctionRegistryFeature from '../generated-artifacts/SimpleFunctionRegistryFeature.json';
 import * as TransformERC20Feature from '../generated-artifacts/TransformERC20Feature.json';
@@ -89,5 +90,6 @@ export const artifacts = {
     FantomBridgeAdapter: FantomBridgeAdapter as ContractArtifact,
     OptimismBridgeAdapter: OptimismBridgeAdapter as ContractArtifact,
     PolygonBridgeAdapter: PolygonBridgeAdapter as ContractArtifact,
+    PolygonZkevmBridgeAdapter: PolygonZkevmBridgeAdapter as ContractArtifact,
     MetaTransactionsFeatureV2: MetaTransactionsFeatureV2 as ContractArtifact,
 };
