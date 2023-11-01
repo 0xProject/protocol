@@ -19,13 +19,15 @@ import "./AbstractBridgeAdapter.sol";
 import "./BridgeProtocols.sol";
 import "./mixins/MixinUniswapV3.sol";
 import "./mixins/MixinUniswapV2.sol";
+import "./mixins/MixinWOOFi.sol";
 import "./mixins/MixinBalancerV2Batch.sol";
 
 contract PolygonZkevmBridgeAdapter is
     AbstractBridgeAdapter(1101, "Polygon zkEVM"),
     MixinUniswapV3,
     MixinUniswapV2,
-    MixinBalancerV2Batch
+    MixinBalancerV2Batch,
+    MixinWOOFi
 {
     function _trade(
         BridgeOrder memory order,
@@ -45,6 +47,11 @@ contract PolygonZkevmBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeUniswapV2(buyToken, sellAmount, order.bridgeData);
+        } else if (protocolId == BridgeProtocols.WOOFI) {
+            if (dryRun) {
+                return (0, true);
+            }
+            boughtAmount = _tradeWOOFi(sellToken, buyToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.BALANCERV2BATCH) {
             if (dryRun) {
                 return (0, true);
