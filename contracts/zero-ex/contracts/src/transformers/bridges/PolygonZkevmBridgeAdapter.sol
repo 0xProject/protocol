@@ -21,14 +21,22 @@ import "./mixins/MixinUniswapV3.sol";
 import "./mixins/MixinUniswapV2.sol";
 import "./mixins/MixinWOOFi.sol";
 import "./mixins/MixinBalancerV2Batch.sol";
+import "./mixins/MixinCurve.sol";
+import "./mixins/MixinCurveV2.sol";
+import "./mixins/MixinVelodromeV2.sol";
 
 contract PolygonZkevmBridgeAdapter is
     AbstractBridgeAdapter(1101, "Polygon zkEVM"),
     MixinUniswapV3,
     MixinUniswapV2,
     MixinBalancerV2Batch,
-    MixinWOOFi
+    MixinWOOFi,
+    MixinCurve,
+    MixinCurveV2,
+    MixinVelodromeV2
 {
+    constructor(IEtherToken weth) public MixinCurve(weth) {}
+
     function _trade(
         BridgeOrder memory order,
         IERC20Token sellToken,
@@ -57,6 +65,21 @@ contract PolygonZkevmBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeBalancerV2Batch(sellAmount, order.bridgeData);
+        } else if (protocolId == BridgeProtocols.CURVE) {
+            if (dryRun) {
+                return (0, true);
+            }
+            boughtAmount = _tradeCurve(sellToken, buyToken, sellAmount, order.bridgeData);
+        } else if (protocolId == BridgeProtocols.CURVEV2) {
+            if (dryRun) {
+                return (0, true);
+            }
+            boughtAmount = _tradeCurveV2(sellToken, buyToken, sellAmount, order.bridgeData);
+        } else if (protocolId == BridgeProtocols.VELODROMEV2) {
+            if (dryRun) {
+                return (0, true);
+            }
+            boughtAmount = _tradeVelodromeV2(sellToken, sellAmount, order.bridgeData);
         }
         emit BridgeFill(order.source, sellToken, buyToken, sellAmount, boughtAmount);
     }
