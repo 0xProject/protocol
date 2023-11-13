@@ -69,5 +69,5 @@ Note: Some addresses have changed across various networks
     Arbitrum, `0xdef1c0ded9bec7f1a1670819833240f027b25eff <https://arbiscan.io/address/0xdef1c0ded9bec7f1a1670819833240f027b25eff>`__
     Base, `0xdef1c0ded9bec7f1a1670819833240f027b25eff <https://basescan.org/address/0xdef1c0ded9bec7f1a1670819833240f027b25eff>`__
     zkEVM, `0xdef1c0ded9bec7f1a1670819833240f027b25eff <https://zkevm.polygonscan.com/address/0xdef1c0ded9bec7f1a1670819833240f027b25eff>`__
-    Goerli, `0xf91bb752490473b8342a3e964e855b9f9a2a668e <https://goerli.etherscan.io/address/0xf91bb752490473b8342a3e964e855b9f9a2a668e>`__
+    Sepolia, `0xdef1c0ded9bec7f1a1670819833240f027b25eff <https://sepolia.etherscan.io/address/0xdef1c0ded9bec7f1a1670819833240f027b25eff>`__
     Mumbai, `0xf471d32cb40837bf24529fcf17418fc1a4807626 <https://mumbai.polygonscan.com/address/0xf471d32cb40837bf24529fcf17418fc1a4807626>`__
