@@ -1,5 +1,13 @@
 [
     {
+        "version": "0.49.0",
+        "changes": [
+            {
+                "note": "Allowlist Sepolia in AbstractBridgeAdapter"
+            }
+        ]
+    },
+    {
         "version": "0.48.0",
         "changes": [
             {

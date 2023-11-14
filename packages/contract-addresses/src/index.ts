@@ -37,6 +37,7 @@ export enum ChainId {
     Avalanche = 43114,
     Celo = 42220,
     PolygonMumbai = 80001,
+    Sepolia = 11155111
 }
 
 /**
