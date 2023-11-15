@@ -23,12 +23,14 @@ abstract contract AbstractBridgeAdapter is IBridgeAdapter {
         assembly {
             chainId := chainid()
         }
-        // Skip chain id validation on Ganache (1337), Anvil (31337), Goerli (5), Mumbai (80001), Base Goerli (84531)
+        // Skip chain id validation on Ganache (1337), Anvil (31337), Goerli (5), Mumbai (80001), Base Goerli (84531),
+        // Sepolia (11155111)
         bool skipValidation = (chainId == 1337 ||
             chainId == 31337 ||
             chainId == 5 ||
             chainId == 80001 ||
-            chainId == 84531);
+            chainId == 84531 ||
+            chainId == 11155111);
 
         if (chainId != expectedChainId && !skipValidation) {
             revert(string(abi.encodePacked(expectedChainName, "BridgeAdapter.constructor: wrong chain ID")));
