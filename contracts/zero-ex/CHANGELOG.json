@@ -5,7 +5,8 @@
             {
                 "note": "Allowlist Sepolia in AbstractBridgeAdapter"
             }
-        ]
+        ],
+        "timestamp": 1700094997
     },
     {
         "version": "0.48.0",

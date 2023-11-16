@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.49.0 - _November 16, 2023_
+
+    * Allowlist Sepolia in AbstractBridgeAdapter
+
 ## v0.48.0 - _August 29, 2023_
 
     * Add VelodromeV2 support on Base
