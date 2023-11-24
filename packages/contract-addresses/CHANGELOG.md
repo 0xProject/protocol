@@ -6,6 +6,9 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v8.13.0 - _November 16, 2023_
+
+    * Add Sepolia addresses
 ## v8.12.0 - _August 29, 2023_
 
     * Add VelodromeV2 support on Base

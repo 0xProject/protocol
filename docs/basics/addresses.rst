@@ -66,3 +66,8 @@ Note: Some addresses have changed across various networks
     Avalanche, `0xdef1c0ded9bec7f1a1670819833240f027b25eff <https://snowtrace.io/address/0xdef1c0ded9bec7f1a1670819833240f027b25eff>`__
     Fantom, `0xdef189deaef76e379df891899eb5a00a94cbc250 <https://ftmscan.com/address/0xdef189deaef76e379df891899eb5a00a94cbc250>`__
     Celo, `0xdef1c0ded9bec7f1a1670819833240f027b25eff <https://explorer.celo.org/address/0xdef1c0ded9bec7f1a1670819833240f027b25eff>`__
+    Arbitrum, `0xdef1c0ded9bec7f1a1670819833240f027b25eff <https://arbiscan.io/address/0xdef1c0ded9bec7f1a1670819833240f027b25eff>`__
+    Base, `0xdef1c0ded9bec7f1a1670819833240f027b25eff <https://basescan.org/address/0xdef1c0ded9bec7f1a1670819833240f027b25eff>`__
+    zkEVM, `0xdef1c0ded9bec7f1a1670819833240f027b25eff <https://zkevm.polygonscan.com/address/0xdef1c0ded9bec7f1a1670819833240f027b25eff>`__
+    Sepolia, `0xdef1c0ded9bec7f1a1670819833240f027b25eff <https://sepolia.etherscan.io/address/0xdef1c0ded9bec7f1a1670819833240f027b25eff>`__
+    Mumbai, `0xf471d32cb40837bf24529fcf17418fc1a4807626 <https://mumbai.polygonscan.com/address/0xf471d32cb40837bf24529fcf17418fc1a4807626>`__
