@@ -616,7 +616,7 @@ export class IAssetDataContract extends BaseContract {
      * @param values Array of amounts that correspond to each asset to be
      *     transferred.        Note that each value will be multiplied by the
      *     amount being filled in the order before transferring.
-     * @param nestedAssetData Array of assetData fields that will be be dispatched
+     * @param nestedAssetData Array of assetData fields that will be dispatched
      *     to their correspnding AssetProxy contract.
      */
     public MultiAsset(values: BigNumber[], nestedAssetData: string[]): ContractTxFunctionObj<void> {

@@ -25,7 +25,7 @@ import "./InitialMigration.sol";
 
 /// @dev A contract for deploying and configuring the full ZeroEx contract.
 contract FullMigration {
-    /// @dev Features to add the the proxy contract.
+    /// @dev Features to add the proxy contract.
     struct Features {
         SimpleFunctionRegistryFeature registry;
         OwnableFeature ownable;

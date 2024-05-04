@@ -193,7 +193,7 @@ abstract contract MultiplexUniswapV2 is FixinCommon, FixinTokenSpender {
         }
     }
 
-    // Computes the the amount of output token that would be bought
+    // Computes the amount of output token that would be bought
     // from Uniswap/Sushiswap given the input amount.
     function _computeUniswapOutputAmount(
         address pairAddress,

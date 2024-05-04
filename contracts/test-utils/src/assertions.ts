@@ -81,7 +81,7 @@ export async function expectInsufficientFundsAsync<T>(p: Promise<T>): Promise<vo
 }
 
 /**
- * Resolves if the the sendTransaction call fails with the given revert reason.
+ * Resolves if the sendTransaction call fails with the given revert reason.
  * However, since Geth does not support revert reasons for sendTransaction, this
  * falls back to expectTransactionFailedWithoutReasonAsync if the backing
  * Ethereum node is Geth.
@@ -154,7 +154,7 @@ export async function expectTransactionFailedWithoutReasonAsync(p: sendTransacti
 }
 
 /**
- * Resolves if the the contract call fails with the given revert reason.
+ * Resolves if the contract call fails with the given revert reason.
  * @param p a Promise resulting from a contract call
  * @param reason a specific revert reason
  * @returns a new Promise which will reject if the conditions are not met and

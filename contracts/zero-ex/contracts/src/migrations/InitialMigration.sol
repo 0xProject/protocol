@@ -23,7 +23,7 @@ import "./LibBootstrap.sol";
 
 /// @dev A contract for deploying and configuring a minimal ZeroEx contract.
 contract InitialMigration {
-    /// @dev Features to bootstrap into the the proxy contract.
+    /// @dev Features to bootstrap into the proxy contract.
     struct BootstrapFeatures {
         SimpleFunctionRegistryFeature registry;
         OwnableFeature ownable;
