@@ -13,7 +13,7 @@ To learn more about why 0x Protocol was created, read the whitepaper `here <http
 
 All code is open sourced on `GitHub <https://github.com/0xProject/protocol>`_.
 
-Connect with the community on our `Forum <https://forum.0xProtocol.org/>`_, `Discord <https://discord.com/invite/official0x>`_, `Reddit <https://www.reddit.com/r/0xProject/>`_, and `Twitter <https://twitter.com/zeroexprotocol>`_.
+Connect with the community on our `Forum <https://forum.0xProtocol.org/>`_, `Discord <https://discord.com/invite/official0x>`_, `Reddit <https://www.reddit.com/r/0xProject/>`_, and `Twitter <https://x.com/zeroexprotocol>`_.
 
 
 .. image:: ./_static/img/logo.png
@@ -82,4 +82,4 @@ Connect with the community on our `Forum <https://forum.0xProtocol.org/>`_, `Dis
    Forum <https://forum.0xProtocol.org/>
    Reddit <https://www.reddit.com/r/0xProject/>
    Discord <https://discord.com/invite/official0x>
-   Twitter <https://twitter.com/zeroexprotocol>
+   Twitter <https://x.com/zeroexprotocol>
