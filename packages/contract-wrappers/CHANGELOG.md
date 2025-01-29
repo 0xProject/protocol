@@ -539,7 +539,7 @@ CHANGELOG
     * Dependencies updated
 ## v1.0.0-rc.1 - _July 19, 2018_
 
-    * Update blockstream to v5.0 and propogate up caught errors to active subscriptions (#815)
+    * Update blockstream to v5.0 and propagate up caught errors to active subscriptions (#815)
     * Update to v2 of 0x rpotocol (#822)
 ## v0.1.1 - _July 18, 2018_
 
