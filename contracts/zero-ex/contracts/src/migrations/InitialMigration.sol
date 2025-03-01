@@ -45,7 +45,7 @@ contract InitialMigration {
 
     /// @dev Initialize the `ZeroEx` contract with the minimum feature set,
     ///      transfers ownership to `owner`, then self-destructs.
-    ///      Only callable by `initializeCaller` set in the contstructor.
+    ///      Only callable by `initializeCaller` set in the constructor.
     /// @param owner The owner of the contract.
     /// @param zeroEx The instance of the ZeroEx contract. ZeroEx should
     ///        been constructed with this contract as the bootstrapper.
