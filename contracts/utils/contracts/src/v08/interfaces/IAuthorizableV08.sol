@@ -45,7 +45,7 @@ interface IAuthorizableV08 is IOwnableV08 {
     /// @return authorizedAddresses Array of authorized addresses.
     function getAuthorizedAddresses() external view returns (address[] memory authorizedAddresses);
 
-    /// @dev Whether an adderss is authorized to call privileged functions.
+    /// @dev Whether an address is authorized to call privileged functions.
     /// @param addr Address to query.
     /// @return isAuthorized Whether the address is authorized.
     function authorized(address addr) external view returns (bool isAuthorized);
