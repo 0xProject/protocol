@@ -46,14 +46,14 @@ export function getRandomFloat(min: Numberish, max: Numberish): BigNumber {
 export const FIXED_POINT_BASE = new BigNumber(2).pow(127);
 
 /**
- * Convert `n` to fixed-point integer represenatation.
+ * Convert `n` to fixed-point integer representation.
  */
 export function toFixed(n: Numberish): BigNumber {
     return new BigNumber(n).times(FIXED_POINT_BASE).integerValue();
 }
 
 /**
- * Convert `n` from fixed-point integer represenatation.
+ * Convert `n` from fixed-point integer representation.
  */
 export function fromFixed(n: Numberish): BigNumber {
     return new BigNumber(n).dividedBy(FIXED_POINT_BASE);
