@@ -132,7 +132,7 @@ jobs:
                   path-to-lcov: ./contracts/zero-ex/lcov.info
 
             - name: Check coverage threshold
-              uses: VeryGoodOpenSource/very_good_coverage@v2
+              uses: VeryGoodOpenSource/very_good_coverage@v3
               with:
                   path: ./contracts/zero-ex/lcov.info
                   min_coverage: 6.98
