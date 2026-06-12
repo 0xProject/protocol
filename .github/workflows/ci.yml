@@ -19,12 +19,12 @@ jobs:
             OPTIMISM_RPC_URL: ${{ secrets.OPTIMISM_RPC_URL }}
             POLYGON_RPC_URL: ${{ secrets.POLYGON_RPC_URL }}
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v6
               with:
                   submodules: recursive
 
             - name: Setup Node
-              uses: actions/setup-node@v3
+              uses: actions/setup-node@v6
               with:
                   node-version: '16'
 
@@ -102,7 +102,7 @@ jobs:
             #       forge coverage --report summary --report lcov
 
             # - name: Upload the coverage report to Coveralls
-            #   uses: coverallsapp/github-action@master
+            #   uses: coverallsapp/github-action@v2
             #   with:
             #       github-token: ${{ secrets.GITHUB_TOKEN }}
             #       base-path: ./contracts/erc20/
@@ -125,7 +125,7 @@ jobs:
                   forge coverage --report summary --report lcov
 
             - name: Upload the coverage report to Coveralls
-              uses: coverallsapp/github-action@master
+              uses: coverallsapp/github-action@v2
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
                   base-path: ./contracts/zero-ex/
@@ -156,7 +156,7 @@ jobs:
             #       forge coverage --report lcov
 
             # - name: Upload the coverage report to Coveralls
-            #   uses: coverallsapp/github-action@master
+            #   uses: coverallsapp/github-action@v2
             #   with:
             #       github-token: ${{ secrets.GITHUB_TOKEN }}
             #       base-path: ./contracts/governance/
