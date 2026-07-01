@@ -28,7 +28,7 @@ jobs:
               uses: foundry-rs/foundry-toolchain@v1
               with:
                   version: nightly
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
               with:
                   ref: ${{ github.ref }}
                   fetch-depth: 0
