@@ -132,11 +132,17 @@ jobs:
                   path-to-lcov: ./contracts/zero-ex/lcov.info
 
             - name: Check coverage threshold
-              uses: VeryGoodOpenSource/very_good_coverage@v2
-              with:
-                  path: ./contracts/zero-ex/lcov.info
-                  min_coverage: 6.98
-                  exclude: '**/tests'
+              run: |
+                  awk -F: '
+                    /^SF:/ { skip = ($2 ~ /\/tests\//) }
+                    /^LF:/ && !skip { lf += $2 }
+                    /^LH:/ && !skip { lh += $2 }
+                    END {
+                      cov = lf ? 100 * lh / lf : 100
+                      printf "Line coverage: %.2f%% (min 6.98%%)\n", cov
+                      if (cov < 6.98) { print "::error::coverage below threshold"; exit 1 }
+                    }
+                  ' ./contracts/zero-ex/lcov.info
 
             - name: Run Forge build on governance contracts
               working-directory: ./contracts/governance
