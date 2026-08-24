@@ -132,16 +132,23 @@ jobs:
                   path-to-lcov: ./contracts/zero-ex/lcov.info
 
             - name: Check coverage threshold
-              run: |
-                  awk -F: '
-                    /^LF:/ { lf += $2 }
-                    /^LH:/ { lh += $2 }
-                    END {
-                      cov = lf ? 100 * lh / lf : 0
-                      printf "Line coverage: %.2f%% (min 6.98%%)\n", cov
-                      if (cov < 6.98) { print "::error::coverage below threshold"; exit 1 }
-                    }
-                  ' ./contracts/zero-ex/lcov.info
+              uses: actions/github-script@v9
+              with:
+                  script: |
+                      const fs = require('fs');
+                      const MIN_COVERAGE = 6.98;
+                      const lcov = fs.readFileSync('./contracts/zero-ex/lcov.info', 'utf8');
+                      let linesFound = 0;
+                      let linesHit = 0;
+                      for (const line of lcov.split('\n')) {
+                        if (line.startsWith('LF:')) linesFound += Number(line.slice(3));
+                        else if (line.startsWith('LH:')) linesHit += Number(line.slice(3));
+                      }
+                      const coverage = linesFound ? (100 * linesHit) / linesFound : 0;
+                      core.info(`Line coverage: ${coverage.toFixed(2)}% (min ${MIN_COVERAGE}%)`);
+                      if (coverage < MIN_COVERAGE) {
+                        core.setFailed(`Coverage ${coverage.toFixed(2)}% is below the ${MIN_COVERAGE}% threshold`);
+                      }
 
             - name: Run Forge build on governance contracts
               working-directory: ./contracts/governance
